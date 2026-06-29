@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 — FreeFontPick</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
+      --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+      --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+      --accent:#FF5C35;--accent-light:#FFF0EC;--accent-hover:#E84A25;
+      --danger:#E24B4A;--danger-light:#FDECEC;
+      --success:#1A8A3A;--success-light:#E8F7EE;
+      --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+      --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
+    }
+    @media(prefers-color-scheme:dark){:root{
+      --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+      --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+      --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+      --accent:#FF6B47;--accent-light:#2A1A14;--accent-hover:#FF8060;
+      --danger:#FF7873;--danger-light:#2A0F0E;
+      --success:#5FCB85;--success-light:#0F2A18;
+    }}
+    body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;line-height:1.6}
+
+    /* HEADER */
+    .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
+    .header-inner{max-width:1280px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
+    .logo{display:flex;align-items:center;text-decoration:none}
+    .logo img{height:32px;width:auto;display:block}
+    .admin-badge{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#fff;background:var(--accent);padding:4px 10px;border-radius:20px;letter-spacing:.5px}
+    .header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+    .header-link{font-size:13px;color:var(--text-secondary);text-decoration:none;padding:6px 12px;border-radius:var(--radius-sm);transition:all .15s}
+    .header-link:hover{background:var(--bg-secondary);color:var(--text-primary)}
+    .btn-logout{font-size:13px;color:var(--text-secondary);background:transparent;border:1px solid var(--border);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;transition:all .15s}
+    .btn-logout:hover{border-color:var(--danger);color:var(--danger);background:var(--danger-light)}
+
+    /* LOGIN */
+    .login-wrap{min-height:80vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:36px 32px 28px;width:100%;max-width:380px;box-shadow:0 8px 30px rgba(0,0,0,.08);text-align:center}
+    .login-icon{width:56px;height:56px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px}
+    .login-card h1{font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+    .login-card p{font-size:13px;color:var(--text-secondary);margin-bottom:24px}
+    .login-field{margin-bottom:14px;text-align:left}
+    .login-field label{display:block;font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:6px}
+    .login-field input{width:100%;height:42px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 14px;font-size:14px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s}
+    .login-field input:focus{border-color:var(--accent);background:var(--bg-card)}
+    .login-error{font-size:12px;color:var(--danger);margin-top:6px;display:none}
+    .login-error.show{display:block}
+    .btn-login{width:100%;height:44px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:800;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;transition:background .15s;margin-top:6px}
+    .btn-login:hover{background:var(--accent-hover)}
+    .login-hint{font-size:11px;color:var(--text-muted);margin-top:18px;line-height:1.6}
+
+    /* MAIN ADMIN */
+    .main{max-width:1280px;margin:0 auto;padding:32px 24px 80px;display:none}
+    .main.shown{display:block}
+    .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:26px;flex-wrap:wrap}
+    .page-title{font-size:24px;font-weight:800;letter-spacing:-.5px}
+    .page-title small{display:block;font-size:13px;font-weight:400;color:var(--text-secondary);margin-top:4px}
+
+    .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+    .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 18px;display:flex;align-items:center;gap:12px}
+    .stat-icon{width:38px;height:38px;border-radius:10px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+    .stat-num{font-size:20px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+    .stat-label{font-size:12px;color:var(--text-muted);margin-top:2px}
+
+    /* TABS */
+    .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px}
+    .tab-btn{font-size:14px;font-weight:700;padding:10px 16px;background:transparent;border:none;color:var(--text-secondary);cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+    .tab-btn:hover{color:var(--text-primary)}
+    .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+    .tab-panel{display:none}
+    .tab-panel.active{display:block}
+
+    /* TOOLBAR */
+    .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+    .toolbar input[type=text]{flex:1;min-width:180px;height:38px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 14px;font-size:13px;background:var(--bg-card);color:var(--text-primary);outline:none;font-family:inherit}
+    .toolbar input[type=text]:focus{border-color:var(--accent)}
+    .toolbar select{height:38px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 10px;font-size:13px;background:var(--bg-card);color:var(--text-secondary);outline:none;font-family:inherit;cursor:pointer}
+    .btn-primary{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:0 14px;height:38px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;transition:background .15s;white-space:nowrap}
+    .btn-primary:hover{background:var(--accent-hover)}
+    .btn-secondary{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:0 14px;height:38px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:all .15s}
+    .btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+
+    /* TABLE */
+    .table-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{text-align:left;padding:12px 14px;background:var(--bg-secondary);color:var(--text-secondary);font-weight:700;font-size:12px;white-space:nowrap}
+    td{padding:12px 14px;border-top:1px solid var(--border);vertical-align:middle}
+    tr:hover td{background:var(--bg-secondary)}
+    .cell-name{font-weight:800;color:var(--text-primary)}
+    .cell-maker{font-size:11px;color:var(--text-muted);margin-top:2px}
+    .cell-tags{display:flex;gap:4px;flex-wrap:wrap;max-width:280px}
+    .pill{font-size:10px;padding:2px 7px;border-radius:8px;background:var(--bg-secondary);color:var(--text-muted);font-weight:700;white-space:nowrap}
+    .pill-uploaded{background:var(--success-light);color:var(--success)}
+    .row-actions{display:flex;gap:6px;justify-content:flex-end}
+    .btn-icon{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text-secondary);transition:all .15s;font-family:inherit}
+    .btn-icon:hover{border-color:var(--accent);color:var(--accent)}
+    .btn-icon.danger:hover{border-color:var(--danger);color:var(--danger);background:var(--danger-light)}
+    .btn-icon svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+
+    /* REORDER MODE */
+    .reorder-hint{display:flex;align-items:center;gap:8px;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:700;padding:10px 14px;border-radius:var(--radius-sm);margin-bottom:14px}
+    .reorder-hint i{font-size:15px}
+    .btn-secondary.active-reorder{background:var(--accent);border-color:var(--accent);color:#fff}
+    .order-cell{display:flex;align-items:center;gap:4px;justify-content:center}
+    .order-num{font-size:11px;font-weight:800;color:var(--text-muted);min-width:24px;text-align:right}
+    .reorder-handles{display:none;align-items:center;gap:2px}
+    .reorder-mode .reorder-handles{display:inline-flex}
+    .reorder-mode .order-num{display:none}
+    .handle-btn{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text-secondary);font-family:inherit;padding:0;transition:all .12s}
+    .handle-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .handle-btn:disabled{opacity:.3;cursor:not-allowed}
+    .handle-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.2}
+    .drag-grip{cursor:grab;color:var(--text-muted);padding:0 4px;display:none;align-items:center}
+    .reorder-mode .drag-grip{display:inline-flex}
+    .drag-grip:active{cursor:grabbing}
+    .reorder-mode tr.draggable{cursor:grab}
+    .reorder-mode tr.draggable.dragging{opacity:.4;background:var(--accent-light) !important}
+    .reorder-mode tr.draggable.drop-above td{box-shadow:inset 0 2px 0 var(--accent)}
+    .reorder-mode tr.draggable.drop-below td{box-shadow:inset 0 -2px 0 var(--accent)}
+    /* 정렬 모드일 때는 액션 버튼 숨김 (수정/삭제는 정렬 모드 끄고 이용) */
+    .reorder-mode .row-actions{opacity:.3;pointer-events:none}
+
+    .empty{text-align:center;padding:60px 20px;color:var(--text-muted)}
+    .empty i{font-size:32px;display:block;margin-bottom:10px}
+
+    /* CATEGORY LIST */
+    .cat-list{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+    .cat-row{display:flex;align-items:center;gap:12px;padding:14px 18px;border-top:1px solid var(--border)}
+    .cat-row:first-child{border-top:none}
+    .cat-row:hover{background:var(--bg-secondary)}
+    .cat-name{font-size:14px;font-weight:700;color:var(--text-primary);flex:1}
+    .cat-count{font-size:11px;color:var(--text-muted);background:var(--bg-secondary);padding:2px 8px;border-radius:10px;font-weight:700}
+
+    /* MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;backdrop-filter:blur(4px)}
+    .modal-overlay.open{display:flex;animation:fadeIn .2s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .modal{background:var(--bg-card);border-radius:18px;max-width:560px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideUp .25s ease;overflow:hidden}
+    @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .modal-head{padding:22px 26px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .modal-head h3{font-size:17px;font-weight:800;letter-spacing:-.3px}
+    .modal-close{width:32px;height:32px;border-radius:50%;border:none;background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s}
+    .modal-close:hover{background:var(--accent);color:#fff}
+    .modal-body{padding:20px 26px;max-height:60vh;overflow-y:auto}
+    .modal-foot{padding:16px 26px 22px;border-top:1px solid var(--border);display:flex;gap:8px}
+
+    .field{margin-bottom:14px}
+    .field label{display:block;font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:6px}
+    .field label .req{color:var(--danger)}
+    .field input[type=text],.field input[type=url],.field select{width:100%;height:40px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 12px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit}
+    .field input:focus,.field select:focus{border-color:var(--accent);background:var(--bg-card)}
+    .field-hint{font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.5}
+
+    .tag-grid{display:flex;flex-wrap:wrap;gap:6px}
+    .tag-chip{font-size:12px;padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;user-select:none;font-weight:700;transition:all .15s;font-family:inherit}
+    .tag-chip.selected{background:var(--accent);border-color:var(--accent);color:#fff}
+
+    /* META SECTION (8개 차원) */
+    .meta-section{background:var(--bg-secondary);padding:16px;border-radius:var(--radius-md);border:1px solid var(--border)}
+    .meta-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+    .meta-header label{font-weight:700;font-size:13px;color:var(--text-primary)}
+    .meta-sub{font-weight:400;font-size:11px;color:var(--text-muted);margin-left:6px}
+    .btn-reset-meta{display:inline-flex;align-items:center;gap:4px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);padding:5px 10px;border-radius:14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
+    .btn-reset-meta:hover{border-color:var(--accent);color:var(--accent)}
+    .btn-reset-meta i{font-size:12px}
+    .meta-grid{display:flex;flex-direction:column;gap:12px}
+    .meta-col-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    @media(max-width:640px){.meta-col-row{grid-template-columns:1fr}}
+    .meta-label{font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:5px;letter-spacing:.3px}
+    .meta-chips{display:flex;flex-wrap:wrap;gap:5px}
+    .meta-chip{font-size:11px;padding:4px 9px;border-radius:14px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;user-select:none;font-weight:600;transition:all .12s;font-family:inherit;position:relative}
+    .meta-chip.selected{background:var(--accent);border-color:var(--accent);color:#fff}
+    .meta-chip.auto::before{content:'✦';position:absolute;top:-3px;right:-2px;font-size:9px;color:var(--accent);background:var(--bg-card);width:11px;height:11px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:bold}
+    .meta-chip.auto.selected::before{color:#fff;background:var(--accent)}
+    .meta-radios{display:flex;gap:5px;flex-wrap:wrap}
+    .meta-radio{font-size:11px;padding:5px 10px;border-radius:14px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-weight:600;font-family:inherit;transition:all .12s}
+    .meta-radio.selected{background:var(--accent);border-color:var(--accent);color:#fff}
+    .meta-summary-wrap input{width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px;font-family:inherit}
+
+    /* FILE UPLOAD */
+    .drop-zone{border:2px dashed var(--border-hover);border-radius:var(--radius-md);padding:24px 16px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg-secondary)}
+    .drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:var(--accent-light)}
+    .drop-zone i{font-size:28px;color:var(--text-muted);display:block;margin-bottom:6px}
+    .drop-zone p{font-size:13px;color:var(--text-secondary);font-weight:700;margin-bottom:2px}
+    .drop-zone small{font-size:11px;color:var(--text-muted)}
+    .drop-zone input{display:none}
+    .selected-file{display:flex;align-items:center;gap:10px;background:var(--success-light);color:var(--success);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px;font-size:13px;font-weight:700}
+    .selected-file i{font-size:18px}
+    .selected-file .name{flex:1;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .selected-file button{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;padding:0}
+
+    .btn-cancel{flex:1;padding:11px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-family:inherit;font-size:13px;font-weight:700}
+    .btn-cancel:hover{background:var(--bg-secondary)}
+    .btn-save{flex:2;padding:11px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;font-size:13px;font-weight:800}
+    .btn-save:hover{background:var(--accent-hover)}
+    .btn-delete{flex:1;padding:11px;border-radius:var(--radius-sm);border:none;background:var(--danger);color:#fff;cursor:pointer;font-family:inherit;font-size:13px;font-weight:800}
+
+    .confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+    .confirm-overlay.open{display:flex}
+    .confirm{background:var(--bg-card);border-radius:18px;padding:26px;max-width:380px;width:100%;text-align:center}
+    .confirm-icon{width:48px;height:48px;border-radius:50%;background:var(--danger-light);color:var(--danger);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px}
+    .confirm h4{font-size:15px;font-weight:800;margin-bottom:4px}
+    .confirm p{font-size:12px;color:var(--text-muted);margin-bottom:18px;line-height:1.5}
+    .confirm-actions{display:flex;gap:8px}
+
+    /* NOTICE EDITOR */
+    .editor-toolbar{display:flex;align-items:center;gap:4px;padding:8px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm) var(--radius-sm) 0 0;border-bottom:none}
+    .editor-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:30px;border-radius:6px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;font-family:inherit;font-size:14px;transition:all .12s}
+    .editor-btn:hover{background:var(--bg-card);color:var(--text-primary)}
+    .editor-btn:active,.editor-btn.active{background:var(--accent-light);color:var(--accent)}
+    .editor-divider{width:1px;height:18px;background:var(--border);margin:0 4px}
+    .editor-hint{font-size:11px;color:var(--text-muted);margin-left:4px}
+    .editor-body{min-height:200px;max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:0 0 var(--radius-sm) var(--radius-sm);padding:14px;font-size:14px;line-height:1.7;background:var(--bg-secondary);color:var(--text-primary);outline:none;word-break:break-word;font-family:inherit}
+    .editor-body:focus{border-color:var(--accent);background:var(--bg-card)}
+    .editor-body:empty::before{content:attr(data-placeholder);color:var(--text-muted)}
+    .editor-body strong,.editor-body b{font-weight:800}
+
+    .notice-pin-cell{display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:14px}
+    .notice-pin-cell.empty{color:var(--text-muted);opacity:.2}
+    .notice-title-cell{font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px}
+    .notice-title-cell .badge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:8px;background:var(--accent-light);color:var(--accent)}
+    .notice-cell-date{font-size:12px;color:var(--text-muted)}
+
+    .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text-primary);color:var(--bg);padding:12px 22px;border-radius:24px;font-size:13px;font-weight:700;opacity:0;transition:all .2s;z-index:700;pointer-events:none;white-space:nowrap}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    @media(max-width:640px){
+      .table-wrap{overflow-x:auto}
+      table{min-width:700px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header" id="adminHeader" style="display:none">
+  <div class="header-inner">
+    <a href="index.html" class="logo" aria-label="FreeFontPick"><img src="logo.png" alt="FreeFontPick"></a>
+    <span class="admin-badge"><i class="ti ti-shield-lock" aria-hidden="true" style="font-size:12px"></i> ADMIN</span>
+    <div class="header-right">
+      <a class="header-link" href="index.html" target="_blank" rel="noopener"><i class="ti ti-external-link" aria-hidden="true"></i> 사이트 보기</a>
+      <button class="btn-logout" onclick="logout()"><i class="ti ti-logout" aria-hidden="true"></i> 로그아웃</button>
+    </div>
+  </div>
+</header>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-icon"><i class="ti ti-shield-lock" aria-hidden="true"></i></div>
+    <h1>관리자 로그인</h1>
+    <p>관리자 비밀번호를 입력해주세요</p>
+    <div class="login-field">
+      <label for="pwInput">비밀번호</label>
+      <input type="password" id="pwInput" placeholder="비밀번호" onkeydown="if(event.key==='Enter') tryLogin()" autocomplete="current-password">
+      <div class="login-error" id="loginError">비밀번호가 일치하지 않습니다</div>
+    </div>
+    <button class="btn-login" onclick="tryLogin()">로그인</button>
+    <p class="login-hint">기본 비밀번호: <strong>tadak2026</strong><br>코드(<code>ADMIN_PASSWORD</code>)에서 변경할 수 있습니다</p>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="main" id="adminMain">
+  <div class="page-head">
+    <div class="page-title">관리자 페이지
+      <small>폰트와 카테고리를 관리할 수 있어요</small>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="ti ti-typography" aria-hidden="true"></i></div>
+      <div><div class="stat-num" id="statFontCount">0</div><div class="stat-label">전체 폰트</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i class="ti ti-tags" aria-hidden="true"></i></div>
+      <div><div class="stat-num" id="statTagCount">0</div><div class="stat-label">카테고리</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i class="ti ti-upload" aria-hidden="true"></i></div>
+      <div><div class="stat-num" id="statFileCount">0</div><div class="stat-label">업로드된 파일</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i class="ti ti-speakerphone" aria-hidden="true"></i></div>
+      <div><div class="stat-num" id="statNoticeCount">0</div><div class="stat-label">공지사항</div></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('fonts',this)">폰트 관리</button>
+    <button class="tab-btn" onclick="switchTab('cats',this)">카테고리 관리</button>
+    <button class="tab-btn" onclick="switchTab('notices',this)">공지사항 관리</button>
+  </div>
+
+  <!-- FONTS TAB -->
+  <div class="tab-panel active" id="tab-fonts">
+    <div class="toolbar">
+      <input type="text" id="fontSearch" placeholder="폰트 이름 또는 제작자 검색" oninput="renderFontTable()">
+      <select id="fontTagFilter" onchange="renderFontTable()">
+        <option value="all">전체 카테고리</option>
+      </select>
+      <button class="btn-secondary" id="reorderToggleBtn" onclick="toggleReorderMode()"><i class="ti ti-arrows-sort" aria-hidden="true"></i> 순서 변경</button>
+      <button class="btn-primary" onclick="openFontModal()"><i class="ti ti-plus" aria-hidden="true"></i> 새 폰트 등록</button>
+    </div>
+    <div class="reorder-hint" id="reorderHint" style="display:none">
+      <i class="ti ti-info-circle" aria-hidden="true"></i>
+      <span><strong>순서 변경 모드</strong> — 행을 끌어서 옮기거나 화살표 버튼을 사용하세요. 변경 즉시 메인 페이지에 반영됩니다.</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:60px;text-align:center">#</th>
+          <th>폰트명</th><th>제작자</th><th>종수</th><th>카테고리</th><th style="text-align:right">관리</th>
+        </tr></thead>
+        <tbody id="fontTableBody"></tbody>
+      </table>
+      <div id="fontEmpty" class="empty" style="display:none">
+        <i class="ti ti-mood-sad" aria-hidden="true"></i>검색 결과가 없어요
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES TAB -->
+  <div class="tab-panel" id="tab-cats">
+    <div class="toolbar">
+      <input type="text" id="newCatInput" placeholder="새 카테고리 이름 입력" onkeydown="if(event.key==='Enter') addCategory()">
+      <button class="btn-primary" onclick="addCategory()"><i class="ti ti-plus" aria-hidden="true"></i> 카테고리 추가</button>
+    </div>
+    <div class="cat-list" id="catList"></div>
+  </div>
+
+  <!-- NOTICES TAB -->
+  <div class="tab-panel" id="tab-notices">
+    <div class="toolbar">
+      <input type="text" id="noticeSearch" placeholder="제목 검색" oninput="renderNoticeTable()">
+      <button class="btn-primary" onclick="openNoticeModal()"><i class="ti ti-plus" aria-hidden="true"></i> 새 공지사항 작성</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:40px"></th><th>제목</th><th style="width:120px">작성일</th><th style="width:120px">수정일</th><th style="text-align:right;width:120px">관리</th>
+        </tr></thead>
+        <tbody id="noticeTableBody"></tbody>
+      </table>
+      <div id="noticeEmpty" class="empty" style="display:none">
+        <i class="ti ti-speakerphone" aria-hidden="true"></i>등록된 공지사항이 없어요
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- FONT MODAL -->
+<div class="modal-overlay" id="fontModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="fontModalTitle">새 폰트 등록</h3>
+      <button class="modal-close" onclick="closeFontModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>폰트 이름 <span class="req">*</span></label>
+        <input type="text" id="fmName" placeholder="예: 프리텐다드">
+      </div>
+      <div class="field">
+        <label>제작자 <span class="req">*</span></label>
+        <input type="text" id="fmMaker" placeholder="예: 네이버, 또는 개인 제작자명">
+      </div>
+      <div class="field">
+        <label>종수</label>
+        <input type="text" id="fmWeights" placeholder="1종" value="1종">
+      </div>
+      <div class="field">
+        <label>다운로드 URL</label>
+        <input type="url" id="fmUrl" placeholder="https://...">
+        <div class="field-hint">없으면 폰트명으로 눈누(noonnu.cc)에서 검색하는 링크가 자동 사용됩니다.</div>
+      </div>
+      <div class="field">
+        <label>카테고리 (1개 이상 선택) <span class="req">*</span></label>
+        <div class="tag-grid" id="fmTagGrid"></div>
+      </div>
+
+      <!-- 추천 메타데이터 (8개 차원) -->
+      <div class="field meta-section">
+        <div class="meta-header">
+          <label>
+            <i class="ti ti-sparkles" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i>
+            추천 메타데이터
+            <span class="meta-sub">— 카테고리 선택 시 자동 추론됨. 폰트별 특성에 맞춰 미세 조정 가능</span>
+          </label>
+          <button type="button" class="btn-reset-meta" onclick="resetMetaFromCategories()">
+            <i class="ti ti-refresh" aria-hidden="true"></i> 카테고리에서 다시 추론
+          </button>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-col">
+            <div class="meta-label">분위기 (mood)</div>
+            <div class="meta-chips" id="fmMoodChips"></div>
+          </div>
+          <div class="meta-col">
+            <div class="meta-label">용도 (usage)</div>
+            <div class="meta-chips" id="fmUsageChips"></div>
+          </div>
+          <div class="meta-col">
+            <div class="meta-label">산업 (industry)</div>
+            <div class="meta-chips" id="fmIndustryChips"></div>
+          </div>
+          <div class="meta-col">
+            <div class="meta-label">성격 (personality)</div>
+            <div class="meta-chips" id="fmPersonalityChips"></div>
+          </div>
+          <div class="meta-col-row">
+            <div class="meta-radio-group">
+              <div class="meta-label">굵기</div>
+              <div id="fmWeightFeel" class="meta-radios"></div>
+            </div>
+            <div class="meta-radio-group">
+              <div class="meta-label">격식</div>
+              <div id="fmFormality" class="meta-radios"></div>
+            </div>
+            <div class="meta-radio-group">
+              <div class="meta-label">가독 분량</div>
+              <div id="fmReadingLength" class="meta-radios"></div>
+            </div>
+          </div>
+          <div class="meta-col-row">
+            <div class="meta-summary-wrap">
+              <div class="meta-label">한 줄 설명 (summary)</div>
+              <input type="text" id="fmSummary" placeholder="예: 둥글고 다정한 인상의 본문 폰트" maxlength="80">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>폰트 파일 업로드 (미리보기용)</label>
+        <div class="drop-zone" id="fmDropZone" onclick="document.getElementById('fmFileInput').click()">
+          <i class="ti ti-cloud-upload" aria-hidden="true"></i>
+          <p>클릭하거나 파일을 끌어다 놓기</p>
+          <small>TTF · OTF · WOFF · WOFF2 (최대 5MB)</small>
+          <input type="file" id="fmFileInput" accept=".ttf,.otf,.woff,.woff2,font/*" onchange="handleFmFile(this.files[0])">
+        </div>
+        <div id="fmFilePreview"></div>
+        <div class="field-hint">파일을 올리면 메인 페이지 갤러리에서 실제 해당 폰트로 미리보기가 표시됩니다.</div>
+        <div class="field-hint" id="fmSizeWarning" style="display:none;color:var(--danger,#d33);font-weight:600">⚠ 파일이 큽니다. 백엔드 도입 후 자동 서브셋 변환 예정 — 현재는 사용자 로딩이 느릴 수 있습니다.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeFontModal()">취소</button>
+      <button class="btn-save" onclick="saveFont()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="confirm-overlay" id="confirmModal">
+  <div class="confirm">
+    <div class="confirm-icon"><i class="ti ti-alert-triangle" aria-hidden="true"></i></div>
+    <h4 id="confirmTitle">정말 삭제할까요?</h4>
+    <p id="confirmDesc">삭제하면 되돌릴 수 없습니다.</p>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="closeConfirm()">취소</button>
+      <button class="btn-delete" onclick="doConfirm()">삭제하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY EDIT MODAL -->
+<div class="modal-overlay" id="catEditModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <h3>카테고리 이름 수정</h3>
+      <button class="modal-close" onclick="closeCatEdit()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>카테고리 이름</label>
+        <input type="text" id="catEditInput" onkeydown="if(event.key==='Enter') saveCatEdit()">
+        <div class="field-hint">이 카테고리에 속한 모든 폰트의 태그도 함께 변경됩니다.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeCatEdit()">취소</button>
+      <button class="btn-save" onclick="saveCatEdit()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTICE MODAL -->
+<div class="modal-overlay" id="noticeModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-head">
+      <h3 id="noticeModalTitle">새 공지사항 작성</h3>
+      <button class="modal-close" onclick="closeNoticeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>제목 <span class="req">*</span></label>
+        <input type="text" id="nmTitle" placeholder="공지사항 제목을 입력해주세요">
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="nmPinned" style="width:auto;height:auto;margin:0">
+          <span>상단 고정 (목록에서 '중요'로 표시되고 맨 위에 배치됨)</span>
+        </label>
+      </div>
+      <div class="field">
+        <label>내용 <span class="req">*</span></label>
+        <div class="editor-toolbar">
+          <button type="button" class="editor-btn" onclick="execEditor('bold')" title="굵게 (Ctrl+B)" aria-label="굵게">
+            <strong>B</strong>
+          </button>
+          <button type="button" class="editor-btn" onclick="execEditor('insertLineBreak')" title="줄바꿈" aria-label="줄바꿈">
+            <i class="ti ti-corner-down-left" aria-hidden="true"></i>
+          </button>
+          <span class="editor-divider"></span>
+          <span class="editor-hint">굵게 · 줄바꿈 (엔터)만 지원</span>
+        </div>
+        <div class="editor-body" id="nmContent" contenteditable="true" data-placeholder="내용을 입력해주세요"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeNoticeModal()">취소</button>
+      <button class="btn-save" onclick="saveNotice()">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 공유 데이터 레이어 -->
+<script src="font-data.js"></script>
+<script>
+/* ════════════════════════════════════════
+   비밀번호 (실서비스에서는 서버 인증 필요)
+   파일 상단에서 한 곳만 변경하면 됨.
+════════════════════════════════════════ */
+const ADMIN_PASSWORD = 'tadak2026';
+const SESSION_KEY = 'tadak_admin_session';
+
+function isLoggedIn(){
+  try { return sessionStorage.getItem(SESSION_KEY) === 'yes'; }
+  catch(e) { return false; }
+}
+function tryLogin(){
+  const pw = document.getElementById('pwInput').value;
+  if(pw === ADMIN_PASSWORD){
+    try { sessionStorage.setItem(SESSION_KEY, 'yes'); } catch(e){}
+    showAdmin();
+  } else {
+    document.getElementById('loginError').classList.add('show');
+    document.getElementById('pwInput').focus();
+  }
+}
+function logout(){
+  try { sessionStorage.removeItem(SESSION_KEY); } catch(e){}
+  document.getElementById('adminHeader').style.display='none';
+  document.getElementById('adminMain').classList.remove('shown');
+  document.getElementById('loginWrap').style.display='flex';
+  document.getElementById('pwInput').value='';
+}
+function showAdmin(){
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('adminHeader').style.display='block';
+  document.getElementById('adminMain').classList.add('shown');
+  refresh();
+}
+
+/* ════════════════════════════════════════
+   상태
+════════════════════════════════════════ */
+let FONTS = [];
+let TAGS = [];
+let editingId = null;       // 폰트 수정 중인 id
+let pendingFile = null;     // 업로드 대기 중인 파일
+let fmSelectedTags = new Set();
+let pendingDelete = null;   // {type:'font'|'category', id|name}
+let catEditingName = null;
+
+/* ════════════════════════════════════════
+   탭 전환
+════════════════════════════════════════ */
+function switchTab(tab, btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab === 'notices') refreshNotices();
+}
+
+/* ════════════════════════════════════════
+   데이터 새로고침
+════════════════════════════════════════ */
+async function refresh(){
+  FONTS = await FontStore.getAll();
+  TAGS = await TagStore.getAll();
+  NOTICES = await NoticeStore.getAll();
+  const fileIds = await FontFileStore.listIds();
+  document.getElementById('statFontCount').textContent = FONTS.length;
+  document.getElementById('statTagCount').textContent = TAGS.length;
+  document.getElementById('statFileCount').textContent = fileIds.length;
+  document.getElementById('statNoticeCount').textContent = NOTICES.length;
+  populateTagFilter();
+  renderFontTable();
+  renderCatList();
+  renderNoticeTable();
+}
+
+function populateTagFilter(){
+  const sel = document.getElementById('fontTagFilter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="all">전체 카테고리</option>' +
+    TAGS.map(t=>`<option value="${t}"${cur===t?' selected':''}>${t}</option>`).join('');
+}
+
+/* ════════════════════════════════════════
+   폰트 테이블 렌더
+════════════════════════════════════════ */
+let reorderMode = false;
+
+function toggleReorderMode(){
+  reorderMode = !reorderMode;
+  const btn = document.getElementById('reorderToggleBtn');
+  const hint = document.getElementById('reorderHint');
+  if(reorderMode){
+    btn.classList.add('active-reorder');
+    btn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> 순서 변경 완료';
+    hint.style.display = 'flex';
+    // 정렬 모드에서는 필터 무효화 (정확한 위치 파악을 위해 전체 노출)
+    document.getElementById('fontSearch').value = '';
+    document.getElementById('fontTagFilter').value = 'all';
+    document.getElementById('fontSearch').disabled = true;
+    document.getElementById('fontTagFilter').disabled = true;
+  } else {
+    btn.classList.remove('active-reorder');
+    btn.innerHTML = '<i class="ti ti-arrows-sort" aria-hidden="true"></i> 순서 변경';
+    hint.style.display = 'none';
+    document.getElementById('fontSearch').disabled = false;
+    document.getElementById('fontTagFilter').disabled = false;
+  }
+  renderFontTable();
+}
+
+function renderFontTable(){
+  const q = (document.getElementById('fontSearch').value||'').trim().toLowerCase();
+  const tag = document.getElementById('fontTagFilter').value;
+  // 정렬 모드일 때는 항상 전체 폰트를 저장 순서대로 표시
+  let list = [...FONTS];
+  if(!reorderMode){
+    if(tag !== 'all') list = list.filter(f=>f.tags.includes(tag));
+    if(q) list = list.filter(f=>f.name.toLowerCase().includes(q)||f.maker.toLowerCase().includes(q));
+    list.sort((a,b)=>a.id-b.id);
+  }
+  // 정렬 모드에서는 FONTS의 저장 순서(=getAll 반환 순서) 그대로 유지
+
+  const tbody = document.getElementById('fontTableBody');
+  const empty = document.getElementById('fontEmpty');
+
+  // tbody에 정렬 모드 클래스
+  tbody.classList.toggle('reorder-mode', reorderMode);
+  const tableWrap = tbody.closest('.table-wrap');
+  if(tableWrap) tableWrap.classList.toggle('reorder-mode', reorderMode);
+
+  if(!list.length){
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = list.map((f, idx)=>{
+    const pills = f.tags.map(t=>`<span class="pill">${escapeHtml(t)}</span>`).join('');
+    const uploaded = f.hasFile ? '<span class="pill pill-uploaded"><i class="ti ti-upload" style="font-size:10px"></i> 파일</span>' : '';
+    // 정렬 모드일 때는 list의 인덱스가 곧 전체 순서 (필터 없음)
+    const positionInFonts = reorderMode ? idx : FONTS.findIndex(x => x.id === f.id);
+    const isFirst = positionInFonts === 0;
+    const isLast = positionInFonts === FONTS.length - 1;
+    return `
+      <tr data-font-id="${f.id}" class="draggable" draggable="${reorderMode}">
+        <td>
+          <div class="order-cell">
+            <span class="drag-grip" title="끌어서 이동" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg>
+            </span>
+            <span class="order-num">${positionInFonts + 1}</span>
+            <span class="reorder-handles">
+              <button class="handle-btn" onclick="moveFont(${f.id}, 'top')" ${isFirst?'disabled':''} title="맨 위로" aria-label="${escapeHtml(f.name)} 맨 위로">
+                <svg viewBox="0 0 24 24"><path d="M5 11l7-7 7 7"/><path d="M12 4v16"/></svg>
+              </button>
+              <button class="handle-btn" onclick="moveFont(${f.id}, -1)" ${isFirst?'disabled':''} title="위로" aria-label="${escapeHtml(f.name)} 위로">
+                <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+              </button>
+              <button class="handle-btn" onclick="moveFont(${f.id}, 1)" ${isLast?'disabled':''} title="아래로" aria-label="${escapeHtml(f.name)} 아래로">
+                <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <button class="handle-btn" onclick="moveFont(${f.id}, 'bottom')" ${isLast?'disabled':''} title="맨 아래로" aria-label="${escapeHtml(f.name)} 맨 아래로">
+                <svg viewBox="0 0 24 24"><path d="M5 13l7 7 7-7"/><path d="M12 20V4"/></svg>
+              </button>
+            </span>
+          </div>
+        </td>
+        <td>
+          <div class="cell-name">${escapeHtml(f.name)} ${uploaded}</div>
+        </td>
+        <td><div class="cell-maker">${escapeHtml(f.maker)}</div></td>
+        <td>${escapeHtml(f.weights)}</td>
+        <td><div class="cell-tags">${pills}</div></td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-icon" onclick="editFont(${f.id})" aria-label="${escapeHtml(f.name)} 수정">
+              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="btn-icon danger" onclick="askDeleteFont(${f.id})" aria-label="${escapeHtml(f.name)} 삭제">
+              <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  if(reorderMode) attachDragHandlers(tbody);
+}
+
+/* 위/아래/맨위/맨아래 이동 */
+async function moveFont(id, direction){
+  if(direction === 'top'){
+    await FontStore.moveTo(id, 0);
+  } else if(direction === 'bottom'){
+    await FontStore.moveTo(id, FONTS.length - 1);
+  } else {
+    await FontStore.move(id, direction);
+  }
+  FONTS = await FontStore.getAll();
+  renderFontTable();
+}
+
+/* 드래그앤드롭 핸들러 */
+function attachDragHandlers(tbody){
+  let dragSrcId = null;
+  let dragOverRow = null;
+  let dropPosition = null;  // 'above' or 'below'
+
+  tbody.querySelectorAll('tr.draggable').forEach(row => {
+    row.addEventListener('dragstart', (e) => {
+      dragSrcId = parseInt(row.dataset.fontId, 10);
+      row.classList.add('dragging');
+      try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(dragSrcId)); } catch(err){}
+    });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      clearDropMarkers(tbody);
+      dragSrcId = null; dragOverRow = null; dropPosition = null;
+    });
+    row.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if(parseInt(row.dataset.fontId, 10) === dragSrcId) return;
+      const rect = row.getBoundingClientRect();
+      const isAbove = (e.clientY - rect.top) < rect.height / 2;
+      clearDropMarkers(tbody);
+      row.classList.add(isAbove ? 'drop-above' : 'drop-below');
+      dragOverRow = row;
+      dropPosition = isAbove ? 'above' : 'below';
+    });
+    row.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      if(dragSrcId == null || !dragOverRow) return;
+      const targetId = parseInt(dragOverRow.dataset.fontId, 10);
+      if(targetId === dragSrcId) return;
+      // 목표 인덱스 계산: FONTS 내 위치 + above/below
+      const srcIdx = FONTS.findIndex(f => f.id === dragSrcId);
+      let targetIdx = FONTS.findIndex(f => f.id === targetId);
+      if(dropPosition === 'below') targetIdx += 1;
+      if(srcIdx < targetIdx) targetIdx -= 1;
+      await FontStore.moveTo(dragSrcId, targetIdx);
+      FONTS = await FontStore.getAll();
+      renderFontTable();
+    });
+  });
+}
+function clearDropMarkers(tbody){
+  tbody.querySelectorAll('tr.draggable').forEach(r => {
+    r.classList.remove('drop-above','drop-below');
+  });
+}
+
+/* ════════════════════════════════════════
+   폰트 등록/수정 모달
+════════════════════════════════════════ */
+function openFontModal(){
+  editingId = null;
+  pendingFile = null;
+  fmSelectedTags = new Set();
+  fmMeta = null;
+  fmMetaAuto = null;
+  document.getElementById('fontModalTitle').textContent = '새 폰트 등록';
+  document.getElementById('fmName').value = '';
+  document.getElementById('fmMaker').value = '';
+  document.getElementById('fmWeights').value = '1종';
+  document.getElementById('fmUrl').value = '';
+  document.getElementById('fmFileInput').value = '';
+  renderFmTags();
+  // 새 폰트: 카테고리 선택 전엔 빈 메타로 시작 (사용자가 카테고리 선택하면 자동 채워짐)
+  fmMeta = inferMetaFromTags([]);  // 기본값으로 비어있는 메타
+  fmMetaAuto = JSON.parse(JSON.stringify(fmMeta));
+  renderMetaSection();
+  renderFmFilePreview();
+  document.getElementById('fmSizeWarning').style.display = 'none';
+  document.getElementById('fontModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function editFont(id){
+  const f = FONTS.find(x=>x.id===id);
+  if(!f) return;
+  editingId = id;
+  pendingFile = null;
+  fmSelectedTags = new Set(f.tags);
+  document.getElementById('fontModalTitle').textContent = '폰트 수정';
+  document.getElementById('fmName').value = f.name;
+  document.getElementById('fmMaker').value = f.maker;
+  document.getElementById('fmWeights').value = f.weights;
+  document.getElementById('fmUrl').value = f.url || '';
+  document.getElementById('fmFileInput').value = '';
+  renderFmTags();
+  // 기존 메타가 있으면 그것 사용, 없으면 카테고리로부터 추론
+  if(f.meta){
+    fmMeta = JSON.parse(JSON.stringify(f.meta));
+  } else {
+    fmMeta = inferMetaFromTags(f.tags);
+  }
+  fmMetaAuto = inferMetaFromTags(f.tags);
+  renderMetaSection();
+  renderFmFilePreview(f.hasFile ? '(업로드된 파일 있음 — 다시 올리면 교체됨)' : '');
+  document.getElementById('fmSizeWarning').style.display = 'none';
+  document.getElementById('fontModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeFontModal(){
+  document.getElementById('fontModal').classList.remove('open');
+  document.body.style.overflow='';
+}
+function renderFmTags(){
+  const grid = document.getElementById('fmTagGrid');
+  grid.innerHTML = TAGS.map(t=>{
+    const sel = fmSelectedTags.has(t);
+    return `<span class="tag-chip${sel?' selected':''}" onclick="toggleFmTag('${t.replace(/'/g,"\\'")}',this)">${escapeHtml(t)}</span>`;
+  }).join('');
+}
+function toggleFmTag(tag, el){
+  if(fmSelectedTags.has(tag)){ fmSelectedTags.delete(tag); el.classList.remove('selected'); }
+  else { fmSelectedTags.add(tag); el.classList.add('selected'); }
+  // 카테고리가 바뀌면 자동 추론 갱신 (✦ 표시 업데이트)
+  refreshMetaOnTagChange();
+}
+function handleFmFile(file){
+  if(!file) return;
+  const ok = /\.(ttf|otf|woff2?|TTF|OTF|WOFF2?)$/.test(file.name);
+  if(!ok){ showToast('지원하지 않는 파일 형식이에요'); return; }
+  if(file.size > 5*1024*1024){ showToast('5MB를 초과할 수 없어요'); return; }
+  pendingFile = file;
+  renderFmFilePreview();
+  // 1MB 이상 파일은 사이즈 경고 (자동 서브셋 변환은 백엔드 도입 후 예정)
+  const warn = document.getElementById('fmSizeWarning');
+  if(warn) warn.style.display = file.size > 1024*1024 ? 'block' : 'none';
+}
+function renderFmFilePreview(infoText){
+  const box = document.getElementById('fmFilePreview');
+  if(pendingFile){
+    box.innerHTML = `<div class="selected-file">
+      <i class="ti ti-file-type-ttf" aria-hidden="true"></i>
+      <span class="name">${escapeHtml(pendingFile.name)}</span>
+      <span style="font-size:11px;color:var(--text-muted)">${(pendingFile.size/1024).toFixed(0)}KB</span>
+      <button onclick="clearFmFile()" aria-label="파일 제거"><i class="ti ti-x"></i></button>
+    </div>`;
+  } else if(infoText){
+    box.innerHTML = `<div class="selected-file" style="background:var(--bg-secondary);color:var(--text-secondary)">
+      <i class="ti ti-info-circle" aria-hidden="true"></i>
+      <span class="name">${escapeHtml(infoText)}</span>
+    </div>`;
+  } else {
+    box.innerHTML = '';
+  }
+}
+function clearFmFile(){ pendingFile=null; document.getElementById('fmFileInput').value=''; renderFmFilePreview(); }
+
+// drag&drop
+const _dz = document.getElementById('fmDropZone');
+_dz.addEventListener('dragover',(e)=>{e.preventDefault();_dz.classList.add('dragover');});
+_dz.addEventListener('dragleave',()=>_dz.classList.remove('dragover'));
+_dz.addEventListener('drop',(e)=>{e.preventDefault();_dz.classList.remove('dragover');if(e.dataTransfer.files[0]) handleFmFile(e.dataTransfer.files[0]);});
+
+/* ════════════════════════════════════════
+   메타데이터 자동 분류 (카테고리 기반)
+   8개 차원: mood / usage / industry / personality / weight_feel / formality / reading_length / summary
+════════════════════════════════════════ */
+
+// 8개 차원 표시용 옵션 (UI 칩/라디오)
+const META_OPTIONS = {
+  mood: ['따뜻한','부드러운','친근한','감성적','진중한','신뢰감','깔끔한','고급스러운','임팩트','강인한','독특한','장난스러운','꿈같은','시원한','자연'],
+  usage: ['본문','제목','캐치프레이즈','로고','SNS카드','썸네일','영상자막','포스터','패키지','출판','UI','정보전달'],
+  industry: ['카페','푸드','뷰티','패션','키즈','교육','헬스케어','IT','공공기관','이벤트','출판'],
+  personality: ['중성적','남성적','여성적','어린이','전통적','현대적','복고적','미래적','강한'],
+  weight_feel: ['얇음','보통','굵음','다양'],
+  formality: ['매우 격식','격식','중간','캐주얼','매우 캐주얼'],
+  reading_length: ['짧은 글자','단문','장문 가능'],
+};
+
+// 카테고리 → 메타 자동 추론 매핑 (기존 142종 분류 때 쓴 것과 동일 규칙)
+const TAG_TO_META = {
+  '가독성 좋은 고딕': {mood:['깔끔한','현대적'],personality:['중성적','현대적'],usage:['본문','UI','정보전달'],weight_feel:'보통',formality:'중간',reading_length:'장문 가능'},
+  '꽉찬고딕': {mood:['임팩트','강인한'],personality:['강한','현대적'],usage:['제목','썸네일','캐치프레이즈'],weight_feel:'굵음',formality:'중간',reading_length:'짧은 글자'},
+  '부드러운 굴림': {mood:['부드러운','친근한'],personality:['중성적'],usage:['본문','UI','SNS카드'],weight_feel:'보통',formality:'캐주얼',reading_length:'장문 가능'},
+  '시선을 끄는 제목용': {mood:['임팩트','독특한'],usage:['제목','캐치프레이즈','포스터'],weight_feel:'굵음',reading_length:'짧은 글자'},
+  '독특한': {mood:['독특한','장난스러운'],personality:['현대적'],usage:['제목','로고','SNS카드'],reading_length:'짧은 글자'},
+  '유튜브 썸네일 추천': {mood:['임팩트','강인한'],usage:['썸네일','캐치프레이즈'],weight_feel:'굵음',reading_length:'짧은 글자'},
+  '브이로그 자막용': {mood:['친근한','부드러운'],usage:['영상자막','SNS카드'],formality:'캐주얼',reading_length:'단문'},
+  '카드뉴스용': {usage:['SNS카드','정보전달'],formality:'중간'},
+  '본문용 영어': {mood:['깔끔한'],usage:['본문','UI','정보전달'],formality:'중간',reading_length:'장문 가능'},
+  '디자인 영어': {mood:['독특한','감성적'],usage:['로고','캐치프레이즈','포스터'],reading_length:'짧은 글자'},
+  '정보전달 본문용': {mood:['신뢰감','깔끔한'],personality:['중성적','전통적'],usage:['본문','출판','정보전달'],formality:'격식',reading_length:'장문 가능'},
+  '로고디자인': {mood:['임팩트'],usage:['로고','캐치프레이즈','패키지'],reading_length:'짧은 글자'},
+  'UI/UX/Web': {mood:['깔끔한','현대적'],personality:['현대적','중성적'],usage:['UI','본문'],formality:'중간',reading_length:'장문 가능'},
+  '또박또박 손글씨': {mood:['친근한','부드러운'],personality:['전통적','중성적'],usage:['SNS카드','영상자막','캐치프레이즈'],formality:'캐주얼',reading_length:'단문'},
+  '부드러운 명조': {mood:['감성적','고급스러운','부드러운'],personality:['전통적'],usage:['출판','본문','포스터'],formality:'격식',reading_length:'장문 가능'},
+  '캘리그라피': {mood:['감성적','독특한'],personality:['전통적','여성적'],usage:['로고','캐치프레이즈','패키지'],formality:'중간',reading_length:'짧은 글자'},
+  '귀여운': {mood:['장난스러운','친근한'],personality:['어린이','현대적','여성적'],usage:['SNS카드','캐치프레이즈','패키지'],formality:'캐주얼',reading_length:'단문'},
+  '펜시': {mood:['독특한','장난스러운'],usage:['제목','로고','SNS카드'],reading_length:'짧은 글자'},
+};
+const USAGE_INDUSTRY = {
+  '캘리그라피':['카페','푸드','뷰티'],
+  '부드러운 명조':['뷰티','패션','출판'],
+  '귀여운':['키즈','뷰티','푸드'],
+  '카드뉴스용':['공공기관','이벤트','교육'],
+  '유튜브 썸네일 추천':['이벤트'],
+  '로고디자인':['패션','뷰티','이벤트'],
+  'UI/UX/Web':['IT'],
+  '정보전달 본문용':['공공기관','교육','출판'],
+};
+
+// 카테고리 배열 → 8개 차원 자동 추론
+function inferMetaFromTags(tags){
+  const meta = {
+    mood: new Set(),
+    usage: new Set(),
+    industry: new Set(),
+    personality: new Set(),
+    weight_feel: null,
+    formality: null,
+    reading_length: null,
+    summary: '',
+  };
+  for(const t of tags){
+    const tm = TAG_TO_META[t];
+    if(tm){
+      ['mood','usage','personality'].forEach(k => {
+        if(tm[k]) tm[k].forEach(v => meta[k].add(v));
+      });
+      ['weight_feel','formality','reading_length'].forEach(k => {
+        if(tm[k] && !meta[k]) meta[k] = tm[k];
+      });
+    }
+    if(USAGE_INDUSTRY[t]) USAGE_INDUSTRY[t].forEach(v => meta.industry.add(v));
+  }
+  // 기본값
+  if(!meta.weight_feel) meta.weight_feel = '보통';
+  if(!meta.formality) meta.formality = '중간';
+  if(!meta.reading_length) meta.reading_length = '단문';
+  // summary 자동
+  const moodArr = [...meta.mood];
+  const usageArr = [...meta.usage];
+  if(moodArr.length && usageArr.length) meta.summary = `${moodArr[0]} 인상의 ${usageArr[0]} 추천 폰트`;
+  else if(usageArr.length) meta.summary = `${usageArr[0]}에 적합한 폰트`;
+  else if(moodArr.length) meta.summary = `${moodArr[0]} 분위기의 폰트`;
+  else meta.summary = '다목적 폰트';
+  // Set → Array 직렬화
+  return {
+    mood: [...meta.mood].sort(),
+    usage: [...meta.usage].sort(),
+    industry: [...meta.industry].sort(),
+    personality: [...meta.personality].sort(),
+    weight_feel: meta.weight_feel,
+    formality: meta.formality,
+    reading_length: meta.reading_length,
+    summary: meta.summary,
+  };
+}
+
+// 폰트 모달 안에서 사용할 현재 meta 상태와 자동 추론 결과
+let fmMeta = null;       // 현재 선택된 메타 (사용자 수정 가능)
+let fmMetaAuto = null;   // 자동 추론된 메타 (✦ 표시용)
+
+function renderMetaSection(){
+  if(!fmMeta) return;
+  // multi-select (mood/usage/industry/personality)
+  for(const dim of ['mood','usage','industry','personality']){
+    const container = document.getElementById('fm' + dim.charAt(0).toUpperCase() + dim.slice(1) + 'Chips');
+    if(!container) continue;
+    const selected = new Set(fmMeta[dim] || []);
+    const autoSet = new Set((fmMetaAuto && fmMetaAuto[dim]) || []);
+    container.innerHTML = META_OPTIONS[dim].map(opt => {
+      const isSel = selected.has(opt);
+      const isAuto = autoSet.has(opt);
+      const cls = ['meta-chip'];
+      if(isSel) cls.push('selected');
+      if(isAuto) cls.push('auto');
+      return `<span class="${cls.join(' ')}" onclick="toggleMetaChip('${dim}','${opt.replace(/'/g,"\\'")}',this)">${opt}</span>`;
+    }).join('');
+  }
+  // single-select (weight_feel / formality / reading_length)
+  for(const dim of ['weight_feel','formality','reading_length']){
+    const idMap = {weight_feel:'fmWeightFeel', formality:'fmFormality', reading_length:'fmReadingLength'};
+    const container = document.getElementById(idMap[dim]);
+    if(!container) continue;
+    container.innerHTML = META_OPTIONS[dim].map(opt => {
+      const isSel = fmMeta[dim] === opt;
+      return `<span class="meta-radio${isSel?' selected':''}" onclick="setMetaSingle('${dim}','${opt.replace(/'/g,"\\'")}',this)">${opt}</span>`;
+    }).join('');
+  }
+  // summary
+  document.getElementById('fmSummary').value = fmMeta.summary || '';
+}
+
+function toggleMetaChip(dim, val, el){
+  const arr = fmMeta[dim] || [];
+  if(arr.includes(val)){
+    fmMeta[dim] = arr.filter(x => x !== val);
+    el.classList.remove('selected');
+  } else {
+    fmMeta[dim] = [...arr, val];
+    el.classList.add('selected');
+  }
+}
+function setMetaSingle(dim, val, el){
+  fmMeta[dim] = val;
+  const parent = el.parentElement;
+  parent.querySelectorAll('.meta-radio').forEach(r => r.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function resetMetaFromCategories(){
+  const tags = [...fmSelectedTags];
+  if(!tags.length){ showToast('먼저 카테고리를 선택해주세요'); return; }
+  fmMetaAuto = inferMetaFromTags(tags);
+  fmMeta = JSON.parse(JSON.stringify(fmMetaAuto));
+  // summary input 갱신 위해
+  document.getElementById('fmSummary').value = fmMeta.summary;
+  renderMetaSection();
+  showToast('카테고리에서 메타데이터를 다시 추론했어요');
+}
+
+// 카테고리 토글 시 자동 추론 (단, 사용자가 수동으로 수정한 부분은 유지하지 않고 항상 다시 추론)
+// 더 친절한 UX: 새 폰트일 땐 자동 추론, 수정 중일 땐 운영자 명시적 reset 시에만 갱신
+function refreshMetaOnTagChange(){
+  if(!fmMeta){
+    fmMeta = inferMetaFromTags([...fmSelectedTags]);
+    fmMetaAuto = JSON.parse(JSON.stringify(fmMeta));
+  } else {
+    // 자동 추론 결과만 갱신해서 ✦ 표시 동기화
+    fmMetaAuto = inferMetaFromTags([...fmSelectedTags]);
+  }
+  renderMetaSection();
+}
+
+async function saveFont(){
+  const name = document.getElementById('fmName').value.trim();
+  const maker = document.getElementById('fmMaker').value.trim();
+  const weights = document.getElementById('fmWeights').value.trim() || '1종';
+  const url = document.getElementById('fmUrl').value.trim();
+  const tags = [...fmSelectedTags];
+
+  if(!name || !maker){ showToast('폰트 이름과 제작자를 입력해주세요'); return; }
+  if(!tags.length){ showToast('카테고리를 1개 이상 선택해주세요'); return; }
+
+  // 메타 정리: summary 인풋값 반영
+  const meta = fmMeta ? JSON.parse(JSON.stringify(fmMeta)) : inferMetaFromTags(tags);
+  const summaryInput = document.getElementById('fmSummary').value.trim();
+  if(summaryInput) meta.summary = summaryInput;
+
+  // stack 기본값 추정 (업로드 파일이 있으면 메인 페이지에서 family 자동 prefix됨)
+  const stack = "'Nanum Gothic',sans-serif";
+
+  let saved;
+  if(editingId){
+    saved = await FontStore.update(editingId, {name,maker,weights,url,tags,meta,
+      hasFile: pendingFile ? true : undefined});
+  } else {
+    saved = await FontStore.add({name,maker,weights,url,stack,tags,meta, hasFile: !!pendingFile});
+  }
+  if(pendingFile && saved){
+    try { await FontFileStore.saveFile(saved.id, pendingFile); }
+    catch(e){ console.error(e); showToast('파일 저장 실패'); }
+  }
+  closeFontModal();
+  showToast(editingId ? '폰트를 수정했어요' : '새 폰트를 등록했어요');
+  await refresh();
+}
+
+/* ════════════════════════════════════════
+   삭제 확인
+════════════════════════════════════════ */
+function askDeleteFont(id){
+  const f = FONTS.find(x=>x.id===id);
+  if(!f) return;
+  pendingDelete = {type:'font', id};
+  document.getElementById('confirmTitle').textContent = `'${f.name}'을(를) 삭제할까요?`;
+  document.getElementById('confirmDesc').textContent = '삭제하면 갤러리에서도 사라지고, 업로드된 폰트 파일도 함께 제거됩니다.';
+  document.getElementById('confirmModal').classList.add('open');
+}
+function askDeleteCat(name){
+  pendingDelete = {type:'category', name};
+  const used = FONTS.filter(f=>f.tags.includes(name)).length;
+  document.getElementById('confirmTitle').textContent = `'${name}' 카테고리를 삭제할까요?`;
+  document.getElementById('confirmDesc').textContent = used
+    ? `${used}개 폰트에서 이 카테고리 태그가 함께 제거됩니다.`
+    : '이 카테고리를 사용하는 폰트는 없어요.';
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirm(){
+  document.getElementById('confirmModal').classList.remove('open');
+  pendingDelete = null;
+}
+async function doConfirm(){
+  if(!pendingDelete) return;
+  if(pendingDelete.type === 'font'){
+    await FontStore.remove(pendingDelete.id);
+    showToast('폰트를 삭제했어요');
+    closeConfirm();
+    await refresh();
+  } else if(pendingDelete.type === 'category'){
+    await TagStore.remove(pendingDelete.name);
+    showToast('카테고리를 삭제했어요');
+    closeConfirm();
+    await refresh();
+  } else if(pendingDelete.type === 'notice'){
+    await NoticeStore.remove(pendingDelete.id);
+    showToast('공지사항을 삭제했어요');
+    closeConfirm();
+    await refreshNotices();
+  }
+}
+
+/* ════════════════════════════════════════
+   카테고리 관리
+════════════════════════════════════════ */
+function renderCatList(){
+  const wrap = document.getElementById('catList');
+  if(!TAGS.length){
+    wrap.innerHTML = '<div class="empty"><i class="ti ti-tags" aria-hidden="true"></i>등록된 카테고리가 없어요</div>';
+    return;
+  }
+  wrap.innerHTML = TAGS.map(t=>{
+    const count = FONTS.filter(f=>f.tags.includes(t)).length;
+    return `<div class="cat-row">
+      <span class="cat-name">${escapeHtml(t)}</span>
+      <span class="cat-count">${count}개 폰트</span>
+      <div class="row-actions">
+        <button class="btn-icon" onclick="openCatEdit('${t.replace(/'/g,"\\'")}')" aria-label="${escapeHtml(t)} 수정">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn-icon danger" onclick="askDeleteCat('${t.replace(/'/g,"\\'")}')" aria-label="${escapeHtml(t)} 삭제">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function addCategory(){
+  const input = document.getElementById('newCatInput');
+  const name = input.value.trim();
+  if(!name) return;
+  if(TAGS.includes(name)){ showToast('이미 존재하는 카테고리예요'); return; }
+  const added = await TagStore.add(name);
+  if(added){
+    input.value = '';
+    showToast('카테고리를 추가했어요');
+    await refresh();
+  }
+}
+
+function openCatEdit(name){
+  catEditingName = name;
+  document.getElementById('catEditInput').value = name;
+  document.getElementById('catEditModal').classList.add('open');
+  setTimeout(()=>document.getElementById('catEditInput').focus(),50);
+}
+function closeCatEdit(){
+  document.getElementById('catEditModal').classList.remove('open');
+  catEditingName = null;
+}
+async function saveCatEdit(){
+  if(!catEditingName) return;
+  const newName = document.getElementById('catEditInput').value.trim();
+  if(!newName) { showToast('이름을 입력해주세요'); return; }
+  if(newName === catEditingName){ closeCatEdit(); return; }
+  if(TAGS.includes(newName)){ showToast('이미 존재하는 카테고리예요'); return; }
+  const ok = await TagStore.rename(catEditingName, newName);
+  if(ok){
+    showToast('카테고리 이름을 변경했어요');
+    closeCatEdit();
+    await refresh();
+  } else {
+    showToast('변경 실패');
+  }
+}
+
+/* ════════════════════════════════════════
+   공지사항 관리
+════════════════════════════════════════ */
+let NOTICES = [];
+let editingNoticeId = null;
+
+function formatDate(ts){
+  if(!ts) return '-';
+  const d = new Date(ts);
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+}
+
+async function refreshNotices(){
+  NOTICES = await NoticeStore.getAll();
+  renderNoticeTable();
+}
+
+function renderNoticeTable(){
+  const q = (document.getElementById('noticeSearch').value||'').trim().toLowerCase();
+  let list = [...NOTICES];
+  if(q) list = list.filter(n => n.title.toLowerCase().includes(q));
+  // pinned 우선 → 최신순
+  list.sort((a,b)=>{
+    if(a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+    return b.createdAt - a.createdAt;
+  });
+
+  const tbody = document.getElementById('noticeTableBody');
+  const empty = document.getElementById('noticeEmpty');
+  if(!list.length){
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = list.map(n => `
+    <tr>
+      <td><div class="notice-pin-cell${n.pinned?'':' empty'}"><i class="ti ti-pin-filled" aria-hidden="true"></i></div></td>
+      <td>
+        <div class="notice-title-cell">
+          ${n.pinned?'<span class="badge">중요</span>':''}
+          ${escapeHtml(n.title)}
+        </div>
+      </td>
+      <td><div class="notice-cell-date">${formatDate(n.createdAt)}</div></td>
+      <td><div class="notice-cell-date">${n.updatedAt && n.updatedAt!==n.createdAt ? formatDate(n.updatedAt) : '-'}</div></td>
+      <td>
+        <div class="row-actions">
+          <button class="btn-icon" onclick="editNotice(${n.id})" aria-label="수정">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn-icon danger" onclick="askDeleteNotice(${n.id})" aria-label="삭제">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openNoticeModal(){
+  editingNoticeId = null;
+  document.getElementById('noticeModalTitle').textContent = '새 공지사항 작성';
+  document.getElementById('nmTitle').value = '';
+  document.getElementById('nmPinned').checked = false;
+  document.getElementById('nmContent').innerHTML = '';
+  document.getElementById('noticeModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(()=>document.getElementById('nmTitle').focus(), 50);
+}
+
+function editNotice(id){
+  const n = NOTICES.find(x=>x.id===id);
+  if(!n) return;
+  editingNoticeId = id;
+  document.getElementById('noticeModalTitle').textContent = '공지사항 수정';
+  document.getElementById('nmTitle').value = n.title;
+  document.getElementById('nmPinned').checked = !!n.pinned;
+  document.getElementById('nmContent').innerHTML = n.content || '';
+  document.getElementById('noticeModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeNoticeModal(){
+  document.getElementById('noticeModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* 에디터: 굵게 / 줄바꿈만 지원 */
+function execEditor(cmd){
+  const editor = document.getElementById('nmContent');
+  editor.focus();
+  if(cmd === 'bold'){
+    document.execCommand('bold');
+  } else if(cmd === 'insertLineBreak'){
+    document.execCommand('insertLineBreak');
+  }
+}
+
+// 본문 sanitize: B, STRONG, BR, P, DIV만 허용, 속성 제거
+function sanitizeEditorHtml(html){
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const allowed = new Set(['B','STRONG','BR','P','DIV']);
+  const walk = (node) => {
+    [...node.children].forEach(child => {
+      walk(child);
+      if(!allowed.has(child.tagName)){
+        const parent = child.parentNode;
+        while(child.firstChild) parent.insertBefore(child.firstChild, child);
+        parent.removeChild(child);
+      } else {
+        [...child.attributes].forEach(attr => child.removeAttribute(attr.name));
+      }
+    });
+  };
+  walk(tmp);
+  return tmp.innerHTML;
+}
+
+// 붙여넣기 시 plain text만 받기
+document.getElementById('nmContent').addEventListener('paste', (e) => {
+  e.preventDefault();
+  const text = (e.clipboardData || window.clipboardData).getData('text');
+  document.execCommand('insertText', false, text);
+});
+// Ctrl+B / Cmd+B 단축키는 기본 지원, 그 외 단축키는 차단
+document.getElementById('nmContent').addEventListener('keydown', (e) => {
+  // Ctrl+I (이탤릭), Ctrl+U (밑줄) 등은 차단
+  if((e.ctrlKey || e.metaKey) && ['i','u'].includes(e.key.toLowerCase())){
+    e.preventDefault();
+  }
+});
+
+async function saveNotice(){
+  const title = document.getElementById('nmTitle').value.trim();
+  const pinned = document.getElementById('nmPinned').checked;
+  const rawHtml = document.getElementById('nmContent').innerHTML;
+  const content = sanitizeEditorHtml(rawHtml);
+  // 내용 빈값 체크 (HTML 태그만 있고 텍스트가 없는 경우 거르기)
+  const textOnly = document.getElementById('nmContent').innerText.trim();
+
+  if(!title){ showToast('제목을 입력해주세요'); return; }
+  if(!textOnly){ showToast('내용을 입력해주세요'); return; }
+
+  if(editingNoticeId){
+    await NoticeStore.update(editingNoticeId, {title, content, pinned});
+    showToast('공지사항을 수정했어요');
+  } else {
+    await NoticeStore.add({title, content, pinned});
+    showToast('공지사항을 등록했어요');
+  }
+  closeNoticeModal();
+  await refreshNotices();
+}
+
+function askDeleteNotice(id){
+  const n = NOTICES.find(x=>x.id===id);
+  if(!n) return;
+  pendingDelete = {type:'notice', id};
+  document.getElementById('confirmTitle').textContent = `'${n.title}' 공지사항을 삭제할까요?`;
+  document.getElementById('confirmDesc').textContent = '삭제하면 메인 페이지 게시판에서도 사라집니다.';
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+/* ════════════════════════════════════════
+   유틸
+════════════════════════════════════════ */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+let _toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// 모달 바깥 클릭 닫기
+document.getElementById('fontModal').addEventListener('click',function(e){if(e.target===this) closeFontModal();});
+document.getElementById('catEditModal').addEventListener('click',function(e){if(e.target===this) closeCatEdit();});
+document.getElementById('confirmModal').addEventListener('click',function(e){if(e.target===this) closeConfirm();});
+document.getElementById('noticeModal').addEventListener('click',function(e){if(e.target===this) closeNoticeModal();});
+// ESC 키
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('fontModal').classList.contains('open')) closeFontModal();
+    else if(document.getElementById('catEditModal').classList.contains('open')) closeCatEdit();
+    else if(document.getElementById('noticeModal').classList.contains('open')) closeNoticeModal();
+    else if(document.getElementById('confirmModal').classList.contains('open')) closeConfirm();
+  }
+});
+
+/* ════════════════════════════════════════
+   초기 진입
+════════════════════════════════════════ */
+if(isLoggedIn()) showAdmin();
+else document.getElementById('pwInput').focus();
+</script>
+</body>
+</html>

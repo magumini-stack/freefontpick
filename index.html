@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreeFontPick — 무료 한글 폰트 갤러리</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="description" content="상업적 이용 가능한 무료 한글 폰트를 쉽고 빠르게 찾아보세요.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Pen+Script&family=Nanum+Square:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Brush+Script&family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Gugi&family=Hi+Melody&family=Noto+Sans+KR:wght@400;500;700&family=Anton&family=Bangers&family=Lobster&family=Monoton&family=Raleway:wght@400;700&family=Press+Start+2P&family=Dancing+Script:wght@400;700&family=Kaushan+Script&family=Cinzel+Decorative:wght@400;700&family=Bona+Nova:ital,wght@0,400;0,700;1,400&family=Bungee&family=Petrona:wght@400;700&family=Pavanam&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6258337579944977" crossorigin="anonymous"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
+      --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+      --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+      --accent:#FF5C35;--accent-light:#FFF0EC;--accent-hover:#E84A25;
+      --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+      --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
+    }
+    @media(prefers-color-scheme:dark){:root{
+      --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+      --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+      --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+      --accent:#FF6B47;--accent-light:#2A1A14;--accent-hover:#FF8060;
+      --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+    }}
+    html{scroll-behavior:smooth}
+    body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;line-height:1.6}
+
+    /* HEADER */
+    .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
+    .header-inner{max-width:1240px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
+    .logo{display:flex;align-items:center;text-decoration:none;white-space:nowrap}
+    .logo img{height:32px;width:auto;display:block}
+    nav{display:flex;gap:2px}
+    nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:var(--radius-sm);text-decoration:none;transition:all .15s;white-space:nowrap}
+    nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
+    nav a.active{color:var(--accent);background:var(--accent-light);font-weight:700}
+    .header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+    .btn-subscribe{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:0 14px;height:36px;border-radius:20px;border:1px solid var(--accent);color:var(--accent);background:transparent;text-decoration:none;transition:all .15s;font-family:inherit;white-space:nowrap}
+    .btn-subscribe:hover{background:var(--accent);color:#fff}
+    .btn-subscribe i{font-size:14px}
+    .search-wrap{position:relative;flex-shrink:0}
+    .search-wrap i{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text-muted);pointer-events:none}
+    .search-wrap input{width:300px;height:34px;border:1px solid var(--border);border-radius:18px;padding:0 14px 0 34px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s,width .2s}
+    .search-wrap input::placeholder{color:var(--text-muted)}
+    .search-wrap input:focus{border-color:var(--accent);width:360px}
+
+    /* HERO */
+    .hero{max-width:1240px;margin:0 auto;padding:44px 24px 28px;text-align:center}
+    .hero-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);background:var(--accent-light);padding:5px 12px;border-radius:20px;margin-bottom:14px;font-weight:700}
+    .hero-title{font-size:30px;font-weight:800;color:var(--text-primary);line-height:1.3;letter-spacing:-.8px;margin-bottom:8px}
+    .hero-title em{font-style:normal;color:var(--accent)}
+    .hero-sub{font-size:14px;color:var(--text-secondary);display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+
+    /* LICENSE BUTTON */
+    .btn-license{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+    .btn-license:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .btn-license i{font-size:14px}
+
+    /* LICENSE MODAL */
+    /* DOWNLOAD AD INTERSTITIAL */
+    .dlad-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:550;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+    .dlad-overlay.open{display:flex;animation:fadeIn .2s ease}
+    .dlad-modal{background:var(--bg-card);border-radius:18px;max-width:520px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .25s ease}
+    .dlad-head{padding:22px 24px 16px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--accent-light) 0%,var(--bg-card) 100%)}
+    .dlad-eyebrow{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--accent);background:var(--bg-card);padding:3px 9px;border-radius:20px;margin-bottom:8px;border:1px solid var(--accent-light);letter-spacing:.5px}
+    .dlad-eyebrow i{font-size:12px}
+    .dlad-head h3{font-size:17px;font-weight:800;color:var(--text-primary);letter-spacing:-.3px;margin-bottom:3px}
+    .dlad-head p{font-size:12px;color:var(--text-secondary);line-height:1.5}
+    .dlad-body{padding:18px 20px;flex:1;overflow-y:auto;background:var(--bg-secondary);min-height:200px;display:flex;align-items:center;justify-content:center}
+    .dlad-body #dladAdContainer{width:100%;display:flex;justify-content:center;align-items:center;min-height:200px}
+    .dlad-body .adsbygoogle{display:block;width:100%}
+    .dlad-foot{padding:14px 20px 18px;border-top:1px solid var(--border)}
+    .dlad-close-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:background .15s}
+    .dlad-close-btn:hover{background:var(--accent-hover)}
+    .dlad-close-btn small{font-size:11px;font-weight:400;opacity:.85;margin-left:-4px}
+    .dlad-close-btn i{font-size:16px}
+    @media(max-width:520px){
+      .dlad-modal{max-height:95vh}
+      .dlad-head{padding:18px 20px 14px}
+    }
+
+    .license-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;backdrop-filter:blur(4px)}
+    .license-overlay.open{display:flex;animation:fadeIn .2s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .license-modal{background:var(--bg-card);border-radius:20px;max-width:680px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideUp .25s ease}
+    @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .license-head{padding:28px 28px 20px;background:linear-gradient(135deg,var(--accent-light) 0%,var(--bg-card) 100%);border-bottom:1px solid var(--border);position:relative}
+    .license-head-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--accent);background:var(--bg-card);padding:4px 10px;border-radius:20px;margin-bottom:10px;border:1px solid var(--accent-light);letter-spacing:.5px}
+    .license-head h2{font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-.5px;margin-bottom:4px}
+    .license-head p{font-size:13px;color:var(--text-secondary);line-height:1.5}
+    .license-close{position:absolute;top:20px;right:20px;width:34px;height:34px;border-radius:50%;border:none;background:var(--bg-card);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    .license-close:hover{background:var(--accent);color:#fff;transform:rotate(90deg)}
+    .license-body{padding:24px 28px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .license-item{background:var(--bg-secondary);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;border:1px solid transparent;transition:border-color .15s}
+    .license-item:hover{border-color:var(--border-hover)}
+    .license-item-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .license-item-cat{display:flex;align-items:center;gap:8px}
+    .license-item-icon{width:32px;height:32px;border-radius:10px;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--accent);flex-shrink:0}
+    .license-item-name{font-size:14px;font-weight:800;color:var(--text-primary);letter-spacing:-.2px}
+    .license-status{font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap;letter-spacing:.3px}
+    .license-status.allow{background:#E8F7EE;color:#1A8A3A}
+    .license-status.deny{background:#FDECEC;color:#C8281F}
+    @media(prefers-color-scheme:dark){
+      .license-status.allow{background:#0F2A18;color:#5FCB85}
+      .license-status.deny{background:#2A0F0E;color:#FF7873}
+    }
+    .license-item-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
+    .license-item.is-ofl{background:linear-gradient(135deg,#FFF5F5 0%,var(--bg-secondary) 100%);border-color:#FFD9D7}
+    .license-item.is-ofl .license-item-icon{color:#C8281F;background:#FDECEC}
+    .license-item.is-ofl .license-item-name{color:#C8281F}
+    @media(prefers-color-scheme:dark){
+      .license-item.is-ofl{background:linear-gradient(135deg,#2A1614 0%,var(--bg-secondary) 100%);border-color:#3A1F1D}
+    }
+    .license-foot{padding:16px 28px 24px;border-top:1px solid var(--border);background:var(--bg-secondary)}
+    .license-foot p{font-size:11px;color:var(--text-muted);line-height:1.6;margin:0}
+    .license-foot p+p{margin-top:4px}
+    .license-foot strong{color:var(--text-secondary);font-weight:700}
+    @media(max-width:600px){
+      .license-body{grid-template-columns:1fr;padding:20px}
+      .license-head{padding:24px 24px 18px}
+      .license-head h2{font-size:19px}
+    }
+    .hero-stats{display:flex;justify-content:center;gap:28px;margin-top:20px}
+    .hero-stat{text-align:center}
+    .hero-stat-num{font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-.5px}
+    .hero-stat-label{font-size:11px;color:var(--text-muted);margin-top:2px}
+
+    /* TOP RANKING */
+    .top-section{max-width:1240px;margin:0 auto;padding:0 24px 8px}
+    .top-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px}
+    .top-section-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:var(--text-primary);letter-spacing:-.3px}
+    .top-section-title .badge{font-size:10px;font-weight:800;letter-spacing:.5px;color:#fff;background:var(--accent);padding:3px 9px;border-radius:20px}
+    .top-section-title small{font-size:12px;font-weight:400;color:var(--text-muted);margin-left:4px}
+    .top-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+    .top-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s;text-align:left;font-family:inherit;color:var(--text-primary);text-decoration:none}
+    .top-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow-hover)}
+    .top-rank{flex-shrink:0;width:24px;height:24px;border-radius:6px;background:var(--bg-secondary);color:var(--text-muted);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+    .top-card.gold .top-rank{background:linear-gradient(135deg,#FFD66E,#FFA928);color:#fff}
+    .top-card.silver .top-rank{background:linear-gradient(135deg,#D8DEE5,#9BA5AE);color:#fff}
+    .top-card.bronze .top-rank{background:linear-gradient(135deg,#D9A66B,#A06D30);color:#fff}
+    .top-info{flex:1;min-width:0}
+    .top-name{font-size:13px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px}
+    .top-meta{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:5px;margin-top:1px}
+    .top-meta svg{width:11px;height:11px;stroke:var(--accent);fill:none;stroke-width:2.2;flex-shrink:0}
+    .top-meta .like-num{color:var(--accent);font-weight:700}
+    .top-empty{font-size:13px;color:var(--text-muted);padding:24px;text-align:center;background:var(--bg-card);border:1px dashed var(--border);border-radius:var(--radius-md)}
+    @media(max-width:480px){
+      .top-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+    }
+
+    /* MAIN */
+    .main{max-width:1240px;margin:0 auto;padding:0 24px 80px}
+
+    /* PREVIEW BAR */
+    .preview-bar{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:13px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-card)}
+    .preview-label{font-size:12px;color:var(--text-muted);white-space:nowrap;display:flex;align-items:center;gap:4px}
+    .preview-input{flex:1;border:none;outline:none;font-size:15px;background:transparent;color:var(--text-primary);font-family:inherit;min-width:0}
+    .preview-input::placeholder{color:var(--text-muted)}
+    .preview-divider{width:1px;height:20px;background:var(--border);flex-shrink:0}
+    .size-wrap{display:flex;align-items:center;gap:7px;flex-shrink:0}
+    .size-wrap label{font-size:12px;color:var(--text-muted)}
+    .size-wrap input[type=range]{width:80px;accent-color:var(--accent);cursor:pointer}
+    .size-val{font-size:12px;color:var(--text-secondary);min-width:34px;font-weight:700}
+
+    /* TAGS */
+    .tags-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px}
+    .tag{font-size:12px;padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-family:inherit;font-weight:700}
+    .tag:hover{border-color:var(--accent);color:var(--accent)}
+    .tag.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+    /* FILTER BAR */
+    .filter-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px}
+    .count-label{font-size:13px;color:var(--text-secondary)}
+    .count-label strong{color:var(--text-primary);font-weight:800}
+    .sort-select{font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;background:var(--bg-card);color:var(--text-secondary);outline:none;cursor:pointer;font-family:inherit;transition:border-color .15s}
+    .sort-select:focus{border-color:var(--accent)}
+
+    /* GRID */
+    .font-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px;grid-auto-flow:dense}
+    .font-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 18px 14px;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;position:relative;display:flex;flex-direction:column;box-shadow:var(--shadow-card);animation:fadeUp .25s ease both}
+
+    /* 추천 카드 스타일 */
+    .font-card.is-recommend{border-color:var(--accent);border-width:1.5px;padding-top:14px}
+    .recommend-match{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-light);padding:5px 9px;border-radius:12px;margin-bottom:10px;align-self:flex-start;line-height:1.3}
+    .recommend-match i{font-size:13px}
+    .recommend-more-btn{display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-size:13px;font-weight:700;color:var(--accent);background:var(--bg-card);border:1.5px dashed var(--accent);border-radius:24px;padding:12px 22px;cursor:pointer;transition:all .15s}
+    .recommend-more-btn:hover{background:var(--accent);color:#fff;border-style:solid}
+    .recommend-more-btn i{font-size:15px}
+    .recommend-more-btn small{font-weight:400;opacity:.8;font-size:11px}
+    .font-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .font-preview{min-height:66px;display:flex;align-items:center;margin-bottom:14px}
+    .font-preview-text{color:var(--text-primary);line-height:1.3;word-break:keep-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+    .card-divider{height:1px;background:var(--border);margin-bottom:12px}
+    .font-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+    .font-name{font-size:14px;font-weight:800;color:var(--text-primary);margin-bottom:3px;letter-spacing:-.2px}
+    .font-maker{font-size:12px;color:var(--text-secondary)}
+    .font-weights{font-size:11px;color:var(--accent);background:var(--accent-light);padding:3px 8px;border-radius:10px;white-space:nowrap;font-weight:700;flex-shrink:0}
+    .font-tags-row{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+    .font-tag-pill{font-size:10px;padding:2px 7px;border-radius:8px;background:var(--bg-secondary);color:var(--text-muted);font-weight:700}
+
+    /* AD SLOTS (애드센스) */
+    .ad-slot{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);height:280px !important;max-height:280px;display:flex;align-items:center;justify-content:center;overflow:hidden;animation:fadeUp .25s ease both;align-self:start}
+    .ad-slot .adsbygoogle{display:inline-block !important;width:260px !important;height:280px !important;max-height:280px !important}
+    .ad-slot.row-1{grid-column:1;grid-row:1}
+    .ad-slot.row-3{grid-column:1;grid-row:3}
+    .font-actions{display:flex;gap:6px;margin-top:auto;padding-top:12px}
+    .btn-download{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:700;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--accent);color:var(--accent);background:transparent;cursor:pointer;transition:all .15s;font-family:inherit;text-decoration:none}
+    .btn-download:hover{background:var(--accent);color:#fff}
+    .btn-like{display:flex;align-items:center;justify-content:center;gap:5px;height:34px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;cursor:pointer;transition:all .15s;color:var(--text-secondary);font-size:13px;font-weight:700;flex-shrink:0;font-family:inherit}
+    .btn-like svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+    .btn-like:hover{border-color:var(--accent);color:var(--accent)}
+    .btn-like.liked{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .btn-like.liked svg{fill:var(--accent-light)}
+
+    /* NO RESULTS */
+    .no-results{grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-muted)}
+    .no-results i{font-size:40px;display:block;margin-bottom:12px}
+    .no-results p{font-size:15px;margin-bottom:6px;color:var(--text-secondary)}
+
+    /* FOOTER */
+    /* NOTICE VIEW */
+    .notice-hero{max-width:1240px;margin:0 auto;padding:44px 24px 28px;text-align:center}
+    .notice-hero-sub{font-size:14px;color:var(--text-secondary)}
+    .notice-list{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-card)}
+    .notice-row{display:flex;align-items:center;gap:14px;padding:18px 22px;border-top:1px solid var(--border);cursor:pointer;transition:background .15s;text-decoration:none;color:inherit}
+    .notice-row:first-child{border-top:none}
+    .notice-row:hover{background:var(--bg-secondary)}
+    .notice-pin{width:24px;height:24px;border-radius:6px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+    .notice-pin.empty{visibility:hidden}
+    .notice-row-content{flex:1;min-width:0}
+    .notice-row-title{font-size:14px;font-weight:700;color:var(--text-primary);letter-spacing:-.2px;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+    .notice-row-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:var(--accent-light);color:var(--accent);letter-spacing:.3px;flex-shrink:0}
+    .notice-row-date{font-size:12px;color:var(--text-muted)}
+    .notice-row i.chevron{color:var(--text-muted);font-size:18px;flex-shrink:0}
+    .notice-empty{padding:80px 20px;text-align:center;color:var(--text-muted)}
+    .notice-empty i{font-size:40px;display:block;margin-bottom:10px}
+
+    .notice-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text-secondary);background:transparent;border:none;cursor:pointer;padding:6px 0;margin-bottom:16px;font-family:inherit;transition:color .15s}
+    .notice-back:hover{color:var(--accent)}
+    .notice-detail{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px 32px 36px;box-shadow:var(--shadow-card)}
+    .notice-detail-head{padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:24px}
+    .notice-detail-head h2{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--text-primary);line-height:1.4;margin-bottom:10px}
+    .notice-detail-meta{font-size:12px;color:var(--text-muted);display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+    .notice-detail-meta .pin{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-weight:700}
+    .notice-detail-body{font-size:14px;line-height:1.8;color:var(--text-primary);word-break:break-word}
+    .notice-detail-body p{margin-bottom:1em}
+    .notice-detail-body p:last-child{margin-bottom:0}
+    .notice-detail-body strong,.notice-detail-body b{font-weight:800;color:var(--text-primary)}
+    .notice-detail-body a{color:var(--accent);text-decoration:underline}
+
+    @media(max-width:640px){
+      .notice-hero{padding:28px 16px 20px}
+      .notice-row{padding:16px 16px;gap:10px}
+      .notice-detail{padding:24px 20px}
+      .notice-detail-head h2{font-size:18px}
+    }
+
+    footer{border-top:1px solid var(--border);padding:32px 24px 32px;max-width:1240px;margin:0 auto}
+    .footer-logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-primary);margin-bottom:10px}
+    .footer-logo .logo-spark{width:22px;height:22px;font-size:11px;border-radius:6px}
+    .footer-copy{font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:18px}
+    .footer-links{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:18px;justify-content:center}
+    .footer-links a{font-size:12px;color:var(--text-secondary);text-decoration:none;transition:color .15s;font-weight:700}
+    .footer-links a:hover{color:var(--accent)}
+    .footer-divider{height:1px;background:var(--border);margin-bottom:18px}
+    .footer-company-name{font-size:12px;font-weight:800;color:var(--text-secondary);margin-bottom:8px;text-align:center}
+    .footer-company-info{font-size:11px;color:var(--text-muted);line-height:1.9;display:flex;flex-wrap:wrap;gap:0 14px;justify-content:center}
+    .footer-company-info span{display:inline-flex;align-items:center;white-space:nowrap}
+    .footer-company-info span::before{content:"";display:inline-block;width:3px;height:3px;border-radius:50%;background:var(--text-muted);margin-right:14px;flex-shrink:0;opacity:.5}
+    .footer-company-info a{color:var(--text-muted);text-decoration:none}
+    .footer-company-info a:hover{color:var(--accent)}
+    .footer-copyright{font-size:11px;color:var(--text-muted);margin-top:14px;letter-spacing:.3px;text-align:center}
+
+    /* SCROLL TOP */
+    .scroll-top{position:fixed;bottom:28px;right:28px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(255,92,53,.4);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s,bottom .2s;z-index:300}
+    .scroll-top.visible{opacity:1;transform:translateY(0)}
+    .scroll-top:hover{background:var(--accent-hover)}
+    .floating-ad-shown .scroll-top{bottom:160px}
+
+    /* FLOATING BOTTOM AD */
+    .floating-ad{position:fixed;left:0;right:0;bottom:0;z-index:400;display:flex;justify-content:center;align-items:flex-end;padding:0 16px 12px;pointer-events:none}
+    .floating-ad-inner{position:relative;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:8px 10px;pointer-events:auto;max-width:100%;animation:slideUpAd .3s ease both}
+    @keyframes slideUpAd{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+    .floating-ad-close{position:absolute;top:-12px;right:-12px;width:28px;height:28px;border-radius:50%;background:var(--text-primary);color:var(--bg);border:2px solid var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .15s;font-family:inherit;line-height:1;padding:0}
+    .floating-ad-close:hover{transform:scale(1.1)}
+    .floating-ad.hidden{display:none}
+    @media(max-width:900px){
+      .floating-ad-inner{width:100%}
+    }
+
+    @media(max-width:768px){
+      nav{display:none}
+      .btn-subscribe span{display:none}
+      .btn-subscribe{padding:0 10px;width:36px;justify-content:center}
+      .hero{padding:28px 16px 20px}.hero-title{font-size:24px}
+      .main{padding:0 16px 60px}
+      .preview-bar{flex-wrap:wrap}
+      .preview-bar .preview-divider{display:none}
+      .search-wrap{flex:1 1 100%}
+      .search-wrap input{width:100%}.search-wrap input:focus{width:100%}
+      .size-wrap input[type=range]{width:70px}
+    }
+    @media(prefers-reduced-motion:reduce){.font-card{animation:none}*{transition:none!important}}
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <a href="#" class="logo" onclick="goHome();return false;" aria-label="FreeFontPick 홈으로">
+      <img src="logo.png" alt="FreeFontPick">
+    </a>
+    <nav>
+      <a href="#notice" id="noticeMenuLink">공지사항</a>
+    </nav>
+    <div class="header-right">
+      <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer">
+        <i class="ti ti-bell" aria-hidden="true"></i>
+        <span>타닥타닥 구독</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ━━━━ HOME VIEW (폰트 갤러리) ━━━━ -->
+<div id="homeView">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow"><i class="ti ti-sparkles" aria-hidden="true"></i> 무료 상업용 폰트 큐레이션</div>
+  <h1 class="hero-title">폰픽, 디자인 전문가가 <em>딱 맞는 폰트</em> 골라드려요!</h1>
+  <p class="hero-sub">
+    검색하고 클릭하면 바로 다운로드 — 모두 무료, 상업적 이용 가능
+    <button class="btn-license" onclick="openLicense()" aria-label="라이선스 요약표 보기">
+      <i class="ti ti-license" aria-hidden="true"></i> 라이선스 보기
+    </button>
+  </p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-num" id="totalCount">142</div><div class="hero-stat-label">큐레이션 폰트</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">100%</div><div class="hero-stat-label">상업 이용 가능</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">무료</div><div class="hero-stat-label">다운로드</div></div>
+  </div>
+</section>
+
+<!-- TOP RANKING -->
+<section class="top-section" id="topSection" aria-labelledby="topSectionTitle">
+  <div class="top-section-head">
+    <div class="top-section-title" id="topSectionTitle">
+      <span class="badge">TOP 10</span>
+      인기 폰트 순위
+      <small>좋아요 많은 폰트 TOP 10</small>
+    </div>
+  </div>
+  <div class="top-grid" id="topGrid"></div>
+</section>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="preview-bar">
+    <div class="search-wrap" id="searchWrap">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <input type="text" id="globalSearch" placeholder="폰트명 또는 분위기/용도로 추천 (예: 따뜻한 카페)" aria-label="폰트 검색 및 추천" oninput="filterFonts()">
+    </div>
+    <div class="preview-divider"></div>
+    <span class="preview-label"><i class="ti ti-eye" style="font-size:14px" aria-hidden="true"></i> 미리보기</span>
+    <input class="preview-input" id="previewText" type="text" value="기적처럼 내게 왔으니 별처럼 빛나주세요" placeholder="미리보기 문구 입력" aria-label="폰트 미리보기 문구" oninput="updatePreviews()">
+    <div class="preview-divider"></div>
+    <div class="size-wrap">
+      <label for="fontSize">크기</label>
+      <input type="range" id="fontSize" min="12" max="60" value="26" step="1" aria-label="폰트 크기 조절" oninput="updateFontSize(this.value)">
+      <span class="size-val" id="fontSizeVal">26px</span>
+    </div>
+  </div>
+
+  <div class="tags-bar" id="tagsBar" role="group" aria-label="폰트 카테고리 필터"></div>
+
+  <div class="filter-bar">
+    <span class="count-label" id="countLabel">폰트 <strong>142</strong>개</span>
+    <select class="sort-select" onchange="renderFonts()" aria-label="정렬 기준">
+      <option value="curator">추천순</option>
+      <option value="popular">인기순</option>
+      <option value="name">이름순</option>
+    </select>
+  </div>
+
+  <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
+</main>
+
+</div><!-- /homeView -->
+
+<!-- ━━━━ NOTICE VIEW (공지사항) ━━━━ -->
+<div id="noticeView" style="display:none">
+  <section class="notice-hero">
+    <div class="hero-eyebrow"><i class="ti ti-speakerphone" aria-hidden="true"></i> NOTICE</div>
+    <h1 class="hero-title">공지사항</h1>
+    <p class="notice-hero-sub">FreeFontPick에서 알려드리는 최신 소식</p>
+  </section>
+
+  <main class="main">
+    <!-- 목록 화면 -->
+    <div id="noticeListPanel">
+      <div class="notice-list" id="noticeList"></div>
+    </div>
+
+    <!-- 상세 화면 -->
+    <div id="noticeDetailPanel" style="display:none">
+      <button class="notice-back" onclick="goNoticeList()">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> 목록으로
+      </button>
+      <article class="notice-detail">
+        <div class="notice-detail-head">
+          <h2 id="noticeDetailTitle"></h2>
+          <div class="notice-detail-meta" id="noticeDetailMeta"></div>
+        </div>
+        <div class="notice-detail-body" id="noticeDetailBody"></div>
+      </article>
+    </div>
+  </main>
+</div><!-- /noticeView -->
+
+<footer>
+  <div class="footer-links">
+    <a href="policy.html" target="_blank" rel="noopener noreferrer">이용약관</a><a href="privacy.html" target="_blank" rel="noopener noreferrer">개인정보처리방침</a><a href="mailto:help@tdtd.io?subject=폰트제보">폰트제보</a><a href="mailto:help@tdtd.io?subject=문의하기">문의하기</a>
+  </div>
+  <div class="footer-divider"></div>
+  <div class="footer-company-name">(주)와이즈폰트</div>
+  <div class="footer-company-info">
+    <span>사업자등록번호 589-87-00921</span>
+    <span>대표 박종열</span>
+    <span>주소 서울시 영등포구 당산로16길 9-7 3층</span>
+    <span>통신판매업신고 제 2024-서울영등포-3037호</span>
+    <span>제휴문의 <a href="mailto:biz@wisefont.co.kr">biz@wisefont.co.kr</a></span>
+  </div>
+  <div class="footer-copyright">COPYRIGHT © (주)와이즈폰트 CO., LTD. ALL RIGHTS RESERVED.</div>
+</footer>
+
+<button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="맨 위로">
+  <i class="ti ti-arrow-up" aria-hidden="true"></i>
+</button>
+
+<!-- FLOATING BOTTOM AD (하단광고2) -->
+<div class="floating-ad" id="floatingAd" aria-label="광고">
+  <div class="floating-ad-inner">
+    <button class="floating-ad-close" onclick="closeFloatingAd()" aria-label="광고 닫기">×</button>
+    <ins class="adsbygoogle"
+         style="display:inline-block;width:850px;height:120px;max-width:100%"
+         data-ad-client="ca-pub-6258337579944977"
+         data-ad-slot="2476281216"></ins>
+  </div>
+</div>
+
+<!-- DOWNLOAD AD INTERSTITIAL (다운로드광고) -->
+<div class="dlad-overlay" id="dladOverlay" role="dialog" aria-modal="true" aria-labelledby="dladTitle">
+  <div class="dlad-modal">
+    <div class="dlad-head">
+      <div>
+        <div class="dlad-eyebrow"><i class="ti ti-download" aria-hidden="true"></i> 다운로드</div>
+        <h3 id="dladTitle">잠시만 기다려주세요</h3>
+        <p id="dladSub">아래 광고 확인 후 [닫기]를 누르면 다운로드 페이지로 이동합니다.</p>
+      </div>
+    </div>
+    <div class="dlad-body">
+      <div id="dladAdContainer">
+        <!-- 광고는 매번 동적으로 삽입 (push 가능하도록) -->
+      </div>
+    </div>
+    <div class="dlad-foot">
+      <button class="dlad-close-btn" onclick="closeDownloadAd()">
+        <span>닫기</span>
+        <small id="dladTargetName"></small>
+        <i class="ti ti-arrow-right" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- LICENSE MODAL -->
+<div class="license-overlay" id="licenseOverlay" role="dialog" aria-modal="true" aria-labelledby="licenseTitle">
+  <div class="license-modal">
+    <div class="license-head">
+      <div class="license-head-eyebrow"><i class="ti ti-license" aria-hidden="true"></i> LICENSE</div>
+      <h2 id="licenseTitle">라이선스 요약표</h2>
+      <p>큐레이션된 폰트의 일반적인 사용 범위 안내</p>
+      <button class="license-close" onclick="closeLicense()" aria-label="닫기">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="license-body">
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-printer" aria-hidden="true"></i></div>
+            <div class="license-item-name">인쇄</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">브로슈어, 포스터, 책, 잡지 및 출판용 인쇄물 등</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-world" aria-hidden="true"></i></div>
+            <div class="license-item-name">웹사이트</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">웹페이지, 광고 배너, 메일, E-브로슈어 등</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-package" aria-hidden="true"></i></div>
+            <div class="license-item-name">포장지</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">판매용 상품의 패키지</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-video" aria-hidden="true"></i></div>
+            <div class="license-item-name">영상</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">유튜브, CF, 상업영화, 뮤직비디오, 영상 자막, 영상 오프닝/엔딩 크레딧 등</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-code" aria-hidden="true"></i></div>
+            <div class="license-item-name">임베딩</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">웹사이트 및 프로그램 서버 내 폰트 탑재, E-book 제작</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-building-store" aria-hidden="true"></i></div>
+            <div class="license-item-name">BI/CI</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">회사명, 브랜드명, 상품명, 로고, 마크, 슬로건, 캐치프레이즈</p>
+      </div>
+
+      <div class="license-item is-ofl" style="grid-column:1/-1">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-ban" aria-hidden="true"></i></div>
+            <div class="license-item-name">OFL</div>
+          </div>
+          <span class="license-status deny">금지</span>
+        </div>
+        <p class="license-item-desc">폰트 파일의 수정·복제·배포 및 유료 판매 모두 금지</p>
+      </div>
+    </div>
+
+    <div class="license-foot">
+      <p>※ 위 사용범위는 <strong>참고용</strong>으로, 정확한 사용범위는 이용 전 폰트 저작권자에게 확인 바랍니다.</p>
+      <p>사용범위는 저작권자의 규정에 따라 달라질 수 있습니다. 조건부 허용의 경우, 사용 조건을 꼭 원본 라이선스 내용에서 확인 후 이용하세요.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 공유 데이터 레이어 (관리자 페이지와 동일 파일을 사용) -->
+<script src="font-data.js"></script>
+<script>
+let FONTS=[];
+let currentTag='all';
+/* ── 좋아요 저장 (localStorage 영구 저장) ── */
+const LIKE_KEYS = { liked: 'tadak_liked_v1', counts: 'tadak_like_counts_v1' };
+function loadLikes(){
+  try {
+    const likedRaw = localStorage.getItem(LIKE_KEYS.liked);
+    const countsRaw = localStorage.getItem(LIKE_KEYS.counts);
+    return {
+      liked: new Set(likedRaw ? JSON.parse(likedRaw) : []),
+      counts: countsRaw ? JSON.parse(countsRaw) : {}
+    };
+  } catch(e) { return { liked: new Set(), counts: {} }; }
+}
+function saveLikes(){
+  try {
+    localStorage.setItem(LIKE_KEYS.liked, JSON.stringify([...likedSet]));
+    localStorage.setItem(LIKE_KEYS.counts, JSON.stringify(likeCounts));
+  } catch(e){}
+}
+const _likeState = loadLikes();
+const likedSet = _likeState.liked;
+const likeCounts = _likeState.counts;
+let currentFontSize=26;
+
+function getPreviewText(){
+  return document.getElementById('previewText').value.trim() || '기적처럼 내게 왔으니 별처럼 빛나주세요';
+}
+/* 영문 폰트는 영문 미리보기 문구 사용 */
+const ENGLISH_PREVIEW = 'The quick brown fox jumps over the lazy dog';
+function getPreviewTextFor(font){
+  if(font && font.isEnglish) return ENGLISH_PREVIEW;
+  return getPreviewText();
+}
+function updatePreviews(){
+  const txt=getPreviewText();
+  document.querySelectorAll('.font-preview-text').forEach(el=>{
+    if(el.dataset.english === '1') el.textContent = ENGLISH_PREVIEW;
+    else el.textContent = txt;
+  });
+}
+function updateFontSize(v){
+  currentFontSize=parseInt(v);
+  document.getElementById('fontSizeVal').textContent=v+'px';
+  document.querySelectorAll('.font-preview-text').forEach(el=>el.style.fontSize=v+'px');
+}
+
+function setTag(tag,el){
+  currentTag=tag;
+  document.querySelectorAll('.tag').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  // 카테고리 클릭 시: 검색창 클리어 + hash 초기화 (홈 상태)
+  const input = document.getElementById('globalSearch');
+  if(input && input.value){
+    input.value = '';
+  }
+  if(location.hash.startsWith('#search/')){
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+  renderFonts();
+}
+
+/* 검색창 입력: 디바운스 후 hash 동기화 (뒤로가기로 복귀 가능) */
+let _searchHashTimer = null;
+function filterFonts(){
+  // 새 검색 시작 시 추천 카운트 초기화
+  _recommendShowCount = 5;
+  renderFonts();
+  // hash 업데이트는 디바운스 — 타이핑 한 글자마다 history 쌓이지 않도록
+  clearTimeout(_searchHashTimer);
+  const q = document.getElementById('globalSearch').value.trim();
+  _searchHashTimer = setTimeout(() => {
+    const targetHash = q ? '#search/' + encodeURIComponent(q) : '';
+    const currentHash = location.hash;
+    if(targetHash !== currentHash){
+      if(q){
+        // 새 검색 시작 시점에 한 번만 history push
+        if(currentHash.startsWith('#search/')){
+          // 이미 검색 상태 — replace로 갱신 (같은 화면 내 검색어 수정)
+          history.replaceState(null, '', targetHash);
+        } else {
+          // 다른 상태 → 검색 진입 (push해서 뒤로가기 가능)
+          history.pushState(null, '', targetHash);
+        }
+      } else {
+        // 검색어 비움 → 홈 hash로 복귀 (replace)
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+    }
+  }, 400);
+}
+
+function getFilteredFonts(){
+  const sort=document.querySelector('.sort-select').value;
+  const q=(document.getElementById('globalSearch').value||'').trim().toLowerCase();
+  let list=[...FONTS];
+  if(currentTag!=='all') list=list.filter(f=>f.tags.includes(currentTag));
+
+  if(q){
+    // 1단계: 일반 텍스트 검색 (폰트명/제작자/카테고리)
+    const textMatches = list.filter(f =>
+      f.name.toLowerCase().includes(q) ||
+      f.maker.toLowerCase().includes(q) ||
+      f.tags.some(t => t.toLowerCase().includes(q))
+    );
+
+    // 2단계: 추천 키워드 매칭 시도
+    const recommendations = recommendFonts(q, list);
+
+    if(textMatches.length > 0){
+      // 텍스트 매칭이 있으면 우선 표시
+      list = textMatches;
+    } else if(recommendations.length > 0){
+      // 추천 결과 (이미 점수순 정렬됨)
+      list = recommendations;
+      // sort 무시하고 추천 점수 순서 유지 (아래 sort 단계 스킵)
+      return list;
+    } else {
+      list = [];
+    }
+  }
+
+  if(sort==='popular') list.sort((a,b)=>(likeCounts[b.id]||0)-(likeCounts[a.id]||0));
+  else if(sort==='name') list.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  // 'curator' (기본값): FONTS 배열의 저장 순서 그대로 유지 — 관리자가 정한 순서
+  return list;
+}
+
+/* ════════════════════════════════════════════════════
+   폰트 추천 키워드 사전 (237개)
+   사용자 자연어 입력 → 메타데이터 태그 매핑
+════════════════════════════════════════════════════ */
+const RECOMMEND_KEYWORDS = {
+  '따뜻한':{mood:["따뜻한", "부드러운", "친근한"]},
+  '따뜻':{mood:["따뜻한", "부드러운", "친근한"]},
+  '따스한':{mood:["따뜻한", "부드러운"]},
+  '따스':{mood:["따뜻한", "부드러운"]},
+  '포근한':{mood:["따뜻한", "부드러운"]},
+  '포근':{mood:["따뜻한", "부드러운"]},
+  '아늑한':{mood:["따뜻한", "감성적"]},
+  '아늑':{mood:["따뜻한", "감성적"]},
+  '온화한':{mood:["따뜻한", "부드러운"]},
+  '온순한':{mood:["부드러운", "친근한"]},
+  '훈훈한':{mood:["따뜻한", "친근한"]},
+  '다정한':{mood:["따뜻한", "친근한"]},
+  '다정':{mood:["따뜻한", "친근한"]},
+  '정겨운':{mood:["따뜻한", "친근한"]},
+  '정감':{mood:["따뜻한", "친근한"]},
+  '부드러운':{mood:["부드러운", "친근한"]},
+  '부드러':{mood:["부드러운", "친근한"]},
+  '말랑한':{mood:["부드러운", "장난스러운"]},
+  '말랑':{mood:["부드러운", "장난스러운"]},
+  '폭신한':{mood:["부드러운"]},
+  '말캉한':{mood:["부드러운", "장난스러운"]},
+  '소프트':{mood:["부드러운"]},
+  '편안한':{mood:["친근한", "부드러운"]},
+  '편안':{mood:["친근한", "부드러운"]},
+  '편한':{mood:["친근한"],formality:'캐주얼'},
+  '잔잔한':{mood:["부드러운", "감성적"]},
+  '잔잔':{mood:["부드러운", "감성적"]},
+  '여유로운':{mood:["부드러운"]},
+  '감성':{mood:["감성적", "부드러운"]},
+  '감성적':{mood:["감성적", "부드러운"]},
+  '감성적인':{mood:["감성적", "부드러운"]},
+  '서정적':{mood:["감성적"],personality:["전통적"]},
+  '서정':{mood:["감성적"],personality:["전통적"]},
+  '낭만적':{mood:["감성적", "고급스러운"]},
+  '낭만':{mood:["감성적", "고급스러운"]},
+  '로맨틱':{mood:["감성적", "고급스러운"],personality:["여성적"]},
+  '로멘틱':{mood:["감성적", "고급스러운"],personality:["여성적"]},
+  '몽환적':{mood:["감성적", "꿈같은", "독특한"]},
+  '몽환':{mood:["감성적", "꿈같은"]},
+  '꿈같은':{mood:["꿈같은", "감성적"]},
+  '꿈결':{mood:["꿈같은", "감성적"]},
+  '환상적':{mood:["꿈같은", "독특한"]},
+  '아련한':{mood:["감성적", "꿈같은"]},
+  '아련':{mood:["감성적", "꿈같은"]},
+  '센치한':{mood:["감성적"]},
+  '센치':{mood:["감성적"]},
+  '시적인':{mood:["감성적"]},
+  '시적':{mood:["감성적"]},
+  '서사적':{mood:["진중한", "감성적"]},
+  '강한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강렬한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강렬':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강조':{mood:["임팩트"],weight_feel:'굵음'},
+  '강인한':{mood:["강인한", "임팩트"]},
+  '강인':{mood:["강인한", "임팩트"]},
+  '굵은':{weight_feel:'굵음'},
+  '굵직한':{mood:["임팩트"],weight_feel:'굵음'},
+  '두꺼운':{weight_feel:'굵음'},
+  '진한':{mood:["임팩트"],weight_feel:'굵음'},
+  '진중한':{mood:["진중한"],formality:'격식'},
+  '임팩트':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '임팩트있는':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '눈에띄는':{mood:["임팩트"],usage:["제목", "캐치프레이즈"],weight_feel:'굵음'},
+  '눈길':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '시선':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '주목':{mood:["임팩트"],weight_feel:'굵음'},
+  '주목받는':{mood:["임팩트"],weight_feel:'굵음'},
+  '존재감':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '카리스마':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '파워':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '파워풀':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '박력':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '대담한':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '대담':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '볼드':{weight_feel:'굵음'},
+  '도전적':{mood:["임팩트"]},
+  '터프한':{mood:["강인한", "임팩트"],personality:["남성적"]},
+  '터프':{mood:["강인한", "임팩트"],personality:["남성적"]},
+  '핫한':{mood:["임팩트"],personality:["현대적"]},
+  '얇은':{weight_feel:'얇음'},
+  '가는':{weight_feel:'얇음'},
+  '가느다란':{weight_feel:'얇음'},
+  '날렵한':{mood:["깔끔한"],weight_feel:'얇음'},
+  '슬림':{weight_feel:'얇음'},
+  '라이트':{weight_feel:'얇음'},
+  '섬세한':{mood:["고급스러운"],weight_feel:'얇음'},
+  '섬세':{mood:["고급스러운"],weight_feel:'얇음'},
+  '여린':{mood:["부드러운"],weight_feel:'얇음'},
+  '연약한':{mood:["부드러운"],weight_feel:'얇음'},
+  '우아한':{mood:["고급스러운", "감성적"],personality:["여성적"]},
+  '우아':{mood:["고급스러운", "감성적"],personality:["여성적"]},
+  '엘레강스':{mood:["고급스러운"],personality:["여성적"]},
+  '여성적':{mood:["부드러운", "감성적"],personality:["여성적"]},
+  '여성스러운':{mood:["부드러운"],personality:["여성적"]},
+  '여리여리':{mood:["부드러운"],personality:["여성적"]},
+  '남성적':{mood:["강인한"],personality:["남성적"]},
+  '남성스러운':{mood:["강인한"],personality:["남성적"]},
+  '중성적':{personality:["중성적"]},
+  '유니섹스':{personality:["중성적"]},
+  '젠더리스':{personality:["중성적"]},
+  '고급':{mood:["고급스러운"],formality:'격식'},
+  '고급스러운':{mood:["고급스러운"],formality:'격식'},
+  '고급스러':{mood:["고급스러운"],formality:'격식'},
+  '럭셔리':{mood:["고급스러운"],formality:'격식'},
+  '럭셔리한':{mood:["고급스러운"],formality:'격식'},
+  '럭스':{mood:["고급스러운"]},
+  '명품':{mood:["고급스러운"],formality:'격식'},
+  '프리미엄':{mood:["고급스러운"],formality:'격식'},
+  '품격':{mood:["고급스러운", "진중한"],formality:'격식'},
+  '기품':{mood:["고급스러운", "진중한"]},
+  '고상한':{mood:["고급스러운", "진중한"]},
+  '고풍스러운':{mood:["고급스러운"],personality:["전통적"]},
+  '클래식':{mood:["고급스러운", "진중한"],personality:["전통적"]},
+  '클래시컬':{mood:["고급스러운"],personality:["전통적"]},
+  '세련된':{mood:["고급스러운"],personality:["현대적"]},
+  '세련':{mood:["고급스러운"],personality:["현대적"]},
+  '시크한':{mood:["고급스러운"],personality:["현대적"]},
+  '시크':{mood:["고급스러운"],personality:["현대적"]},
+  '도시적':{mood:["깔끔한"],personality:["현대적"]},
+  '도시':{mood:["깔끔한"],personality:["현대적"]},
+  '스타일리시':{mood:["고급스러운"],personality:["현대적"]},
+  '쿨한':{mood:["깔끔한"],personality:["현대적"]},
+  '쿨':{mood:["깔끔한"],personality:["현대적"]},
+  '미니멀':{mood:["깔끔한"],personality:["현대적"]},
+  '미니멀한':{mood:["깔끔한"],personality:["현대적"]},
+  '심플':{mood:["깔끔한"],personality:["현대적"]},
+  '심플한':{mood:["깔끔한"],personality:["현대적"]},
+  '간결한':{mood:["깔끔한"]},
+  '간결':{mood:["깔끔한"]},
+  '단정한':{mood:["깔끔한", "진중한"]},
+  '단정':{mood:["깔끔한", "진중한"]},
+  '깔끔한':{mood:["깔끔한"]},
+  '깔끔':{mood:["깔끔한"]},
+  '깨끗한':{mood:["깔끔한"]},
+  '깨끗':{mood:["깔끔한"]},
+  '클린':{mood:["깔끔한"],personality:["현대적"]},
+  '말끔한':{mood:["깔끔한"]},
+  '명료한':{mood:["깔끔한", "신뢰감"]},
+  '힙한':{mood:["독특한"],personality:["현대적"]},
+  '힙':{mood:["독특한"],personality:["현대적"]},
+  '트렌디':{mood:["독특한"],personality:["현대적"]},
+  '트렌디한':{mood:["독특한"],personality:["현대적"]},
+  '트렌드':{personality:["현대적"]},
+  '모던':{mood:["깔끔한"],personality:["현대적"]},
+  '모던한':{mood:["깔끔한"],personality:["현대적"]},
+  '현대적':{personality:["현대적"]},
+  '현대적인':{personality:["현대적"]},
+  '최신':{personality:["현대적"]},
+  '요즘':{personality:["현대적"]},
+  '요새':{personality:["현대적"]},
+  'MZ':{personality:["현대적", "어린이"]},
+  'mz':{personality:["현대적", "어린이"]},
+  '신선한':{personality:["현대적"]},
+  '신선':{personality:["현대적"]},
+  '미래적':{mood:["독특한"],personality:["미래적"]},
+  '미래':{personality:["미래적"]},
+  '미래적인':{mood:["독특한"],personality:["미래적"]},
+  '퓨처':{personality:["미래적"]},
+  '퓨처리스틱':{mood:["독특한"],personality:["미래적"]},
+  '테크':{industry:["IT"],personality:["미래적", "현대적"]},
+  '테크니컬':{industry:["IT"],personality:["미래적"]},
+  '디지털':{industry:["IT"],personality:["미래적", "현대적"]},
+  '하이테크':{industry:["IT"],personality:["미래적"]},
+  '사이버':{mood:["독특한"],personality:["미래적"]},
+  '신기술':{industry:["IT"],personality:["미래적"]},
+  '혁신':{personality:["미래적", "현대적"]},
+  '혁신적':{personality:["미래적", "현대적"]},
+  '전통':{mood:["진중한"],personality:["전통적"]},
+  '전통적':{personality:["전통적"]},
+  '전통적인':{personality:["전통적"]},
+  '한국적':{mood:["진중한"],personality:["전통적"]},
+  '한국적인':{mood:["진중한"],personality:["전통적"]},
+  '한국풍':{personality:["전통적"]},
+  '한식':{industry:["푸드"],personality:["전통적"]},
+  '한복':{mood:["고급스러운"],personality:["전통적"]},
+  '한옥':{mood:["진중한"],personality:["전통적"]},
+  '국악':{personality:["전통적"]},
+  '동양':{personality:["전통적"]},
+  '동양적':{personality:["전통적"]},
+  '고전':{mood:["진중한"],personality:["전통적"]},
+  '고전적':{mood:["진중한"],personality:["전통적"]},
+  '복고':{mood:["독특한"],personality:["복고적"]},
+  '복고풍':{mood:["독특한"],personality:["복고적"]},
+  '레트로':{mood:["독특한"],personality:["복고적"]},
+  '레트로풍':{mood:["독특한"],personality:["복고적"]},
+  '빈티지':{mood:["독특한"],personality:["복고적"]},
+  '빈티지한':{mood:["독특한"],personality:["복고적"]},
+  '뉴트로':{mood:["독특한"],personality:["복고적", "현대적"]},
+  '아날로그':{mood:["감성적"],personality:["복고적"]},
+  '추억':{mood:["감성적"],personality:["복고적"]},
+  '8090':{personality:["복고적"]},
+  '90년대':{personality:["복고적"]},
+  '80년대':{personality:["복고적"]},
+  '70년대':{personality:["복고적"]},
+  '옛날':{personality:["전통적", "복고적"]},
+  '옛것':{personality:["전통적", "복고적"]},
+  '친근한':{mood:["친근한"],formality:'캐주얼'},
+  '친근':{mood:["친근한"],formality:'캐주얼'},
+  '친숙한':{mood:["친근한"],formality:'캐주얼'},
+  '캐주얼':{formality:'캐주얼'},
+  '캐쥬얼':{formality:'캐주얼'},
+  '일상적':{formality:'캐주얼'},
+  '일상':{formality:'캐주얼'},
+  '자유로운':{mood:["독특한"],formality:'캐주얼'},
+  '자유':{formality:'캐주얼'},
+  '소박한':{mood:["친근한", "부드러운"]},
+  '소박':{mood:["친근한", "부드러운"]},
+  '진지한':{mood:["진중한"],formality:'격식'},
+  '진지':{mood:["진중한"],formality:'격식'},
+  '격식':{formality:'격식'},
+  '격식있는':{mood:["진중한"],formality:'격식'},
+  '공식적':{mood:["진중한", "신뢰감"],formality:'격식'},
+  '공식':{mood:["진중한"],formality:'격식'},
+  '엄숙한':{mood:["진중한"],formality:'격식'},
+  '점잖은':{mood:["진중한"],formality:'격식'},
+  '점잖':{mood:["진중한"],formality:'격식'},
+  '신뢰감':{mood:["신뢰감", "진중한"]},
+  '신뢰':{mood:["신뢰감", "진중한"]},
+  '신뢰감있는':{mood:["신뢰감", "진중한"]},
+  '안정적':{mood:["신뢰감"]},
+  '안정감':{mood:["신뢰감"]},
+  '믿음직한':{mood:["신뢰감"]},
+  '믿을':{mood:["신뢰감"]},
+  '안전한':{mood:["신뢰감"]},
+  '단단한':{mood:["강인한", "신뢰감"]},
+  '튼튼한':{mood:["신뢰감", "강인한"]},
+  '견고한':{mood:["신뢰감", "강인한"]},
+  '권위':{mood:["진중한"],formality:'격식'},
+  '권위적':{mood:["진중한"],formality:'격식'},
+  '위엄':{mood:["진중한"],formality:'격식'},
+  '장난스러운':{mood:["장난스러운"],formality:'캐주얼'},
+  '장난스런':{mood:["장난스러운"],formality:'캐주얼'},
+  '장난':{mood:["장난스러운"],formality:'캐주얼'},
+  '귀여운':{mood:["장난스러운", "친근한"],personality:["어린이", "여성적"]},
+  '귀여움':{mood:["장난스러운", "친근한"],personality:["어린이"]},
+  '귀여':{mood:["장난스러운", "친근한"],personality:["어린이"]},
+  '귀엽':{mood:["장난스러운", "친근한"],personality:["어린이"]},
+  '깜찍한':{mood:["장난스러운"],personality:["어린이"]},
+  '깜찍':{mood:["장난스러운"],personality:["어린이"]},
+  '발랄한':{mood:["장난스러운", "친근한"]},
+  '발랄':{mood:["장난스러운", "친근한"]},
+  '경쾌한':{mood:["장난스러운", "친근한"]},
+  '경쾌':{mood:["장난스러운", "친근한"]},
+  '활기찬':{mood:["장난스러운", "임팩트"]},
+  '활기':{mood:["장난스러운", "임팩트"]},
+  '명랑한':{mood:["장난스러운", "친근한"]},
+  '명랑':{mood:["장난스러운", "친근한"]},
+  '재밌는':{mood:["장난스러운", "독특한"]},
+  '재미':{mood:["장난스러운", "독특한"]},
+  '재미있는':{mood:["장난스러운", "독특한"]},
+  '유쾌한':{mood:["장난스러운", "친근한"]},
+  '유쾌':{mood:["장난스러운", "친근한"]},
+  '키치':{mood:["독특한", "장난스러운"]},
+  '키치한':{mood:["독특한", "장난스러운"]},
+  '톡톡튀는':{mood:["독특한", "장난스러운"]},
+  '톡톡':{mood:["독특한", "장난스러운"]},
+  '톡톡한':{mood:["독특한", "장난스러운"]},
+  '발랄발랄':{mood:["장난스러운", "친근한"]},
+  '엉뚱한':{mood:["장난스러운", "독특한"]},
+  '엉뚱':{mood:["장난스러운", "독특한"]},
+  '동심':{mood:["장난스러운"],personality:["어린이"]},
+  '동화':{mood:["장난스러운", "꿈같은"],personality:["어린이"]},
+  '동화적':{mood:["장난스러운", "꿈같은"],personality:["어린이"]},
+  '독특한':{mood:["독특한"]},
+  '독특':{mood:["독특한"]},
+  '특이한':{mood:["독특한"]},
+  '특이':{mood:["독특한"]},
+  '개성있는':{mood:["독특한"]},
+  '개성':{mood:["독특한"]},
+  '개성적':{mood:["독특한"]},
+  '창의적':{mood:["독특한"]},
+  '창의':{mood:["독특한"]},
+  '실험적':{mood:["독특한"]},
+  '실험':{mood:["독특한"]},
+  '아방가르드':{mood:["독특한"],personality:["현대적"]},
+  '예술적':{mood:["독특한", "감성적"]},
+  '예술':{mood:["독특한", "감성적"]},
+  '아트':{mood:["독특한", "감성적"]},
+  '독창적':{mood:["독특한"]},
+  '자연':{mood:["따뜻한", "부드러운"]},
+  '자연스러운':{mood:["부드러운"]},
+  '내추럴':{mood:["부드러운", "따뜻한"]},
+  '봄':{mood:["부드러운", "감성적", "장난스러운"]},
+  '봄날':{mood:["부드러운", "감성적"]},
+  '봄날씨':{mood:["부드러운", "감성적"]},
+  '벚꽃':{mood:["부드러운", "감성적"],personality:["여성적"]},
+  '여름':{mood:["친근한", "장난스러운"]},
+  '여름밤':{mood:["감성적"]},
+  '한여름':{mood:["친근한", "장난스러운"]},
+  '시원한':{mood:["시원한"]},
+  '청량한':{mood:["시원한", "깔끔한"]},
+  '청량':{mood:["시원한", "깔끔한"]},
+  '청춘':{mood:["장난스러운"],personality:["어린이", "현대적"]},
+  '가을':{mood:["감성적", "따뜻한"]},
+  '가을밤':{mood:["감성적"]},
+  '단풍':{mood:["감성적", "따뜻한"]},
+  '겨울':{mood:["고급스러운", "진중한"]},
+  '눈':{mood:["고급스러운", "깔끔한"]},
+  '눈꽃':{mood:["고급스러운"]},
+  '크리스마스':{mood:["따뜻한", "장난스러운"]},
+  '연말':{mood:["따뜻한", "고급스러운"]},
+  '새해':{mood:["따뜻한", "신뢰감"]},
+  '꽃':{mood:["감성적", "부드러운"],personality:["여성적"]},
+  '꽃잎':{mood:["감성적", "부드러운"],personality:["여성적"]},
+  '하늘':{mood:["감성적", "시원한"]},
+  '바다':{mood:["감성적", "시원한"]},
+  '바닷가':{mood:["감성적", "시원한"]},
+  '나무':{mood:["따뜻한"]},
+  '숲':{mood:["따뜻한"]},
+  '들꽃':{mood:["감성적", "부드러운"]},
+  '햇살':{mood:["따뜻한", "부드러운"]},
+  '햇볕':{mood:["따뜻한"]},
+  '본문':{usage:["본문"],reading_length:'장문 가능'},
+  '본문용':{usage:["본문"],reading_length:'장문 가능'},
+  '긴글':{usage:["본문"],reading_length:'장문 가능'},
+  '긴 글':{usage:["본문"],reading_length:'장문 가능'},
+  '장문':{usage:["본문"],reading_length:'장문 가능'},
+  '읽기':{usage:["본문"],reading_length:'장문 가능'},
+  '읽는':{usage:["본문"],reading_length:'장문 가능'},
+  '독서':{usage:["본문"],reading_length:'장문 가능'},
+  '제목':{usage:["제목", "캐치프레이즈"],reading_length:'짧은 글자',weight_feel:'굵음'},
+  '제목용':{usage:["제목", "캐치프레이즈"],weight_feel:'굵음'},
+  '헤드라인':{usage:["제목", "캐치프레이즈"],weight_feel:'굵음'},
+  '헤더':{usage:["제목"],weight_feel:'굵음'},
+  '큰글씨':{usage:["제목"],weight_feel:'굵음'},
+  '큰 글씨':{usage:["제목"],weight_feel:'굵음'},
+  '큰글자':{usage:["제목"],weight_feel:'굵음'},
+  '타이틀':{usage:["제목", "캐치프레이즈"],weight_feel:'굵음'},
+  '메인타이틀':{usage:["제목"],weight_feel:'굵음'},
+  '메인제목':{usage:["제목"],weight_feel:'굵음'},
+  '서브타이틀':{usage:["제목"]},
+  '로고':{usage:["로고", "캐치프레이즈"]},
+  '로고타입':{usage:["로고"]},
+  '로고체':{usage:["로고"]},
+  '심볼':{usage:["로고"]},
+  '브랜드':{usage:["로고", "캐치프레이즈"]},
+  '브랜딩':{usage:["로고", "캐치프레이즈"]},
+  'BI':{usage:["로고"]},
+  'CI':{usage:["로고"]},
+  '간판':{usage:["로고", "캐치프레이즈"],weight_feel:'굵음'},
+  '슬로건':{usage:["캐치프레이즈"]},
+  '카피':{usage:["캐치프레이즈"]},
+  '카피라이팅':{usage:["캐치프레이즈"]},
+  '캐치프레이즈':{usage:["캐치프레이즈"]},
+  '캐치카피':{usage:["캐치프레이즈"]},
+  '문구':{usage:["캐치프레이즈"]},
+  '간판체':{usage:["로고", "캐치프레이즈"],weight_feel:'굵음'},
+  'SNS':{usage:["SNS카드"]},
+  'sns':{usage:["SNS카드"]},
+  '인스타':{usage:["SNS카드"],personality:["현대적"]},
+  '인스타그램':{usage:["SNS카드"],personality:["현대적"]},
+  '페이스북':{usage:["SNS카드"]},
+  '트위터':{usage:["SNS카드"]},
+  '엑스':{usage:["SNS카드"]},
+  '카드뉴스':{usage:["SNS카드", "정보전달"]},
+  '카드':{usage:["SNS카드"]},
+  '피드':{usage:["SNS카드"]},
+  '게시물':{usage:["SNS카드"]},
+  '게시글':{usage:["SNS카드"]},
+  '스토리':{usage:["SNS카드"]},
+  '프로필':{usage:["SNS카드"]},
+  '해시태그':{usage:["SNS카드"],personality:["현대적"]},
+  '썸네일':{usage:["썸네일", "캐치프레이즈"],weight_feel:'굵음'},
+  '섬네일':{usage:["썸네일", "캐치프레이즈"],weight_feel:'굵음'},
+  '유튜브':{usage:["썸네일", "영상자막"]},
+  '유튭':{usage:["썸네일", "영상자막"]},
+  '유튜버':{usage:["썸네일", "영상자막"]},
+  '쇼츠':{usage:["썸네일", "영상자막"],personality:["현대적"]},
+  '릴스':{usage:["SNS카드", "썸네일"],personality:["현대적"]},
+  '틱톡':{usage:["SNS카드", "썸네일"],personality:["현대적"]},
+  '자막':{usage:["영상자막"]},
+  '자막용':{usage:["영상자막"]},
+  '영상':{usage:["영상자막", "썸네일"]},
+  '영상자막':{usage:["영상자막"]},
+  '영상편집':{usage:["영상자막"]},
+  '브이로그':{mood:["친근한"],usage:["영상자막"]},
+  '동영상':{usage:["영상자막", "썸네일"]},
+  '미디어':{usage:["영상자막"]},
+  '포스터':{usage:["포스터", "캐치프레이즈"],weight_feel:'굵음'},
+  '포스터용':{usage:["포스터", "캐치프레이즈"],weight_feel:'굵음'},
+  '벽보':{usage:["포스터", "캐치프레이즈"]},
+  '전단':{usage:["포스터", "정보전달"]},
+  '전단지':{usage:["포스터", "정보전달"]},
+  '리플렛':{usage:["포스터", "정보전달"]},
+  '브로슈어':{usage:["포스터", "출판"]},
+  '카탈로그':{usage:["포스터", "출판"]},
+  '광고':{usage:["포스터", "캐치프레이즈"]},
+  '광고용':{usage:["포스터", "캐치프레이즈"]},
+  '배너':{usage:["포스터", "캐치프레이즈"],weight_feel:'굵음'},
+  '배너용':{usage:["포스터", "캐치프레이즈"]},
+  '디스플레이':{usage:["포스터"]},
+  '간판이미지':{usage:["포스터"]},
+  '패키지':{usage:["패키지", "로고"]},
+  '패키지디자인':{usage:["패키지"]},
+  '포장':{usage:["패키지"]},
+  '포장지':{usage:["패키지"]},
+  '박스':{usage:["패키지"]},
+  '라벨':{usage:["패키지"]},
+  '제품':{usage:["패키지", "로고"]},
+  '굿즈':{usage:["패키지", "로고"]},
+  '머천다이즈':{usage:["패키지"]},
+  '책':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '책자':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '도서':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '출판':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '출판물':{usage:["출판", "본문"]},
+  '잡지':{usage:["출판", "캐치프레이즈"]},
+  '신문':{usage:["출판", "본문"],formality:'격식',reading_length:'장문 가능'},
+  '에세이':{mood:["감성적"],usage:["출판", "본문"],reading_length:'장문 가능'},
+  '수필':{mood:["감성적"],usage:["출판", "본문"]},
+  '시집':{mood:["감성적"],usage:["출판"]},
+  '소설':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '단편':{usage:["출판", "본문"]},
+  '동화책':{usage:["출판", "본문"],personality:["어린이"]},
+  '그림책':{usage:["출판"],personality:["어린이"]},
+  '편집':{usage:["출판", "본문"]},
+  '편집디자인':{usage:["출판", "본문"]},
+  'UI':{usage:["UI"],industry:["IT"]},
+  'ui':{usage:["UI"],industry:["IT"]},
+  'UX':{usage:["UI"],industry:["IT"]},
+  'ux':{usage:["UI"],industry:["IT"]},
+  '웹':{usage:["UI"],industry:["IT"]},
+  '웹사이트':{usage:["UI"],industry:["IT"]},
+  '홈페이지':{usage:["UI"],industry:["IT"]},
+  '앱':{usage:["UI"],industry:["IT"]},
+  '앱디자인':{usage:["UI"],industry:["IT"]},
+  '어플':{usage:["UI"],industry:["IT"]},
+  '모바일':{usage:["UI"],industry:["IT"]},
+  '서비스':{usage:["UI"]},
+  '대시보드':{usage:["UI"],formality:'중간'},
+  '인터페이스':{usage:["UI"]},
+  '뷰':{usage:["UI"]},
+  '화면':{usage:["UI"]},
+  '플랫폼':{usage:["UI"],industry:["IT"]},
+  '정보':{usage:["정보전달"],formality:'중간'},
+  '정보전달':{usage:["정보전달"]},
+  '안내':{usage:["정보전달"],formality:'중간'},
+  '안내문':{usage:["정보전달"],formality:'격식'},
+  '공지':{usage:["정보전달"],formality:'격식'},
+  '공지사항':{usage:["정보전달"],formality:'격식'},
+  '문서':{usage:["본문", "출판"],formality:'격식'},
+  '리포트':{usage:["본문", "정보전달"],formality:'격식'},
+  '보고서':{usage:["본문", "정보전달"],formality:'격식'},
+  '논문':{usage:["본문"],formality:'격식',reading_length:'장문 가능'},
+  '발표':{usage:["정보전달", "제목"],formality:'중간'},
+  'PPT':{usage:["정보전달", "제목"]},
+  'ppt':{usage:["정보전달", "제목"]},
+  '슬라이드':{usage:["정보전달", "제목"]},
+  '키노트':{usage:["정보전달", "제목"]},
+  '프레젠테이션':{usage:["정보전달", "제목"]},
+  '제안서':{usage:["본문", "정보전달"],formality:'격식'},
+  '기획서':{usage:["본문", "정보전달"],formality:'격식'},
+  '교재':{usage:["본문", "정보전달"],industry:["교육"]},
+  '교과서':{usage:["본문", "정보전달"],industry:["교육"]},
+  '워크북':{usage:["본문"],industry:["교육"]},
+  '인포그래픽':{usage:["정보전달", "SNS카드"]},
+  '카페':{mood:["따뜻한", "감성적"],industry:["카페", "푸드"]},
+  '커피':{mood:["따뜻한"],industry:["카페", "푸드"]},
+  '커피숍':{mood:["따뜻한"],industry:["카페", "푸드"]},
+  '베이커리':{mood:["따뜻한"],industry:["카페", "푸드"]},
+  '빵집':{mood:["따뜻한"],industry:["카페", "푸드"]},
+  '디저트':{mood:["장난스러운", "부드러운"],industry:["카페", "푸드"]},
+  '케이크':{mood:["장난스러운"],industry:["카페", "푸드"]},
+  '쿠키':{mood:["장난스러운"],industry:["카페", "푸드"]},
+  '브런치':{mood:["감성적"],industry:["카페", "푸드"]},
+  '레스토랑':{industry:["푸드"]},
+  '식당':{industry:["푸드"]},
+  '음식':{industry:["푸드"]},
+  '맛집':{industry:["푸드"]},
+  '푸드':{industry:["푸드"]},
+  '음료':{industry:["푸드", "카페"]},
+  '와인':{mood:["고급스러운"],industry:["푸드"]},
+  '바':{mood:["고급스러운"],industry:["푸드"]},
+  '주점':{industry:["푸드"]},
+  '술집':{industry:["푸드"]},
+  '치맥':{mood:["친근한"],industry:["푸드"]},
+  '치킨':{industry:["푸드"]},
+  '피자':{industry:["푸드"]},
+  '버거':{industry:["푸드"]},
+  '햄버거':{industry:["푸드"]},
+  '분식':{mood:["친근한"],industry:["푸드"]},
+  '일식':{industry:["푸드"]},
+  '중식':{industry:["푸드"]},
+  '양식':{industry:["푸드"]},
+  '디저트카페':{industry:["카페", "푸드"]},
+  '도시락':{industry:["푸드"]},
+  '먹방':{mood:["친근한"],industry:["푸드"]},
+  '뷰티':{mood:["고급스러운"],industry:["뷰티"],personality:["여성적"]},
+  '화장품':{mood:["고급스러운"],industry:["뷰티"]},
+  '코스메틱':{mood:["고급스러운"],industry:["뷰티"]},
+  '메이크업':{industry:["뷰티"],personality:["여성적"]},
+  '미용실':{industry:["뷰티"]},
+  '미용':{industry:["뷰티"]},
+  '헤어':{industry:["뷰티"]},
+  '헤어샵':{industry:["뷰티"]},
+  '네일':{industry:["뷰티"],personality:["여성적"]},
+  '네일아트':{industry:["뷰티"],personality:["여성적"]},
+  '스파':{mood:["부드러운"],industry:["뷰티", "헬스케어"]},
+  '에스테틱':{mood:["고급스러운"],industry:["뷰티"]},
+  '피부':{industry:["뷰티"]},
+  '스킨케어':{industry:["뷰티"]},
+  '향수':{mood:["고급스러운"],industry:["뷰티"]},
+  '패션':{industry:["패션"]},
+  '의류':{industry:["패션"]},
+  '옷':{industry:["패션"]},
+  '쇼핑':{industry:["패션"]},
+  '쇼핑몰':{industry:["패션"]},
+  '편집샵':{industry:["패션"],personality:["현대적"]},
+  '주얼리':{mood:["고급스러운"],industry:["패션", "뷰티"]},
+  '액세서리':{industry:["패션", "뷰티"]},
+  '가방':{industry:["패션"]},
+  '신발':{industry:["패션"]},
+  '스타일링':{mood:["고급스러운"],industry:["패션"]},
+  '룩북':{industry:["패션"],personality:["현대적"]},
+  '키즈':{mood:["장난스러운"],industry:["키즈", "교육"],personality:["어린이"]},
+  '어린이':{mood:["장난스러운"],industry:["키즈", "교육"],personality:["어린이"]},
+  '아동':{industry:["키즈"],personality:["어린이"]},
+  '유아':{industry:["키즈"],personality:["어린이"]},
+  '아이':{industry:["키즈"],personality:["어린이"]},
+  '아기':{mood:["부드러운"],industry:["키즈"],personality:["어린이"]},
+  '어린이집':{industry:["키즈", "교육"]},
+  '유치원':{industry:["키즈", "교육"]},
+  '초등':{industry:["교육"],personality:["어린이"]},
+  '초등학생':{industry:["교육"],personality:["어린이"]},
+  '중등':{industry:["교육"]},
+  '고등':{industry:["교육"]},
+  '학원':{industry:["교육"]},
+  '학교':{mood:["친근한"],industry:["교육"]},
+  '교육':{mood:["신뢰감"],industry:["교육"]},
+  '강의':{industry:["교육"]},
+  '강좌':{industry:["교육"]},
+  '학습':{industry:["교육"]},
+  '공부':{industry:["교육"]},
+  '튜토리얼':{industry:["교육"]},
+  '스터디':{industry:["교육"]},
+  '입시':{mood:["진중한"],industry:["교육"]},
+  '학습지':{industry:["교육"]},
+  '온라인강의':{industry:["교육", "IT"]},
+  '병원':{mood:["신뢰감"],industry:["헬스케어"]},
+  '병원용':{mood:["신뢰감"],industry:["헬스케어"]},
+  '약국':{mood:["신뢰감"],industry:["헬스케어"]},
+  '의료':{mood:["신뢰감", "진중한"],industry:["헬스케어"]},
+  '의약':{mood:["신뢰감"],industry:["헬스케어"]},
+  '치과':{mood:["깔끔한"],industry:["헬스케어"]},
+  '한의원':{industry:["헬스케어"],personality:["전통적"]},
+  '클리닉':{mood:["신뢰감"],industry:["헬스케어"]},
+  '헬스':{industry:["헬스케어"]},
+  '운동':{mood:["강인한"],industry:["헬스케어"]},
+  '피트니스':{mood:["강인한"],industry:["헬스케어"]},
+  '체육관':{mood:["강인한"],industry:["헬스케어"]},
+  '요가':{mood:["부드러운"],industry:["헬스케어"]},
+  '필라테스':{mood:["부드러운"],industry:["헬스케어"]},
+  '명상':{mood:["부드러운"],industry:["헬스케어"]},
+  '웰니스':{mood:["부드러운"],industry:["헬스케어"]},
+  '재활':{mood:["신뢰감"],industry:["헬스케어"]},
+  '심리':{mood:["부드러운"],industry:["헬스케어"]},
+  '상담':{mood:["신뢰감", "부드러운"],industry:["헬스케어"]},
+  '스타트업':{industry:["IT"],personality:["현대적"]},
+  '기술':{industry:["IT"],personality:["미래적"]},
+  '게임':{mood:["장난스러운", "독특한"],industry:["IT"]},
+  '소프트웨어':{industry:["IT"]},
+  '하드웨어':{industry:["IT"]},
+  '코딩':{industry:["IT"]},
+  '개발':{industry:["IT"]},
+  '개발자':{industry:["IT"]},
+  '프로그래밍':{industry:["IT"]},
+  '데이터':{mood:["신뢰감"],industry:["IT"]},
+  '클라우드':{industry:["IT"]},
+  '서버':{industry:["IT"]},
+  '인공지능':{industry:["IT"],personality:["미래적"]},
+  'AI':{industry:["IT"],personality:["미래적"]},
+  '머신러닝':{industry:["IT"],personality:["미래적"]},
+  '핀테크':{mood:["신뢰감"],industry:["IT"]},
+  '플랫폼서비스':{industry:["IT"]},
+  'IT':{industry:["IT"],personality:["현대적"]},
+  'it':{industry:["IT"],personality:["현대적"]},
+  '관공서':{mood:["신뢰감", "진중한"],industry:["공공기관"],formality:'격식'},
+  '공공':{mood:["신뢰감"],industry:["공공기관"]},
+  '공공기관':{mood:["신뢰감", "진중한"],industry:["공공기관"]},
+  '시청':{industry:["공공기관"]},
+  '구청':{industry:["공공기관"]},
+  '도청':{industry:["공공기관"]},
+  '정부':{mood:["진중한"],industry:["공공기관"],formality:'격식'},
+  '국가':{mood:["진중한"],industry:["공공기관"]},
+  '공기업':{mood:["신뢰감"],industry:["공공기관"]},
+  '협회':{mood:["진중한"],industry:["공공기관"]},
+  '재단':{mood:["진중한"],industry:["공공기관"]},
+  '복지':{mood:["따뜻한"],industry:["공공기관"]},
+  '기부':{mood:["따뜻한"],industry:["공공기관"]},
+  '자선':{mood:["따뜻한"],industry:["공공기관"]},
+  '이벤트':{mood:["장난스러운", "임팩트"],industry:["이벤트"]},
+  '축제':{mood:["장난스러운"],industry:["이벤트"]},
+  '행사':{industry:["이벤트"]},
+  '결혼식':{mood:["고급스러운", "감성적"],industry:["이벤트"]},
+  '청첩장':{mood:["고급스러운", "감성적"],industry:["이벤트"]},
+  '돌잔치':{mood:["장난스러운"],industry:["이벤트"],personality:["어린이"]},
+  '생일':{mood:["장난스러운"],industry:["이벤트"]},
+  '파티':{mood:["장난스러운"],industry:["이벤트"]},
+  '콘서트':{mood:["임팩트"],industry:["이벤트"]},
+  '공연':{mood:["임팩트"],industry:["이벤트"]},
+  '전시':{mood:["감성적"],industry:["이벤트"]},
+  '전시회':{mood:["감성적"],industry:["이벤트"]},
+  '컨퍼런스':{mood:["진중한"],industry:["이벤트", "공공기관"]},
+  '세미나':{mood:["진중한"],industry:["이벤트", "교육"]},
+  '워크숍':{industry:["이벤트", "교육"]},
+  '박람회':{industry:["이벤트"]},
+  '페스티벌':{mood:["장난스러운", "임팩트"],industry:["이벤트"]},
+  '캠페인':{mood:["임팩트"],industry:["이벤트"]},
+  '플리마켓':{mood:["친근한"],industry:["이벤트"]},
+  '팝업스토어':{industry:["이벤트", "패션"],personality:["현대적"]},
+  '독립출판':{mood:["감성적"],industry:["출판"]},
+  '잡지사':{industry:["출판"]},
+  '북디자인':{industry:["출판"]},
+  '20대':{personality:["현대적"]},
+  '30대':{personality:["현대적", "중성적"]},
+  '40대':{personality:["전통적", "중성적"]},
+  '50대':{personality:["전통적"]},
+  '60대':{personality:["전통적"]},
+  '10대':{personality:["현대적", "어린이"]},
+  '청소년':{personality:["현대적", "어린이"]},
+  '학생':{industry:["교육"],personality:["어린이"]},
+  '대학생':{personality:["현대적"]},
+  '직장인':{personality:["중성적"],formality:'중간'},
+  '회사원':{personality:["중성적"],formality:'중간'},
+  '주부':{mood:["친근한"],personality:["중성적"]},
+  '여성':{personality:["여성적"]},
+  '남성':{personality:["남성적"]},
+  '여자':{personality:["여성적"]},
+  '남자':{personality:["남성적"]},
+  '시니어':{personality:["전통적"]},
+  '어른':{personality:["중성적"]},
+  '청년':{personality:["현대적"]},
+  '가독성':{mood:["깔끔한"],reading_length:'장문 가능'},
+  '가독성좋은':{mood:["깔끔한"],reading_length:'장문 가능'},
+  '읽기쉬운':{mood:["깔끔한"],reading_length:'장문 가능'},
+  '읽기편한':{mood:["부드러운"],reading_length:'장문 가능'},
+  '눈에편한':{mood:["부드러운"],reading_length:'장문 가능'},
+  '편한글씨':{mood:["부드러운"],reading_length:'장문 가능'},
+  '잘읽히는':{mood:["깔끔한"],reading_length:'장문 가능'},
+  '손글씨':{mood:["친근한", "부드러운"],personality:["전통적", "중성적"],formality:'캐주얼'},
+  '손편지':{mood:["친근한", "감성적"],personality:["전통적"]},
+  '편지':{mood:["감성적", "친근한"]},
+  '연필':{mood:["친근한", "감성적"]},
+  '펜글씨':{mood:["친근한"],personality:["전통적"]},
+  '캘리그라피':{mood:["감성적", "독특한"],personality:["전통적"]},
+  '캘리':{mood:["감성적", "독특한"],personality:["전통적"]},
+  '붓글씨':{mood:["진중한"],personality:["전통적"],formality:'격식'},
+  '서예':{mood:["진중한"],personality:["전통적"],formality:'격식'},
+  '한글서예':{mood:["진중한"],personality:["전통적"]},
+  '몽글몽글':{mood:["부드러운", "장난스러운"],personality:["여성적"]},
+  '말랑말랑':{mood:["부드러운", "장난스러운"]},
+  '뽀송뽀송':{mood:["부드러운", "장난스러운"]},
+  '동글동글':{mood:["부드러운", "장난스러운"],personality:["어린이"]},
+  '둥근':{mood:["부드러운", "친근한"]},
+  '둥글둥글':{mood:["부드러운", "친근한"]},
+  '각진':{mood:["강인한"],weight_feel:'굵음'},
+  '각이살아있는':{mood:["강인한", "깔끔한"]},
+  '날카로운':{mood:["임팩트", "강인한"]},
+  '뾰족한':{mood:["임팩트"]},
+  '부드럽고':{mood:["부드러운"]},
+  '진하고':{mood:["임팩트"],weight_feel:'굵음'}
+};
+
+/* 추천 결과 보유 변수 — UI 표시용 */
+let _lastRecommended = null;
+let _recommendShowCount = 5;
+
+/* 사용자 입력에서 추천 태그 추출 */
+function extractTagsFromQuery(query){
+  const q = String(query || '').toLowerCase();
+  const found = {
+    mood: new Set(), usage: new Set(), industry: new Set(),
+    personality: new Set(), formality: null, reading_length: null, weight_feel: null
+  };
+  // 사전의 키워드를 길이 내림차순으로 정렬 (긴 키워드 우선 매칭)
+  const keys = Object.keys(RECOMMEND_KEYWORDS).sort((a,b)=>b.length-a.length);
+  for(const key of keys){
+    if(q.includes(key.toLowerCase())){
+      const data = RECOMMEND_KEYWORDS[key];
+      if(data.mood) data.mood.forEach(v=>found.mood.add(v));
+      if(data.usage) data.usage.forEach(v=>found.usage.add(v));
+      if(data.industry) data.industry.forEach(v=>found.industry.add(v));
+      if(data.personality) data.personality.forEach(v=>found.personality.add(v));
+      if(data.formality && !found.formality) found.formality = data.formality;
+      if(data.reading_length && !found.reading_length) found.reading_length = data.reading_length;
+      if(data.weight_feel && !found.weight_feel) found.weight_feel = data.weight_feel;
+    }
+  }
+  return found;
+}
+
+/* 단일 폰트에 대한 매칭 점수 계산 */
+function scoreFont(font, extracted){
+  if(!font.meta) return 0;
+  const m = font.meta;
+  let score = 0;
+  let matches = [];
+
+  // usage: 가중치 3 (가장 중요)
+  for(const u of extracted.usage){
+    if(m.usage && m.usage.includes(u)){ score += 3; matches.push(u); }
+  }
+  // industry: 가중치 2
+  for(const i of extracted.industry){
+    if(m.industry && m.industry.includes(i)){ score += 2; matches.push(i); }
+  }
+  // mood: 가중치 2
+  for(const mo of extracted.mood){
+    if(m.mood && m.mood.includes(mo)){ score += 2; matches.push(mo); }
+  }
+  // personality: 가중치 1.5
+  for(const p of extracted.personality){
+    if(m.personality && m.personality.includes(p)){ score += 1.5; matches.push(p); }
+  }
+  // formality, weight_feel, reading_length: 가중치 1
+  if(extracted.formality && m.formality === extracted.formality){ score += 1; matches.push(m.formality); }
+  if(extracted.weight_feel && m.weight_feel === extracted.weight_feel){ score += 1; matches.push(m.weight_feel); }
+  if(extracted.reading_length && m.reading_length === extracted.reading_length){ score += 1; matches.push(m.reading_length); }
+
+  return { score, matches };
+}
+
+/* 추천 결과 생성 — 점수 상위 폰트들 반환 */
+function recommendFonts(query, candidates){
+  const extracted = extractTagsFromQuery(query);
+  // 추출된 태그가 하나도 없으면 추천 안함
+  const totalTags = extracted.mood.size + extracted.usage.size + extracted.industry.size +
+                    extracted.personality.size +
+                    (extracted.formality?1:0) + (extracted.weight_feel?1:0) + (extracted.reading_length?1:0);
+  if(totalTags === 0) return [];
+
+  const scored = candidates.map(f => {
+    const r = scoreFont(f, extracted);
+    return { font: f, score: r.score, matches: r.matches };
+  }).filter(x => x.score > 0);
+
+  // 점수 내림차순 정렬 (동률 시 좋아요 수 → id)
+  scored.sort((a,b) => {
+    if(b.score !== a.score) return b.score - a.score;
+    const la = likeCounts[a.font.id] || 0;
+    const lb = likeCounts[b.font.id] || 0;
+    if(lb !== la) return lb - la;
+    return a.font.id - b.font.id;
+  });
+
+  // 상위 항목들 반환 (UI에서 5/8/11... 더보기로 확장)
+  _lastRecommended = scored;
+  return scored.slice(0, _recommendShowCount).map(s => ({...s.font, _matches: s.matches, _isRecommend: true}));
+}
+
+function renderFonts(){
+  const list=getFilteredFonts();
+  const grid=document.getElementById('fontGrid');
+  const txt=getPreviewText();
+  const isRecommendMode = list.length > 0 && list[0]._isRecommend === true;
+  const countLabel = document.getElementById('countLabel');
+
+  if(isRecommendMode){
+    const total = (_lastRecommended || []).length;
+    countLabel.innerHTML = `<i class="ti ti-sparkles" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i> 추천 폰트 <strong>${list.length}</strong>개 <span style="color:var(--text-muted);font-size:12px">(총 ${total}개 후보 중)</span>`;
+  } else {
+    countLabel.innerHTML=`폰트 <strong>${list.length}</strong>개`;
+  }
+
+  if(!list.length){
+    grid.innerHTML=`<div class="no-results" role="status"><i class="ti ti-mood-sad" aria-hidden="true"></i><p>검색 결과가 없어요</p><small>다른 키워드를 시도해보세요</small></div>`;
+    return;
+  }
+  // 추천 모드일 땐 광고를 카드 사이에 끼우지 않음 (5개만 깔끔하게)
+  const adSlots = isRecommendMode ? '' : `
+    <div class="ad-slot row-1" role="complementary" aria-label="광고 영역 1">
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:260px;height:280px"
+           data-ad-client="ca-pub-6258337579944977"
+           data-ad-slot="2503633154"></ins>
+    </div>
+    <div class="ad-slot row-3" role="complementary" aria-label="광고 영역 2">
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:260px;height:280px"
+           data-ad-client="ca-pub-6258337579944977"
+           data-ad-slot="2397645773"></ins>
+    </div>`;
+
+  grid.innerHTML = adSlots + list.map((f,idx)=>{
+    const tagPills=f.tags.map(t=>`<span class="font-tag-pill">${t}</span>`).join('');
+    const downloadUrl=f.url||('https://noonnu.cc/index?keyword='+encodeURIComponent(f.name));
+    const liked=likedSet.has(f.id);
+    const count=likeCounts[f.id]||0;
+    const previewTxt = f.isEnglish ? ENGLISH_PREVIEW : txt;
+    // 추천 모드일 때 매칭 태그를 카드 상단에 작은 배지로 표시
+    const matchBadge = (isRecommendMode && f._matches && f._matches.length)
+      ? `<div class="recommend-match"><i class="ti ti-sparkles" aria-hidden="true"></i> ${[...new Set(f._matches)].slice(0,4).join(' · ')}</div>`
+      : '';
+    return `
+    <article class="font-card${isRecommendMode ? ' is-recommend' : ''}" role="listitem" data-font-id="${f.id}" style="animation-delay:${Math.min(idx*20,300)}ms">
+      ${matchBadge}
+      <div class="font-preview">
+        <div class="font-preview-text" data-english="${f.isEnglish?'1':'0'}" style="font-family:${f.stack};font-size:${currentFontSize}px">${previewTxt}</div>
+      </div>
+      <div class="card-divider"></div>
+      <div class="font-meta">
+        <div>
+          <div class="font-name">${f.name}</div>
+          <div class="font-maker">${f.maker}</div>
+        </div>
+        <span class="font-weights">${f.weights}</span>
+      </div>
+      <div class="font-tags-row">${tagPills}</div>
+      <div class="font-actions">
+        <button class="btn-download" type="button" onclick="openDownloadAd('${downloadUrl.replace(/'/g,"\\'")}', '${f.name.replace(/'/g,"\\'")}')">
+          <i class="ti ti-download" aria-hidden="true"></i> 무료 다운로드
+        </button>
+        <button class="btn-like${liked?' liked':''}" id="like-${f.id}" onclick="toggleLike(${f.id})" aria-label="좋아요${liked?' (선택됨)':''}" aria-pressed="${liked}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 22h2a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H2zM22 11.5a2 2 0 0 0-2-2h-5.5l1-4.8.03-.34a1.5 1.5 0 0 0-.43-1.06L14.34 2 8 8.5V20a2 2 0 0 0 2 2h7a2 2 0 0 0 2-1.5z" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          <span id="like-count-${f.id}">${count}</span>
+        </button>
+      </div>
+    </article>`;
+  }).join('');
+
+  // 추천 모드일 때 더보기 버튼 추가
+  if(isRecommendMode){
+    const total = (_lastRecommended || []).length;
+    if(_recommendShowCount < total){
+      grid.insertAdjacentHTML('beforeend', `
+        <div class="recommend-more-wrap" style="grid-column:1/-1;display:flex;justify-content:center;padding:8px 0">
+          <button class="recommend-more-btn" onclick="showMoreRecommendations()">
+            <i class="ti ti-plus" aria-hidden="true"></i>
+            <span>다른 추천 3개 더 보기</span>
+            <small>(${total - _recommendShowCount}개 더 있음)</small>
+          </button>
+        </div>`);
+    }
+  }
+
+  // 애드센스 광고 푸시 — 갤러리가 다시 렌더링될 때마다 새 <ins> 태그가 만들어지므로 매번 호출
+  pushAdSlots();
+  // 폰트 지연 로딩: 화면에 들어오는 카드만 폰트 등록
+  observeFontCards(document.getElementById('fontGrid'));
+}
+
+/* 추천 더보기: show count를 3씩 증가시키고 다시 렌더 */
+function showMoreRecommendations(){
+  _recommendShowCount += 3;
+  renderFonts();
+}
+
+/* 갤러리에 삽입된 광고 슬롯에 애드센스 광고 요청 */
+function pushAdSlots(){
+  try {
+    const slots = document.querySelectorAll('#fontGrid .adsbygoogle:not([data-adsbygoogle-status])');
+    slots.forEach(() => {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    });
+  } catch(e) {
+    console.warn('AdSense push failed', e);
+  }
+}
+
+/* ════════════════════════════════════════
+   폰트 지연 로딩 (Lazy Font Loading)
+   - 카드가 화면에 들어오면 해당 폰트의 @font-face를 동적 등록
+   - 한 번 등록된 폰트는 다시 등록하지 않음
+   - 폰트 파일은 fonts/ 폴더에 font-{id:03d}.woff2 형식으로 위치
+════════════════════════════════════════ */
+const _fontLoaded = new Set();          // 이미 @font-face 등록된 폰트 id
+const _fontStyleEl = (() => {           // 모든 @font-face 규칙을 담을 단일 <style>
+  const el = document.createElement('style');
+  el.id = 'ffp-dynamic-fonts';
+  document.head.appendChild(el);
+  return el;
+})();
+
+function ensureFontLoaded(id){
+  if(_fontLoaded.has(id)) return;
+  _fontLoaded.add(id);
+  const family = `FFP-${String(id).padStart(3,'0')}`;
+  const url = `fonts/font-${String(id).padStart(3,'0')}.woff2`;
+  // @font-face 규칙을 누적 추가 (sheet.insertRule이 더 빠르지만 textContent도 충분)
+  _fontStyleEl.appendChild(document.createTextNode(
+    `@font-face{font-family:'${family}';src:url('${url}') format('woff2');font-display:swap;font-weight:normal;font-style:normal}`
+  ));
+}
+
+/* IntersectionObserver — 화면에 들어오는 카드의 폰트만 로드 */
+const _fontObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(!entry.isIntersecting) return;
+    const id = parseInt(entry.target.dataset.fontId, 10);
+    if(!isNaN(id)) ensureFontLoaded(id);
+    _fontObserver.unobserve(entry.target);
+  });
+}, { rootMargin: '200px 0px' }); // 화면 200px 전부터 미리 로드
+
+function observeFontCards(scope){
+  const root = scope || document;
+  root.querySelectorAll('[data-font-id]:not([data-font-observed])').forEach(el => {
+    el.dataset.fontObserved = '1';
+    _fontObserver.observe(el);
+  });
+}
+
+/* ── 인기 TOP 10 ── */
+function renderTopRanking(){
+  const grid = document.getElementById('topGrid');
+  if(!grid) return;
+
+  // 좋아요 1개 이상인 폰트만 + 좋아요 수 기준 내림차순, 최대 10개
+  const ranked = FONTS
+    .filter(f => (likeCounts[f.id] || 0) > 0)
+    .map(f => ({ ...f, _likes: likeCounts[f.id] || 0 }))
+    .sort((a, b) => b._likes - a._likes || a.id - b.id)
+    .slice(0, 10);
+
+  if(!ranked.length){
+    grid.innerHTML = `<div class="top-empty" style="grid-column:1/-1">
+      아직 좋아요를 받은 폰트가 없어요 — 좋아하는 폰트에 <span style="color:var(--accent);font-weight:700">엄지척</span>을 눌러주세요!
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = ranked.map((f, i) => {
+    const rank = i + 1;
+    const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+    return `
+      <button class="top-card ${rankClass}" data-font-id="${f.id}" onclick="searchByFontName('${f.name.replace(/'/g, "\\'")}')" aria-label="${f.name} 검색">
+        <div class="top-rank">${rank}</div>
+        <div class="top-info">
+          <div class="top-name" style="font-family:${f.stack}">${f.name}</div>
+          <div class="top-meta">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 22h2a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H2zM22 11.5a2 2 0 0 0-2-2h-5.5l1-4.8.03-.34a1.5 1.5 0 0 0-.43-1.06L14.34 2 8 8.5V20a2 2 0 0 0 2 2h7a2 2 0 0 0 2-1.5z" stroke-linejoin="round" stroke-linecap="round"/></svg>
+            <span class="like-num">${f._likes}</span>
+            <span style="color:var(--text-muted)">· ${f.maker}</span>
+          </div>
+        </div>
+      </button>`;
+  }).join('');
+  observeFontCards(grid);
+}
+
+/* TOP 카드 클릭 → 검색창에 폰트명 입력 + 카테고리 '전체'로 리셋 + 갤러리로 스크롤 */
+function searchByFontName(name){
+  // applySearch가 카테고리 리셋 + 검색창 입력 + 렌더링 + hash 푸시까지 처리
+  applySearch(name, /*pushHash*/ true);
+
+  // 갤러리로 부드럽게 스크롤
+  const grid = document.getElementById('fontGrid');
+  if(grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function toggleLike(id){
+  const liked=likedSet.has(id);
+  if(liked){
+    likedSet.delete(id);
+    likeCounts[id]=Math.max((likeCounts[id]||0)-1,0);
+  }else{
+    likedSet.add(id);
+    likeCounts[id]=(likeCounts[id]||0)+1;
+  }
+  saveLikes();
+  const btn=document.getElementById('like-'+id);
+  const countEl=document.getElementById('like-count-'+id);
+  if(btn){
+    const nowLiked=likedSet.has(id);
+    btn.classList.toggle('liked',nowLiked);
+    btn.setAttribute('aria-pressed',String(nowLiked));
+    btn.setAttribute('aria-label','좋아요'+(nowLiked?' (선택됨)':''));
+  }
+  if(countEl) countEl.textContent=likeCounts[id]||0;
+  renderTopRanking();
+}
+
+window.addEventListener('scroll',()=>document.getElementById('scrollTopBtn').classList.toggle('visible',window.scrollY>400),{passive:true});
+
+/* ── 하단 플로팅 광고 ── */
+function initFloatingAd(){
+  // 사용자가 이전에 닫았으면 다시 표시하지 않음 (세션 기준)
+  try {
+    if(sessionStorage.getItem('floating_ad_closed') === 'yes'){
+      document.getElementById('floatingAd').classList.add('hidden');
+      return;
+    }
+  } catch(e){}
+  // body에 클래스 부여 (scroll-top 버튼을 위로 올림)
+  document.body.classList.add('floating-ad-shown');
+  // 광고 푸시
+  try {
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  } catch(e) {
+    console.warn('Floating ad push failed', e);
+  }
+}
+function closeFloatingAd(){
+  document.getElementById('floatingAd').classList.add('hidden');
+  document.body.classList.remove('floating-ad-shown');
+  try { sessionStorage.setItem('floating_ad_closed', 'yes'); } catch(e){}
+}
+initFloatingAd();
+
+/* ── 다운로드 광고 인터스티셜 ── */
+let _dlPendingUrl = null;
+function openDownloadAd(url, fontName){
+  _dlPendingUrl = url;
+  // 닫기 버튼 라벨에 폰트 이름 표시 (선택)
+  const nameEl = document.getElementById('dladTargetName');
+  if(nameEl) nameEl.textContent = fontName ? `(${fontName} 다운로드 페이지로 이동)` : '';
+
+  // 광고 컨테이너에 새 <ins> 태그 삽입 (매번 새로 만들어야 push가 작동)
+  const container = document.getElementById('dladAdContainer');
+  container.innerHTML = `
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-6258337579944977"
+         data-ad-slot="8598268214"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>`;
+
+  // 모달 표시
+  document.getElementById('dladOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // 광고 푸시 (DOM 삽입 후)
+  setTimeout(() => {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch(e) {
+      console.warn('Download ad push failed', e);
+    }
+  }, 50);
+}
+function closeDownloadAd(){
+  const url = _dlPendingUrl;
+  document.getElementById('dladOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  // 광고 컨테이너 비우기 (다음 호출 시 깨끗하게)
+  document.getElementById('dladAdContainer').innerHTML = '';
+  _dlPendingUrl = null;
+  // 다운로드 페이지로 이동 (새 창)
+  if(url){
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+}
+
+/* ── 라이선스 모달 ── */
+function openLicense(){
+  document.getElementById('licenseOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLicense(){
+  document.getElementById('licenseOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.getElementById('licenseOverlay').addEventListener('click',function(e){
+  if(e.target===this) closeLicense();
+});
+document.getElementById('dladOverlay').addEventListener('click',function(e){
+  if(e.target===this) closeDownloadAd();
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    if(document.getElementById('licenseOverlay').classList.contains('open')) closeLicense();
+    else if(document.getElementById('dladOverlay').classList.contains('open')) closeDownloadAd();
+  }
+});
+
+/* ── 카테고리 태그 동적 렌더링 ── */
+async function renderTagsBar(){
+  const tags = await TagStore.getAll();
+  const bar = document.getElementById('tagsBar');
+  // 현재 활성 태그가 삭제됐다면 'all'로 리셋
+  if(currentTag !== 'all' && !tags.includes(currentTag)){
+    currentTag = 'all';
+  }
+  bar.innerHTML = `<button class="tag${currentTag==='all'?' active':''}" onclick="setTag('all',this)">전체</button>` +
+    tags.map(t=>`<button class="tag${currentTag===t?' active':''}" onclick="setTag('${t.replace(/'/g,"\\'")}',this)">${t}</button>`).join('');
+}
+
+/* ── 업로드된 폰트 파일을 @font-face로 등록 ── */
+const _registeredFonts = new Set();
+async function registerUploadedFonts(){
+  for(const f of FONTS){
+    if(f.hasFile && !_registeredFonts.has(f.id)){
+      try{
+        const rec = await FontFileStore.getFile(f.id);
+        if(rec && rec.data){
+          const blob = new Blob([rec.data], { type: rec.type || 'font/ttf' });
+          const url = URL.createObjectURL(blob);
+          const family = `tadak-uploaded-${f.id}`;
+          const face = new FontFace(family, `url(${url})`);
+          await face.load();
+          document.fonts.add(face);
+          // 폰트 stack을 업로드한 폰트가 우선 적용되도록 갱신
+          f.stack = `'${family}', ${f.stack}`;
+          _registeredFonts.add(f.id);
+        }
+      }catch(e){ console.warn('Failed to register uploaded font for', f.name, e); }
+    }
+  }
+}
+
+async function init(){
+  FONTS = await FontStore.getAll();
+  document.getElementById('totalCount').textContent = FONTS.length;
+  await renderTagsBar();
+  await registerUploadedFonts();
+  renderFonts();
+  renderTopRanking();
+
+  // 라우팅 처리 (해시 기반)
+  await route();
+  window.addEventListener('hashchange', route);
+  window.addEventListener('popstate', route);
+
+  // 관리자 페이지에서 변경된 내용이 실시간으로 반영되도록 구독
+  onDataChanged(async () => {
+    FONTS = await FontStore.getAll();
+    document.getElementById('totalCount').textContent = FONTS.length;
+    await renderTagsBar();
+    await registerUploadedFonts();
+    renderFonts();
+    renderTopRanking();
+    // 공지사항 화면이 활성화돼있다면 같이 갱신
+    if(location.hash.startsWith('#notice')) await route();
+  });
+}
+
+/* ════════════════════════════════════════════
+   라우팅
+   - 빈 해시 또는 #home → 홈(폰트 갤러리)
+   - #notice → 공지사항 목록
+   - #notice/123 → 공지사항 상세 (id=123)
+════════════════════════════════════════════ */
+async function route(){
+  const hash = location.hash;
+  const noticeMenu = document.getElementById('noticeMenuLink');
+
+  if(hash === '#notice'){
+    showNoticeView();
+    noticeMenu.classList.add('active');
+    await renderNoticeList();
+    showNoticePanel('list');
+    window.scrollTo({top:0});
+  } else if(hash.startsWith('#notice/')){
+    const id = parseInt(hash.split('/')[1], 10);
+    showNoticeView();
+    noticeMenu.classList.add('active');
+    await renderNoticeDetail(id);
+    showNoticePanel('detail');
+    window.scrollTo({top:0});
+  } else if(hash.startsWith('#search/')){
+    showHomeView();
+    noticeMenu.classList.remove('active');
+    // hash로부터 검색어 복원
+    const query = decodeURIComponent(hash.slice('#search/'.length));
+    applySearch(query, /*pushHash*/ false);
+  } else {
+    showHomeView();
+    noticeMenu.classList.remove('active');
+    // 홈으로 돌아온 경우: 검색·태그 초기화
+    clearSearchAndFilter();
+  }
+}
+
+/* 검색어를 적용하면서 hash 푸시(뒤로가기 작동을 위해) */
+function applySearch(query, pushHash){
+  // 카테고리 '전체'로 리셋 + 검색창에 값 입력
+  currentTag = 'all';
+  const tagBtns = document.querySelectorAll('.tag');
+  tagBtns.forEach(t => t.classList.remove('active'));
+  if(tagBtns[0]) tagBtns[0].classList.add('active');
+
+  document.getElementById('globalSearch').value = query;
+  renderFonts();
+
+  if(pushHash){
+    const newHash = query ? '#search/' + encodeURIComponent(query) : '';
+    if(location.hash !== newHash){
+      // hashchange 무한 루프 방지를 위해 동일하지 않을 때만 변경
+      history.pushState(null, '', newHash || location.pathname + location.search);
+    }
+  }
+}
+
+/* 홈으로 돌아왔을 때 검색·필터 초기화 */
+function clearSearchAndFilter(){
+  currentTag = 'all';
+  const tagBtns = document.querySelectorAll('.tag');
+  tagBtns.forEach(t => t.classList.remove('active'));
+  if(tagBtns[0]) tagBtns[0].classList.add('active');
+  const input = document.getElementById('globalSearch');
+  if(input) input.value = '';
+  renderFonts();
+}
+
+function showHomeView(){
+  document.getElementById('homeView').style.display = '';
+  document.getElementById('noticeView').style.display = 'none';
+}
+function showNoticeView(){
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('noticeView').style.display = '';
+}
+function showNoticePanel(which){
+  document.getElementById('noticeListPanel').style.display = which==='list' ? '' : 'none';
+  document.getElementById('noticeDetailPanel').style.display = which==='detail' ? '' : 'none';
+}
+
+function goHome(){ location.hash = ''; }
+function goNoticeList(){ location.hash = '#notice'; }
+function goNoticeDetail(id){ location.hash = '#notice/' + id; }
+
+/* ════════════════════════════════════════════
+   공지사항 렌더링
+════════════════════════════════════════════ */
+function formatNoticeDate(ts){
+  const d = new Date(ts);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}.${mm}.${dd}`;
+}
+
+async function renderNoticeList(){
+  const notices = await NoticeStore.getAll();
+  const wrap = document.getElementById('noticeList');
+  if(!notices.length){
+    wrap.innerHTML = `<div class="notice-empty">
+      <i class="ti ti-speakerphone" aria-hidden="true"></i>
+      <p>등록된 공지사항이 없어요</p>
+    </div>`;
+    return;
+  }
+  // 핀 고정된 글이 위로 오도록 정렬
+  notices.sort((a,b)=>{
+    if(a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+    return b.createdAt - a.createdAt;
+  });
+  wrap.innerHTML = notices.map(n => `
+    <a class="notice-row" href="#notice/${n.id}" aria-label="${escapeHtml(n.title)}">
+      <div class="notice-pin${n.pinned?'':' empty'}" aria-hidden="true"><i class="ti ti-pin-filled"></i></div>
+      <div class="notice-row-content">
+        <div class="notice-row-title">${n.pinned?'<span class="notice-row-badge">중요</span>':''}${escapeHtml(n.title)}</div>
+        <div class="notice-row-date">${formatNoticeDate(n.createdAt)}</div>
+      </div>
+      <i class="ti ti-chevron-right chevron" aria-hidden="true"></i>
+    </a>
+  `).join('');
+}
+
+async function renderNoticeDetail(id){
+  const n = await NoticeStore.getById(id);
+  const titleEl = document.getElementById('noticeDetailTitle');
+  const metaEl = document.getElementById('noticeDetailMeta');
+  const bodyEl = document.getElementById('noticeDetailBody');
+  if(!n){
+    titleEl.textContent = '존재하지 않는 공지사항이에요';
+    metaEl.innerHTML = '';
+    bodyEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px">목록으로 돌아가서 다른 글을 확인해주세요.</p>';
+    return;
+  }
+  titleEl.textContent = n.title;
+  metaEl.innerHTML = (n.pinned?'<span class="pin"><i class="ti ti-pin-filled" style="font-size:13px"></i> 중요</span>':'') +
+    `<span>등록일 ${formatNoticeDate(n.createdAt)}</span>` +
+    (n.updatedAt && n.updatedAt !== n.createdAt ? `<span>수정일 ${formatNoticeDate(n.updatedAt)}</span>` : '');
+  // 본문은 관리자에서 sanitize된 HTML이 들어있음 (b, strong, br, p만 허용)
+  bodyEl.innerHTML = sanitizeNoticeHtml(n.content || '');
+}
+
+/* HTML 화이트리스트 (관리자가 저장한 서식만 허용) */
+function sanitizeNoticeHtml(html){
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const allowed = new Set(['B','STRONG','BR','P','DIV']);
+  const walk = (node) => {
+    [...node.children].forEach(child => {
+      walk(child);
+      if(!allowed.has(child.tagName)){
+        // 허용되지 않은 태그는 자식만 남기고 자기 자신 제거
+        const parent = child.parentNode;
+        while(child.firstChild) parent.insertBefore(child.firstChild, child);
+        parent.removeChild(child);
+      } else {
+        // 속성 모두 제거
+        [...child.attributes].forEach(attr => child.removeAttribute(attr.name));
+      }
+    });
+  };
+  walk(tmp);
+  return tmp.innerHTML;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+init();
+</script>
+</body>
+</html>
