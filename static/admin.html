@@ -250,6 +250,7 @@
     <span class="admin-badge"><i class="ti ti-shield-lock" aria-hidden="true" style="font-size:12px"></i> ADMIN</span>
     <div class="header-right">
       <a class="header-link" href="index.html" target="_blank" rel="noopener"><i class="ti ti-external-link" aria-hidden="true"></i> 사이트 보기</a>
+      <button class="btn-logout" onclick="showChangePasswordModal(false)" style="background:transparent;border:1px solid var(--border);color:var(--text-secondary)"><i class="ti ti-key" aria-hidden="true"></i> 비밀번호 변경</button>
       <button class="btn-logout" onclick="logout()"><i class="ti ti-logout" aria-hidden="true"></i> 로그아웃</button>
     </div>
   </div>
@@ -260,14 +261,18 @@
   <div class="login-card">
     <div class="login-icon"><i class="ti ti-shield-lock" aria-hidden="true"></i></div>
     <h1>관리자 로그인</h1>
-    <p>관리자 비밀번호를 입력해주세요</p>
+    <p>관리자 계정으로 로그인해주세요</p>
+    <div class="login-field">
+      <label for="idInput">아이디</label>
+      <input type="text" id="idInput" placeholder="admin" value="admin" onkeydown="if(event.key==='Enter') document.getElementById('pwInput').focus()" autocomplete="username">
+    </div>
     <div class="login-field">
       <label for="pwInput">비밀번호</label>
       <input type="password" id="pwInput" placeholder="비밀번호" onkeydown="if(event.key==='Enter') tryLogin()" autocomplete="current-password">
-      <div class="login-error" id="loginError">비밀번호가 일치하지 않습니다</div>
+      <div class="login-error" id="loginError">아이디 또는 비밀번호가 올바르지 않습니다</div>
     </div>
     <button class="btn-login" onclick="tryLogin()">로그인</button>
-    <p class="login-hint">기본 비밀번호: <strong>tadak2026</strong><br>코드(<code>ADMIN_PASSWORD</code>)에서 변경할 수 있습니다</p>
+    <p class="login-hint">초기 로그인: <strong>admin</strong> / <strong>freefontpick2026!</strong><br>첫 로그인 시 비밀번호를 변경합니다</p>
   </div>
 </div>
 
@@ -543,42 +548,163 @@
 <div class="toast" id="toast"></div>
 
 <!-- 공유 데이터 레이어 -->
-<script src="font-data.js"></script>
+<script src="/static/api-client.js"></script>
 <script>
 /* ════════════════════════════════════════
-   비밀번호 (실서비스에서는 서버 인증 필요)
-   파일 상단에서 한 곳만 변경하면 됨.
+   관리자 인증 — 백엔드 세션 기반
+   - 기본 계정: admin (초기 비번 freefontpick2026! → 첫 로그인 시 변경 강제)
 ════════════════════════════════════════ */
-const ADMIN_PASSWORD = 'tadak2026';
-const SESSION_KEY = 'tadak_admin_session';
+let _currentAdmin = null;  // {username, must_change_password}
+
+async function checkSession(){
+  try {
+    const s = await AuthAPI.status();
+    if (s.authenticated) {
+      _currentAdmin = s;
+      if (s.must_change_password) {
+        showChangePasswordModal(true);
+      } else {
+        showAdmin();
+      }
+      return true;
+    }
+  } catch (e) {
+    console.warn('세션 확인 실패', e);
+  }
+  return false;
+}
 
 function isLoggedIn(){
-  try { return sessionStorage.getItem(SESSION_KEY) === 'yes'; }
-  catch(e) { return false; }
+  return !!_currentAdmin;
 }
-function tryLogin(){
+
+async function tryLogin(){
+  const username = document.getElementById('idInput').value.trim() || 'admin';
   const pw = document.getElementById('pwInput').value;
-  if(pw === ADMIN_PASSWORD){
-    try { sessionStorage.setItem(SESSION_KEY, 'yes'); } catch(e){}
-    showAdmin();
-  } else {
-    document.getElementById('loginError').classList.add('show');
+  if (!pw) {
+    showLoginError('비밀번호를 입력해주세요');
+    return;
+  }
+  try {
+    const result = await AuthAPI.login(username, pw);
+    _currentAdmin = result;
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('pwInput').value = '';
+    if (result.must_change_password) {
+      showChangePasswordModal(true);
+    } else {
+      showAdmin();
+    }
+  } catch (e) {
+    showLoginError(e.message || '로그인에 실패했어요');
     document.getElementById('pwInput').focus();
   }
 }
-function logout(){
-  try { sessionStorage.removeItem(SESSION_KEY); } catch(e){}
-  document.getElementById('adminHeader').style.display='none';
-  document.getElementById('adminMain').classList.remove('shown');
-  document.getElementById('loginWrap').style.display='flex';
-  document.getElementById('pwInput').value='';
+
+function showLoginError(msg){
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.classList.add('show');
 }
+
+async function logout(){
+  try { await AuthAPI.logout(); } catch (e) {}
+  _currentAdmin = null;
+  document.getElementById('adminHeader').style.display = 'none';
+  document.getElementById('adminMain').classList.remove('shown');
+  document.getElementById('loginWrap').style.display = 'flex';
+  const pwEl = document.getElementById('pwInput');
+  if (pwEl) pwEl.value = '';
+}
+
 function showAdmin(){
-  document.getElementById('loginWrap').style.display='none';
-  document.getElementById('adminHeader').style.display='block';
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('adminHeader').style.display = 'block';
   document.getElementById('adminMain').classList.add('shown');
   refresh();
 }
+
+/* ── 첫 로그인 시 비밀번호 변경 강제 ── */
+function showChangePasswordModal(required){
+  // 동적으로 모달 생성 (HTML에 미리 둬도 되지만 여기선 인라인)
+  let modal = document.getElementById('pwChangeModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'pwChangeModal';
+    modal.className = 'modal-overlay open';
+    modal.innerHTML = `
+      <div class="modal" style="max-width:420px">
+        <div class="modal-head">
+          <h3 id="pwModalTitle">비밀번호 변경</h3>
+        </div>
+        <div class="modal-body">
+          <p id="pwChangeNote" style="font-size:13px;color:var(--text-secondary);margin-bottom:14px"></p>
+          <div class="field">
+            <label>현재 비밀번호</label>
+            <input type="password" id="pwCurrent" autocomplete="current-password">
+          </div>
+          <div class="field">
+            <label>새 비밀번호 (8자 이상)</label>
+            <input type="password" id="pwNew" autocomplete="new-password">
+          </div>
+          <div class="field">
+            <label>새 비밀번호 확인</label>
+            <input type="password" id="pwNew2" autocomplete="new-password">
+          </div>
+          <div id="pwChangeError" style="color:var(--danger,#d33);font-size:12px;display:none;margin-top:6px"></div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn-cancel" id="pwCancelBtn" type="button">취소</button>
+          <button class="btn-save" id="pwSubmitBtn" type="button">변경</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    document.getElementById('pwSubmitBtn').addEventListener('click', submitPasswordChange);
+    document.getElementById('pwCancelBtn').addEventListener('click', () => {
+      if (required) {
+        // 첫 로그인 강제 변경 - 취소 시 로그아웃
+        document.getElementById('pwChangeModal').remove();
+        logout();
+      } else {
+        document.getElementById('pwChangeModal').remove();
+      }
+    });
+  }
+  document.getElementById('pwChangeNote').textContent = required
+    ? '처음 로그인하셨어요. 보안을 위해 새 비밀번호를 설정해주세요.'
+    : '비밀번호를 변경할 수 있어요.';
+  document.getElementById('pwCancelBtn').textContent = required ? '로그아웃' : '취소';
+  document.getElementById('pwCurrent').value = '';
+  document.getElementById('pwNew').value = '';
+  document.getElementById('pwNew2').value = '';
+  document.getElementById('pwChangeError').style.display = 'none';
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('pwCurrent').focus(), 60);
+}
+
+async function submitPasswordChange(){
+  const cur = document.getElementById('pwCurrent').value;
+  const nw = document.getElementById('pwNew').value;
+  const nw2 = document.getElementById('pwNew2').value;
+  const err = document.getElementById('pwChangeError');
+  err.style.display = 'none';
+  if (!cur || !nw) { err.textContent = '모든 항목을 입력해주세요'; err.style.display = 'block'; return; }
+  if (nw.length < 8) { err.textContent = '새 비밀번호는 8자 이상이어야 해요'; err.style.display = 'block'; return; }
+  if (nw !== nw2) { err.textContent = '새 비밀번호가 일치하지 않아요'; err.style.display = 'block'; return; }
+  try {
+    const result = await AuthAPI.changePassword(cur, nw);
+    _currentAdmin = result;
+    document.getElementById('pwChangeModal').remove();
+    showToast('비밀번호를 변경했어요');
+    showAdmin();
+  } catch (e) {
+    err.textContent = e.message || '변경에 실패했어요';
+    err.style.display = 'block';
+  }
+}
+
+// 페이지 로드 시 세션 자동 확인
+window.addEventListener('DOMContentLoaded', checkSession);
 
 /* ════════════════════════════════════════
    상태

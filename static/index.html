@@ -582,7 +582,7 @@
 </div>
 
 <!-- 공유 데이터 레이어 (관리자 페이지와 동일 파일을 사용) -->
-<script src="font-data.js"></script>
+<script src="/static/api-client.js"></script>
 <script>
 let FONTS=[];
 let currentTag='all';
@@ -1594,8 +1594,8 @@ function ensureFontLoaded(id){
   if(_fontLoaded.has(id)) return;
   _fontLoaded.add(id);
   const family = `FFP-${String(id).padStart(3,'0')}`;
-  const url = `fonts/font-${String(id).padStart(3,'0')}.woff2`;
-  // @font-face 규칙을 누적 추가 (sheet.insertRule이 더 빠르지만 textContent도 충분)
+  const url = `/api/fonts/${id}/file`;
+  // @font-face 규칙을 누적 추가
   _fontStyleEl.appendChild(document.createTextNode(
     `@font-face{font-family:'${family}';src:url('${url}') format('woff2');font-display:swap;font-weight:normal;font-style:normal}`
   ));
@@ -1794,27 +1794,11 @@ async function renderTagsBar(){
     tags.map(t=>`<button class="tag${currentTag===t?' active':''}" onclick="setTag('${t.replace(/'/g,"\\'")}',this)">${t}</button>`).join('');
 }
 
-/* ── 업로드된 폰트 파일을 @font-face로 등록 ── */
-const _registeredFonts = new Set();
+/* ── 업로드된 폰트 등록 ──
+   백엔드 도입 후엔 모든 폰트가 /api/fonts/{id}/file로 통일되어 서빙되므로,
+   ensureFontLoaded만으로 충분. 이 함수는 호환을 위해 남겨두지만 no-op. */
 async function registerUploadedFonts(){
-  for(const f of FONTS){
-    if(f.hasFile && !_registeredFonts.has(f.id)){
-      try{
-        const rec = await FontFileStore.getFile(f.id);
-        if(rec && rec.data){
-          const blob = new Blob([rec.data], { type: rec.type || 'font/ttf' });
-          const url = URL.createObjectURL(blob);
-          const family = `tadak-uploaded-${f.id}`;
-          const face = new FontFace(family, `url(${url})`);
-          await face.load();
-          document.fonts.add(face);
-          // 폰트 stack을 업로드한 폰트가 우선 적용되도록 갱신
-          f.stack = `'${family}', ${f.stack}`;
-          _registeredFonts.add(f.id);
-        }
-      }catch(e){ console.warn('Failed to register uploaded font for', f.name, e); }
-    }
-  }
+  return;
 }
 
 async function init(){
