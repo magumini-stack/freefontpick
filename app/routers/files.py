@@ -1,4 +1,8 @@
-"""폰트 파일 업로드 + 자동 서브셋 변환 + 다운로드/삭제"""
+"""폰트 파일 업로드 + 자동 서브셋 변환 + 다운로드/삭제
+
+업로드 시 폰트의 stack 앞에 FFP-{id} family를 자동으로 추가해서
+프론트엔드 미리보기에 즉시 적용되도록 한다.
+"""
 import os
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
@@ -16,12 +20,35 @@ router = APIRouter(prefix="/api/fonts", tags=["files"])
 FONTS_DIR = Path(os.getenv("FONTS_DIR", "/app/user_data/fonts"))
 FONTS_DIR.mkdir(parents=True, exist_ok=True)
 
-# 업로드 최대 크기 (의뢰서 3.4: 20MB로 상향)
+# 배포에 묶인 시드 폰트 경로 (읽기 전용 fallback)
+BUNDLED_FONTS_DIR = Path(__file__).resolve().parent.parent.parent / "static" / "fonts"
+
+# 업로드 최대 크기
 MAX_UPLOAD_SIZE = 20 * 1024 * 1024
 
 
 def font_path(font_id: int) -> Path:
     return FONTS_DIR / f"font-{font_id:03d}.woff2"
+
+
+def bundled_font_path(font_id: int) -> Path:
+    return BUNDLED_FONTS_DIR / f"font-{font_id:03d}.woff2"
+
+
+def _ffp_family(font_id: int) -> str:
+    return f"FFP-{font_id:03d}"
+
+
+def _ensure_stack_has_family(stack: str, font_id: int) -> str:
+    """폰트의 stack 맨 앞에 FFP-{id} family가 포함되도록 보정."""
+    family = _ffp_family(font_id)
+    quoted = f"'{family}'"
+    if not stack:
+        return f"{quoted},'Nanum Gothic',sans-serif"
+    # 이미 있으면 그대로
+    if family in stack:
+        return stack
+    return f"{quoted},{stack}"
 
 
 @router.post("/{font_id}/file", response_model=FileUploadResponse)
@@ -62,7 +89,9 @@ async def upload_font_file(
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_bytes(woff2_bytes)
 
+    # 미리보기에 폰트가 적용되도록 stack 자동 갱신
     font.has_file = True
+    font.stack = _ensure_stack_has_family(font.stack or "", font_id)
     db.commit()
 
     return FileUploadResponse(
@@ -77,18 +106,33 @@ async def upload_font_file(
 
 @router.get("/{font_id}/file")
 def download_font_file(font_id: int):
-    """공개 — 폰트 파일 서빙. @font-face로 호출됨."""
+    """공개 — 폰트 파일 서빙. @font-face로 호출됨.
+
+    우선순위: 사용자 업로드본(/app/user_data/fonts) → 시드 번들(static/fonts)
+    """
+    # 사용자 업로드본 우선
     p = font_path(font_id)
-    if not p.exists():
-        raise HTTPException(status_code=404, detail="폰트 파일이 없습니다")
-    return FileResponse(
-        path=p,
-        media_type="font/woff2",
-        headers={
-            "Cache-Control": "public, max-age=31536000, immutable",
-            "Access-Control-Allow-Origin": "*",
-        },
-    )
+    if p.exists():
+        return FileResponse(
+            path=p,
+            media_type="font/woff2",
+            headers={
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Access-Control-Allow-Origin": "*",
+            },
+        )
+    # 시드 번들 fallback
+    bp = bundled_font_path(font_id)
+    if bp.exists():
+        return FileResponse(
+            path=bp,
+            media_type="font/woff2",
+            headers={
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Access-Control-Allow-Origin": "*",
+            },
+        )
+    raise HTTPException(status_code=404, detail="폰트 파일이 없습니다")
 
 
 @router.delete("/{font_id}/file", status_code=status.HTTP_204_NO_CONTENT)
@@ -103,5 +147,7 @@ def delete_font_file(
     p = font_path(font_id)
     if p.exists():
         p.unlink()
-    font.has_file = False
+    # 번들 시드가 있으면 has_file 유지 (시드 폰트는 항상 존재)
+    if not bundled_font_path(font_id).exists():
+        font.has_file = False
     db.commit()
