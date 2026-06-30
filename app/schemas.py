@@ -57,7 +57,15 @@ class FontOut(FontBase):
     sort_order: int
     tags: List[str]  # 이름 배열
     meta: Dict[str, Any] = Field(default_factory=dict)
+    like_count: int = 0
     model_config = ConfigDict(from_attributes=True)
+
+
+class LikeResponse(BaseModel):
+    """좋아요 토글 응답"""
+    font_id: int
+    like_count: int
+    liked: bool  # True=방금 +1, False=방금 -1
 
 
 class FontReorderItem(BaseModel):

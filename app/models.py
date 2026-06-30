@@ -32,6 +32,8 @@ class Font(Base):
     sort_order = Column(Integer, nullable=False, default=0, index=True)
     # 추천 메타데이터 8개 차원 (JSON)
     meta = Column(JSON, default=dict)
+    # 전역 좋아요 카운트
+    like_count = Column(Integer, nullable=False, default=0, server_default="0")
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -40,6 +42,7 @@ class Font(Base):
 
     __table_args__ = (
         Index("idx_fonts_sort", "sort_order"),
+        Index("idx_fonts_likes", "like_count"),
     )
 
 

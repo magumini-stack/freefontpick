@@ -24,6 +24,7 @@ def _to_out(font: Font) -> FontOut:
         sort_order=font.sort_order,
         tags=[t.name for t in font.tags],
         meta=font.meta or {},
+        like_count=font.like_count or 0,
     )
 
 

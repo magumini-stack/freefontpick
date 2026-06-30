@@ -55,6 +55,7 @@ const FontStore = {
       hasFile: f.has_file,
       sort_order: f.sort_order,
       meta: f.meta || {},
+      like_count: f.like_count || 0,
     }));
   },
 
@@ -139,6 +140,7 @@ function _fromServer(f) {
     hasFile: f.has_file,
     sort_order: f.sort_order,
     meta: f.meta || {},
+    like_count: f.like_count || 0,
   };
 }
 
@@ -225,6 +227,20 @@ const FontFileStore = {
   /** 특정 폰트의 파일 URL — @font-face에서 사용 */
   fileUrl(fontId) {
     return `/api/fonts/${fontId}/file`;
+  },
+};
+
+/* ════════════════════════════════════════
+   LikeAPI — 좋아요 토글 (전역 카운트)
+   - localStorage는 "내가 좋아요한 폰트" 표시용으로 유지
+   - DB의 like_count가 진짜 카운트
+════════════════════════════════════════ */
+const LikeAPI = {
+  async add(fontId) {
+    return await apiFetch(`/fonts/${fontId}/like`, {method: 'POST'});
+  },
+  async remove(fontId) {
+    return await apiFetch(`/fonts/${fontId}/like`, {method: 'DELETE'});
   },
 };
 

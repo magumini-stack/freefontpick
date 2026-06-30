@@ -1714,26 +1714,60 @@ function searchByFontName(name){
   if(grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function toggleLike(id){
-  const liked=likedSet.has(id);
-  if(liked){
+async function toggleLike(id){
+  const wasLiked = likedSet.has(id);
+  const prevCount = likeCounts[id] || 0;
+
+  // 옵티미스틱 UI: 서버 응답 기다리지 않고 즉시 반영
+  if(wasLiked){
     likedSet.delete(id);
-    likeCounts[id]=Math.max((likeCounts[id]||0)-1,0);
-  }else{
+    likeCounts[id] = Math.max(prevCount - 1, 0);
+  } else {
     likedSet.add(id);
-    likeCounts[id]=(likeCounts[id]||0)+1;
+    likeCounts[id] = prevCount + 1;
   }
   saveLikes();
-  const btn=document.getElementById('like-'+id);
-  const countEl=document.getElementById('like-count-'+id);
-  if(btn){
-    const nowLiked=likedSet.has(id);
-    btn.classList.toggle('liked',nowLiked);
-    btn.setAttribute('aria-pressed',String(nowLiked));
-    btn.setAttribute('aria-label','좋아요'+(nowLiked?' (선택됨)':''));
+  _updateLikeUI(id);
+
+  // 서버 호출 — 진짜 카운트는 서버가 관리
+  try {
+    const result = wasLiked
+      ? await LikeAPI.remove(id)
+      : await LikeAPI.add(id);
+    // 서버에서 받은 진짜 카운트로 갱신
+    likeCounts[id] = result.like_count;
+    saveLikes();
+    _updateLikeUI(id);
+    renderTopRanking();
+  } catch (err) {
+    // 실패 → 롤백
+    if(wasLiked){
+      likedSet.add(id);
+    } else {
+      likedSet.delete(id);
+    }
+    likeCounts[id] = prevCount;
+    saveLikes();
+    _updateLikeUI(id);
+    if(err.status === 429){
+      // rate limit - 조용히 무시 (사용자가 너무 빠르게 클릭한 경우)
+      console.debug('Like rate limited');
+    } else {
+      console.warn('Failed to toggle like:', err);
+    }
   }
-  if(countEl) countEl.textContent=likeCounts[id]||0;
-  renderTopRanking();
+}
+
+function _updateLikeUI(id){
+  const btn = document.getElementById('like-'+id);
+  const countEl = document.getElementById('like-count-'+id);
+  if(btn){
+    const nowLiked = likedSet.has(id);
+    btn.classList.toggle('liked', nowLiked);
+    btn.setAttribute('aria-pressed', String(nowLiked));
+    btn.setAttribute('aria-label', '좋아요' + (nowLiked ? ' (선택됨)' : ''));
+  }
+  if(countEl) countEl.textContent = likeCounts[id] || 0;
 }
 
 window.addEventListener('scroll',()=>document.getElementById('scrollTopBtn').classList.toggle('visible',window.scrollY>400),{passive:true});
@@ -1848,8 +1882,19 @@ async function registerUploadedFonts(){
   return;
 }
 
+/* 서버에서 받은 like_count로 localStorage의 카운트 동기화 */
+function syncServerLikeCounts(){
+  for(const f of FONTS){
+    if(typeof f.like_count === 'number'){
+      likeCounts[f.id] = f.like_count;
+    }
+  }
+  saveLikes();
+}
+
 async function init(){
   FONTS = await FontStore.getAll();
+  syncServerLikeCounts();
   document.getElementById('totalCount').textContent = FONTS.length;
   await renderTagsBar();
   await registerUploadedFonts();
@@ -1864,6 +1909,7 @@ async function init(){
   // 관리자 페이지에서 변경된 내용이 실시간으로 반영되도록 구독
   onDataChanged(async () => {
     FONTS = await FontStore.getAll();
+    syncServerLikeCounts();
     document.getElementById('totalCount').textContent = FONTS.length;
     await renderTagsBar();
     await registerUploadedFonts();

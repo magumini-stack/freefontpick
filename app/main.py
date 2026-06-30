@@ -16,15 +16,25 @@ from fastapi.responses import FileResponse, JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
 from .seed import init_db
-from .routers import auth, fonts, tags, notices, files as files_router
+from .routers import auth, fonts, tags, notices, files as files_router, likes
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """앱 시작 시 DB 초기화 + 시드 데이터 로드"""
-    init_db()
+    """앱 시작 시 DB 초기화 + 시드 데이터 로드.
+
+    실패해도 앱은 계속 살아있도록 try/except로 감싼다.
+    그래야 헬스체크가 통과되고 로그로 원인을 확인할 수 있다.
+    """
+    try:
+        init_db()
+        print("[startup] init_db OK")
+    except Exception as e:
+        import traceback
+        print(f"[startup] init_db 실패 (앱은 계속 실행됨): {e}")
+        traceback.print_exc()
     yield
 
 
@@ -60,12 +70,29 @@ app.include_router(fonts.router)
 app.include_router(tags.router)
 app.include_router(notices.router)
 app.include_router(files_router.router)
+app.include_router(likes.router)
 
 
 # 헬스체크
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "freefontpick-api", "version": "1.0.0"}
+    """기본 헬스 + DB 연결 상태 + 폰트/태그 카운트"""
+    info = {"status": "ok", "service": "freefontpick-api", "version": "1.0.0"}
+    try:
+        from .database import SessionLocal
+        from .models import Font, Tag, AdminUser
+        db = SessionLocal()
+        try:
+            info["fonts"] = db.query(Font).count()
+            info["tags"] = db.query(Tag).count()
+            info["admins"] = db.query(AdminUser).count()
+            info["db"] = "connected"
+        finally:
+            db.close()
+    except Exception as e:
+        info["db"] = "error"
+        info["db_error"] = str(e)[:200]
+    return info
 
 
 # ─── 정적 파일 서빙 ─────────────────────────────────────
