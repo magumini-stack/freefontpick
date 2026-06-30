@@ -1,10 +1,10 @@
-"""SEO 라우터 — sitemap.xml + robots.txt 동적 생성 + 디버그"""
+"""SEO 라우터 — sitemap.xml + robots.txt + 디버그 엔드포인트"""
 import os
 import sys
 import traceback
 from datetime import datetime
 from pathlib import Path
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, Request
 from fastapi.responses import Response, JSONResponse
 
 
@@ -51,8 +51,6 @@ def robots():
 @router.get("/api/debug/upload-env", include_in_schema=False)
 def debug_upload_env():
     info = {"python_version": sys.version, "cwd": str(Path.cwd())}
-
-    # 1. /app/user_data/fonts 쓰기
     try:
         from .files import FONTS_DIR, BUNDLED_FONTS_DIR
         info["fonts_dir"] = str(FONTS_DIR)
@@ -62,7 +60,6 @@ def debug_upload_env():
         if BUNDLED_FONTS_DIR.exists():
             files = list(BUNDLED_FONTS_DIR.iterdir())
             info["bundled_count"] = len(files)
-            info["bundled_sample"] = sorted([f.name for f in files])[:5]
         test = FONTS_DIR / ".write_test"
         try:
             FONTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -75,7 +72,6 @@ def debug_upload_env():
     except Exception as e:
         info["files_import_error"] = str(e)
 
-    # 2. 패키지
     for mod_name in ["fontTools", "brotli", "multipart"]:
         try:
             __import__(mod_name)
@@ -83,23 +79,6 @@ def debug_upload_env():
         except Exception as e:
             info[f"{mod_name}_error"] = str(e)
 
-    # 3. /app 전체 탐색
-    try:
-        app_dir = Path("/app")
-        if app_dir.exists():
-            info["app_contents"] = sorted([p.name for p in app_dir.iterdir()])
-            # static 폴더 찾기
-            for p in [app_dir / "static", app_dir / "static" / "fonts",
-                      Path.cwd() / "static" / "fonts"]:
-                key = f"check_{str(p).replace('/', '_')}"
-                info[key] = {"path": str(p), "exists": p.exists()}
-                if p.exists() and p.is_dir():
-                    items = list(p.iterdir())
-                    info[key]["count"] = len(items)
-    except Exception as e:
-        info["app_explore_error"] = str(e)
-
-    # 4. user_data
     try:
         ud = Path("/app/user_data")
         if ud.exists():
@@ -108,23 +87,57 @@ def debug_upload_env():
             if fonts_in_ud.exists():
                 files = list(fonts_in_ud.iterdir())
                 info["user_data_fonts_count"] = len(files)
-                info["user_data_fonts_sample"] = sorted([f.name for f in files])[:5]
     except Exception as e:
         info["app_user_data_error"] = str(e)
+
+    # 메모리 정보
+    try:
+        import resource
+        usage = resource.getrusage(resource.RUSAGE_SELF)
+        info["max_rss_kb"] = usage.ru_maxrss
+    except Exception as e:
+        info["mem_error"] = str(e)
 
     return JSONResponse(content=info)
 
 
+@router.post("/api/debug/upload-echo", include_in_schema=False)
+async def debug_upload_echo(request: Request):
+    """파일을 받기만 하고 메모리에 로드 안 함. multipart 파싱이 가능한지만 확인.
+
+    이게 통과하면 → uvicorn/multipart는 OK, 우리 변환 코드가 OOM 유발
+    이게 실패하면 → uvicorn/nginx 단계에서 막힘
+    """
+    info = {"steps": []}
+    try:
+        # Content-Length만 확인 (본문은 안 읽음)
+        cl = request.headers.get("content-length", "?")
+        info["steps"].append(f"content-length header: {cl}")
+        info["headers"] = dict(request.headers)
+    except Exception as e:
+        info["steps"].append(f"header read FAILED: {e}")
+        info["traceback"] = traceback.format_exc()
+        return JSONResponse(content=info, status_code=200)
+
+    try:
+        # 본문을 청크 단위로 읽기만 하고 버림 (메모리 소비 안 함)
+        total = 0
+        async for chunk in request.stream():
+            total += len(chunk)
+        info["steps"].append(f"streamed bytes: {total}")
+        info["bytes_received"] = total
+        return JSONResponse(content=info, status_code=200)
+    except Exception as e:
+        info["steps"].append(f"stream FAILED: {type(e).__name__}: {e}")
+        info["traceback"] = traceback.format_exc()
+        return JSONResponse(content=info, status_code=200)
+
+
 @router.post("/api/debug/upload-direct", include_in_schema=False)
 async def debug_upload_direct(file: UploadFile = File(...)):
-    """파일을 직접 받아서 우리 변환 코드를 단계별로 실행.
-
-    인증 없이 호출 가능 (디버그용, 운영 안정화 후 제거 예정).
-    어떤 단계에서 어떻게 실패하는지 traceback을 직접 보여줌.
-    """
+    """파일을 직접 받아서 우리 변환 코드를 단계별로 실행."""
     info = {"filename": file.filename, "steps": []}
 
-    # 1. 파일 읽기
     try:
         content = await file.read()
         info["steps"].append(f"read: {len(content)} bytes")
@@ -133,18 +146,16 @@ async def debug_upload_direct(file: UploadFile = File(...)):
         info["traceback"] = traceback.format_exc()
         return JSONResponse(content=info, status_code=200)
 
-    # 2. 서브셋 변환
     try:
         from ..subset import subset_font_bytes
         woff2_bytes, sub_info = subset_font_bytes(content, is_english=False)
-        info["steps"].append(f"subset OK: {len(woff2_bytes)} bytes ({sub_info})")
+        info["steps"].append(f"subset OK: {len(woff2_bytes)} bytes")
         info["method"] = "subset"
         return JSONResponse(content=info, status_code=200)
     except Exception as e:
         info["steps"].append(f"subset FAILED: {type(e).__name__}: {e}")
         info["subset_traceback"] = traceback.format_exc()
 
-    # 3. convert_only fallback
     try:
         from ..subset import convert_to_woff2_no_subset
         woff2_bytes = convert_to_woff2_no_subset(content)
