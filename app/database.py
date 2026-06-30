@@ -3,9 +3,11 @@
 카페24 AI Space는 다음 환경변수를 자동 주입합니다:
 - DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
 
-로컬 개발 시에는 환경변수를 직접 설정하거나 SQLite로 대체합니다.
+MySQL 환경변수가 없으면 영구 저장 가능한 경로의 SQLite로 fallback.
+카페24는 /app/user_data/만 컨테이너 재배포 시 보존되므로 거기 저장.
 """
 import os
+from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
@@ -13,7 +15,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 def get_database_url() -> str:
     """환경변수에서 DB URL을 만들어 반환.
 
-    카페24가 주입하는 env가 없으면 로컬 SQLite로 fallback.
+    카페24가 주입하는 env가 없으면 영구 보존되는 SQLite로 fallback.
     """
     db_host = os.getenv("DB_HOST")
     db_user = os.getenv("DB_USER")
@@ -27,8 +29,16 @@ def get_database_url() -> str:
             f"?charset=utf8mb4"
         )
 
-    # 로컬 fallback (개발용)
-    db_path = os.getenv("LOCAL_DB_PATH", "/tmp/freefontpick_local.db")
+    # SQLite fallback — /app/user_data/는 카페24가 영구 보존하는 유일한 경로
+    # 로컬 개발 시에는 LOCAL_DB_PATH 환경변수로 다른 경로 지정 가능
+    default_path = "/app/user_data/freefontpick.db"
+    db_path = os.getenv("LOCAL_DB_PATH", default_path)
+    # 디렉토리 자동 생성
+    try:
+        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        # 권한 문제 등이 있으면 /tmp로 마지막 fallback
+        db_path = "/tmp/freefontpick_local.db"
     return f"sqlite:///{db_path}"
 
 
