@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
 from .seed import init_db
-from .routers import auth, fonts, tags, notices, files as files_router, likes
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -71,6 +71,7 @@ app.include_router(tags.router)
 app.include_router(notices.router)
 app.include_router(files_router.router)
 app.include_router(likes.router)
+app.include_router(seo.router)
 
 
 # 헬스체크
