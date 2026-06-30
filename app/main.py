@@ -74,14 +74,38 @@ app.include_router(likes.router)
 app.include_router(seo.router)
 
 
-# 헬스체크
+# 헬스체크 — DB 종류와 경로/호스트도 함께 노출 (운영 데이터 보존 진단용)
 @app.get("/api/health")
 def health():
-    """기본 헬스 + DB 연결 상태 + 폰트/태그 카운트"""
+    """기본 헬스 + DB 연결 상태 + 폰트/태그 카운트 + DB 종류"""
     info = {"status": "ok", "service": "freefontpick-api", "version": "1.0.0"}
     try:
-        from .database import SessionLocal
+        from .database import SessionLocal, DATABASE_URL
         from .models import Font, Tag, AdminUser
+
+        # DB 종류 식별 (비밀번호는 가림)
+        if DATABASE_URL.startswith("mysql"):
+            info["db_type"] = "mysql"
+            # mysql+pymysql://user:pass@host:port/db?...
+            try:
+                # 비밀번호 부분만 마스킹
+                masked = DATABASE_URL
+                if "://" in masked and "@" in masked:
+                    prefix, rest = masked.split("://", 1)
+                    if "@" in rest:
+                        creds, host = rest.split("@", 1)
+                        if ":" in creds:
+                            user, _ = creds.split(":", 1)
+                            masked = f"{prefix}://{user}:***@{host}"
+                info["db_url"] = masked
+            except Exception:
+                info["db_url"] = "mysql (parse error)"
+        elif DATABASE_URL.startswith("sqlite"):
+            info["db_type"] = "sqlite"
+            info["db_url"] = DATABASE_URL
+        else:
+            info["db_type"] = "other"
+
         db = SessionLocal()
         try:
             info["fonts"] = db.query(Font).count()
@@ -111,8 +135,6 @@ async def serve_static(full_path: str):
     - / → static/index.html
     - /admin.html → static/admin.html
     - /logo.png → static/logo.png
-    - /fonts/font-001.woff2 → /api/fonts/X/file 로 안내해야 하므로 여기서 처리하지 않음
-       (메인 페이지의 폰트 로딩이 API 경로를 사용하도록 수정 필요)
     """
     # 빈 경로는 index
     if not full_path or full_path == "/":
@@ -129,8 +151,6 @@ async def serve_static(full_path: str):
         return JSONResponse({"detail": "Not Found"}, status_code=404)
 
     if not target.exists() or not target.is_file():
-        # SPA-스타일 fallback이 필요하다면 index.html 반환
-        # 우리 사이트는 멀티페이지라 404가 맞음
         return JSONResponse({"detail": "Not Found"}, status_code=404)
 
     return FileResponse(target)
