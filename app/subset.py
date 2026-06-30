@@ -3,10 +3,10 @@
 - TTF/OTF/WOFF → WOFF2 변환 + 글자 범위 축소
 - 한글 폰트: KS 한글 11,172자 + ASCII + 기호
 - 영문 폰트: ASCII + Latin Extended-A
-- 의뢰서 3.4 사양 따름
+- 모든 예외를 잡아서 친절한 오류 메시지를 반환
 """
 import io
-import os
+import traceback
 from typing import Tuple
 from fontTools.ttLib import TTFont
 from fontTools.subset import Subsetter, Options
@@ -36,11 +36,12 @@ def get_unicodes(is_english: bool) -> list:
 
 
 def subset_font_bytes(src_bytes: bytes, is_english: bool = False) -> Tuple[bytes, dict]:
-    """폰트 바이트를 받아서 WOFF2로 서브셋 변환한 바이트와 메타 반환
+    """폰트 바이트를 받아서 WOFF2로 서브셋 변환한 바이트와 메타 반환.
+
+    모든 예외를 잡아서 ValueError로 변환하고 상세 traceback을 stderr에 출력.
 
     Returns:
         (woff2_bytes, info_dict)
-        info_dict: {original_size, output_size, ratio}
     """
     original_size = len(src_bytes)
 
@@ -49,37 +50,39 @@ def subset_font_bytes(src_bytes: bytes, is_english: bool = False) -> Tuple[bytes
     try:
         font = TTFont(src_io)
     except Exception as e:
-        raise ValueError(f"폰트 파일 로드 실패: {e}")
-
-    options = Options()
-    options.flavor = "woff2"
-    options.with_zopfli = False
-    options.desubroutinize = True
-    options.hinting = False
-    options.legacy_kern = False
-    options.name_IDs = ["*"]
-    options.notdef_glyph = True
-    options.notdef_outline = False
-    options.recommended_glyphs = True
-    options.ignore_missing_glyphs = True
-    options.ignore_missing_unicodes = True
-    options.layout_features = ["*"]
-
-    subsetter = Subsetter(options=options)
-    unicodes = get_unicodes(is_english)
-    subsetter.populate(unicodes=unicodes)
+        traceback.print_exc()
+        raise ValueError(f"폰트 파일을 읽을 수 없어요: {type(e).__name__}: {e}")
 
     try:
+        options = Options()
+        options.flavor = "woff2"
+        options.with_zopfli = False
+        options.desubroutinize = True
+        options.hinting = False
+        options.legacy_kern = False
+        options.name_IDs = ["*"]
+        options.notdef_glyph = True
+        options.notdef_outline = False
+        options.recommended_glyphs = True
+        options.ignore_missing_glyphs = True
+        options.ignore_missing_unicodes = True
+        options.layout_features = ["*"]
+
+        subsetter = Subsetter(options=options)
+        unicodes = get_unicodes(is_english)
+        subsetter.populate(unicodes=unicodes)
         subsetter.subset(font)
     except Exception as e:
-        raise ValueError(f"서브셋 변환 실패: {e}")
+        traceback.print_exc()
+        raise ValueError(f"서브셋 변환 중 오류: {type(e).__name__}: {e}")
 
     out_io = io.BytesIO()
     font.flavor = "woff2"
     try:
         font.save(out_io)
     except Exception as e:
-        raise ValueError(f"WOFF2 저장 실패: {e}")
+        traceback.print_exc()
+        raise ValueError(f"WOFF2 저장 중 오류 (brotli 패키지가 필요할 수 있어요): {type(e).__name__}: {e}")
 
     out_bytes = out_io.getvalue()
     output_size = len(out_bytes)
@@ -89,3 +92,20 @@ def subset_font_bytes(src_bytes: bytes, is_english: bool = False) -> Tuple[bytes
         "ratio": round(output_size / original_size, 4) if original_size else 0,
         "format": "woff2",
     }
+
+
+def convert_to_woff2_no_subset(src_bytes: bytes) -> bytes:
+    """서브셋 없이 원본을 woff2로 단순 변환.
+
+    서브셋 단계에서 실패한 폰트에 대한 fallback.
+    레이아웃 테이블 등을 건드리지 않으니 더 안전함.
+    """
+    try:
+        font = TTFont(io.BytesIO(src_bytes))
+        font.flavor = "woff2"
+        out_io = io.BytesIO()
+        font.save(out_io)
+        return out_io.getvalue()
+    except Exception as e:
+        traceback.print_exc()
+        raise ValueError(f"woff2 변환 실패: {type(e).__name__}: {e}")
