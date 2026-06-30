@@ -343,7 +343,12 @@
   <div class="tab-panel" id="tab-cats">
     <div class="toolbar">
       <input type="text" id="newCatInput" placeholder="새 카테고리 이름 입력" onkeydown="if(event.key==='Enter') addCategory()">
+      <button class="btn-secondary" id="catReorderToggleBtn" onclick="toggleCatReorderMode()"><i class="ti ti-arrows-sort" aria-hidden="true"></i> 순서 변경</button>
       <button class="btn-primary" onclick="addCategory()"><i class="ti ti-plus" aria-hidden="true"></i> 카테고리 추가</button>
+    </div>
+    <div class="reorder-hint" id="catReorderHint" style="display:none">
+      <i class="ti ti-info-circle" aria-hidden="true"></i>
+      <span><strong>순서 변경 모드</strong> — 화살표 버튼으로 카테고리 순서를 바꿀 수 있어요. 변경 즉시 메인 페이지의 카테고리 필터에 반영됩니다.</span>
     </div>
     <div class="cat-list" id="catList"></div>
   </div>
@@ -1286,21 +1291,77 @@ function renderCatList(){
     wrap.innerHTML = '<div class="empty"><i class="ti ti-tags" aria-hidden="true"></i>등록된 카테고리가 없어요</div>';
     return;
   }
-  wrap.innerHTML = TAGS.map(t=>{
+  wrap.classList.toggle('reorder-mode', catReorderMode);
+  wrap.innerHTML = TAGS.map((t, idx)=>{
     const count = FONTS.filter(f=>f.tags.includes(t)).length;
+    const isFirst = idx === 0;
+    const isLast = idx === TAGS.length - 1;
+    const safeT = t.replace(/'/g,"\\'");
     return `<div class="cat-row">
+      <span class="order-num" style="font-size:11px;font-weight:800;color:var(--text-muted);min-width:24px;text-align:right;${catReorderMode?'display:none':''}">${idx + 1}</span>
+      <span class="reorder-handles" style="${catReorderMode?'display:inline-flex':'display:none'};align-items:center;gap:2px;margin-right:4px">
+        <button class="handle-btn" onclick="moveCat('${safeT}', 'top')" ${isFirst?'disabled':''} title="맨 위로" aria-label="${escapeHtml(t)} 맨 위로">
+          <svg viewBox="0 0 24 24"><path d="M5 11l7-7 7 7"/><path d="M12 4v16"/></svg>
+        </button>
+        <button class="handle-btn" onclick="moveCat('${safeT}', -1)" ${isFirst?'disabled':''} title="위로" aria-label="${escapeHtml(t)} 위로">
+          <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <button class="handle-btn" onclick="moveCat('${safeT}', 1)" ${isLast?'disabled':''} title="아래로" aria-label="${escapeHtml(t)} 아래로">
+          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <button class="handle-btn" onclick="moveCat('${safeT}', 'bottom')" ${isLast?'disabled':''} title="맨 아래로" aria-label="${escapeHtml(t)} 맨 아래로">
+          <svg viewBox="0 0 24 24"><path d="M5 13l7 7 7-7"/><path d="M12 20V4"/></svg>
+        </button>
+      </span>
       <span class="cat-name">${escapeHtml(t)}</span>
       <span class="cat-count">${count}개 폰트</span>
-      <div class="row-actions">
-        <button class="btn-icon" onclick="openCatEdit('${t.replace(/'/g,"\\'")}')" aria-label="${escapeHtml(t)} 수정">
+      <div class="row-actions" style="${catReorderMode?'opacity:.3;pointer-events:none':''}">
+        <button class="btn-icon" onclick="openCatEdit('${safeT}')" aria-label="${escapeHtml(t)} 수정">
           <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
-        <button class="btn-icon danger" onclick="askDeleteCat('${t.replace(/'/g,"\\'")}')" aria-label="${escapeHtml(t)} 삭제">
+        <button class="btn-icon danger" onclick="askDeleteCat('${safeT}')" aria-label="${escapeHtml(t)} 삭제">
           <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
         </button>
       </div>
     </div>`;
   }).join('');
+}
+
+/* 카테고리 순서 변경 모드 + 이동 함수 */
+let catReorderMode = false;
+
+function toggleCatReorderMode(){
+  catReorderMode = !catReorderMode;
+  const btn = document.getElementById('catReorderToggleBtn');
+  const hint = document.getElementById('catReorderHint');
+  if(catReorderMode){
+    btn.classList.add('active-reorder');
+    btn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> 순서 변경 완료';
+    hint.style.display = 'flex';
+  } else {
+    btn.classList.remove('active-reorder');
+    btn.innerHTML = '<i class="ti ti-arrows-sort" aria-hidden="true"></i> 순서 변경';
+    hint.style.display = 'none';
+  }
+  renderCatList();
+}
+
+async function moveCat(name, direction){
+  try {
+    if(direction === 'top'){
+      await TagStore.moveTo(name, 0);
+    } else if(direction === 'bottom'){
+      await TagStore.moveTo(name, TAGS.length - 1);
+    } else {
+      await TagStore.move(name, direction);
+    }
+    TAGS = await TagStore.getAll();
+    renderCatList();
+    populateTagFilter();
+  } catch (e) {
+    console.error(e);
+    showToast('순서 변경에 실패했어요');
+  }
 }
 
 async function addCategory(){

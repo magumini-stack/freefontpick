@@ -147,6 +147,7 @@ function _fromServer(f) {
 /* ════════════════════════════════════════
    TagStore — 카테고리 CRUD
    기존 인터페이스: getAll, add, rename, remove
+   추가: move(name, ±1), moveTo(name, idx), setOrder(names[])
 ════════════════════════════════════════ */
 const TagStore = {
   async getAll() {
@@ -170,6 +171,43 @@ const TagStore = {
     const tag = tags.find(t => t.name === name);
     if (!tag) return;
     await apiFetch(`/tags/${tag.id}`, {method: 'DELETE'});
+  },
+
+  /** 카테고리 순서를 names 배열의 순서대로 재정렬 (각 카테고리에 sort_order 부여) */
+  async setOrder(namesInOrder) {
+    const tags = await this._getRaw();
+    const nameToId = {};
+    tags.forEach(t => { nameToId[t.name] = t.id; });
+    // 각 카테고리에 새 sort_order 부여 (PATCH 병렬 호출)
+    await Promise.all(namesInOrder.map((name, idx) => {
+      const id = nameToId[name];
+      if (!id) return null;
+      return apiFetch(`/tags/${id}`, {
+        method: 'PATCH',
+        body: {sort_order: (idx + 1) * 10},
+      });
+    }));
+    return await this.getAll();
+  },
+
+  async move(name, delta) {
+    const all = await this.getAll();
+    const idx = all.indexOf(name);
+    if (idx < 0) return all;
+    const newIdx = Math.max(0, Math.min(all.length - 1, idx + delta));
+    if (newIdx === idx) return all;
+    const [item] = all.splice(idx, 1);
+    all.splice(newIdx, 0, item);
+    return await this.setOrder(all);
+  },
+
+  async moveTo(name, targetIdx) {
+    const all = await this.getAll();
+    const idx = all.indexOf(name);
+    if (idx < 0) return all;
+    const [item] = all.splice(idx, 1);
+    all.splice(Math.max(0, Math.min(all.length, targetIdx)), 0, item);
+    return await this.setOrder(all);
   },
 };
 
