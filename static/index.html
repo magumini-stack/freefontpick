@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FreeFontPick</title>
+  <title>FreeFontPick — 폰트픽, 디자인 전문가가 골라주는 무료폰트 큐레이션</title>
 
   <!-- ── 기본 SEO ── -->
-  <meta name="description" content="폰픽, 디자인 전문가가 딱 골라주는 무료폰트 큐레이션 서비스">
+  <meta name="description" content="폰트픽, 디자인 전문가가 딱 골라주는 무료폰트를 바로 다운로드하세요. 상업적 이용 가능한 무료폰트를 분위기·용도별로 큐레이션했습니다.">
   <meta name="keywords" content="무료폰트, 한글폰트, 상업용폰트, 무료한글폰트, 폰트추천, 디자인폰트, 카페폰트, 유튜브폰트, 브랜드폰트, 캘리그라피">
   <meta name="author" content="(주)와이즈폰트">
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -19,17 +19,17 @@
   <!-- ── Open Graph (카카오톡, 페이스북) ── -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="FreeFontPick">
-  <meta property="og:title" content="FreeFontPick — 폰픽, 디자인 전문가가 골라주는 무료폰트 큐레이션">
-  <meta property="og:description" content="폰픽, 디자인 전문가가 딱 골라주는 무료폰트 큐레이션 서비스">
+  <meta property="og:title" content="FreeFontPick — 폰트픽, 디자인 전문가가 골라주는 무료폰트 큐레이션">
+  <meta property="og:description" content="폰트픽, 디자인 전문가가 딱 골라주는 무료폰트를 바로 다운로드하세요.">
   <meta property="og:url" content="https://freefontpick.co.kr/">
   <meta property="og:image" content="https://freefontpick.co.kr/logo.png">
-  <meta property="og:image:alt" content="FreeFontPick — 무료폰트 큐레이션-폰픽">
+  <meta property="og:image:alt" content="FreeFontPick — 무료폰트 큐레이션 폰트픽">
   <meta property="og:locale" content="ko_KR">
 
   <!-- ── Twitter Card ── -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="FreeFontPick — 폰픽, 디자인 전문가가 골라주는 무료폰트 큐레이션">
-  <meta name="twitter:description" content="폰픽, 디자인 전문가가 딱 골라주는 무료폰트 큐레이션 서비스">
+  <meta name="twitter:title" content="FreeFontPick — 폰트픽, 디자인 전문가가 골라주는 무료폰트 큐레이션">
+  <meta name="twitter:description" content="폰트픽, 디자인 전문가가 딱 골라주는 무료폰트를 바로 다운로드하세요.">
   <meta name="twitter:image" content="https://freefontpick.co.kr/logo.png">
 
   <!-- ── 구조화 데이터 (JSON-LD) ── -->
@@ -405,10 +405,10 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-eyebrow"><i class="ti ti-sparkles" aria-hidden="true"></i> 무료 상업용 폰트 큐레이션</div>
-  <h1 class="hero-title">폰픽, 디자인 전문가가 <em>딱 맞는 폰트</em> 골라드려요!</h1>
+  <div class="hero-eyebrow"><i class="ti ti-sparkles" aria-hidden="true"></i> 상업용 무료폰트 큐레이션</div>
+  <h1 class="hero-title">폰트픽, 디자인 전문가가 <em>딱 맞는 폰트</em> 골라드려요!</h1>
   <p class="hero-sub">
-    검색하고 클릭하면 바로 다운로드 — 모두 무료, 상업적 이용 가능
+    형태, 용도, 느낌, 분위기로 검색 하고 무료 다운로드
     <button class="btn-license" onclick="openLicense()" aria-label="라이선스 요약표 보기">
       <i class="ti ti-license" aria-hidden="true"></i> 라이선스 보기
     </button>
@@ -516,7 +516,7 @@
   <i class="ti ti-arrow-up" aria-hidden="true"></i>
 </button>
 
-<!-- FLOATING BOTTOM AD (하단광고2) -->
+<!-- FLOATING BOTTOM AD (하단광고2) — AdSense 승인 대기 중 임시 비활성화
 <div class="floating-ad" id="floatingAd" aria-label="광고">
   <div class="floating-ad-inner">
     <button class="floating-ad-close" onclick="closeFloatingAd()" aria-label="광고 닫기">×</button>
@@ -526,6 +526,10 @@
          data-ad-slot="1813844341"></ins>
   </div>
 </div>
+-->
+
+<!-- 광고 자리 유지용 빈 placeholder (JS가 참조하므로 삭제하지 않음) -->
+<div class="floating-ad hidden" id="floatingAd" style="display:none" aria-hidden="true"></div>
 
 <!-- DOWNLOAD AD INTERSTITIAL (다운로드광고) -->
 <div class="dlad-overlay" id="dladOverlay" role="dialog" aria-modal="true" aria-labelledby="dladTitle">
@@ -1597,7 +1601,9 @@ function renderFonts(){
     grid.innerHTML=`<div class="no-results" role="status"><i class="ti ti-mood-sad" aria-hidden="true"></i><p>검색 결과가 없어요</p><small>다른 키워드를 시도해보세요</small></div>`;
     return;
   }
-  // 추천 모드일 땐 광고를 카드 사이에 끼우지 않음 (5개만 깔끔하게)
+  // 갤러리 광고 (AdSense 승인 대기 중 임시 비활성화)
+  // AdSense 승인 후 아래 adSlots를 원래 코드로 복구:
+  /*
   const adSlots = isRecommendMode ? '' : `
     <div class="ad-slot row-1" role="complementary" aria-label="광고 영역 1">
       <ins class="adsbygoogle"
@@ -1611,6 +1617,8 @@ function renderFonts(){
            data-ad-client="ca-pub-6258337579944977"
            data-ad-slot="3185233399"></ins>
     </div>`;
+  */
+  const adSlots = '';
 
   grid.innerHTML = adSlots + list.map((f,idx)=>{
     const tagPills=f.tags.map(t=>`<span class="font-tag-pill">${t}</span>`).join('');
@@ -1849,26 +1857,28 @@ function _updateLikeUI(id){
 
 window.addEventListener('scroll',()=>document.getElementById('scrollTopBtn').classList.toggle('visible',window.scrollY>400),{passive:true});
 
-/* ── 하단 플로팅 광고 ── */
+/* ── 하단 플로팅 광고 (AdSense 승인 대기 중 임시 비활성화) ── */
 function initFloatingAd(){
-  // 사용자가 이전에 닫았으면 다시 표시하지 않음 (세션 기준)
+  // AdSense 승인 후 아래 코드 다시 활성화
+  return;
+  /* AdSense 승인 후 복구:
   try {
     if(sessionStorage.getItem('floating_ad_closed') === 'yes'){
       document.getElementById('floatingAd').classList.add('hidden');
       return;
     }
   } catch(e){}
-  // body에 클래스 부여 (scroll-top 버튼을 위로 올림)
   document.body.classList.add('floating-ad-shown');
-  // 광고 푸시
   try {
     (window.adsbygoogle = window.adsbygoogle || []).push({});
   } catch(e) {
     console.warn('Floating ad push failed', e);
   }
+  */
 }
 function closeFloatingAd(){
-  document.getElementById('floatingAd').classList.add('hidden');
+  const el = document.getElementById('floatingAd');
+  if(el) el.classList.add('hidden');
   document.body.classList.remove('floating-ad-shown');
   try { sessionStorage.setItem('floating_ad_closed', 'yes'); } catch(e){}
 }
@@ -1877,12 +1887,17 @@ initFloatingAd();
 /* ── 다운로드 광고 인터스티셜 ── */
 let _dlPendingUrl = null;
 function openDownloadAd(url, fontName){
+  // AdSense 승인 대기 중 — 광고 모달 건너뛰고 바로 다운로드 페이지로 이동
+  if(url){
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+  return;
+
+  /* AdSense 승인 후 아래 코드로 복구:
   _dlPendingUrl = url;
-  // 닫기 버튼 라벨에 폰트 이름 표시 (선택)
   const nameEl = document.getElementById('dladTargetName');
   if(nameEl) nameEl.textContent = fontName ? `(${fontName} 다운로드 페이지로 이동)` : '';
 
-  // 광고 컨테이너에 새 <ins> 태그 삽입 (매번 새로 만들어야 push가 작동)
   const container = document.getElementById('dladAdContainer');
   container.innerHTML = `
     <ins class="adsbygoogle"
@@ -1892,11 +1907,9 @@ function openDownloadAd(url, fontName){
          data-ad-format="auto"
          data-full-width-responsive="true"></ins>`;
 
-  // 모달 표시
   document.getElementById('dladOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 
-  // 광고 푸시 (DOM 삽입 후)
   setTimeout(() => {
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
@@ -1904,6 +1917,7 @@ function openDownloadAd(url, fontName){
       console.warn('Download ad push failed', e);
     }
   }, 50);
+  */
 }
 function closeDownloadAd(){
   const url = _dlPendingUrl;
@@ -2086,12 +2100,18 @@ function goNoticeDetail(id){ location.hash = '#notice/' + id; }
    공지사항 렌더링
 ════════════════════════════════════════════ */
 function formatNoticeDate(ts){
+  if(ts == null || ts === '') return '';
   const d = new Date(ts);
+  // 유효하지 않은 날짜면 원본 문자열이라도 반환하지 않고 빈 문자열
+  if(isNaN(d.getTime())) return '';
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth()+1).padStart(2,'0');
   const dd = String(d.getDate()).padStart(2,'0');
   return `${yyyy}.${mm}.${dd}`;
 }
+/* 공지사항 객체에서 등록일/수정일 추출 (snake_case, camelCase 모두 지원) */
+function noticeCreatedAt(n){ return n.created_at || n.createdAt || null; }
+function noticeUpdatedAt(n){ return n.updated_at || n.updatedAt || null; }
 
 async function renderNoticeList(){
   const notices = await NoticeStore.getAll();
@@ -2106,14 +2126,17 @@ async function renderNoticeList(){
   // 핀 고정된 글이 위로 오도록 정렬
   notices.sort((a,b)=>{
     if(a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-    return b.createdAt - a.createdAt;
+    // 날짜 문자열을 timestamp로 변환해서 비교 (snake_case, camelCase 둘 다 대응)
+    const ta = new Date(noticeCreatedAt(a) || 0).getTime();
+    const tb = new Date(noticeCreatedAt(b) || 0).getTime();
+    return tb - ta;
   });
   wrap.innerHTML = notices.map(n => `
     <a class="notice-row" href="#notice/${n.id}" aria-label="${escapeHtml(n.title)}">
       <div class="notice-pin${n.pinned?'':' empty'}" aria-hidden="true"><i class="ti ti-pin-filled"></i></div>
       <div class="notice-row-content">
         <div class="notice-row-title">${n.pinned?'<span class="notice-row-badge">중요</span>':''}${escapeHtml(n.title)}</div>
-        <div class="notice-row-date">${formatNoticeDate(n.createdAt)}</div>
+        <div class="notice-row-date">${formatNoticeDate(noticeCreatedAt(n))}</div>
       </div>
       <i class="ti ti-chevron-right chevron" aria-hidden="true"></i>
     </a>
@@ -2132,9 +2155,11 @@ async function renderNoticeDetail(id){
     return;
   }
   titleEl.textContent = n.title;
+  const updatedAt = noticeUpdatedAt(n);
+  const createdAt = noticeCreatedAt(n);
   metaEl.innerHTML = (n.pinned?'<span class="pin"><i class="ti ti-pin-filled" style="font-size:13px"></i> 중요</span>':'') +
-    `<span>등록일 ${formatNoticeDate(n.createdAt)}</span>` +
-    (n.updatedAt && n.updatedAt !== n.createdAt ? `<span>수정일 ${formatNoticeDate(n.updatedAt)}</span>` : '');
+    `<span>등록일 ${formatNoticeDate(createdAt)}</span>` +
+    (updatedAt && updatedAt !== createdAt ? `<span>수정일 ${formatNoticeDate(updatedAt)}</span>` : '');
   // 본문은 관리자에서 sanitize된 HTML이 들어있음 (b, strong, br, p만 허용)
   bodyEl.innerHTML = sanitizeNoticeHtml(n.content || '');
 }

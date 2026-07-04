@@ -461,7 +461,7 @@
         <div class="drop-zone" id="fmDropZone" onclick="document.getElementById('fmFileInput').click()">
           <i class="ti ti-cloud-upload" aria-hidden="true"></i>
           <p>클릭하거나 파일을 끌어다 놓기</p>
-          <small>TTF · OTF · WOFF · WOFF2 (최대 5MB)</small>
+          <small>TTF · OTF · WOFF · WOFF2 (최대 20MB)</small>
           <input type="file" id="fmFileInput" accept=".ttf,.otf,.woff,.woff2,font/*" onchange="handleFmFile(this.files[0])">
         </div>
         <div id="fmFilePreview"></div>
@@ -1000,7 +1000,7 @@ function handleFmFile(file){
   if(!file) return;
   const ok = /\.(ttf|otf|woff2?|TTF|OTF|WOFF2?)$/.test(file.name);
   if(!ok){ showToast('지원하지 않는 파일 형식이에요'); return; }
-  if(file.size > 5*1024*1024){ showToast('5MB를 초과할 수 없어요'); return; }
+  if(file.size > 20*1024*1024){ showToast('20MB를 초과할 수 없어요'); return; }
   pendingFile = file;
   renderFmFilePreview();
   // 1MB 이상 파일은 사이즈 경고 (자동 서브셋 변환은 백엔드 도입 후 예정)
@@ -1223,18 +1223,42 @@ async function saveFont(){
   const stack = "'Nanum Gothic',sans-serif";
 
   let saved;
-  if(editingId){
-    saved = await FontStore.update(editingId, {name,maker,weights,url,tags,meta,
-      hasFile: pendingFile ? true : undefined});
-  } else {
-    saved = await FontStore.add({name,maker,weights,url,stack,tags,meta, hasFile: !!pendingFile});
+  try {
+    if(editingId){
+      saved = await FontStore.update(editingId, {name,maker,weights,url,tags,meta,
+        hasFile: pendingFile ? true : undefined});
+    } else {
+      saved = await FontStore.add({name,maker,weights,url,stack,tags,meta, hasFile: !!pendingFile});
+    }
+  } catch (e) {
+    console.error('폰트 저장 실패:', e);
+    showToast('폰트 저장 실패: ' + (e.message || '알 수 없는 오류'));
+    return;
   }
+
+  // 파일 업로드 — 실패하면 명확히 알림
+  let fileUploadOk = true;
+  let fileUploadError = '';
   if(pendingFile && saved){
-    try { await FontFileStore.saveFile(saved.id, pendingFile); }
-    catch(e){ console.error(e); showToast('파일 저장 실패'); }
+    try {
+      const result = await FontFileStore.saveFile(saved.id, pendingFile);
+      console.log('파일 업로드 성공:', result);
+    } catch(e) {
+      fileUploadOk = false;
+      fileUploadError = e.message || '알 수 없는 오류';
+      console.error('파일 업로드 실패:', e);
+    }
   }
+
   closeFontModal();
-  showToast(editingId ? '폰트를 수정했어요' : '새 폰트를 등록했어요');
+  if(pendingFile && !fileUploadOk){
+    // 폰트는 등록됐지만 파일 업로드 실패
+    showToast(`⚠ 폰트는 등록됐지만 파일 업로드 실패: ${fileUploadError}`);
+  } else if(pendingFile){
+    showToast(editingId ? '폰트를 수정하고 파일을 업로드했어요' : '새 폰트를 등록하고 파일을 업로드했어요');
+  } else {
+    showToast(editingId ? '폰트를 수정했어요' : '새 폰트를 등록했어요');
+  }
   await refresh();
 }
 
@@ -1412,8 +1436,12 @@ let editingNoticeId = null;
 function formatDate(ts){
   if(!ts) return '-';
   const d = new Date(ts);
+  if(isNaN(d.getTime())) return '-';
   return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
 }
+/* 공지사항 객체에서 등록일/수정일 추출 (snake_case, camelCase 모두 지원) */
+function noticeCreatedAt(n){ return n.created_at || n.createdAt || null; }
+function noticeUpdatedAt(n){ return n.updated_at || n.updatedAt || null; }
 
 async function refreshNotices(){
   NOTICES = await NoticeStore.getAll();
@@ -1427,7 +1455,9 @@ function renderNoticeTable(){
   // pinned 우선 → 최신순
   list.sort((a,b)=>{
     if(a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-    return b.createdAt - a.createdAt;
+    const ta = new Date(noticeCreatedAt(a) || 0).getTime();
+    const tb = new Date(noticeCreatedAt(b) || 0).getTime();
+    return tb - ta;
   });
 
   const tbody = document.getElementById('noticeTableBody');
@@ -1447,8 +1477,8 @@ function renderNoticeTable(){
           ${escapeHtml(n.title)}
         </div>
       </td>
-      <td><div class="notice-cell-date">${formatDate(n.createdAt)}</div></td>
-      <td><div class="notice-cell-date">${n.updatedAt && n.updatedAt!==n.createdAt ? formatDate(n.updatedAt) : '-'}</div></td>
+      <td><div class="notice-cell-date">${formatDate(noticeCreatedAt(n))}</div></td>
+      <td><div class="notice-cell-date">${noticeUpdatedAt(n) && noticeUpdatedAt(n)!==noticeCreatedAt(n) ? formatDate(noticeUpdatedAt(n)) : '-'}</div></td>
       <td>
         <div class="row-actions">
           <button class="btn-icon" onclick="editNotice(${n.id})" aria-label="수정">
