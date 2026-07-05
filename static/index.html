@@ -204,10 +204,31 @@
       .license-head{padding:24px 24px 18px}
       .license-head h2{font-size:19px}
     }
-    .hero-stats{display:flex;justify-content:center;gap:28px;margin-top:20px}
-    .hero-stat{text-align:center}
-    .hero-stat-num{font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-.5px}
-    .hero-stat-label{font-size:11px;color:var(--text-muted);margin-top:2px}
+    /* HERO FEATURES — 3-피처 배지 카드 */
+    .hero-features{display:flex;justify-content:center;gap:36px;margin-top:28px;flex-wrap:wrap}
+    .hero-feature{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:96px}
+    .hero-feature-badge{
+      width:74px;height:74px;
+      background:#fff;
+      border-radius:20px;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 4px 14px rgba(255,92,53,.10), 0 1px 3px rgba(0,0,0,.04);
+      transition:transform .18s,box-shadow .18s;
+    }
+    .hero-feature-badge i{
+      font-size:34px;
+      color:var(--accent);
+    }
+    .hero-feature:hover .hero-feature-badge{
+      transform:translateY(-2px);
+      box-shadow:0 8px 20px rgba(255,92,53,.15), 0 2px 4px rgba(0,0,0,.05);
+    }
+    .hero-feature-label{
+      font-size:14px;
+      font-weight:700;
+      color:var(--text-primary);
+      letter-spacing:-.3px;
+    }
 
     /* TOP RANKING */
     .top-section{max-width:1240px;margin:0 auto;padding:0 24px 8px}
@@ -236,7 +257,8 @@
     .main{max-width:1240px;margin:0 auto;padding:0 24px 80px}
 
     /* PREVIEW BAR */
-    .preview-bar{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:13px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-card)}
+    .preview-bar{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:13px 18px;margin-bottom:0;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-card)}
+    .preview-bar-wrap{margin-bottom:18px}
     .preview-label{font-size:12px;color:var(--text-muted);white-space:nowrap;display:flex;align-items:center;gap:4px}
     .preview-input{flex:1;border:none;outline:none;font-size:15px;background:transparent;color:var(--text-primary);font-family:inherit;min-width:0}
     .preview-input::placeholder{color:var(--text-muted)}
@@ -245,6 +267,38 @@
     .size-wrap label{font-size:12px;color:var(--text-muted)}
     .size-wrap input[type=range]{width:80px;accent-color:var(--accent);cursor:pointer}
     .size-val{font-size:12px;color:var(--text-secondary);min-width:34px;font-weight:700}
+    .preview-toggle{flex-shrink:0;width:28px;height:28px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background-color .15s,color .15s,transform .2s}
+    .preview-toggle:hover{background:var(--bg-secondary);color:var(--text-primary)}
+    .preview-toggle.open i{transform:rotate(180deg)}
+    .preview-toggle i{transition:transform .2s;display:block}
+    /* 프리셋 문구 선택 영역 */
+    .preview-presets{
+      display:none;
+      background:var(--bg-card);
+      border:1px solid var(--border);
+      border-top:none;
+      border-radius:0 0 var(--radius-md) var(--radius-md);
+      padding:12px 18px 14px;
+      box-shadow:var(--shadow-card);
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .preview-presets.open{display:flex}
+    .preset-chip{
+      border:1px solid var(--border);
+      background:var(--bg-secondary);
+      color:var(--text-secondary);
+      font-size:13px;
+      font-weight:600;
+      padding:7px 14px;
+      border-radius:20px;
+      cursor:pointer;
+      white-space:nowrap;
+      transition:border-color .15s,color .15s,background-color .15s;
+      flex-shrink:0;
+    }
+    .preset-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .preset-chip.active{border-color:var(--accent);color:#fff;background:var(--accent)}
 
     /* TAGS */
     .tags-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px}
@@ -388,6 +442,12 @@
       .search-wrap{flex:1 1 100%}
       .search-wrap input{width:100%}.search-wrap input:focus{width:100%}
       .size-wrap input[type=range]{width:70px}
+      .preview-presets{padding:12px 14px 14px}
+      .preset-chip{font-size:12.5px;padding:7px 12px}
+      .hero-features{gap:24px;margin-top:22px}
+      .hero-feature-badge{width:62px;height:62px;border-radius:16px}
+      .hero-feature-badge i{font-size:28px}
+      .hero-feature-label{font-size:13px}
     }
     @media(prefers-reduced-motion:reduce){.font-card{animation:none}*{transition:none!important}}
   </style>
@@ -425,10 +485,25 @@
       <i class="ti ti-license" aria-hidden="true"></i> 라이선스 보기
     </button>
   </p>
-  <div class="hero-stats">
-    <div class="hero-stat"><div class="hero-stat-num" id="totalCount">142</div><div class="hero-stat-label">큐레이션 폰트</div></div>
-    <div class="hero-stat"><div class="hero-stat-num">100%</div><div class="hero-stat-label">상업 이용 가능</div></div>
-    <div class="hero-stat"><div class="hero-stat-num">무료</div><div class="hero-stat-label">다운로드</div></div>
+  <div class="hero-features" role="list" aria-label="폰트픽 주요 기능">
+    <div class="hero-feature" role="listitem">
+      <div class="hero-feature-badge">
+        <i class="ti ti-search" aria-hidden="true"></i>
+      </div>
+      <div class="hero-feature-label">쉽고 빠른 검색</div>
+    </div>
+    <div class="hero-feature" role="listitem">
+      <div class="hero-feature-badge">
+        <i class="ti ti-tag" aria-hidden="true"></i>
+      </div>
+      <div class="hero-feature-label">상업용 무료폰트</div>
+    </div>
+    <div class="hero-feature" role="listitem">
+      <div class="hero-feature-badge">
+        <i class="ti ti-download" aria-hidden="true"></i>
+      </div>
+      <div class="hero-feature-label">간편한 다운로드</div>
+    </div>
   </div>
 </section>
 
@@ -446,19 +521,31 @@
 
 <!-- MAIN -->
 <main class="main">
-  <div class="preview-bar">
-    <div class="search-wrap" id="searchWrap">
-      <i class="ti ti-search" aria-hidden="true"></i>
-      <input type="text" id="globalSearch" placeholder="폰트명 또는 분위기/용도로 추천 (예: 따뜻한 카페)" aria-label="폰트 검색 및 추천" oninput="filterFonts()">
+  <div class="preview-bar-wrap">
+    <div class="preview-bar">
+      <div class="search-wrap" id="searchWrap">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input type="text" id="globalSearch" placeholder="폰트명 또는 분위기/용도로 추천 (예: 따뜻한 카페)" aria-label="폰트 검색 및 추천" oninput="filterFonts()">
+      </div>
+      <div class="preview-divider"></div>
+      <span class="preview-label"><i class="ti ti-eye" style="font-size:14px" aria-hidden="true"></i> 미리보기</span>
+      <input class="preview-input" id="previewText" type="text" value="기적처럼 내게 왔으니 별처럼 빛나주세요" placeholder="미리보기 문구 입력" aria-label="폰트 미리보기 문구" oninput="updatePreviews(); clearPresetActive()">
+      <div class="preview-divider"></div>
+      <div class="size-wrap">
+        <label for="fontSize">크기</label>
+        <input type="range" id="fontSize" min="12" max="60" value="26" step="1" aria-label="폰트 크기 조절" oninput="updateFontSize(this.value)">
+        <span class="size-val" id="fontSizeVal">26px</span>
+      </div>
+      <button type="button" class="preview-toggle" id="previewToggleBtn" onclick="togglePreviewPresets()" aria-expanded="false" aria-controls="previewPresets" aria-label="미리보기 문구 선택 펼치기">
+        <i class="ti ti-chevron-down" aria-hidden="true"></i>
+      </button>
     </div>
-    <div class="preview-divider"></div>
-    <span class="preview-label"><i class="ti ti-eye" style="font-size:14px" aria-hidden="true"></i> 미리보기</span>
-    <input class="preview-input" id="previewText" type="text" value="기적처럼 내게 왔으니 별처럼 빛나주세요" placeholder="미리보기 문구 입력" aria-label="폰트 미리보기 문구" oninput="updatePreviews()">
-    <div class="preview-divider"></div>
-    <div class="size-wrap">
-      <label for="fontSize">크기</label>
-      <input type="range" id="fontSize" min="12" max="60" value="26" step="1" aria-label="폰트 크기 조절" oninput="updateFontSize(this.value)">
-      <span class="size-val" id="fontSizeVal">26px</span>
+    <div class="preview-presets" id="previewPresets" role="group" aria-label="미리보기 문구 프리셋">
+      <button type="button" class="preset-chip" data-preset="0" onclick="applyPresetText(this, 'SUMMER SALE 오늘만 50% 할인')">SUMMER SALE 오늘만 50% 할인</button>
+      <button type="button" class="preset-chip" data-preset="1" onclick="applyPresetText(this, &quot;Today's Special 아메리카노 3,900원&quot;)">Today's Special 아메리카노 3,900원</button>
+      <button type="button" class="preset-chip" data-preset="2" onclick="applyPresetText(this, '회원가입 / 3초 만에 시작하기')">회원가입 / 3초 만에 시작하기</button>
+      <button type="button" class="preset-chip" data-preset="3" onclick="applyPresetText(this, '디자이너가 매일 쓰는 무료폰트')">디자이너가 매일 쓰는 무료폰트</button>
+      <button type="button" class="preset-chip" data-preset="4" onclick="applyPresetText(this, 'UI Design 깔끔한 인터페이스')">UI Design 깔끔한 인터페이스</button>
     </div>
   </div>
 
@@ -716,6 +803,27 @@ function updateFontSize(v){
   currentFontSize=parseInt(v);
   document.getElementById('fontSizeVal').textContent=v+'px';
   document.querySelectorAll('.font-preview-text').forEach(el=>el.style.fontSize=v+'px');
+}
+
+/* ── 미리보기 문구 프리셋 (펼침/선택) ── */
+function togglePreviewPresets(){
+  const panel = document.getElementById('previewPresets');
+  const btn = document.getElementById('previewToggleBtn');
+  const isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  btn.setAttribute('aria-expanded', String(isOpen));
+}
+function applyPresetText(btnEl, text){
+  const input = document.getElementById('previewText');
+  input.value = text;
+  updatePreviews();
+  // 선택된 칩 활성 표시 (나머지는 해제)
+  document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+}
+/* 사용자가 입력창을 직접 수정하면 프리셋 활성 표시 해제 */
+function clearPresetActive(){
+  document.querySelectorAll('.preset-chip.active').forEach(chip => chip.classList.remove('active'));
 }
 
 /* ════════════════════════════════════════════
@@ -1505,7 +1613,350 @@ const RECOMMEND_KEYWORDS = {
   '날카로운':{mood:["임팩트", "강인한"]},
   '뾰족한':{mood:["임팩트"]},
   '부드럽고':{mood:["부드러운"]},
-  '진하고':{mood:["임팩트"],weight_feel:'굵음'}
+  '진하고':{mood:["임팩트"],weight_feel:'굵음'},
+  '애틋한':{mood:["감성적", "부드러운"]},
+  '애틋':{mood:["감성적", "부드러운"]},
+  '그리운':{mood:["감성적", "부드러운"]},
+  '추억의':{mood:["감성적", "부드러운"]},
+  '노스탤지어':{mood:["감성적", "부드러운"]},
+  '서글픈':{mood:["감성적", "부드러운"]},
+  '애잔한':{mood:["감성적", "부드러운"]},
+  '애잔':{mood:["감성적", "부드러운"]},
+  '쓸쓸한':{mood:["감성적", "부드러운"]},
+  '쓸쓸':{mood:["감성적", "부드러운"]},
+  '외로운':{mood:["감성적", "부드러운"]},
+  '고독한':{mood:["감성적", "부드러운"]},
+  '고독':{mood:["감성적", "부드러운"]},
+  '적막한':{mood:["감성적", "부드러운"]},
+  '고요한':{mood:["감성적", "부드러운"]},
+  '고요':{mood:["감성적", "부드러운"]},
+  '평온한':{mood:["감성적", "부드러운"]},
+  '평온':{mood:["감성적", "부드러운"]},
+  '차분한':{mood:["감성적", "부드러운"]},
+  '차분':{mood:["감성적", "부드러운"]},
+  '잔향':{mood:["감성적", "부드러운"]},
+  '여운':{mood:["감성적", "부드러운"]},
+  '은은한':{mood:["감성적", "부드러운"]},
+  '은은':{mood:["감성적", "부드러운"]},
+  '담담한':{mood:["감성적", "부드러운"]},
+  '담담':{mood:["감성적", "부드러운"]},
+  '묵직한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '묵직':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '단단':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '견고':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '웅장한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '웅장':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '압도적':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '압도':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '폭발적':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강렬함':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '센':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '쎈':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강력한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강력':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '힘찬':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '힘있는':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '역동적':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '역동':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '다이나믹':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '스트롱':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '와일드':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '야성적':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '야성':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '거친':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '거칠은':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '터프가이':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '품격있는':{mood:["고급스러운"]},
+  '격조있는':{mood:["고급스러운"]},
+  '격조':{mood:["고급스러운"]},
+  '클래식한':{mood:["고급스러운"]},
+  '앤틱':{mood:["고급스러운"]},
+  '귀족적':{mood:["고급스러운"]},
+  '귀족':{mood:["고급스러운"]},
+  '고귀한':{mood:["고급스러운"]},
+  '고귀':{mood:["고급스러운"]},
+  '우아함':{mood:["고급스러운"]},
+  '세련된느낌':{mood:["고급스러운"]},
+  '품위있는':{mood:["고급스러운"]},
+  '품위':{mood:["고급스러운"]},
+  '고상':{mood:["고급스러운"]},
+  '깊이있는':{mood:["고급스러운"]},
+  '정갈한':{mood:["깔끔한"]},
+  '정갈':{mood:["깔끔한"]},
+  '심플한느낌':{mood:["깔끔한"]},
+  '말끔':{mood:["깔끔한"]},
+  '정돈된':{mood:["깔끔한"]},
+  '군더더기없는':{mood:["깔끔한"]},
+  '여백있는':{mood:["깔끔한"]},
+  '미니멀한느낌':{mood:["깔끔한"]},
+  '클린한':{mood:["깔끔한"]},
+  '깔끔깔끔':{mood:["깔끔한"]},
+  '단순명료':{mood:["깔끔한"]},
+  '군더더기 없는':{mood:["깔끔한"]},
+  '신비로운':{mood:["꿈같은", "독특한"]},
+  '신비':{mood:["꿈같은", "독특한"]},
+  '환상같은':{mood:["꿈같은", "독특한"]},
+  '비현실적':{mood:["꿈같은", "독특한"]},
+  '초현실적':{mood:["꿈같은", "독특한"]},
+  '초현실':{mood:["꿈같은", "독특한"]},
+  '공상적':{mood:["꿈같은", "독특한"]},
+  '공상':{mood:["꿈같은", "독특한"]},
+  '판타지':{mood:["꿈같은", "독특한"]},
+  '판타지스러운':{mood:["꿈같은", "독특한"]},
+  '기묘한':{mood:["꿈같은", "독특한"]},
+  '기묘':{mood:["꿈같은", "독특한"]},
+  '기이한':{mood:["꿈같은", "독특한"]},
+  '기이':{mood:["꿈같은", "독특한"]},
+  '괴짜같은':{mood:["꿈같은", "독특한"]},
+  '괴짜':{mood:["꿈같은", "독특한"]},
+  '실험적인':{mood:["꿈같은", "독특한"]},
+  '전위적':{mood:["꿈같은", "독특한"]},
+  '전위':{mood:["꿈같은", "독특한"]},
+  '살가운':{mood:["따뜻한", "친근한"]},
+  '살갑':{mood:["따뜻한", "친근한"]},
+  '싹싹한':{mood:["따뜻한", "친근한"]},
+  '싹싹':{mood:["따뜻한", "친근한"]},
+  '붙임성있는':{mood:["따뜻한", "친근한"]},
+  '붙임성':{mood:["따뜻한", "친근한"]},
+  '다감한':{mood:["따뜻한", "친근한"]},
+  '다감':{mood:["따뜻한", "친근한"]},
+  '인정있는':{mood:["따뜻한", "친근한"]},
+  '인정':{mood:["따뜻한", "친근한"]},
+  '훈훈함':{mood:["따뜻한", "친근한"]},
+  '마음따뜻한':{mood:["따뜻한", "친근한"]},
+  '동네친구같은':{mood:["따뜻한", "친근한"]},
+  '이웃같은':{mood:["따뜻한", "친근한"]},
+  '가족같은':{mood:["따뜻한", "친근한"]},
+  '정다운':{mood:["따뜻한", "친근한"]},
+  '정다움':{mood:["따뜻한", "친근한"]},
+  '살뜰한':{mood:["따뜻한", "친근한"]},
+  '살뜰':{mood:["따뜻한", "친근한"]},
+  '몰랑한':{mood:["부드러운"]},
+  '몰랑':{mood:["부드러운"]},
+  '보들보들':{mood:["부드러운"]},
+  '보드라운':{mood:["부드러운"]},
+  '포슬포슬':{mood:["부드러운"]},
+  '사르르':{mood:["부드러운"]},
+  '살랑한':{mood:["부드러운"]},
+  '살랑':{mood:["부드러운"]},
+  '산들한':{mood:["부드러운"]},
+  '산들':{mood:["부드러운"]},
+  '나긋한':{mood:["부드러운"]},
+  '나긋나긋':{mood:["부드러운"]},
+  '순한':{mood:["부드러운"]},
+  '순함':{mood:["부드러운"]},
+  '연한느낌':{mood:["부드러운"]},
+  '매끄러운':{mood:["부드러운"]},
+  '매끈한':{mood:["부드러운"]},
+  '상쾌한':{mood:["시원한"]},
+  '상쾌':{mood:["시원한"]},
+  '시원시원':{mood:["시원한"]},
+  '쿨함':{mood:["시원한"]},
+  '산뜻한':{mood:["시원한"]},
+  '산뜻':{mood:["시원한"]},
+  '청아한':{mood:["시원한"]},
+  '청아':{mood:["시원한"]},
+  '맑은느낌':{mood:["시원한"]},
+  '깨끗한느낌':{mood:["시원한"]},
+  '시원스러운':{mood:["시원한"]},
+  '트인':{mood:["시원한"]},
+  '탁트인':{mood:["시원한"]},
+  '믿음직':{mood:["신뢰감"],formality:'격식'},
+  '안정적인':{mood:["신뢰감"],formality:'격식'},
+  '견실한':{mood:["신뢰감"],formality:'격식'},
+  '견실':{mood:["신뢰감"],formality:'격식'},
+  '공신력있는':{mood:["신뢰감"],formality:'격식'},
+  '공신력':{mood:["신뢰감"],formality:'격식'},
+  '권위있는':{mood:["신뢰감"],formality:'격식'},
+  '전문적인느낌':{mood:["신뢰감"],formality:'격식'},
+  '프로페셔널한':{mood:["신뢰감"],formality:'격식'},
+  '공식적인':{mood:["신뢰감"],formality:'격식'},
+  '정확한느낌':{mood:["신뢰감"],formality:'격식'},
+  '탄탄한':{mood:["신뢰감"],formality:'격식'},
+  '귀엽고발랄한':{mood:["장난스러운"]},
+  '코믹한':{mood:["장난스러운"]},
+  '코믹':{mood:["장난스러운"]},
+  '익살스러운':{mood:["장난스러운"]},
+  '익살':{mood:["장난스러운"]},
+  '유쾌한느낌':{mood:["장난스러운"]},
+  '유머러스한':{mood:["장난스러운"]},
+  '유머':{mood:["장난스러운"]},
+  '천진난만한':{mood:["장난스러운"]},
+  '천진난만':{mood:["장난스러운"]},
+  '앙증맞은':{mood:["장난스러운"]},
+  '앙증':{mood:["장난스러운"]},
+  '방정맞은':{mood:["장난스러운"]},
+  '까불까불':{mood:["장난스러운"]},
+  '장난기있는':{mood:["장난스러운"]},
+  '장난기':{mood:["장난스러운"]},
+  '신중한':{mood:["진중한"],formality:'격식'},
+  '신중':{mood:["진중한"],formality:'격식'},
+  '묵묵한':{mood:["진중한"],formality:'격식'},
+  '묵묵':{mood:["진중한"],formality:'격식'},
+  '무게감있는':{mood:["진중한"],formality:'격식'},
+  '무게감':{mood:["진중한"],formality:'격식'},
+  '엄숙':{mood:["진중한"],formality:'격식'},
+  '경건한':{mood:["진중한"],formality:'격식'},
+  '경건':{mood:["진중한"],formality:'격식'},
+  '숙연한':{mood:["진중한"],formality:'격식'},
+  '숙연':{mood:["진중한"],formality:'격식'},
+  '초대장':{usage:["출판", "캐치프레이즈"]},
+  '명함':{usage:["로고", "제목"]},
+  '현수막':{usage:["포스터", "캐치프레이즈"]},
+  '블로그제목':{usage:["제목", "SNS카드"]},
+  '블로그 제목':{usage:["제목", "SNS카드"]},
+  '인스타피드':{usage:["SNS카드"]},
+  '상세페이지':{usage:["제목", "본문"]},
+  '상세 페이지':{usage:["제목", "본문"]},
+  '메뉴판':{usage:["출판", "제목"]},
+  '메뉴':{usage:["출판", "제목"]},
+  '가격표':{usage:["본문", "정보전달"]},
+  '네이밍':{usage:["로고", "제목"]},
+  '브랜드네임':{usage:["로고"]},
+  '유튜브자막':{usage:["영상자막"]},
+  '유튜브 자막':{usage:["영상자막"]},
+  '브이로그자막':{usage:["영상자막"]},
+  '숏폼':{usage:["영상자막", "SNS카드"]},
+  '썸네일제목':{usage:["썸네일", "제목"]},
+  '영상썸네일':{usage:["썸네일"]},
+  '표지':{usage:["출판", "제목"]},
+  '책표지':{usage:["출판", "제목"]},
+  '스티커':{usage:["패키지", "SNS카드"]},
+  '박스디자인':{usage:["패키지"]},
+  '제품패키지':{usage:["패키지"]},
+  '앱화면':{usage:["UI"]},
+  '웹디자인':{usage:["UI"]},
+  '버튼':{usage:["UI"]},
+  '설명서':{usage:["정보전달", "본문"]},
+  '매뉴얼':{usage:["정보전달", "본문"]},
+  '포스터문구':{usage:["포스터"]},
+  '행사포스터':{usage:["포스터"]},
+  '공연포스터':{usage:["포스터"]},
+  '브런치카페':{industry:["카페", "푸드"]},
+  '네일샵':{industry:["뷰티"]},
+  '피부관리':{industry:["뷰티", "헬스케어"]},
+  '의류브랜드':{industry:["패션"]},
+  '쇼핑몰패션':{industry:["패션"]},
+  '초등학교':{industry:["교육", "키즈"]},
+  '인강':{industry:["교육"]},
+  '테크기업':{industry:["IT"]},
+  '앱스타트업':{industry:["IT"]},
+  '게임회사':{industry:["IT"]},
+  '정부기관':{industry:["공공기관"]},
+  '동사무소':{industry:["공공기관"]},
+  '헬스장':{industry:["헬스케어"]},
+  '요가원':{industry:["헬스케어"]},
+  '웨딩':{industry:["이벤트"]},
+  '장난감':{industry:["키즈"]},
+  '아기용품':{industry:["키즈"]},
+  '유아용품':{industry:["키즈"]},
+  '키즈카페':{industry:["키즈"]},
+  '미니멀리즘':{personality:["현대적"]},
+  '세련됨':{personality:["현대적"]},
+  '빈티지스타일':{personality:["전통적", "복고적"]},
+  '레트로한':{personality:["전통적", "복고적"]},
+  '옛날느낌':{personality:["전통적", "복고적"]},
+  '향토적':{personality:["전통적", "복고적"]},
+  '전통있는':{personality:["전통적", "복고적"]},
+  '미래지향적':{personality:["미래적"]},
+  'futuristic':{personality:["미래적"]},
+  '공상과학':{personality:["미래적"]},
+  'SF느낌':{personality:["미래적"]},
+  '사이버틱':{personality:["미래적"]},
+  '테크느낌':{personality:["미래적"]},
+  '소년같은':{personality:["어린이"]},
+  '소녀같은':{personality:["어린이"]},
+  '아이같은':{personality:["어린이"]},
+  '동화같은':{personality:["어린이"]},
+  '성별무관':{personality:["중성적"]},
+  '보편적인':{personality:["중성적"]},
+  '누구나':{personality:["중성적"]},
+  '헤비한':{weight_feel:'굵음'},
+  '헤비웨이트':{weight_feel:'굵음'},
+  '묵직체':{weight_feel:'굵음'},
+  '블랙체':{weight_feel:'굵음'},
+  '씬한':{weight_feel:'얇음'},
+  '씬체':{weight_feel:'얇음'},
+  '라이트웨이트':{weight_feel:'얇음'},
+  '경량체':{weight_feel:'얇음'},
+  '캐주얼한':{formality:'캐주얼'},
+  '편안캐주얼':{formality:'캐주얼'},
+  '일상적인':{formality:'캐주얼'},
+  '데일리한':{formality:'캐주얼'},
+  '데일리':{formality:'캐주얼'},
+  '포멀한':{formality:'격식'},
+  '비즈니스용':{formality:'격식'},
+  '공식문서':{formality:'격식'},
+  '격식있는느낌':{formality:'격식'},
+  '짧은문구':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '짧은글귀':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '한줄문구':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '임팩트문구':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '줄글':{mood:["깔끔한"],usage:["본문"]},
+  '산뜻함':{mood:["시원한"]},
+  '청초한':{mood:["감성적"],personality:["여성적"]},
+  '청초':{mood:["감성적"],personality:["여성적"]},
+  '단아한':{mood:["고급스러운"]},
+  '단아':{mood:["고급스러운"]},
+  '정중한':{formality:'격식'},
+  '무난한':{mood:["깔끔한"]},
+  '평범한':{mood:["깔끔한"]},
+  '화려한':{mood:["임팩트", "고급스러운"]},
+  '화려':{mood:["임팩트", "고급스러운"]},
+  '심플하고깔끔한':{mood:["깔끔한"]},
+  '차가운':{mood:["시원한"],personality:["현대적"]},
+  '쿨시크':{mood:["시원한"],personality:["현대적"]},
+  '센스있는':{mood:["독특한"]},
+  '감각적인':{mood:["독특한", "고급스러운"]},
+  '감각적':{mood:["독특한", "고급스러운"]},
+  '특별한':{mood:["독특한"]},
+  '차별화된':{mood:["독특한"]},
+  '유니크한':{mood:["독특한"]},
+  '유니크':{mood:["독특한"]},
+  '생기있는':{mood:["장난스러운"]},
+  '생기':{mood:["장난스러운"]},
+  '리듬감있는':{mood:["장난스러운"]},
+  '펀한':{mood:["장난스러운"]},
+  '재치있는':{mood:["장난스러운"]},
+  '재치':{mood:["장난스러운"]},
+  '위트있는':{mood:["장난스러운"]},
+  '위트':{mood:["장난스러운"]},
+  '카페감성':{mood:["따뜻한"],industry:["카페"]},
+  '카페느낌':{industry:["카페"]},
+  '제과점':{industry:["푸드", "카페"]},
+  '홈베이킹':{industry:["푸드"]},
+  '홈카페':{industry:["카페"]},
+  '델리':{industry:["푸드"]},
+  '펍':{industry:["푸드"]},
+  '스몰비즈니스':{industry:["IT"]},
+  '1인샵':{industry:["뷰티"]},
+  '온라인쇼핑몰':{industry:["패션"]},
+  '빈티지샵':{industry:["패션"],personality:["복고적"]},
+  '필기체같은':{mood:["감성적"]},
+  '손글씨느낌':{mood:["감성적", "친근한"]},
+  '캘리그래피':{mood:["감성적", "고급스러운"]},
+  '편지지':{mood:["감성적"]},
+  '일기장':{mood:["감성적", "친근한"]},
+  '다이어리':{mood:["감성적", "친근한"]},
+  '플래너':{mood:["깔끔한"],usage:["정보전달"]},
+  '머그컵':{usage:["패키지"]},
+  '티셔츠':{usage:["패키지"]},
+  '에코백':{usage:["패키지"]},
+  '포스트잇':{usage:["패키지"]},
+  '달력':{usage:["출판"]},
+  '다이어리커버':{usage:["패키지"]},
+  '이력서':{usage:["본문", "정보전달"],formality:'격식'},
+  '자기소개서':{usage:["본문"],formality:'격식'},
+  '포트폴리오':{usage:["본문", "제목"]},
+  '발표자료':{usage:["제목", "본문"]},
+  'MZ세대':{personality:["현대적"]},
+  'Z세대':{personality:["현대적"]},
+  '밀레니얼':{personality:["현대적"]},
+  '어르신':{personality:["전통적"]},
+  '레트로감성':{mood:["감성적"],personality:["복고적"]},
+  'SF':{personality:["미래적"]},
+  '사이버펑크':{personality:["미래적"]},
+  '메타버스':{personality:["미래적"]},
 };
 
 /* 추천 결과 보유 변수 — UI 표시용 */
@@ -1998,7 +2449,7 @@ function syncServerLikeCounts(){
 async function init(){
   FONTS = await FontStore.getAll();
   syncServerLikeCounts();
-  document.getElementById('totalCount').textContent = FONTS.length;
+  const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
   await renderTagsBar();
   await registerUploadedFonts();
   renderFonts();
@@ -2013,7 +2464,7 @@ async function init(){
   onDataChanged(async () => {
     FONTS = await FontStore.getAll();
     syncServerLikeCounts();
-    document.getElementById('totalCount').textContent = FONTS.length;
+    const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
     await renderTagsBar();
     await registerUploadedFonts();
     renderFonts();
