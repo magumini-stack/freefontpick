@@ -86,6 +86,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Pen+Script&family=Nanum+Square:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Brush+Script&family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Gugi&family=Hi+Melody&family=Noto+Sans+KR:wght@400;500;700&family=Anton&family=Bangers&family=Lobster&family=Monoton&family=Raleway:wght@400;700&family=Press+Start+2P&family=Dancing+Script:wght@400;700&family=Kaushan+Script&family=Cinzel+Decorative:wght@400;700&family=Bona+Nova:ital,wght@0,400;0,700;1,400&family=Bungee&family=Petrona:wght@400;700&family=Pavanam&display=swap" rel="stylesheet">
+  <!-- Tabler Icons — 여러 CDN을 미러링해서 하나가 실패해도 다른 것 사용 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/tabler-icons.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
   <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6258337579944977" crossorigin="anonymous"></script>
@@ -215,8 +217,10 @@
       box-shadow:0 4px 14px rgba(255,92,53,.10), 0 1px 3px rgba(0,0,0,.04);
       transition:transform .18s,box-shadow .18s;
     }
-    .hero-feature-badge i{
+    .hero-feature-badge i, .hero-feature-badge svg{
       font-size:34px;
+      width:34px;
+      height:34px;
       color:var(--accent);
     }
     .hero-feature:hover .hero-feature-badge{
@@ -269,8 +273,8 @@
     .size-val{font-size:12px;color:var(--text-secondary);min-width:34px;font-weight:700}
     .preview-toggle{flex-shrink:0;width:28px;height:28px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background-color .15s,color .15s,transform .2s}
     .preview-toggle:hover{background:var(--bg-secondary);color:var(--text-primary)}
-    .preview-toggle.open i{transform:rotate(180deg)}
-    .preview-toggle i{transition:transform .2s;display:block}
+    .preview-toggle.open i, .preview-toggle.open svg{transform:rotate(180deg)}
+    .preview-toggle i, .preview-toggle svg{transition:transform .2s;display:block}
     /* 프리셋 문구 선택 영역 */
     .preview-presets{
       display:none;
@@ -446,7 +450,7 @@
       .preset-chip{font-size:12.5px;padding:7px 12px}
       .hero-features{gap:24px;margin-top:22px}
       .hero-feature-badge{width:62px;height:62px;border-radius:16px}
-      .hero-feature-badge i{font-size:28px}
+      .hero-feature-badge i, .hero-feature-badge svg{font-size:28px;width:28px;height:28px}
       .hero-feature-label{font-size:13px}
     }
     @media(prefers-reduced-motion:reduce){.font-card{animation:none}*{transition:none!important}}
@@ -488,19 +492,29 @@
   <div class="hero-features" role="list" aria-label="폰트픽 주요 기능">
     <div class="hero-feature" role="listitem">
       <div class="hero-feature-badge">
-        <i class="ti ti-search" aria-hidden="true"></i>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="10" cy="10" r="7"/>
+          <line x1="21" y1="21" x2="15" y2="15"/>
+        </svg>
       </div>
       <div class="hero-feature-label">쉽고 빠른 검색</div>
     </div>
     <div class="hero-feature" role="listitem">
       <div class="hero-feature-badge">
-        <i class="ti ti-tag" aria-hidden="true"></i>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+          <line x1="7" y1="7" x2="7.01" y2="7"/>
+        </svg>
       </div>
       <div class="hero-feature-label">상업용 무료폰트</div>
     </div>
     <div class="hero-feature" role="listitem">
       <div class="hero-feature-badge">
-        <i class="ti ti-download" aria-hidden="true"></i>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
       </div>
       <div class="hero-feature-label">간편한 다운로드</div>
     </div>
@@ -537,7 +551,9 @@
         <span class="size-val" id="fontSizeVal">26px</span>
       </div>
       <button type="button" class="preview-toggle" id="previewToggleBtn" onclick="togglePreviewPresets()" aria-expanded="false" aria-controls="previewPresets" aria-label="미리보기 문구 선택 펼치기">
-        <i class="ti ti-chevron-down" aria-hidden="true"></i>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
       </button>
     </div>
     <div class="preview-presets" id="previewPresets" role="group" aria-label="미리보기 문구 프리셋">
