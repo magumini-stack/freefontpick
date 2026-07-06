@@ -207,8 +207,8 @@
       .license-head h2{font-size:19px}
     }
     /* HERO FEATURES — 3-피처 배지 카드 */
-    .hero-features{display:flex;justify-content:center;gap:36px;margin-top:28px;flex-wrap:wrap}
-    .hero-feature{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:96px}
+    .hero-features{display:flex;justify-content:center;align-items:flex-start;gap:36px;margin-top:28px;flex-wrap:nowrap}
+    .hero-feature{display:flex;flex-direction:column;align-items:center;gap:10px;flex:0 0 auto}
     .hero-feature-badge{
       width:74px;height:74px;
       background:#fff;
@@ -218,9 +218,11 @@
       transition:transform .18s,box-shadow .18s;
     }
     .hero-feature-badge i, .hero-feature-badge svg{
-      font-size:34px;
-      width:34px;
-      height:34px;
+      display:block;
+      margin:auto;
+      font-size:26px;
+      width:26px;
+      height:26px;
       color:var(--accent);
     }
     .hero-feature:hover .hero-feature-badge{
@@ -232,6 +234,8 @@
       font-weight:700;
       color:var(--text-primary);
       letter-spacing:-.3px;
+      text-align:center;
+      white-space:nowrap;
     }
 
     /* TOP RANKING */
@@ -271,10 +275,26 @@
     .size-wrap label{font-size:12px;color:var(--text-muted)}
     .size-wrap input[type=range]{width:80px;accent-color:var(--accent);cursor:pointer}
     .size-val{font-size:12px;color:var(--text-secondary);min-width:34px;font-weight:700}
-    .preview-toggle{flex-shrink:0;width:28px;height:28px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background-color .15s,color .15s,transform .2s}
-    .preview-toggle:hover{background:var(--bg-secondary);color:var(--text-primary)}
-    .preview-toggle.open i, .preview-toggle.open svg{transform:rotate(180deg)}
-    .preview-toggle i, .preview-toggle svg{transition:transform .2s;display:block}
+    .preview-toggle{
+      flex-shrink:0;
+      display:flex;align-items:center;gap:5px;
+      padding:6px 12px 6px 13px;
+      border:1.5px solid var(--accent);
+      background:var(--accent-light);
+      color:var(--accent);
+      cursor:pointer;
+      border-radius:20px;
+      font-size:12.5px;
+      font-weight:800;
+      font-family:inherit;
+      transition:background-color .15s,color .15s,transform .2s,box-shadow .15s;
+      white-space:nowrap;
+    }
+    .preview-toggle:hover{background:var(--accent);color:#fff;box-shadow:0 3px 10px rgba(255,92,53,.28)}
+    .preview-toggle.open{background:var(--accent);color:#fff}
+    .preview-toggle.open svg{transform:rotate(180deg)}
+    .preview-toggle svg{transition:transform .2s;display:block;flex-shrink:0}
+    .preview-toggle-text{display:inline-block}
     /* 프리셋 문구 선택 영역 */
     .preview-presets{
       display:none;
@@ -448,10 +468,19 @@
       .size-wrap input[type=range]{width:70px}
       .preview-presets{padding:12px 14px 14px}
       .preset-chip{font-size:12.5px;padding:7px 12px}
-      .hero-features{gap:24px;margin-top:22px}
-      .hero-feature-badge{width:62px;height:62px;border-radius:16px}
-      .hero-feature-badge i, .hero-feature-badge svg{font-size:28px;width:28px;height:28px}
-      .hero-feature-label{font-size:13px}
+      .preview-toggle{padding:7px;border-radius:50%}
+      .preview-toggle-text{display:none}
+      .hero-features{gap:14px;margin-top:22px}
+      .hero-feature{gap:8px}
+      .hero-feature-badge{width:56px;height:56px;border-radius:16px}
+      .hero-feature-badge i, .hero-feature-badge svg{font-size:22px;width:22px;height:22px}
+      .hero-feature-label{font-size:11.5px;letter-spacing:-.4px}
+    }
+    @media(max-width:360px){
+      .hero-features{gap:8px}
+      .hero-feature-badge{width:50px;height:50px;border-radius:14px}
+      .hero-feature-badge i, .hero-feature-badge svg{font-size:20px;width:20px;height:20px}
+      .hero-feature-label{font-size:10.5px}
     }
     @media(prefers-reduced-motion:reduce){.font-card{animation:none}*{transition:none!important}}
   </style>
@@ -544,17 +573,18 @@
       <div class="preview-divider"></div>
       <span class="preview-label"><i class="ti ti-eye" style="font-size:14px" aria-hidden="true"></i> 미리보기</span>
       <input class="preview-input" id="previewText" type="text" value="기적처럼 내게 왔으니 별처럼 빛나주세요" placeholder="미리보기 문구 입력" aria-label="폰트 미리보기 문구" oninput="updatePreviews(); clearPresetActive()">
+      <button type="button" class="preview-toggle" id="previewToggleBtn" onclick="togglePreviewPresets()" aria-expanded="false" aria-controls="previewPresets" aria-label="미리보기 문구 선택 펼치기">
+        <span class="preview-toggle-text">문구선택</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
       <div class="preview-divider"></div>
       <div class="size-wrap">
         <label for="fontSize">크기</label>
         <input type="range" id="fontSize" min="12" max="60" value="26" step="1" aria-label="폰트 크기 조절" oninput="updateFontSize(this.value)">
         <span class="size-val" id="fontSizeVal">26px</span>
       </div>
-      <button type="button" class="preview-toggle" id="previewToggleBtn" onclick="togglePreviewPresets()" aria-expanded="false" aria-controls="previewPresets" aria-label="미리보기 문구 선택 펼치기">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </button>
     </div>
     <div class="preview-presets" id="previewPresets" role="group" aria-label="미리보기 문구 프리셋">
       <button type="button" class="preset-chip" data-preset="0" onclick="applyPresetText(this, 'SUMMER SALE 오늘만 50% 할인')">SUMMER SALE 오늘만 50% 할인</button>
