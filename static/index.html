@@ -361,6 +361,33 @@
     .recommend-more-btn small{font-weight:400;opacity:.8;font-size:11px}
     .font-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:var(--shadow-hover)}
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* 앱 광고 카드 — 갤러리 첫 번째 칸 */
+    .app-ad-card{
+      padding:0;
+      overflow:hidden;
+      display:block;
+      text-decoration:none;
+      aspect-ratio:1/1.05;
+    }
+    .app-ad-image{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .app-ad-badge{
+      position:absolute;
+      top:10px; right:10px;
+      background:rgba(0,0,0,.55);
+      color:#fff;
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.5px;
+      padding:3px 8px;
+      border-radius:6px;
+      pointer-events:none;
+    }
     .font-preview{min-height:66px;display:flex;align-items:center;margin-bottom:14px}
     .font-preview-text{color:var(--text-primary);line-height:1.3;word-break:keep-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;cursor:text;outline:none;border-radius:4px;transition:background-color .15s}
     .font-preview-text:hover{background:var(--bg-secondary)}
@@ -2139,7 +2166,14 @@ function renderFonts(){
   */
   const adSlots = '';
 
-  grid.innerHTML = adSlots + list.map((f,idx)=>{
+  // 앱 광고 카드 — 갤러리 첫 번째 칸에 항상 노출 (추천 모드 제외)
+  const appAdCard = isRecommendMode ? '' : `
+    <a class="font-card app-ad-card" href="https://tosto.re/ktext" target="_blank" rel="noopener noreferrer" aria-label="한글 텍스트 디자인 앱 다운로드 (새 창 열림)">
+      <img src="photoAD.jpg" alt="한글 텍스트 디자인 앱 광고" class="app-ad-image" loading="lazy">
+      <span class="app-ad-badge">AD</span>
+    </a>`;
+
+  grid.innerHTML = appAdCard + list.map((f,idx)=>{
     const tagPills=f.tags.map(t=>`<span class="font-tag-pill">${t}</span>`).join('');
     const downloadUrl=f.url||('https://noonnu.cc/index?keyword='+encodeURIComponent(f.name));
     const liked=likedSet.has(f.id);
