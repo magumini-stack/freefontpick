@@ -80,6 +80,10 @@
     .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
     .tab-panel{display:none}
     .tab-panel.active{display:block}
+    .sub-status-badge{font-size:11px;font-weight:800;padding:3px 10px;border-radius:10px;white-space:nowrap}
+    .sub-status-badge.pending{background:var(--bg-secondary);color:var(--text-muted)}
+    .sub-status-badge.reviewed{background:#FFF4E0;color:#B8790A}
+    .sub-status-badge.added{background:#E8F7EE;color:#1A8A3A}
 
     /* TOOLBAR */
     .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
@@ -302,6 +306,10 @@
       <div class="stat-icon"><i class="ti ti-speakerphone" aria-hidden="true"></i></div>
       <div><div class="stat-num" id="statNoticeCount">0</div><div class="stat-label">공지사항</div></div>
     </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i class="ti ti-bulb" aria-hidden="true"></i></div>
+      <div><div class="stat-num" id="statSubmissionPending">0</div><div class="stat-label">대기중인 제보</div></div>
+    </div>
   </div>
 
   <!-- TABS -->
@@ -309,6 +317,7 @@
     <button class="tab-btn active" onclick="switchTab('fonts',this)">폰트 관리</button>
     <button class="tab-btn" onclick="switchTab('cats',this)">카테고리 관리</button>
     <button class="tab-btn" onclick="switchTab('notices',this)">공지사항 관리</button>
+    <button class="tab-btn" onclick="switchTab('submissions',this)">제보 게시판</button>
   </div>
 
   <!-- FONTS TAB -->
@@ -368,6 +377,31 @@
       </table>
       <div id="noticeEmpty" class="empty" style="display:none">
         <i class="ti ti-speakerphone" aria-hidden="true"></i>등록된 공지사항이 없어요
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBMISSIONS TAB (무료폰트 제보 게시판 관리) -->
+  <div class="tab-panel" id="tab-submissions">
+    <div class="toolbar">
+      <input type="text" id="submissionSearch" placeholder="폰트명 또는 닉네임 검색" oninput="renderSubmissionTable()">
+      <select id="submissionStatusFilter" onchange="renderSubmissionTable()">
+        <option value="all">전체 상태</option>
+        <option value="pending">대기중</option>
+        <option value="reviewed">검토중</option>
+        <option value="added">추가완료</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:50px"></th>
+          <th>폰트명</th><th>닉네임</th><th style="width:110px">상태</th><th style="width:110px">등록일</th><th style="text-align:right;width:100px">관리</th>
+        </tr></thead>
+        <tbody id="submissionTableBody"></tbody>
+      </table>
+      <div id="submissionEmpty" class="empty" style="display:none">
+        <i class="ti ti-bulb" aria-hidden="true"></i>등록된 제보가 없어요
       </div>
     </div>
   </div>
@@ -546,6 +580,25 @@
     <div class="modal-foot">
       <button class="btn-cancel" onclick="closeNoticeModal()">취소</button>
       <button class="btn-save" onclick="saveNotice()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMISSION DETAIL/MANAGE MODAL -->
+<div class="modal-overlay" id="submissionModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <h3>제보 상세 · 관리</h3>
+      <button class="modal-close" onclick="closeSubmissionModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="submissionModalBody">
+      <!-- JS로 렌더링 -->
+    </div>
+    <div class="modal-foot" style="justify-content:space-between">
+      <button class="btn-cancel" id="submissionDeleteBtn" style="color:#C8281F;border-color:#F3C9C7" onclick="deleteSubmissionFromModal()">
+        <i class="ti ti-trash" aria-hidden="true"></i> 삭제
+      </button>
+      <button class="btn-save" onclick="saveSubmissionChanges()">저장</button>
     </div>
   </div>
 </div>
@@ -731,6 +784,7 @@ function switchTab(tab, btn){
   btn.classList.add('active');
   document.getElementById('tab-'+tab).classList.add('active');
   if(tab === 'notices') refreshNotices();
+  if(tab === 'submissions') refreshSubmissions();
 }
 
 /* ════════════════════════════════════════
@@ -749,6 +803,13 @@ async function refresh(){
   renderFontTable();
   renderCatList();
   renderNoticeTable();
+  try {
+    const subs = await SubmissionStore.getAll();
+    const pendingCount = subs.filter(s => s.status === 'pending').length;
+    document.getElementById('statSubmissionPending').textContent = pendingCount;
+  } catch(e) {
+    console.error('제보 카운트 로딩 실패:', e);
+  }
 }
 
 function populateTagFilter(){
@@ -1303,6 +1364,13 @@ async function doConfirm(){
     showToast('공지사항을 삭제했어요');
     closeConfirm();
     await refreshNotices();
+  } else if(pendingDelete.type === 'submission'){
+    await SubmissionStore.remove(pendingDelete.id);
+    showToast('제보를 삭제했어요');
+    closeConfirm();
+    closeSubmissionModal();
+    await refreshSubmissions();
+    await refresh();
   }
 }
 
@@ -1624,8 +1692,144 @@ document.addEventListener('keydown',(e)=>{
     if(document.getElementById('fontModal').classList.contains('open')) closeFontModal();
     else if(document.getElementById('catEditModal').classList.contains('open')) closeCatEdit();
     else if(document.getElementById('noticeModal').classList.contains('open')) closeNoticeModal();
+    else if(document.getElementById('submissionModal').classList.contains('open')) closeSubmissionModal();
     else if(document.getElementById('confirmModal').classList.contains('open')) closeConfirm();
   }
+});
+
+/* ════════════════════════════════════════
+   제보 게시판 관리 (무료폰트 제보)
+════════════════════════════════════════ */
+let SUBMISSIONS = [];
+let currentSubmissionId = null;
+const SUB_STATUS_LABEL = {pending:'대기중', reviewed:'검토중', added:'추가완료'};
+
+async function refreshSubmissions(){
+  try {
+    SUBMISSIONS = await SubmissionStore.getAll();
+  } catch(e) {
+    console.error('제보 목록 로딩 실패:', e);
+    showToast('제보 목록을 불러오지 못했어요');
+    SUBMISSIONS = [];
+  }
+  renderSubmissionTable();
+}
+
+function renderSubmissionTable(){
+  const q = (document.getElementById('submissionSearch').value || '').trim().toLowerCase();
+  const statusFilter = document.getElementById('submissionStatusFilter').value;
+  let list = [...SUBMISSIONS];
+  if(q) list = list.filter(s =>
+    s.font_name.toLowerCase().includes(q) || s.nickname.toLowerCase().includes(q)
+  );
+  if(statusFilter !== 'all') list = list.filter(s => s.status === statusFilter);
+  // 최신순
+  list.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const tbody = document.getElementById('submissionTableBody');
+  const emptyEl = document.getElementById('submissionEmpty');
+  if(!list.length){
+    tbody.innerHTML = '';
+    emptyEl.style.display = 'flex';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  tbody.innerHTML = list.map(s => {
+    const thumb = s.image_path
+      ? `<img src="${SubmissionStore.imageUrl(s.id)}" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:cover;display:block">`
+      : `<div style="width:40px;height:40px;border-radius:8px;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;color:var(--text-muted)"><i class="ti ti-typography" aria-hidden="true"></i></div>`;
+    return `<tr onclick="openSubmissionModal(${s.id})" style="cursor:pointer">
+      <td>${thumb}</td>
+      <td><strong>${escapeHtml(s.font_name)}</strong></td>
+      <td>${escapeHtml(s.nickname)}</td>
+      <td><span class="sub-status-badge ${s.status}">${SUB_STATUS_LABEL[s.status] || '대기중'}</span></td>
+      <td><div class="notice-cell-date">${formatDate(s.created_at)}</div></td>
+      <td style="text-align:right" onclick="event.stopPropagation()">
+        <button class="btn-icon danger" onclick="askDeleteSubmission(${s.id})" aria-label="삭제">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openSubmissionModal(id){
+  const s = SUBMISSIONS.find(x => x.id === id);
+  if(!s) return;
+  currentSubmissionId = id;
+
+  const imageHtml = s.image_path
+    ? `<div class="field"><img src="${SubmissionStore.imageUrl(s.id)}" alt="첨부 이미지" style="width:100%;border-radius:12px;max-height:280px;object-fit:cover;display:block"></div>`
+    : '';
+  const linkHtml = s.link
+    ? `<div class="field"><label>배포처 링크</label><a href="${escapeHtml(s.link)}" target="_blank" rel="noopener noreferrer" style="font-size:13px;color:var(--accent);word-break:break-all">${escapeHtml(s.link)}</a></div>`
+    : '';
+
+  document.getElementById('submissionModalBody').innerHTML = `
+    <div class="field">
+      <label>폰트명</label>
+      <div style="font-size:15px;font-weight:800;color:var(--text-primary)">${escapeHtml(s.font_name)}</div>
+    </div>
+    <div class="field">
+      <label>제보자</label>
+      <div style="font-size:13px;color:var(--text-secondary)">${escapeHtml(s.nickname)} · ${formatDate(s.created_at)}</div>
+    </div>
+    ${linkHtml}
+    <div class="field">
+      <label>설명</label>
+      <div style="font-size:13px;color:var(--text-primary);line-height:1.7;white-space:pre-wrap;background:var(--bg-secondary);border-radius:10px;padding:12px">${s.content ? escapeHtml(s.content) : '(설명 없음)'}</div>
+    </div>
+    ${imageHtml}
+    <div class="field">
+      <label>상태</label>
+      <select id="smStatus">
+        <option value="pending" ${s.status==='pending'?'selected':''}>대기중</option>
+        <option value="reviewed" ${s.status==='reviewed'?'selected':''}>검토중</option>
+        <option value="added" ${s.status==='added'?'selected':''}>추가완료</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>운영자 답변 (제보자에게 공개됩니다)</label>
+      <textarea id="smReply" rows="3" placeholder="예: 확인했습니다! 다음 주 중으로 추가할게요.">${escapeHtml(s.admin_reply || '')}</textarea>
+    </div>
+  `;
+  document.getElementById('submissionModal').classList.add('open');
+}
+function closeSubmissionModal(){
+  document.getElementById('submissionModal').classList.remove('open');
+  currentSubmissionId = null;
+}
+async function saveSubmissionChanges(){
+  if(!currentSubmissionId) return;
+  const status = document.getElementById('smStatus').value;
+  const admin_reply = document.getElementById('smReply').value.trim();
+  try {
+    await SubmissionStore.update(currentSubmissionId, {status, admin_reply});
+    showToast('변경사항을 저장했어요');
+    closeSubmissionModal();
+    await refreshSubmissions();
+    await refresh();
+  } catch(e) {
+    console.error('제보 상태 변경 실패:', e);
+    showToast('저장에 실패했어요: ' + (e.message || '알 수 없는 오류'));
+  }
+}
+function askDeleteSubmission(id){
+  const s = SUBMISSIONS.find(x => x.id === id);
+  if(!s) return;
+  pendingDelete = {type:'submission', id};
+  document.getElementById('confirmTitle').textContent = `'${s.font_name}' 제보를 삭제할까요?`;
+  document.getElementById('confirmDesc').textContent = '삭제하면 첨부 이미지도 함께 제거되고 되돌릴 수 없어요.';
+  document.getElementById('confirmModal').classList.add('open');
+}
+function deleteSubmissionFromModal(){
+  if(!currentSubmissionId) return;
+  askDeleteSubmission(currentSubmissionId);
+}
+
+document.getElementById('submissionModal').addEventListener('click', function(e){
+  if(e.target===this) closeSubmissionModal();
 });
 
 /* ════════════════════════════════════════

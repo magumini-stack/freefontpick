@@ -140,6 +140,62 @@
     .search-wrap input::placeholder{color:var(--text-muted)}
     .search-wrap input:focus{border-color:var(--accent);width:360px}
 
+    /* 모바일 햄버거 메뉴 */
+    .hamburger-btn{
+      display:none;
+      width:36px;height:36px;
+      border:none;background:transparent;color:var(--text-primary);
+      cursor:pointer;
+      align-items:center;justify-content:center;
+      border-radius:8px;
+      flex-shrink:0;
+    }
+    .hamburger-btn:hover{background:var(--bg-secondary)}
+    .hamburger-btn i{font-size:22px}
+    .mobile-nav-panel{
+      display:none;
+      position:fixed;
+      top:60px; right:0;
+      width:min(280px,80vw);
+      height:calc(100vh - 60px);
+      background:var(--bg-card);
+      border-left:1px solid var(--border);
+      box-shadow:-8px 0 24px rgba(0,0,0,.08);
+      z-index:199;
+      padding:14px;
+      transform:translateX(100%);
+      transition:transform .22s ease;
+      overflow-y:auto;
+    }
+    .mobile-nav-panel.open{display:block}
+    .mobile-nav-panel.animate-in{transform:translateX(0)}
+    .mobile-nav-panel a,.mobile-nav-panel button{
+      display:flex;align-items:center;gap:10px;
+      width:100%;
+      padding:13px 14px;
+      font-size:14.5px;font-weight:700;
+      color:var(--text-primary);
+      text-decoration:none;
+      border:none;background:transparent;
+      border-radius:10px;
+      text-align:left;
+      cursor:pointer;
+      font-family:inherit;
+      margin-bottom:2px;
+    }
+    .mobile-nav-panel a:hover,.mobile-nav-panel button:hover{background:var(--bg-secondary)}
+    .mobile-nav-panel a.active{color:var(--accent);background:var(--accent-light)}
+    .mobile-nav-panel i{font-size:17px;color:var(--text-muted);flex-shrink:0}
+    .mobile-nav-panel a.active i{color:var(--accent)}
+    .mobile-nav-divider{height:1px;background:var(--border);margin:8px 4px}
+    .mobile-nav-backdrop{
+      display:none;
+      position:fixed;inset:0;top:60px;
+      background:rgba(0,0,0,.35);
+      z-index:198;
+    }
+    .mobile-nav-backdrop.open{display:block}
+
     /* HERO */
     .hero{max-width:1240px;margin:0 auto;padding:44px 24px 28px;text-align:center}
     .hero-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);background:var(--accent-light);padding:5px 12px;border-radius:20px;margin-bottom:14px;font-weight:700}
@@ -216,6 +272,47 @@
       .license-head{padding:24px 24px 18px}
       .license-head h2{font-size:19px}
     }
+
+    /* FAQ 모달 — 아코디언 */
+    .btn-secondary{background:var(--bg-card);color:var(--text-primary);border:1.5px solid var(--border);border-radius:10px;font-weight:700;cursor:pointer;transition:border-color .15s,background-color .15s;font-family:inherit}
+    .btn-secondary:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+    .faq-modal{max-width:640px}
+    .faq-body{padding:16px 28px 8px;display:flex;flex-direction:column;gap:8px}
+    .faq-item{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg-secondary)}
+    .faq-q{
+      width:100%;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:15px 18px;
+      background:transparent;
+      border:none;
+      cursor:pointer;
+      text-align:left;
+      font-size:14.5px;
+      font-weight:700;
+      color:var(--text-primary);
+      font-family:inherit;
+      letter-spacing:-.2px;
+    }
+    .faq-q:hover{background:var(--accent-light)}
+    .faq-q-icon{flex-shrink:0;font-size:16px;color:var(--text-muted);transition:transform .2s}
+    .faq-item.open .faq-q-icon{transform:rotate(180deg);color:var(--accent)}
+    .faq-a{
+      max-height:0;
+      overflow:hidden;
+      transition:max-height .25s ease, padding .25s ease;
+      padding:0 18px;
+    }
+    .faq-item.open .faq-a{max-height:220px;padding:0 18px 16px}
+    .faq-a p{font-size:13px;line-height:1.7;color:var(--text-secondary)}
+    .faq-a strong{color:var(--text-primary);font-weight:700}
+    .faq-a u{text-decoration-color:var(--accent);text-underline-offset:2px}
+    .faq-foot{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+    .faq-notice-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;font-size:12.5px;white-space:nowrap}
+    @media(max-width:600px){
+      .faq-body{padding:14px 18px 6px}
+      .faq-q{padding:13px 14px;font-size:13.5px}
+    }
+
     /* HERO FEATURES — 3-피처 배지 카드 */
     .hero-features{display:flex;justify-content:center;align-items:flex-start;gap:36px;margin-top:28px;flex-wrap:nowrap}
     .hero-feature{display:flex;flex-direction:column;align-items:center;gap:10px;flex:0 0 auto}
@@ -459,6 +556,74 @@
       .notice-detail-head h2{font-size:18px}
     }
 
+    /* ━━━━ 무료폰트 제보 게시판 ━━━━ */
+    .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:800;padding:10px 18px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:background-color .15s,transform .15s;font-family:inherit;white-space:nowrap}
+    .btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+    .submit-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px}
+    .submit-count{font-size:13px;color:var(--text-secondary)}
+    .submit-count strong{color:var(--accent);font-weight:800}
+
+    .submit-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px}
+    .submit-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;box-shadow:var(--shadow-card);display:flex;flex-direction:column}
+    .submit-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+    .submit-card-thumb{width:100%;aspect-ratio:16/10;background:var(--bg-secondary);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:28px}
+    .submit-card-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .submit-card-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+    .submit-card-status{align-self:flex-start;font-size:10px;font-weight:800;padding:3px 9px;border-radius:10px;letter-spacing:.3px}
+    .submit-card-status.pending{background:var(--bg-secondary);color:var(--text-muted)}
+    .submit-card-status.reviewed{background:#FFF4E0;color:#B8790A}
+    .submit-card-status.added{background:#E8F7EE;color:#1A8A3A}
+    @media(prefers-color-scheme:dark){
+      .submit-card-status.reviewed{background:#2E2410;color:#E0AC4D}
+      .submit-card-status.added{background:#0F2A18;color:#5FCB85}
+    }
+    .submit-card-name{font-size:14.5px;font-weight:800;color:var(--text-primary);letter-spacing:-.2px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+    .submit-card-desc{font-size:12.5px;color:var(--text-secondary);line-height:1.5;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:2.6em}
+    .submit-card-meta{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px}
+
+    /* 제보 작성 폼 */
+    .submit-form-modal{max-width:520px}
+    .submit-form-body{padding:20px 28px;display:flex;flex-direction:column;gap:16px;max-height:60vh;overflow-y:auto}
+    .form-row{display:flex;flex-direction:column;gap:6px}
+    .form-row label{font-size:12.5px;font-weight:700;color:var(--text-secondary)}
+    .form-row label .req{color:var(--accent)}
+    .form-row input[type=text],.form-row textarea{
+      border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13.5px;
+      font-family:inherit;color:var(--text-primary);background:var(--bg-card);resize:vertical;
+      transition:border-color .15s;
+    }
+    .form-row input[type=text]:focus,.form-row textarea:focus{outline:none;border-color:var(--accent)}
+    .sf-image-picker{
+      border:1.5px dashed var(--border);border-radius:12px;padding:20px 14px;text-align:center;
+      cursor:pointer;color:var(--text-muted);font-size:12.5px;display:flex;flex-direction:column;
+      align-items:center;gap:8px;transition:border-color .15s,color .15s;
+    }
+    .sf-image-picker:hover{border-color:var(--accent);color:var(--accent)}
+    .sf-image-picker i{font-size:24px}
+    .sf-image-preview{position:relative;border-radius:12px;overflow:hidden;max-width:220px}
+    .sf-image-preview img{width:100%;display:block;border-radius:12px}
+    .sf-image-remove{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .submit-form-foot{display:flex;justify-content:flex-end}
+    .submit-form-foot .btn-primary{width:100%;padding:12px;font-size:14px}
+
+    /* 제보 상세 모달 */
+    .submit-detail-modal{max-width:560px}
+    .submit-detail-body{padding:20px 28px 28px;display:flex;flex-direction:column;gap:16px}
+    .submit-detail-image{border-radius:14px;overflow:hidden;max-height:320px}
+    .submit-detail-image img{width:100%;display:block;object-fit:cover}
+    .submit-detail-content{font-size:13.5px;line-height:1.8;color:var(--text-primary);white-space:pre-wrap;word-break:break-word}
+    .submit-detail-link{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--accent);text-decoration:underline;word-break:break-all}
+    .submit-detail-reply{background:var(--accent-light);border-radius:12px;padding:14px 16px;font-size:12.5px;color:var(--text-primary);line-height:1.6}
+    .submit-detail-reply-label{font-size:11px;font-weight:800;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+
+    @media(max-width:640px){
+      .submit-toolbar{flex-direction:row;align-items:center}
+      .submit-form-body{padding:16px 18px;max-height:55vh}
+      .submit-detail-body{padding:16px 18px 22px}
+    }
+
     footer{border-top:1px solid var(--border);padding:32px 24px 32px;max-width:1240px;margin:0 auto}
     .footer-logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-primary);margin-bottom:10px}
     .footer-logo .logo-spark{width:22px;height:22px;font-size:11px;border-radius:6px}
@@ -494,6 +659,7 @@
 
     @media(max-width:768px){
       nav{display:none}
+      .hamburger-btn{display:flex}
       .btn-subscribe span{display:none}
       .btn-subscribe{padding:0 10px;width:36px;justify-content:center}
       .hero{padding:28px 16px 20px}.hero-title{font-size:24px}
@@ -532,14 +698,36 @@
     </a>
     <nav>
       <a href="#notice" id="noticeMenuLink">공지사항</a>
+      <a href="#" id="faqMenuLink" onclick="openFaqModal();return false;">자주 묻는 질문</a>
+      <a href="#submit" id="submitMenuLink">무료폰트 제보</a>
     </nav>
     <div class="header-right">
       <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer">
         <i class="ti ti-bell" aria-hidden="true"></i>
         <span>타닥타닥 구독</span>
       </a>
+      <button type="button" class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mobileNavPanel">
+        <i class="ti ti-menu-2" aria-hidden="true"></i>
+      </button>
     </div>
   </div>
+  <div class="mobile-nav-backdrop" id="mobileNavBackdrop" onclick="closeMobileNav()"></div>
+  <nav class="mobile-nav-panel" id="mobileNavPanel" aria-label="모바일 메뉴">
+    <a href="#notice" id="mNoticeMenuLink" onclick="closeMobileNav()">
+      <i class="ti ti-speakerphone" aria-hidden="true"></i> 공지사항
+    </a>
+    <a href="#" onclick="closeMobileNav();openFaqModal();return false;">
+      <i class="ti ti-help-circle" aria-hidden="true"></i> 자주 묻는 질문
+    </a>
+    <a href="#submit" id="mSubmitMenuLink" onclick="closeMobileNav()">
+      <i class="ti ti-bulb" aria-hidden="true"></i> 무료폰트 제보
+    </a>
+    <div class="mobile-nav-divider"></div>
+    <a href="https://tdtd.io" target="_blank" rel="noopener noreferrer" onclick="closeMobileNav()">
+      <i class="ti ti-bell" aria-hidden="true"></i> 타닥타닥 구독
+    </a>
+  </nav>
+</header>
 </header>
 
 <!-- ━━━━ HOME VIEW (폰트 갤러리) ━━━━ -->
@@ -677,6 +865,92 @@
     </div>
   </main>
 </div><!-- /noticeView -->
+
+<!-- ━━━━ SUBMIT VIEW (무료폰트 제보) ━━━━ -->
+<div id="submitView" style="display:none">
+  <section class="notice-hero">
+    <div class="hero-eyebrow"><i class="ti ti-bulb" aria-hidden="true"></i> SUBMIT</div>
+    <h1 class="hero-title">무료폰트 제보</h1>
+    <p class="notice-hero-sub">발견하신 무료 폰트를 알려주시면 큐레이션에 추가해드려요</p>
+  </section>
+
+  <main class="main">
+    <div class="submit-toolbar">
+      <div class="submit-count"><strong id="submitCount">0</strong>개의 제보</div>
+      <button class="btn-primary" onclick="openSubmitForm()">
+        <i class="ti ti-pencil-plus" aria-hidden="true"></i> 제보하기
+      </button>
+    </div>
+
+    <div class="submit-list" id="submitList"></div>
+  </main>
+</div><!-- /submitView -->
+
+<!-- 제보 작성 모달 -->
+<div class="license-overlay" id="submitFormOverlay" role="dialog" aria-modal="true" aria-labelledby="submitFormTitle">
+  <div class="license-modal submit-form-modal">
+    <div class="license-head">
+      <div class="license-head-eyebrow"><i class="ti ti-bulb" aria-hidden="true"></i> SUBMIT</div>
+      <h2 id="submitFormTitle">무료폰트 제보하기</h2>
+      <p>로그인 없이 바로 남길 수 있어요</p>
+      <button class="license-close" onclick="closeSubmitForm()" aria-label="닫기">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="submit-form-body">
+      <div class="form-row">
+        <label for="sfNickname">닉네임</label>
+        <input type="text" id="sfNickname" placeholder="익명" maxlength="50">
+      </div>
+      <div class="form-row">
+        <label for="sfFontName">폰트 이름 <span class="req">*</span></label>
+        <input type="text" id="sfFontName" placeholder="예: OO고딕체" maxlength="100">
+      </div>
+      <div class="form-row">
+        <label for="sfLink">배포처 링크 (선택)</label>
+        <input type="text" id="sfLink" placeholder="https://..." maxlength="500">
+      </div>
+      <div class="form-row">
+        <label for="sfContent">설명</label>
+        <textarea id="sfContent" rows="4" placeholder="어디서 발견했는지, 어떤 느낌의 폰트인지 알려주세요" maxlength="2000"></textarea>
+      </div>
+      <div class="form-row">
+        <label>이미지 첨부 (선택)</label>
+        <div class="sf-image-picker" id="sfImagePicker" onclick="document.getElementById('sfImageInput').click()">
+          <i class="ti ti-photo-plus" aria-hidden="true"></i>
+          <span>클릭해서 이미지 선택 (jpg, png, gif, webp / 최대 8MB)</span>
+        </div>
+        <input type="file" id="sfImageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" onchange="handleSfImageChange(this)">
+        <div class="sf-image-preview" id="sfImagePreview" style="display:none">
+          <img id="sfImagePreviewImg" alt="첨부 이미지 미리보기">
+          <button type="button" class="sf-image-remove" onclick="clearSfImage()" aria-label="이미지 제거">
+            <i class="ti ti-x" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="license-foot submit-form-foot">
+      <button class="btn-primary" id="sfSubmitBtn" onclick="submitFontTip()">
+        <i class="ti ti-send" aria-hidden="true"></i> 제보 등록하기
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 제보 상세 보기 모달 -->
+<div class="license-overlay" id="submitDetailOverlay" role="dialog" aria-modal="true" aria-labelledby="submitDetailTitle">
+  <div class="license-modal submit-detail-modal">
+    <div class="license-head">
+      <div class="license-head-eyebrow" id="submitDetailStatus">대기중</div>
+      <h2 id="submitDetailTitle"></h2>
+      <p id="submitDetailMeta"></p>
+      <button class="license-close" onclick="closeSubmitDetail()" aria-label="닫기">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="submit-detail-body" id="submitDetailBody"></div>
+  </div>
+</div>
 
 <footer>
   <div class="footer-links">
@@ -832,6 +1106,99 @@
     <div class="license-foot">
       <p>※ 위 사용범위는 <strong>참고용</strong>으로, 정확한 사용범위는 이용 전 폰트 저작권자에게 확인 바랍니다.</p>
       <p>사용범위는 저작권자의 규정에 따라 달라질 수 있습니다. 조건부 허용의 경우, 사용 조건을 꼭 원본 라이선스 내용에서 확인 후 이용하세요.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━ FAQ 모달 (자주 묻는 질문) ━━━━ -->
+<div class="license-overlay" id="faqOverlay" role="dialog" aria-modal="true" aria-labelledby="faqTitle">
+  <div class="license-modal faq-modal">
+    <div class="license-head">
+      <div class="license-head-eyebrow"><i class="ti ti-help-circle" aria-hidden="true"></i> FAQ</div>
+      <h2 id="faqTitle">자주 묻는 질문</h2>
+      <p>폰트픽 이용에 대해 궁금하신 점을 확인해보세요</p>
+      <button class="license-close" onclick="closeFaqModal()" aria-label="닫기">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="faq-body" id="faqBody">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+          <span>폰트는 어떻게 다운로드하나요?</span>
+          <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a">
+          <p>원하는 폰트 카드의 <strong>'무료 다운로드'</strong> 버튼을 누르면 해당 폰트의 원본 배포처(제작사 페이지 등)로 이동합니다. 폰트픽은 다운로드 링크를 정리해서 안내하는 큐레이션 서비스이며, 실제 폰트 파일은 제작사가 배포하는 원본을 그대로 받으시게 됩니다.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+          <span>다운로드한 폰트를 상업적으로 사용해도 되나요?</span>
+          <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a">
+          <p>폰트픽에 큐레이션된 폰트는 대부분 상업적 이용이 가능하지만, 폰트마다 세부 허용 범위(인쇄물, 웹사이트, 영상, 포장지, BI/CI 등)가 다를 수 있어요. 상단의 <strong>'라이선스 보기'</strong> 버튼에서 일반적인 사용범위를 확인하시고, 정확한 조건은 반드시 각 폰트 제작사의 원본 라이선스 페이지에서 다시 확인해주세요.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+          <span>원하는 분위기·용도로 폰트를 어떻게 검색하나요?</span>
+          <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a">
+          <p>상단 검색창에 <strong>"따뜻한 카페", "귀여운 SNS 카드", "깔끔한 이력서"</strong>처럼 자연스러운 문장으로 입력해보세요. 분위기, 업종, 용도, 개성 등 자연어 키워드 1,000여 개를 인식해서 어울리는 폰트를 바로 추천해드려요.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+          <span>미리보기 문구는 어떻게 바꾸나요?</span>
+          <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a">
+          <p>두 가지 방법이 있어요. ① 상단 미리보기 입력창에 원하는 문구를 직접 입력하거나 <strong>'문구선택'</strong> 버튼으로 준비된 예시 문구를 골라 <u>모든 카드</u>에 한번에 적용할 수 있어요. ② 각 폰트 카드의 미리보기 텍스트를 직접 클릭해서 그 <u>카드만</u> 원하는 문구로 바꿔볼 수도 있어요.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+          <span>좋아요(♥)는 어떤 기능인가요?</span>
+          <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a">
+          <p>마음에 드는 폰트에 좋아요를 누르면 전체 방문자의 좋아요 수가 합산돼서 <strong>'인기 폰트 TOP 10'</strong>에 반영돼요. 로그인 없이 바로 누를 수 있고, 다시 누르면 취소도 가능해요.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+          <span>원하는 무료 폰트를 발견했는데 어떻게 알려주나요?</span>
+          <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a">
+          <p>상단 메뉴의 <strong>'무료폰트 제보'</strong> 게시판을 이용해주세요. 로그인 없이 폰트 이름, 배포처 링크, 설명(이미지 첨부 가능)을 남겨주시면 검토 후 큐레이션에 추가해드려요.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+          <span>폰트 파일이 다운로드되지 않거나 오류가 있어요</span>
+          <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+        </button>
+        <div class="faq-a">
+          <p>제작사 배포처 사정으로 링크가 변경되거나 만료됐을 수 있어요. 페이지 하단의 <strong>'문의하기'</strong>로 폰트 이름과 함께 알려주시면 빠르게 확인 후 반영할게요.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="license-foot faq-foot">
+      <p>찾으시는 답변이 없다면 공지사항을 확인해보시거나 문의해주세요.</p>
+      <button class="btn-secondary faq-notice-btn" onclick="closeFaqModal();location.hash='#notice';">
+        <i class="ti ti-speakerphone" aria-hidden="true"></i> 공지사항 보러가기
+      </button>
     </div>
   </div>
 </div>
@@ -2486,6 +2853,34 @@ function closeDownloadAd(){
 }
 
 /* ── 라이선스 모달 ── */
+/* ── 모바일 햄버거 메뉴 ── */
+function toggleMobileNav(){
+  const panel = document.getElementById('mobileNavPanel');
+  if(panel.classList.contains('open')) closeMobileNav();
+  else openMobileNav();
+}
+function openMobileNav(){
+  const panel = document.getElementById('mobileNavPanel');
+  const backdrop = document.getElementById('mobileNavBackdrop');
+  const btn = document.getElementById('hamburgerBtn');
+  panel.classList.add('open');
+  backdrop.classList.add('open');
+  btn.setAttribute('aria-expanded', 'true');
+  document.body.style.overflow = 'hidden';
+  // 트랜지션 적용을 위해 다음 프레임에 클래스 추가
+  requestAnimationFrame(() => panel.classList.add('animate-in'));
+}
+function closeMobileNav(){
+  const panel = document.getElementById('mobileNavPanel');
+  const backdrop = document.getElementById('mobileNavBackdrop');
+  const btn = document.getElementById('hamburgerBtn');
+  panel.classList.remove('animate-in');
+  backdrop.classList.remove('open');
+  btn.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+  setTimeout(() => panel.classList.remove('open'), 220);
+}
+
 function openLicense(){
   document.getElementById('licenseOverlay').classList.add('open');
   document.body.style.overflow='hidden';
@@ -2494,8 +2889,27 @@ function closeLicense(){
   document.getElementById('licenseOverlay').classList.remove('open');
   document.body.style.overflow='';
 }
+
+/* ── FAQ 모달 ── */
+function openFaqModal(){
+  document.getElementById('faqOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeFaqModal(){
+  document.getElementById('faqOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function toggleFaqItem(btnEl){
+  const item = btnEl.closest('.faq-item');
+  const isOpen = item.classList.toggle('open');
+  btnEl.setAttribute('aria-expanded', String(isOpen));
+}
+
 document.getElementById('licenseOverlay').addEventListener('click',function(e){
   if(e.target===this) closeLicense();
+});
+document.getElementById('faqOverlay').addEventListener('click',function(e){
+  if(e.target===this) closeFaqModal();
 });
 document.getElementById('dladOverlay').addEventListener('click',function(e){
   if(e.target===this) closeDownloadAd();
@@ -2503,7 +2917,11 @@ document.getElementById('dladOverlay').addEventListener('click',function(e){
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
     if(document.getElementById('licenseOverlay').classList.contains('open')) closeLicense();
+    else if(document.getElementById('faqOverlay').classList.contains('open')) closeFaqModal();
+    else if(document.getElementById('submitFormOverlay').classList.contains('open')) closeSubmitForm();
+    else if(document.getElementById('submitDetailOverlay').classList.contains('open')) closeSubmitDetail();
     else if(document.getElementById('dladOverlay').classList.contains('open')) closeDownloadAd();
+    else if(document.getElementById('mobileNavPanel').classList.contains('open')) closeMobileNav();
   }
 });
 
@@ -2573,10 +2991,16 @@ async function init(){
 async function route(){
   const hash = location.hash;
   const noticeMenu = document.getElementById('noticeMenuLink');
+  const submitMenu = document.getElementById('submitMenuLink');
+  const mNoticeMenu = document.getElementById('mNoticeMenuLink');
+  const mSubmitMenu = document.getElementById('mSubmitMenuLink');
 
   if(hash === '#notice'){
     showNoticeView();
     noticeMenu.classList.add('active');
+    submitMenu.classList.remove('active');
+    mNoticeMenu.classList.add('active');
+    mSubmitMenu.classList.remove('active');
     await renderNoticeList();
     showNoticePanel('list');
     window.scrollTo({top:0});
@@ -2584,18 +3008,35 @@ async function route(){
     const id = parseInt(hash.split('/')[1], 10);
     showNoticeView();
     noticeMenu.classList.add('active');
+    submitMenu.classList.remove('active');
+    mNoticeMenu.classList.add('active');
+    mSubmitMenu.classList.remove('active');
     await renderNoticeDetail(id);
     showNoticePanel('detail');
+    window.scrollTo({top:0});
+  } else if(hash === '#submit'){
+    showSubmitView();
+    noticeMenu.classList.remove('active');
+    submitMenu.classList.add('active');
+    mNoticeMenu.classList.remove('active');
+    mSubmitMenu.classList.add('active');
+    await renderSubmitList();
     window.scrollTo({top:0});
   } else if(hash.startsWith('#search/')){
     showHomeView();
     noticeMenu.classList.remove('active');
+    submitMenu.classList.remove('active');
+    mNoticeMenu.classList.remove('active');
+    mSubmitMenu.classList.remove('active');
     // hash로부터 검색어 복원
     const query = decodeURIComponent(hash.slice('#search/'.length));
     applySearch(query, /*pushHash*/ false);
   } else {
     showHomeView();
     noticeMenu.classList.remove('active');
+    submitMenu.classList.remove('active');
+    mNoticeMenu.classList.remove('active');
+    mSubmitMenu.classList.remove('active');
     // 홈으로 돌아온 경우: 검색·태그 초기화
     clearSearchAndFilter();
   }
@@ -2635,10 +3076,17 @@ function clearSearchAndFilter(){
 function showHomeView(){
   document.getElementById('homeView').style.display = '';
   document.getElementById('noticeView').style.display = 'none';
+  document.getElementById('submitView').style.display = 'none';
 }
 function showNoticeView(){
   document.getElementById('homeView').style.display = 'none';
   document.getElementById('noticeView').style.display = '';
+  document.getElementById('submitView').style.display = 'none';
+}
+function showSubmitView(){
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('noticeView').style.display = 'none';
+  document.getElementById('submitView').style.display = '';
 }
 function showNoticePanel(which){
   document.getElementById('noticeListPanel').style.display = which==='list' ? '' : 'none';
@@ -2743,6 +3191,174 @@ function sanitizeNoticeHtml(html){
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+
+/* ══════════════════════════════════════════
+   무료폰트 제보 게시판
+══════════════════════════════════════════ */
+const SUBMIT_STATUS_LABEL = {pending:'대기중', reviewed:'검토중', added:'추가완료'};
+let sfPendingImageFile = null;
+
+async function renderSubmitList(){
+  const wrap = document.getElementById('submitList');
+  const countEl = document.getElementById('submitCount');
+  let items = [];
+  try {
+    items = await SubmissionStore.getAll();
+  } catch(e) {
+    console.error('제보 목록 로딩 실패:', e);
+    wrap.innerHTML = '<div class="notice-empty"><i class="ti ti-alert-circle" aria-hidden="true"></i><p>목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</p></div>';
+    return;
+  }
+  countEl.textContent = items.length;
+
+  if(!items.length){
+    wrap.innerHTML = '<div class="notice-empty" style="grid-column:1/-1"><i class="ti ti-bulb" aria-hidden="true"></i><p>아직 제보된 폰트가 없어요. 첫 번째로 알려주세요!</p></div>';
+    return;
+  }
+
+  wrap.innerHTML = items.map(item => {
+    const thumb = item.image_path
+      ? `<img src="${SubmissionStore.imageUrl(item.id)}" alt="${escapeHtml(item.font_name)} 첨부 이미지" loading="lazy">`
+      : `<i class="ti ti-typography" aria-hidden="true"></i>`;
+    const statusLabel = SUBMIT_STATUS_LABEL[item.status] || '대기중';
+    return `<article class="submit-card" onclick="openSubmitDetail(${item.id})" role="listitem">
+      <div class="submit-card-thumb">${thumb}</div>
+      <div class="submit-card-body">
+        <span class="submit-card-status ${item.status}">${statusLabel}</span>
+        <div class="submit-card-name">${escapeHtml(item.font_name)}</div>
+        <div class="submit-card-desc">${item.content ? escapeHtml(item.content) : '설명이 없어요'}</div>
+        <div class="submit-card-meta">
+          <span>${escapeHtml(item.nickname)}</span>
+          <span>${formatNoticeDate(item.created_at)}</span>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+/* 제보 작성 모달 */
+function openSubmitForm(){
+  document.getElementById('sfNickname').value = '';
+  document.getElementById('sfFontName').value = '';
+  document.getElementById('sfLink').value = '';
+  document.getElementById('sfContent').value = '';
+  clearSfImage();
+  document.getElementById('submitFormOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSubmitForm(){
+  document.getElementById('submitFormOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleSfImageChange(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  if(file.size > 8*1024*1024){
+    showToast && showToast('이미지는 최대 8MB까지 첨부할 수 있어요');
+    input.value = '';
+    return;
+  }
+  sfPendingImageFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('sfImagePreviewImg').src = e.target.result;
+    document.getElementById('sfImagePreview').style.display = 'block';
+    document.getElementById('sfImagePicker').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+function clearSfImage(){
+  sfPendingImageFile = null;
+  document.getElementById('sfImageInput').value = '';
+  document.getElementById('sfImagePreview').style.display = 'none';
+  document.getElementById('sfImagePicker').style.display = 'flex';
+}
+
+async function submitFontTip(){
+  const fontName = document.getElementById('sfFontName').value.trim();
+  if(!fontName){
+    alert('폰트 이름을 입력해주세요');
+    document.getElementById('sfFontName').focus();
+    return;
+  }
+  const btn = document.getElementById('sfSubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> 등록 중...';
+
+  try {
+    await SubmissionStore.add({
+      nickname: document.getElementById('sfNickname').value.trim() || '익명',
+      font_name: fontName,
+      link: document.getElementById('sfLink').value.trim(),
+      content: document.getElementById('sfContent').value.trim(),
+      imageFile: sfPendingImageFile,
+    });
+    closeSubmitForm();
+    await renderSubmitList();
+    if(typeof showToast === 'function') showToast('제보해주셔서 감사해요! 검토 후 반영할게요.');
+  } catch(e) {
+    console.error('제보 등록 실패:', e);
+    if(e.status === 429){
+      alert(e.message || '너무 빠르게 작성하셨어요. 잠시 후 다시 시도해주세요.');
+    } else {
+      alert('등록에 실패했어요: ' + (e.message || '알 수 없는 오류'));
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-send" aria-hidden="true"></i> 제보 등록하기';
+  }
+}
+
+/* 제보 상세 모달 */
+async function openSubmitDetail(id){
+  const overlay = document.getElementById('submitDetailOverlay');
+  const titleEl = document.getElementById('submitDetailTitle');
+  const metaEl = document.getElementById('submitDetailMeta');
+  const statusEl = document.getElementById('submitDetailStatus');
+  const bodyEl = document.getElementById('submitDetailBody');
+
+  titleEl.textContent = '불러오는 중...';
+  metaEl.textContent = '';
+  bodyEl.innerHTML = '';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  try {
+    const item = await SubmissionStore.getById(id);
+    titleEl.textContent = item.font_name;
+    metaEl.textContent = `${item.nickname} · ${formatNoticeDate(item.created_at)}`;
+    statusEl.textContent = SUBMIT_STATUS_LABEL[item.status] || '대기중';
+
+    let html = '';
+    if(item.image_path){
+      html += `<div class="submit-detail-image"><img src="${SubmissionStore.imageUrl(item.id)}" alt="${escapeHtml(item.font_name)} 첨부 이미지"></div>`;
+    }
+    if(item.content){
+      html += `<div class="submit-detail-content">${escapeHtml(item.content)}</div>`;
+    }
+    if(item.link){
+      html += `<a class="submit-detail-link" href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer"><i class="ti ti-link" aria-hidden="true"></i> ${escapeHtml(item.link)}</a>`;
+    }
+    if(item.admin_reply){
+      html += `<div class="submit-detail-reply"><div class="submit-detail-reply-label"><i class="ti ti-message-circle" aria-hidden="true"></i> 운영자 답변</div>${escapeHtml(item.admin_reply)}</div>`;
+    }
+    bodyEl.innerHTML = html || '<p style="color:var(--text-muted);font-size:13px">추가 설명이 없어요.</p>';
+  } catch(e) {
+    console.error('제보 상세 로딩 실패:', e);
+    titleEl.textContent = '불러오지 못했어요';
+    bodyEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px">잠시 후 다시 시도해주세요.</p>';
+  }
+}
+function closeSubmitDetail(){
+  document.getElementById('submitDetailOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('submitFormOverlay').addEventListener('click', function(e){
+  if(e.target===this) closeSubmitForm();
+});
+document.getElementById('submitDetailOverlay').addEventListener('click', function(e){
+  if(e.target===this) closeSubmitDetail();
+});
 
 init();
 </script>

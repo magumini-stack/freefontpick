@@ -212,6 +212,38 @@ const TagStore = {
 };
 
 /* ════════════════════════════════════════
+   SubmissionStore — 무료폰트 제보 게시판
+   기존 인터페이스: getAll, getById, add(formData), update, remove, imageUrl(id)
+════════════════════════════════════════ */
+const SubmissionStore = {
+  async getAll() {
+    return await apiFetch('/submissions');
+  },
+  async getById(id) {
+    return await apiFetch(`/submissions/${id}`);
+  },
+  /** payload: {nickname, font_name, content, link, imageFile?} — multipart로 전송 */
+  async add(payload) {
+    const fd = new FormData();
+    fd.append('nickname', payload.nickname || '익명');
+    fd.append('font_name', payload.font_name || '');
+    fd.append('content', payload.content || '');
+    fd.append('link', payload.link || '');
+    if (payload.imageFile) fd.append('image', payload.imageFile);
+    return await apiFetch('/submissions', {method: 'POST', body: fd});
+  },
+  async update(id, payload) {
+    return await apiFetch(`/submissions/${id}`, {method: 'PATCH', body: payload});
+  },
+  async remove(id) {
+    await apiFetch(`/submissions/${id}`, {method: 'DELETE'});
+  },
+  imageUrl(id) {
+    return `${API_BASE}/submissions/${id}/image`;
+  },
+};
+
+/* ════════════════════════════════════════
    NoticeStore — 공지사항 CRUD
    기존 인터페이스: getAll, getById, add, update, remove
 ════════════════════════════════════════ */
