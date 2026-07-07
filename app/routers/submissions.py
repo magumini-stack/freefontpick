@@ -1,7 +1,8 @@
-"""무료폰트 제보 게시판 API
+"""폰트 찾아주세요 게시판 API
 
 - 로그인 없이 누구나 글쓰기 가능 (닉네임 자유 입력)
-- 이미지 1장 첨부 가능 (선택)
+- 이미지를 올리면 관리자가 어떤 폰트인지 답변해주는 용도
+- 이미지 또는 설명 중 최소 하나는 필요, 이미지는 1장까지
 - 목록/상세는 공개, 삭제/상태변경은 관리자만
 - 스팸 방지를 위한 가벼운 IP rate limit
 """
@@ -62,13 +63,16 @@ def get_submission(submission_id: int, db: Session = Depends(get_db)):
 async def create_submission(
     request: Request,
     nickname: str = Form("익명"),
-    font_name: str = Form(...),
     content: str = Form(""),
-    link: str = Form(""),
     image: UploadFile | None = File(None),
     db: Session = Depends(get_db),
 ):
-    """제보 글 작성 — 로그인 불필요. 이미지는 선택."""
+    """폰트 찾아주세요 글 작성 — 로그인 불필요.
+
+    이미지 또는 설명 중 최소 하나는 있어야 함.
+    (폰트 이름/링크는 더 이상 요구하지 않음 — 이 게시판은
+    "이 이미지 속 폰트가 뭔가요?"를 묻는 용도이기 때문)
+    """
     # rate limit
     ip = _client_ip(request)
     now = time.time()
@@ -80,14 +84,17 @@ async def create_submission(
         )
 
     nickname = (nickname or "익명").strip()[:50] or "익명"
-    font_name = (font_name or "").strip()[:100]
-    if not font_name:
-        raise HTTPException(status_code=400, detail="폰트 이름을 입력해주세요")
     content = (content or "").strip()[:2000]
-    link = (link or "").strip()[:500]
+    has_image = image is not None and bool(image.filename)
+
+    if not content and not has_image:
+        raise HTTPException(
+            status_code=400,
+            detail="이미지 또는 설명 중 하나는 알려주세요",
+        )
 
     image_path = None
-    if image is not None and image.filename:
+    if has_image:
         ext = Path(image.filename).suffix.lower()
         if ext not in ALLOWED_EXTS:
             raise HTTPException(
@@ -112,9 +119,9 @@ async def create_submission(
 
     item = FontSubmission(
         nickname=nickname,
-        font_name=font_name,
+        font_name="",  # 더 이상 사용하지 않음 (하위 호환을 위해 컬럼은 유지)
         content=content,
-        link=link,
+        link="",  # 더 이상 사용하지 않음
         image_path=image_path,
         status="pending",
     )
