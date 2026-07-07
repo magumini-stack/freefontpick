@@ -127,3 +127,24 @@ class FileUploadResponse(BaseModel):
     ratio: float
     format: str = "woff2"
     message: str = ""
+
+
+# ─────────── FontSubmission (무료폰트 제보) ───────────
+class SubmissionOut(BaseModel):
+    id: int
+    nickname: str
+    font_name: str
+    content: str
+    link: str = ""
+    image_path: Optional[str] = None
+    status: str
+    admin_reply: str = ""
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SubmissionUpdate(BaseModel):
+    """관리자 전용 — 상태/답변 수정"""
+    status: Optional[str] = None
+    admin_reply: Optional[str] = None

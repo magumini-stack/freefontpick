@@ -77,3 +77,26 @@ class AdminUser(Base):
     must_change_password = Column(Boolean, default=True)
     last_login_at = Column(DateTime)
     created_at = Column(DateTime, server_default=func.now())
+
+
+class FontSubmission(Base):
+    """무료폰트 제보 게시판.
+
+    로그인 없이 누구나 작성 가능. 이미지 1장 첨부 가능.
+    관리자가 상태(대기/검토완료/추가완료)를 관리.
+    """
+    __tablename__ = "font_submissions"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    nickname = Column(String(50), nullable=False, default="익명")
+    font_name = Column(String(100), nullable=False)
+    content = Column(Text, nullable=False, default="")
+    link = Column(String(500), default="")
+    image_path = Column(String(300))  # 저장된 이미지 파일명 (상대경로)
+    status = Column(String(20), nullable=False, default="pending")  # pending/reviewed/added
+    admin_reply = Column(Text, default="")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        Index("idx_submissions_created", "created_at"),
+    )

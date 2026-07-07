@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
 from .seed import init_db
-from .routers import auth, fonts, tags, notices, files as files_router, likes, seo
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -72,6 +72,7 @@ app.include_router(notices.router)
 app.include_router(files_router.router)
 app.include_router(likes.router)
 app.include_router(seo.router)
+app.include_router(submissions.router)
 
 
 # 헬스체크 — DB 종류와 경로/호스트도 함께 노출 (운영 데이터 보존 진단용)
