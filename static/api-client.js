@@ -212,7 +212,7 @@ const TagStore = {
 };
 
 /* ════════════════════════════════════════
-   SubmissionStore — 무료폰트 제보 게시판
+   SubmissionStore — 폰트 찾아주세요 게시판
    기존 인터페이스: getAll, getById, add(formData), update, remove, imageUrl(id)
 ════════════════════════════════════════ */
 const SubmissionStore = {
@@ -222,13 +222,11 @@ const SubmissionStore = {
   async getById(id) {
     return await apiFetch(`/submissions/${id}`);
   },
-  /** payload: {nickname, font_name, content, link, imageFile?} — multipart로 전송 */
+  /** payload: {nickname, content, imageFile?} — multipart로 전송 */
   async add(payload) {
     const fd = new FormData();
     fd.append('nickname', payload.nickname || '익명');
-    fd.append('font_name', payload.font_name || '');
     fd.append('content', payload.content || '');
-    fd.append('link', payload.link || '');
     if (payload.imageFile) fd.append('image', payload.imageFile);
     return await apiFetch('/submissions', {method: 'POST', body: fd});
   },
