@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>자주 묻는 질문 — 폰트픽</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="description" content="폰트픽 이용 중 자주 묻는 질문을 모아뒀어요. 다운로드, 라이선스, 검색, 좋아요 기능까지 한번에 확인하세요.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://freefontpick.co.kr/faq.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="폰트픽">
+  <meta property="og:title" content="자주 묻는 질문 — 폰트픽">
+  <meta property="og:description" content="폰트픽 이용 중 자주 묻는 질문을 모아뒀어요.">
+  <meta property="og:url" content="https://freefontpick.co.kr/faq.html">
+  <meta property="og:image" content="https://freefontpick.co.kr/og-image.png">
+  <meta property="og:locale" content="ko_KR">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/tabler-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
+      --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+      --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+      --accent:#FF5C35;--accent-light:#FFF0EC;--accent-hover:#E84A25;
+      --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+      --shadow-card:0 1px 4px rgba(0,0,0,.06);
+    }
+    @media(prefers-color-scheme:dark){:root{
+      --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+      --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+      --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+      --accent:#FF6B47;--accent-light:#2A1A14;--accent-hover:#FF8060;
+    }}
+    body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;line-height:1.7}
+
+    /* HEADER */
+    .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
+    .header-inner{max-width:960px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
+    .logo{display:flex;align-items:center;text-decoration:none}
+    .logo img{height:32px;width:auto;display:block}
+    .header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+    .btn-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:0 14px;height:36px;border-radius:20px;border:1px solid var(--border);color:var(--text-secondary);background:transparent;text-decoration:none;transition:all .15s}
+    .btn-back:hover{border-color:var(--accent);color:var(--accent)}
+
+    /* HERO */
+    .hero{max-width:960px;margin:0 auto;padding:48px 24px 24px;text-align:center}
+    .hero-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);background:var(--accent-light);padding:5px 12px;border-radius:20px;margin-bottom:14px;font-weight:700}
+    .hero-title{font-size:30px;font-weight:800;color:var(--text-primary);line-height:1.3;letter-spacing:-.8px;margin-bottom:8px}
+    .hero-meta{font-size:14px;color:var(--text-secondary)}
+
+    /* MAIN */
+    .main{max-width:760px;margin:0 auto;padding:8px 24px 80px}
+
+    /* FAQ ACCORDION */
+    .faq-body{display:flex;flex-direction:column;gap:10px}
+    .faq-item{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg-card);box-shadow:var(--shadow-card)}
+    .faq-q{
+      width:100%;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:17px 20px;
+      background:transparent;
+      border:none;
+      cursor:pointer;
+      text-align:left;
+      font-size:15px;
+      font-weight:700;
+      color:var(--text-primary);
+      font-family:inherit;
+      letter-spacing:-.2px;
+    }
+    .faq-q:hover{background:var(--accent-light)}
+    .faq-q-icon{flex-shrink:0;font-size:17px;color:var(--text-muted);transition:transform .2s}
+    .faq-item.open .faq-q-icon{transform:rotate(180deg);color:var(--accent)}
+    .faq-a{
+      max-height:0;
+      overflow:hidden;
+      transition:max-height .25s ease, padding .25s ease;
+      padding:0 20px;
+    }
+    .faq-item.open .faq-a{max-height:260px;padding:0 20px 18px}
+    .faq-a p{font-size:13.5px;line-height:1.8;color:var(--text-secondary)}
+    .faq-a strong{color:var(--text-primary);font-weight:700}
+    .faq-a u{text-decoration-color:var(--accent);text-underline-offset:2px}
+
+    .faq-foot{margin-top:28px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;text-align:center;box-shadow:var(--shadow-card)}
+    .faq-foot p{font-size:13px;color:var(--text-secondary);margin-bottom:14px}
+    .btn-secondary{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;font-size:13px;font-weight:700;background:var(--bg-card);color:var(--text-primary);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:border-color .15s,background-color .15s;font-family:inherit;text-decoration:none}
+    .btn-secondary:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+
+    /* FOOTER */
+    footer{border-top:1px solid var(--border);padding:24px;max-width:960px;margin:0 auto;text-align:center}
+    .footer-copyright{font-size:11px;color:var(--text-muted);letter-spacing:.3px}
+
+    @media(max-width:640px){
+      .hero{padding:32px 16px 16px}
+      .hero-title{font-size:24px}
+      .main{padding:8px 16px 60px}
+      .faq-q{padding:15px 16px;font-size:14px}
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="logo" aria-label="폰트픽 홈으로">
+      <img src="logo.png" alt="폰트픽">
+    </a>
+    <div class="header-right">
+      <a class="btn-back" href="index.html">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i>
+        <span>홈으로</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-eyebrow"><i class="ti ti-help-circle" aria-hidden="true"></i> FAQ</div>
+  <h1 class="hero-title">자주 묻는 질문</h1>
+  <p class="hero-meta">폰트픽 이용에 대해 궁금하신 점을 확인해보세요</p>
+</section>
+
+<main class="main">
+  <div class="faq-body" id="faqBody">
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+        <span>폰트는 어떻게 다운로드하나요?</span>
+        <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+      </button>
+      <div class="faq-a">
+        <p>원하는 폰트 카드의 <strong>'무료 다운로드'</strong> 버튼을 누르면 해당 폰트의 원본 배포처(제작사 페이지 등)로 이동합니다. 폰트픽은 다운로드 링크를 정리해서 안내하는 큐레이션 서비스이며, 실제 폰트 파일은 제작사가 배포하는 원본을 그대로 받으시게 됩니다.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+        <span>다운로드한 폰트를 상업적으로 사용해도 되나요?</span>
+        <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+      </button>
+      <div class="faq-a">
+        <p>폰트픽에 큐레이션된 폰트는 대부분 상업적 이용이 가능하지만, 폰트마다 세부 허용 범위(인쇄물, 웹사이트, 영상, 포장지, BI/CI 등)가 다를 수 있어요. 상단의 <strong>'라이선스 보기'</strong> 버튼에서 일반적인 사용범위를 확인하시고, 정확한 조건은 반드시 각 폰트 제작사의 원본 라이선스 페이지에서 다시 확인해주세요.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+        <span>원하는 분위기·용도로 폰트를 어떻게 검색하나요?</span>
+        <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+      </button>
+      <div class="faq-a">
+        <p>상단 검색창에 <strong>"따뜻한 카페", "귀여운 SNS 카드", "깔끔한 이력서"</strong>처럼 자연스러운 문장으로 입력해보세요. 분위기, 업종, 용도, 개성 등 자연어 키워드 1,000여 개를 인식해서 어울리는 폰트를 바로 추천해드려요.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+        <span>미리보기 문구는 어떻게 바꾸나요?</span>
+        <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+      </button>
+      <div class="faq-a">
+        <p>두 가지 방법이 있어요. ① 상단 미리보기 입력창에 원하는 문구를 직접 입력하거나 <strong>'문구선택'</strong> 버튼으로 준비된 예시 문구를 골라 <u>모든 카드</u>에 한번에 적용할 수 있어요. ② 각 폰트 카드의 미리보기 텍스트를 직접 클릭해서 그 <u>카드만</u> 원하는 문구로 바꿔볼 수도 있어요.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+        <span>좋아요(♥)는 어떤 기능인가요?</span>
+        <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+      </button>
+      <div class="faq-a">
+        <p>마음에 드는 폰트에 좋아요를 누르면 전체 방문자의 좋아요 수가 합산돼서 <strong>'인기 폰트 TOP 10'</strong>에 반영돼요. 로그인 없이 바로 누를 수 있고, 다시 누르면 취소도 가능해요.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+        <span>어디선가 본 폰트가 뭔지 궁금해요</span>
+        <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+      </button>
+      <div class="faq-a">
+        <p>상단 메뉴의 <strong>'폰트 찾아주세요'</strong> 게시판을 이용해주세요. 폰트가 보이는 이미지를 올리고 간단한 설명을 남기면, 확인 후 어떤 폰트인지 댓글로 답변해드려요. 로그인이나 폰트 이름을 몰라도 괜찮아요.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+        <span>'폰트 찾아주세요'에 올린 질문의 답변은 어디서 보나요?</span>
+        <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+      </button>
+      <div class="faq-a">
+        <p>'폰트 찾아주세요' 게시판 목록에서 내가 올린 글을 다시 클릭하면 확인할 수 있어요. 답변이 등록되면 상태 표시가 <strong>'대기중' → '검토중' → '답변완료'</strong>로 바뀌니 상태만 확인해도 진행 상황을 알 수 있어요.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaqItem(this)" aria-expanded="false">
+        <span>폰트 파일이 다운로드되지 않거나 오류가 있어요</span>
+        <i class="ti ti-chevron-down faq-q-icon" aria-hidden="true"></i>
+      </button>
+      <div class="faq-a">
+        <p>제작사 배포처 사정으로 링크가 변경되거나 만료됐을 수 있어요. 페이지 하단의 <strong>'문의하기'</strong>로 폰트 이름과 함께 알려주시면 빠르게 확인 후 반영할게요.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="faq-foot">
+    <p>찾으시는 답변이 없다면 공지사항을 확인해보시거나 문의해주세요.</p>
+    <a class="btn-secondary" href="index.html#notice">
+      <i class="ti ti-speakerphone" aria-hidden="true"></i> 공지사항 보러가기
+    </a>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-copyright">COPYRIGHT © (주)와이즈폰트 CO., LTD. ALL RIGHTS RESERVED.</div>
+</footer>
+
+<script>
+function toggleFaqItem(btnEl){
+  const item = btnEl.closest('.faq-item');
+  const isOpen = item.classList.toggle('open');
+  btnEl.setAttribute('aria-expanded', String(isOpen));
+}
+</script>
+
+</body>
+</html>
