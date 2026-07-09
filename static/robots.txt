@@ -1,7 +1,5 @@
-User-agent: Googlebot
-Disallow: /nogooglebot/
-
 User-agent: *
 Allow: /
+Disallow: /admin.html
 
-Sitemap: https://www.example.com/sitemap.xml
+Sitemap: https://freefontpick.co.kr/sitemap.xml
