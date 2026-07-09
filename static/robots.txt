@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /admin.html
+Disallow: /api/auth/
+Disallow: /api/fonts/*/file
+Disallow: /api/fonts/*/like
 
 Sitemap: https://freefontpick.co.kr/sitemap.xml
