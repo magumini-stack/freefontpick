@@ -434,6 +434,11 @@
         <div class="field-hint">없으면 폰트명으로 눈누(noonnu.cc)에서 검색하는 링크가 자동 사용됩니다.</div>
       </div>
       <div class="field">
+        <label>갤러리 미리보기 문구</label>
+        <input type="text" id="fmPreviewText" placeholder="예: 골목 끝 작은 서점의 오후 세 시" maxlength="40">
+        <div class="field-hint">이 폰트 카드에 표시될 고유 문구. 비워두면 준비된 문구 풀에서 자동 배정됩니다. (영문 폰트는 영어 문장 권장)</div>
+      </div>
+      <div class="field">
         <label>카테고리 (1개 이상 선택) <span class="req">*</span></label>
         <div class="tag-grid" id="fmTagGrid"></div>
       </div>
@@ -1004,6 +1009,7 @@ function openFontModal(){
   document.getElementById('fmMaker').value = '';
   document.getElementById('fmWeights').value = '1종';
   document.getElementById('fmUrl').value = '';
+  document.getElementById('fmPreviewText').value = '';
   document.getElementById('fmFileInput').value = '';
   renderFmTags();
   // 새 폰트: 카테고리 선택 전엔 빈 메타로 시작 (사용자가 카테고리 선택하면 자동 채워짐)
@@ -1026,6 +1032,7 @@ function editFont(id){
   document.getElementById('fmMaker').value = f.maker;
   document.getElementById('fmWeights').value = f.weights;
   document.getElementById('fmUrl').value = f.url || '';
+  document.getElementById('fmPreviewText').value = (f.meta && f.meta.preview_text) || '';
   document.getElementById('fmFileInput').value = '';
   renderFmTags();
   // 기존 메타가 있으면 그것 사용, 없으면 카테고리로부터 추론
@@ -1280,6 +1287,11 @@ async function saveFont(){
   const meta = fmMeta ? JSON.parse(JSON.stringify(fmMeta)) : inferMetaFromTags(tags);
   const summaryInput = document.getElementById('fmSummary').value.trim();
   if(summaryInput) meta.summary = summaryInput;
+
+  // 갤러리 미리보기 문구 반영 (비우면 자동 배정되도록 키 제거)
+  const previewTextInput = document.getElementById('fmPreviewText').value.trim();
+  if(previewTextInput) meta.preview_text = previewTextInput;
+  else delete meta.preview_text;
 
   // stack 기본값 추정 (업로드 파일이 있으면 메인 페이지에서 family 자동 prefix됨)
   const stack = "'Nanum Gothic',sans-serif";

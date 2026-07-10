@@ -34,6 +34,11 @@
   <meta name="keywords" content="무료폰트, 한글폰트, 상업용폰트, 무료한글폰트, 폰트추천, 디자인폰트, 카페폰트, 유튜브폰트, 브랜드폰트, 캘리그라피">
   <meta name="author" content="(주)와이즈폰트">
   <meta name="robots" content="index, follow, max-image-preview:large">
+  <!-- 검색엔진별 크롤링 허용 -->
+  <meta name="googlebot" content="index, follow, max-image-preview:large">
+  <meta name="yeti" content="index, follow">
+  <meta name="daumoa" content="index, follow">
+  <meta name="bingbot" content="index, follow">
   <meta name="theme-color" content="#FF5C35">
   <meta name="google-site-verification" content="GWfxCqlFA6zzRtxxiGlxanuesad8mnU76VYEe1-JQ5I" />
   <meta name="naver-site-verification" content="9ba8766e4f703330b05f34778c1a7edfaf98c466" />
@@ -688,6 +693,79 @@
       .hero-feature-label{font-size:10.5px}
     }
     @media(prefers-reduced-motion:reduce){.font-card{animation:none}*{transition:none!important}}
+
+    /* ════════ 텍스트 디자인 에디터 ════════ */
+    .btn-design{display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:var(--radius-sm);border:none;color:#fff;background:linear-gradient(135deg,var(--accent),#E8431F);cursor:pointer;transition:filter .15s;font-family:inherit;white-space:nowrap}
+    .btn-design:hover{filter:brightness(1.08)}
+    .designer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+    .designer-overlay.open{display:flex;animation:fadeIn .2s ease}
+    .designer-sheet{background:var(--bg-card);width:100%;max-width:480px;max-height:92vh;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .22s ease}
+    .designer-head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+    .designer-head strong{font-size:14.5px;color:var(--text-primary)}
+    .designer-close{border:none;background:var(--bg-secondary);color:var(--text-primary);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer}
+    .designer-body{padding:14px 16px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:13px}
+    .designer-body textarea{width:100%;resize:none;border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:14px;line-height:1.5;min-height:50px;background:var(--bg-card);color:var(--text-primary)}
+    .designer-body textarea:focus{outline:none;border-color:var(--accent)}
+    .designer-preview-label{display:flex;align-items:baseline;gap:8px}
+    .designer-preview-label span{font-size:12px;font-weight:800;color:var(--text-primary)}
+    .designer-preview-label em{font-size:10.5px;font-style:normal;color:var(--text-muted)}
+    .designer-preview{border-radius:14px;overflow:hidden;border:1px solid var(--border);flex-shrink:0;padding:10px;display:flex;align-items:center;justify-content:center;min-height:80px;max-height:210px;
+      background:
+        linear-gradient(45deg,var(--bg-secondary) 25%,transparent 25%) -10px 0/20px 20px,
+        linear-gradient(-45deg,var(--bg-secondary) 25%,transparent 25%) -10px 0/20px 20px,
+        linear-gradient(45deg,transparent 75%,var(--bg-secondary) 75%) -10px 0/20px 20px,
+        linear-gradient(-45deg,transparent 75%,var(--bg-secondary) 75%) -10px 0/20px 20px;}
+    .designer-preview canvas{max-width:100%;max-height:190px;display:block}
+    .designer-tabs{display:flex;gap:6px;border-bottom:1px solid var(--border)}
+    .designer-tab{border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--text-muted);padding:7px 4px 9px;cursor:pointer;border-bottom:2px solid transparent}
+    .designer-tab.active{color:var(--accent);border-color:var(--accent)}
+    .designer-panel{display:none;flex-direction:column;gap:12px}
+    .designer-panel.active{display:flex}
+    .designer-subtabs{display:flex;gap:6px}
+    .designer-subtab{border:1.5px solid var(--border);background:var(--bg-card);font-family:inherit;font-size:11.5px;font-weight:700;color:var(--text-muted);padding:5px 12px;border-radius:20px;cursor:pointer}
+    .designer-subtab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .designer-subpanel{display:none}
+    .designer-subpanel.active{display:block}
+    .fx-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px 8px;padding-bottom:14px}
+    .fx-swatch{aspect-ratio:1;border-radius:10px;border:2px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;position:relative}
+    .fx-swatch.active{border-color:var(--text-primary)}
+    .fx-swatch span{position:absolute;bottom:-15px;left:-2px;right:-2px;text-align:center;font-size:9px;font-weight:700;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .clr-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:7px}
+    .clr-dot{aspect-ratio:1;border-radius:8px;cursor:pointer;border:2px solid rgba(0,0,0,.08);position:relative}
+    .clr-dot.active{border-color:var(--text-primary)}
+    .clr-dot.none-dot{background:var(--bg-card);border:2px solid var(--border)}
+    .clr-dot.none-dot::after{content:'';position:absolute;left:10%;top:47%;width:80%;height:2px;background:#EF4444;transform:rotate(-45deg);border-radius:2px}
+    .designer-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .designer-row label{font-size:12.5px;font-weight:700;color:var(--text-primary)}
+    .designer-row input[type=range]{width:140px;accent-color:var(--accent)}
+    .dtoggle{width:40px;height:24px;border-radius:20px;background:var(--border);position:relative;cursor:pointer;border:none;flex-shrink:0}
+    .dtoggle.on{background:var(--accent)}
+    .dtoggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s ease}
+    .dtoggle.on::after{left:19px}
+    .dalign{display:flex;gap:6px}
+    .dalign button{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+    .dalign button.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .dhl{display:flex;gap:8px;flex-wrap:wrap}
+    .dhl-dot{width:26px;height:26px;border-radius:8px;border:2px solid var(--border);cursor:pointer}
+    .dhl-dot.active{border-color:var(--text-primary)}
+    .designer-adslot{border:1.5px dashed var(--border);border-radius:12px;padding:12px;text-align:center;font-size:11px;color:var(--text-muted);background:var(--bg-secondary);line-height:1.5}
+    .designer-save{width:100%;border:none;background:linear-gradient(135deg,var(--accent),#E8431F);color:#fff;font-weight:800;font-size:15px;padding:13px;border-radius:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+    .designer-save:active{transform:scale(.99)}
+    /* 광고 인터스티셜 */
+    .dsave-overlay{display:none;position:fixed;inset:0;background:rgba(10,8,7,.85);z-index:650;align-items:center;justify-content:center;padding:20px}
+    .dsave-overlay.open{display:flex}
+    .dsave-card{background:var(--bg-card);border-radius:18px;max-width:340px;width:100%;overflow:hidden;text-align:center}
+    .dsave-visual{height:200px;background:linear-gradient(135deg,#FFD8CC,#FFB199,var(--accent));display:flex;align-items:center;justify-content:center;color:#7A2E1A;font-weight:900;font-size:15px;flex-direction:column;gap:6px}
+    .dsave-info{padding:16px}
+    .dsave-info p{margin:0 0 13px;font-size:12.5px;color:var(--text-secondary);line-height:1.55}
+    .dsave-btn{border:none;background:var(--text-primary);color:var(--bg-card);font-weight:700;font-size:13px;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:inherit;width:100%}
+    .dsave-btn:disabled{opacity:.4;cursor:not-allowed}
+    .dsave-btn.primary{background:var(--accent);color:#fff}
+    .dsave-sub{margin-top:8px;width:100%;border:none;background:none;color:var(--text-muted);font-size:11.5px;text-decoration:underline;cursor:pointer;padding:4px;font-family:inherit}
+    @media(max-width:640px){
+      .designer-overlay{align-items:flex-end;padding:0}
+      .designer-sheet{max-width:100%;border-radius:20px 20px 0 0;max-height:90vh}
+    }
   </style>
 </head>
 <body>
@@ -702,7 +780,7 @@
       <a href="about.html">폰트픽 소개</a>
       <a href="#notice" id="noticeMenuLink">공지사항</a>
       <a href="faq.html">자주 묻는 질문</a>
-      <a href="#submit" id="submitMenuLink">폰트 찾아주세요</a>
+      <a href="/find-font" id="submitMenuLink" onclick="navFindFont(event)">폰트 찾아주세요</a>
     </nav>
     <div class="header-right">
       <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer">
@@ -729,7 +807,7 @@
     <a href="faq.html">
       <i class="ti ti-help-circle" aria-hidden="true"></i> 자주 묻는 질문
     </a>
-    <a href="#submit" id="mSubmitMenuLink" onclick="closeMobileNav()">
+    <a href="/find-font" id="mSubmitMenuLink" onclick="navFindFont(event);closeMobileNav()">
       <i class="ti ti-bulb" aria-hidden="true"></i> 폰트 찾아주세요
     </a>
     <div class="mobile-nav-divider"></div>
@@ -745,10 +823,10 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-eyebrow"><i class="ti ti-sparkles" aria-hidden="true"></i> 상업용 무료폰트 큐레이션</div>
+  <div class="hero-eyebrow"><i class="ti ti-sparkles" aria-hidden="true"></i> 상업용 무료폰트 큐레이션 &amp; 텍스트 디자인</div>
   <h1 class="hero-title">폰트픽, 디자인 전문가가 <em>딱 맞는 폰트</em> 골라드려요!</h1>
   <p class="hero-sub">
-    모양, 용도, 느낌, 분위기를 자연어로 검색 하고 바로 다운로드
+    추천 무료폰트를 다운로드하거나, 전문가 수준의 텍스트 효과를 직접 만들어 보세요
     <button class="btn-license" onclick="openLicense()" aria-label="라이선스 요약표 보기">
       <i class="ti ti-license" aria-hidden="true"></i> 라이선스 보기
     </button>
@@ -766,21 +844,20 @@
     <div class="hero-feature" role="listitem">
       <div class="hero-feature-badge">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-          <line x1="7" y1="7" x2="7.01" y2="7"/>
-        </svg>
-      </div>
-      <div class="hero-feature-label">상업용 무료폰트</div>
-    </div>
-    <div class="hero-feature" role="listitem">
-      <div class="hero-feature-badge">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="7 10 12 15 17 10"/>
           <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
       </div>
       <div class="hero-feature-label">간편한 다운로드</div>
+    </div>
+    <div class="hero-feature" role="listitem">
+      <div class="hero-feature-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
+        </svg>
+      </div>
+      <div class="hero-feature-label">원터치 디자인</div>
     </div>
   </div>
 </section>
@@ -1014,6 +1091,74 @@
   </div>
 </div>
 
+<!-- TEXT DESIGNER MODAL -->
+<div class="designer-overlay" id="designerOverlay" role="dialog" aria-modal="true" aria-labelledby="designerTitle">
+  <div class="designer-sheet">
+    <div class="designer-head">
+      <strong id="designerTitle">텍스트 디자인</strong>
+      <button class="designer-close" onclick="closeDesigner()" aria-label="닫기"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="designer-body">
+      <textarea id="dsText" maxlength="80" rows="2" placeholder="문구를 입력하세요">안녕하세요</textarea>
+      <div class="designer-preview-label">
+        <span>미리보기</span><em>보이는 그대로 저장 · 배경 투명 PNG</em>
+      </div>
+      <div class="designer-preview"><canvas id="dsCanvas" width="300" height="120"></canvas></div>
+      <div class="designer-tabs">
+        <button class="designer-tab active" data-dtab="style">스타일</button>
+        <button class="designer-tab" data-dtab="detail">디테일</button>
+      </div>
+      <div class="designer-panel active" data-dpanel="style">
+        <div class="designer-subtabs">
+          <button class="designer-subtab active" data-dsub="effect">효과</button>
+          <button class="designer-subtab" data-dsub="textcolor">글자색</button>
+          <button class="designer-subtab" data-dsub="outline">외곽선</button>
+        </div>
+        <div class="designer-subpanel active" data-dsubpanel="effect"><div class="fx-grid" id="dsFxGrid"></div></div>
+        <div class="designer-subpanel" data-dsubpanel="textcolor"><div class="clr-grid" id="dsTextColorGrid"></div></div>
+        <div class="designer-subpanel" data-dsubpanel="outline"><div class="clr-grid" id="dsOutlineGrid"></div></div>
+      </div>
+      <div class="designer-panel" data-dpanel="detail">
+        <div class="designer-row"><label>굵게</label><button class="dtoggle" id="dsBold"></button></div>
+        <div class="designer-row"><label>밑줄</label><button class="dtoggle" id="dsUnderline"></button></div>
+        <div class="designer-row"><label>자간</label><input type="range" id="dsSpacing" min="-4" max="12" value="0"></div>
+        <div class="designer-row"><label>줄간격</label><input type="range" id="dsLineHeight" min="10" max="22" value="13"></div>
+        <div class="designer-row"><label>정렬</label>
+          <div class="dalign">
+            <button data-dalign="left" class="active"><i class="ti ti-align-left"></i></button>
+            <button data-dalign="center"><i class="ti ti-align-center"></i></button>
+            <button data-dalign="right"><i class="ti ti-align-right"></i></button>
+          </div>
+        </div>
+        <div class="designer-row" style="align-items:flex-start"><label style="padding-top:4px">하이라이트</label><div class="dhl" id="dsHlRow"></div></div>
+      </div>
+      <div class="designer-adslot" id="designerAdSlot">
+        <!-- AdSense 승인 후 이 자리에 배너 ins 태그 삽입 -->
+        광고 영역
+      </div>
+      <button class="designer-save" onclick="startDesignerSave()"><i class="ti ti-download" aria-hidden="true"></i> PNG로 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- DESIGNER SAVE INTERSTITIAL -->
+<div class="dsave-overlay" id="dsaveOverlay">
+  <div class="dsave-card">
+    <div class="dsave-visual" id="dsaveVisual">
+      <div id="dsaveLabel">&#9654; 광고 재생 중</div>
+      <div id="dsaveCountdown" style="font-size:26px">3</div>
+    </div>
+    <div style="display:none;padding:16px 16px 0" id="dsaveImgWrap">
+      <img id="dsaveImg" alt="저장할 텍스트 디자인 이미지" style="width:100%;border-radius:12px;display:block;background:repeating-conic-gradient(var(--bg-secondary) 0% 25%, transparent 0% 50%) 50% / 20px 20px">
+    </div>
+    <div class="dsave-info">
+      <p id="dsaveHint">잠시 후 저장할 수 있어요.</p>
+      <button class="dsave-btn" id="dsaveActionBtn" disabled>잠시만요 (3)</button>
+      <button class="dsave-sub" onclick="document.getElementById('dsaveOverlay').classList.remove('open')">닫기</button>
+    </div>
+  </div>
+</div>
+
 <!-- LICENSE MODAL -->
 <div class="license-overlay" id="licenseOverlay" role="dialog" aria-modal="true" aria-labelledby="licenseTitle">
   <div class="license-modal">
@@ -1141,21 +1286,94 @@ const likeCounts = _likeState.counts;
 let currentFontSize=26;
 
 function getPreviewText(){
-  return document.getElementById('previewText').value.trim() || '기적처럼 내게 왔으니 별처럼 빛나주세요';
+  return document.getElementById('previewText').value.trim() || DEFAULT_PREVIEW;
 }
+const DEFAULT_PREVIEW = '기적처럼 내게 왔으니 별처럼 빛나주세요';
+/* 사용자가 미리보기 입력창에 직접 문구를 입력했는지 (기본값 그대로면 false) */
+function isCustomPreview(){
+  const v = document.getElementById('previewText').value.trim();
+  return v !== '' && v !== DEFAULT_PREVIEW;
+}
+
+/* ── 폰트별 고유 미리보기 문구 풀 ──
+   사용자가 문구를 직접 입력하기 전에는 폰트마다 서로 다른 문구가 표시됨.
+   admin에서 폰트별 문구(meta.preview_text)를 지정하면 그것이 최우선. */
+const KO_PREVIEW_POOL = [
+  '오늘도 좋은 하루가 시작되었어요','골목 끝 작은 서점의 오후 세 시','따뜻한 커피 한 잔의 여유로운 아침',
+  '창밖으로 첫눈이 소복소복 내려요','바다가 보이는 창가 자리로 주세요','봄바람에 실려 온 벚꽃 향기처럼',
+  '너의 하루는 오늘도 반짝였을까','한 걸음씩 천천히 가도 괜찮아요','달빛 아래 고요히 흐르는 강물처럼',
+  '지금 이 순간이 가장 빛나는 시간','읽고 싶은 책이 쌓여가는 즐거움','여행은 언제나 옳다, 떠나자 지금',
+  '갓 구운 빵 냄새 가득한 골목길','초록이 짙어지는 유월의 숲속에서','손편지에 꾹꾹 눌러 담은 진심',
+  '별이 쏟아지는 밤하늘을 담아서','매일 조금씩 자라나는 마음의 키','고양이와 함께하는 나른한 일요일',
+  '빗소리를 들으며 잠드는 밤이 좋아','네가 웃으면 나도 따라 웃게 돼','오래된 노래가 문득 생각나는 밤',
+  '가을 하늘은 눈부시게 높고 파랗다','포근한 이불 속 세상에서 제일 행복','시작이 반이다, 오늘 바로 시작해요',
+  '천천히 우려낸 차 한 잔의 온기','반짝이는 윤슬을 바라보던 그 여름','내일의 나에게 보내는 응원 한마디',
+  '작은 습관이 모여 큰 변화가 된다','골목마다 숨어있는 맛집을 찾아서','흐린 날에도 마음만은 맑음이기를',
+  '노을이 물드는 하늘을 함께 봐요','좋아하는 일을 오래 하고 싶어요','새벽 공기를 가르며 달리는 기분',
+  '단골 카페의 늘 앉던 그 자리','꽃 한 송이로 충분히 행복한 날','겨울밤엔 역시 귤과 따뜻한 코코아',
+  '수고했어요, 오늘도 정말 애썼어요','마음이 머무는 곳이 곧 집이에요','파도 소리를 배경음악 삼아 낮잠을',
+  '첫 페이지를 넘기는 설레는 기분','당신의 취향이 가장 정확한 답이다','늦은 밤 라면은 언제나 진리입니다',
+  '캠핑장의 모닥불이 타닥타닥 타요','기록은 기억보다 오래 남는 법이죠','휴일 아침 늦잠만큼 달콤한 게 있을까',
+  '설레는 마음을 안고 떠나는 첫차','우리 동네 산책 코스를 소개합니다','할 수 있다고 믿으면 이미 절반은 성공',
+  '반가워요, 처음 뵙겠습니다 잘 부탁해요','좋은 글은 마음을 오래 붙잡아둔다','한여름 밤의 시원한 수박 한 조각',
+  '지친 하루 끝엔 맥주 한 캔의 위로','책갈피 사이에 끼워둔 네잎클로버','내 방 창가에서 키우는 작은 화분',
+  '아무것도 안 하는 날도 필요해요','스무 살의 나에게 해주고 싶은 말','단풍잎을 주워 책 사이에 끼웠다',
+  '눈 오는 날엔 어묵 국물이 최고죠','목표를 적으면 이루어질 확률이 커진다','오늘의 플레이리스트를 공유합니다',
+  '느리게 걸어야 보이는 것들이 있다','정성껏 차린 집밥 한 상의 감동','매주 금요일 저녁이 기다려지는 이유',
+  '빛나는 청춘의 한가운데를 지나며','다정한 말 한마디가 하루를 바꾼다','새 노트 첫 장에 쓰는 다짐 한 줄',
+  '비 온 뒤 땅이 더 단단해지듯이','주말 아침 시장 구경 가실 분 여기','달리기를 시작한 지 백 일째 되는 날',
+  '커튼 사이로 스며드는 아침 햇살','실패는 성공으로 가는 계단일 뿐','제주 바다색을 닮은 하늘색 원피스',
+  '퇴근길 버스 창가 자리의 행복','뜨끈한 국밥 한 그릇이면 충분해','흔들리며 피지 않는 꽃이 어디 있으랴',
+  '오늘 밤 주인공은 바로 당신입니다','같이 걷는 길이라서 더 좋았어요','도서관 특유의 종이 냄새가 좋다',
+  '한 뼘 더 자란 마음을 발견한 날','겨울 바다는 여름보다 낭만적이다','시간을 달리는 소년의 모험 이야기',
+  '엄마의 김치찌개는 세상에서 제일','너무 애쓰지 않아도 괜찮은 하루','불 꺼진 방에서 듣는 새벽 감성 음악',
+  '어제보다 나은 오늘이면 충분하다','우산 속 두 사람의 어깨가 닿았다','첫 월급으로 부모님께 선물을 샀다',
+  '숲속 오두막에서 보내는 일주일','디저트는 언제나 배부른 뒤에 시작','반짝이는 아이디어가 떠오른 순간',
+  '골목 어귀 포장마차의 붕어빵 냄새','일단 저지르고 수습은 나중에 하자','네 꿈을 응원해, 언제나 네 편이야',
+  '보고 싶다는 말 대신 안부를 묻는다','한 장의 사진이 천 마디를 말한다','일요일 오후 네 시의 낮잠 예찬',
+  '초심을 잃지 않는 사람이 되고 싶다','밤하늘 별자리 이름을 외우던 시절','따끈한 찐빵을 호호 불며 먹는 겨울',
+  '내가 좋아하는 것들을 모아둔 상자','천 리 길도 한 걸음부터 시작된다'
+];
+const EN_PREVIEW_POOL = [
+  'Coffee first, then we can talk about it','Stay curious and keep exploring the world',
+  'Good design is honest and speaks clearly','A little progress each day adds up big',
+  'Sunset drives and open roads ahead of us','Make it simple, but make it significant',
+  'Books, rain, and a warm cup of tea','Dream big, start small, act right now',
+  'The best view comes after the hardest climb','Collect moments, not things, my friend',
+  'Creativity takes courage and lots of coffee','Do more of what makes you truly happy',
+  'Every day is a fresh new beginning','Kindness is free, sprinkle it everywhere',
+  'Adventure awaits just beyond your comfort zone','Slow mornings and quiet cups of coffee',
+  'Typography is what language looks like','Small steps every day lead to big change',
+  'Chase the light wherever it may lead you','Less noise, more meaningful conversations',
+  'Weekend plans: nothing, and lots of it','Great things never come from comfort zones',
+  'Handwritten letters never go out of style','The ocean breeze fixes almost everything',
+  'Design is thinking made beautifully visible','Take the scenic route home tonight',
+  'Fresh bread, old books, and slow Sundays','Your only limit is your imagination',
+  'Music sounds better on rainy evenings','Bloom where you are planted, always'
+];
+
+/* 폰트별 문구 결정: ① admin 지정(meta.preview_text) → ② 풀에서 id 기반 자동 배정 */
+function fontOwnPreview(f){
+  if(f && f.meta && f.meta.preview_text) return f.meta.preview_text;
+  const pool = (f && f.isEnglish) ? EN_PREVIEW_POOL : KO_PREVIEW_POOL;
+  return pool[(f ? f.id : 0) % pool.length];
+}
+
 /* 영문 폰트는 영문 미리보기 문구 사용 */
 const ENGLISH_PREVIEW = 'The quick brown fox jumps over the lazy dog';
 function getPreviewTextFor(font){
-  if(font && font.isEnglish) return ENGLISH_PREVIEW;
-  return getPreviewText();
+  /* 사용자가 문구를 직접 입력했다면 전체 카드에 그 문구 적용 (영문 폰트는 기존처럼 영문 유지) */
+  if(isCustomPreview()) return (font && font.isEnglish) ? ENGLISH_PREVIEW : getPreviewText();
+  /* 그 외에는 폰트마다 서로 다른 고유 문구 */
+  return fontOwnPreview(font);
 }
 function updatePreviews(){
-  const txt=getPreviewText();
   document.querySelectorAll('.font-preview-text').forEach(el=>{
     // 사용자가 직접 입력한 카드는 건드리지 않음
     if(el.classList.contains('is-custom')) return;
-    if(el.dataset.english === '1') el.textContent = ENGLISH_PREVIEW;
-    else el.textContent = txt;
+    const card = el.closest('[data-font-id]');
+    const f = card ? FONTS.find(x=>x.id===parseInt(card.dataset.fontId,10)) : null;
+    el.textContent = getPreviewTextFor(f);
   });
 }
 function updateFontSize(v){
@@ -1210,8 +1428,9 @@ function handlePreviewKeydown(e, el){
   // Esc 누르면 편집 취소 — 원래 텍스트로 복원
   if(e.key === 'Escape'){
     e.preventDefault();
-    const isEng = el.dataset.english === '1';
-    el.textContent = isEng ? ENGLISH_PREVIEW : getPreviewText();
+    const card = el.closest('[data-font-id]');
+    const f = card ? FONTS.find(x=>x.id===parseInt(card.dataset.fontId,10)) : null;
+    el.textContent = getPreviewTextFor(f);
     el.classList.remove('is-custom');
     el.blur();
   }
@@ -1220,8 +1439,9 @@ function handlePreviewBlur(el){
   // 빈 상태로 포커스 잃으면 기본값으로 되돌림
   const text = el.textContent.trim();
   if(!text){
-    const isEng = el.dataset.english === '1';
-    el.textContent = isEng ? ENGLISH_PREVIEW : getPreviewText();
+    const card = el.closest('[data-font-id]');
+    const f = card ? FONTS.find(x=>x.id===parseInt(card.dataset.fontId,10)) : null;
+    el.textContent = getPreviewTextFor(f);
     el.classList.remove('is-custom');
   }
 }
@@ -2442,19 +2662,15 @@ function renderFonts(){
   */
   const adSlots = '';
 
-  // 앱 광고 카드 — 갤러리 첫 번째 칸에 항상 노출 (추천 모드 제외)
-  const appAdCard = isRecommendMode ? '' : `
-    <a class="font-card app-ad-card" href="https://tosto.re/ktext" target="_blank" rel="noopener noreferrer" aria-label="한글 텍스트 디자인 앱 다운로드 (새 창 열림)">
-      <img src="photoAD.jpg" alt="한글 텍스트 디자인 앱 광고" class="app-ad-image" loading="lazy">
-      <span class="app-ad-badge">AD</span>
-    </a>`;
+  // 앱 광고 카드 — 제거됨 (첫 칸부터 폰트 카드 노출)
+  const appAdCard = '';
 
   grid.innerHTML = appAdCard + list.map((f,idx)=>{
     const tagPills=f.tags.map(t=>`<span class="font-tag-pill">${t}</span>`).join('');
     const downloadUrl=f.url||('https://noonnu.cc/index?keyword='+encodeURIComponent(f.name));
     const liked=likedSet.has(f.id);
     const count=likeCounts[f.id]||0;
-    const previewTxt = f.isEnglish ? ENGLISH_PREVIEW : txt;
+    const previewTxt = getPreviewTextFor(f);
     // 추천 모드일 때 매칭 태그를 카드 상단에 작은 배지로 표시
     const matchBadge = (isRecommendMode && f._matches && f._matches.length)
       ? `<div class="recommend-match"><i class="ti ti-sparkles" aria-hidden="true"></i> ${[...new Set(f._matches)].slice(0,4).join(' · ')}</div>`
@@ -2477,6 +2693,9 @@ function renderFonts(){
       <div class="font-actions">
         <button class="btn-download" type="button" onclick="openDownloadAd('${downloadUrl.replace(/'/g,"\\'")}', '${f.name.replace(/'/g,"\\'")}')">
           <i class="ti ti-download" aria-hidden="true"></i> 무료 다운로드
+        </button>
+        <button class="btn-design" type="button" onclick="openDesigner(${f.id})" aria-label="${f.name}로 텍스트 디자인 만들기" title="이 폰트로 텍스트 디자인 만들기">
+          <i class="ti ti-sparkles" aria-hidden="true"></i> 디자인
         </button>
         <button class="btn-like${liked?' liked':''}" id="like-${f.id}" onclick="toggleLike(${f.id})" aria-label="좋아요${liked?' (선택됨)':''}" aria-pressed="${liked}">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 22h2a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H2zM22 11.5a2 2 0 0 0-2-2h-5.5l1-4.8.03-.34a1.5 1.5 0 0 0-.43-1.06L14.34 2 8 8.5V20a2 2 0 0 0 2 2h7a2 2 0 0 0 2-1.5z" stroke-linejoin="round" stroke-linecap="round"/></svg>
@@ -2879,6 +3098,17 @@ async function init(){
    - #notice/123 → 공지사항 상세 (id=123)
 ════════════════════════════════════════════ */
 async function route(){
+  /* 고유 경로 라우팅: /find-font → 폰트 찾아주세요 게시판 */
+  if(location.pathname === '/find-font'){
+    showSubmitView();
+    document.getElementById('noticeMenuLink').classList.remove('active');
+    document.getElementById('submitMenuLink').classList.add('active');
+    document.getElementById('mNoticeMenuLink').classList.remove('active');
+    document.getElementById('mSubmitMenuLink').classList.add('active');
+    await renderSubmitList();
+    window.scrollTo({top:0});
+    return;
+  }
   const hash = location.hash;
   const noticeMenu = document.getElementById('noticeMenuLink');
   const submitMenu = document.getElementById('submitMenuLink');
@@ -2905,6 +3135,10 @@ async function route(){
     showNoticePanel('detail');
     window.scrollTo({top:0});
   } else if(hash === '#submit'){
+    /* 구 해시 URL 호환: 고유 경로로 전환 */
+    history.replaceState(null, '', '/find-font');
+    return route();
+  } else if(false){
     showSubmitView();
     noticeMenu.classList.remove('active');
     submitMenu.classList.add('active');
@@ -2983,7 +3217,20 @@ function showNoticePanel(which){
   document.getElementById('noticeDetailPanel').style.display = which==='detail' ? '' : 'none';
 }
 
-function goHome(){ location.hash = ''; }
+function goHome(){
+  if(location.pathname !== '/' && location.pathname !== '/index.html'){
+    history.pushState(null, '', '/');
+  }
+  location.hash = '';
+  route();
+}
+/* 폰트 찾아주세요 — 고유 URL(/find-font)로 이동 (SEO용 실제 경로, SPA 내비게이션 유지) */
+function navFindFont(e){
+  if(e) e.preventDefault();
+  if(location.pathname !== '/find-font') history.pushState(null, '', '/find-font');
+  location.hash = '';
+  route();
+}
 function goNoticeList(){ location.hash = '#notice'; }
 function goNoticeDetail(id){ location.hash = '#notice/' + id; }
 
@@ -3245,7 +3492,384 @@ document.getElementById('submitDetailOverlay').addEventListener('click', functio
   if(e.target===this) closeSubmitDetail();
 });
 
-init();
+
+/* ── 토스트 (전역) ── */
+function showToast(msg){
+  let el = document.getElementById('ffpToast');
+  if(!el){
+    el = document.createElement('div');
+    el.id='ffpToast';
+    el.style.cssText='position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--text-primary);color:var(--bg-card);font-size:13px;font-weight:700;padding:12px 18px;border-radius:12px;z-index:900;opacity:0;transition:opacity .25s ease;pointer-events:none;font-family:inherit';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  requestAnimationFrame(()=>{ el.style.opacity='1'; });
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>{ el.style.opacity='0'; }, 2400);
+}
+
+/* ════════════════════════════════════════════
+   텍스트 디자인 에디터
+   - 갤러리 카드 [디자인] 버튼 → 모달 오픈 (UX)
+   - 오픈 시 URL을 /design/{id}로 변경 (SEO/애드센스용 고유 URL)
+   - /design/{id} 직접 접속 시에도 자동 오픈
+════════════════════════════════════════════ */
+const DS_EFFECTS = [
+  {id:'classic-white', name:'화이트', color:'#FFFFFF', outline:'#000000', outlineW:6, shadow:'soft'},
+  {id:'classic-black', name:'블랙', color:'#000000', outline:'#FFFFFF', outlineW:6, shadow:'gray'},
+  {id:'soft-shadow', name:'소프트', color:'#FFFFFF', outline:null, outlineW:0, shadow:'strong'},
+  {id:'bold-outline', name:'굵은외곽선', color:'#FFFFFF', outline:'#000000', outlineW:12, shadow:'none'},
+  {id:'golden', name:'골드', color:'#FFD700', outline:'#000000', outlineW:6, shadow:'soft'},
+  {id:'sky-blue', name:'스카이', color:'#7DD3FC', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'rose-pink', name:'로즈핑크', color:'#EC4899', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'neon-blue', name:'네온블루', color:'#06B6D4', outline:'#1D4ED8', outlineW:4, shadow:'glow'},
+  {id:'neon-pink', name:'네온핑크', color:'#FF1493', outline:'#7C3AED', outlineW:4, shadow:'glow'},
+  {id:'frost', name:'프로스트', color:'#BBE6FF', outline:'#FFFFFF', outlineW:4, shadow:'blur'},
+  {id:'comic', name:'코믹', color:'#FBBF24', outline:'#000000', outlineW:12, shadow:'none'},
+  {id:'sunset', name:'선셋', color:'#F97316', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#F97316','#EC4899']},
+  {id:'ocean', name:'오션', color:'#06B6D4', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#06B6D4','#3B82F6','#7C3AED']},
+  {id:'rainbow', name:'레인보우', color:'#EF4444', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#EF4444','#F97316','#FBBF24','#10B981','#06B6D4','#7C3AED','#EC4899']},
+];
+const DS_TEXT_COLORS = ['#111111','#374151','#6B7280','#9CA3AF','#FFFFFF','#EC4899','#F472B6','#EF4444','#B91C1C','#F97316','#C2410C','#FBBF24','#D97706','#CA8A04','#84CC16','#10B981','#047857','#14B8A6','#06B6D4','#60A5FA','#3B82F6','#1D4ED8','#1E3A8A','#A78BFA','#7C3AED','#5B21B6','#D4A574','#92400E','#FF7F50','#7F1D1D'];
+const DS_TEXT_GRADIENTS = [
+  {name:'sunset', colors:['#F97316','#EC4899']},
+  {name:'ocean', colors:['#06B6D4','#3B82F6','#7C3AED']},
+  {name:'rainbow', colors:['#EF4444','#F97316','#FBBF24','#10B981','#06B6D4','#7C3AED','#EC4899']},
+  {name:'gold', colors:['#FEF3C7','#FCD34D','#D97706']},
+  {name:'purpleMagenta', colors:['#A855F7','#EC4899']},
+];
+const DS_OUTLINE_COLORS = ['none','#000000','#374151','#6B7280','#9CA3AF','#FFFFFF','#EC4899','#EF4444','#F97316','#FBBF24','#84CC16','#10B981','#14B8A6','#06B6D4','#3B82F6','#1D4ED8','#7C3AED','#92400E'];
+const DS_HL_COLORS = [null,'#FFE58A','#FFB3C1','#B7E4C7','#A7C7FF'];
+
+let dsState = {
+  font: null, effect: DS_EFFECTS[0], text: '안녕하세요',
+  bold:false, underline:false, spacing:0, lineHeight:13, align:'left',
+  highlight:null, textColorOverride:null, outlineOverride:undefined,
+};
+let dsPushedUrl = false;
+let dsBlob = null, dsFilename = '';
+
+const dsCanvas = () => document.getElementById('dsCanvas');
+
+/* ── 팔레트 렌더 (1회) ── */
+(function buildDesignerPalettes(){
+  const fx = document.getElementById('dsFxGrid');
+  DS_EFFECTS.forEach(e=>{
+    const el=document.createElement('div');
+    el.className='fx-swatch'; el.dataset.id=e.id;
+    el.style.background = e.gradient?`linear-gradient(135deg,${e.gradient.join(',')})`:e.color;
+    if(['#FFFFFF','#FBBF24','#FFD700','#BBE6FF','#7DD3FC'].includes(e.color)) el.style.color='rgba(0,0,0,.55)';
+    el.innerHTML=`Aa<span>${e.name}</span>`;
+    el.onclick=()=>{ dsState.effect=e; dsState.textColorOverride=null; dsState.outlineOverride=undefined; dsSyncUI(); dsDraw(); };
+    fx.appendChild(el);
+  });
+  const tc = document.getElementById('dsTextColorGrid');
+  DS_TEXT_COLORS.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='clr-dot'; el.dataset.val=c; el.style.background=c;
+    el.onclick=()=>{ dsState.textColorOverride=c; dsSyncUI(); dsDraw(); };
+    tc.appendChild(el);
+  });
+  DS_TEXT_GRADIENTS.forEach(g=>{
+    const el=document.createElement('div');
+    el.className='clr-dot'; el.dataset.val='grad:'+g.name;
+    el.style.background=`linear-gradient(135deg,${g.colors.join(',')})`;
+    el.onclick=()=>{ dsState.textColorOverride={gradient:g.colors,name:g.name}; dsSyncUI(); dsDraw(); };
+    tc.appendChild(el);
+  });
+  const oc = document.getElementById('dsOutlineGrid');
+  DS_OUTLINE_COLORS.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='clr-dot'+(c==='none'?' none-dot':''); el.dataset.val=c;
+    if(c!=='none') el.style.background=c;
+    el.onclick=()=>{ dsState.outlineOverride=c; dsSyncUI(); dsDraw(); };
+    oc.appendChild(el);
+  });
+  const hl = document.getElementById('dsHlRow');
+  DS_HL_COLORS.forEach((c,i)=>{
+    const el=document.createElement('div');
+    el.className='dhl-dot'+(i===0?' active':'');
+    el.dataset.val = c===null ? 'none' : c;
+    el.style.background = c || 'repeating-linear-gradient(45deg,var(--bg-card),var(--bg-card) 4px,var(--border) 4px,var(--border) 8px)';
+    el.onclick=()=>{ dsState.highlight=c; dsSyncUI(); dsDraw(); };
+    hl.appendChild(el);
+  });
+  /* 탭/서브탭 */
+  document.querySelectorAll('.designer-tab').forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll('.designer-tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.designer-panel').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      document.querySelector(`.designer-panel[data-dpanel="${t.dataset.dtab}"]`).classList.add('active');
+    };
+  });
+  document.querySelectorAll('.designer-subtab').forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll('.designer-subtab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.designer-subpanel').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      document.querySelector(`.designer-subpanel[data-dsubpanel="${t.dataset.dsub}"]`).classList.add('active');
+    };
+  });
+  /* 디테일 컨트롤 */
+  document.getElementById('dsText').addEventListener('input', e=>{ dsState.text=e.target.value||' '; dsDraw(); });
+  document.getElementById('dsBold').onclick=function(){ dsState.bold=!dsState.bold; this.classList.toggle('on'); dsDraw(); };
+  document.getElementById('dsUnderline').onclick=function(){ dsState.underline=!dsState.underline; this.classList.toggle('on'); dsDraw(); };
+  document.getElementById('dsSpacing').addEventListener('input', e=>{ dsState.spacing=+e.target.value; dsDraw(); });
+  document.getElementById('dsLineHeight').addEventListener('input', e=>{ dsState.lineHeight=+e.target.value; dsDraw(); });
+  document.querySelectorAll('.dalign button').forEach(b=>{
+    b.onclick=()=>{ dsState.align=b.dataset.dalign;
+      document.querySelectorAll('.dalign button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active'); dsDraw(); };
+  });
+  document.getElementById('designerOverlay').addEventListener('click', function(e){ if(e.target===this) closeDesigner(); });
+})();
+
+function dsSyncUI(){
+  document.querySelectorAll('#dsFxGrid .fx-swatch').forEach(s=>s.classList.toggle('active', s.dataset.id===dsState.effect.id));
+  const tv = (dsState.textColorOverride && dsState.textColorOverride.gradient) ? 'grad:'+dsState.textColorOverride.name : dsState.textColorOverride;
+  document.querySelectorAll('#dsTextColorGrid .clr-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===tv));
+  document.querySelectorAll('#dsOutlineGrid .clr-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===dsState.outlineOverride));
+  document.querySelectorAll('#dsHlRow .dhl-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===(dsState.highlight===null?'none':dsState.highlight)));
+}
+
+/* ── WYSIWYG 렌더링: 캔버스 = 저장본 (콘텐츠 크기에 딱 맞게) ── */
+function dsDraw(){
+  const canvas = dsCanvas();
+  const ctx = canvas.getContext('2d');
+  const f = dsState.font;
+  if(!f) return;
+  const eff = dsState.effect;
+  const ov = dsState.textColorOverride;
+  const fillGradient = (ov && ov.gradient) ? ov.gradient : (ov ? null : eff.gradient);
+  const fillColor = (ov && !ov.gradient) ? ov : eff.color;
+  let outlineColor = eff.outline, outlineW = eff.outlineW;
+  if(dsState.outlineOverride !== undefined){
+    if(dsState.outlineOverride === 'none'){ outlineColor=null; outlineW=0; }
+    else { outlineColor=dsState.outlineOverride; if(outlineW<=0) outlineW=6; }
+  }
+  const fontSize = 78;
+  const weight = dsState.bold ? '900':'700';
+  const fontSpec = `${weight} ${fontSize}px ${getEffectiveStack(f)}`;
+
+  ctx.font = fontSpec;
+  try{ ctx.letterSpacing = dsState.spacing+'px'; }catch(e){}
+  const lines = dsState.text.split('\n');
+  const lh = fontSize*(dsState.lineHeight/10);
+  const widths = lines.map(l=>ctx.measureText(l).width);
+  const maxW = Math.max(...widths, 10);
+  const pad = 34, ascent = fontSize*0.88, descent = fontSize*0.28;
+  canvas.width = Math.ceil(maxW+pad*2);
+  canvas.height = Math.ceil(ascent+descent+lh*(lines.length-1)+pad*2);
+  ctx.font = fontSpec; ctx.textBaseline='alphabetic';
+  try{ ctx.letterSpacing = dsState.spacing+'px'; }catch(e){}
+
+  let y = pad + ascent;
+  lines.forEach((line, idx)=>{
+    const width = widths[idx];
+    let x;
+    if(dsState.align==='left') x = pad;
+    else if(dsState.align==='right') x = pad+maxW-width;
+    else x = pad+(maxW-width)/2;
+
+    if(dsState.highlight && line.trim()!==''){
+      ctx.fillStyle = dsState.highlight;
+      ctx.fillRect(x-8, y-fontSize*0.82, width+16, fontSize*1.05);
+    }
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+    if(eff.shadow==='soft'){ ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=10; ctx.shadowOffsetY=6; }
+    if(eff.shadow==='strong'){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=4; ctx.shadowOffsetY=10; }
+    if(eff.shadow==='gray'){ ctx.shadowColor='rgba(120,120,120,.5)'; ctx.shadowBlur=8; ctx.shadowOffsetY=4; }
+    if(eff.shadow==='glow'){ ctx.shadowColor=fillGradient?fillGradient[0]:fillColor; ctx.shadowBlur=28; }
+    if(eff.shadow==='blur'){ ctx.shadowColor='rgba(150,200,255,.6)'; ctx.shadowBlur=14; }
+    if(outlineColor && outlineW>0){
+      ctx.lineJoin='round'; ctx.strokeStyle=outlineColor; ctx.lineWidth=outlineW;
+      ctx.strokeText(line, x, y);
+    }
+    if(fillGradient){
+      const grad = ctx.createLinearGradient(x,0,x+width,0);
+      fillGradient.forEach((c,i)=>grad.addColorStop(i/(fillGradient.length-1), c));
+      ctx.fillStyle = grad;
+    } else ctx.fillStyle = fillColor;
+    ctx.shadowColor = eff.shadow!=='none' ? ctx.shadowColor : 'transparent';
+    ctx.fillText(line, x, y);
+    ctx.shadowColor='transparent';
+    if(dsState.underline){
+      ctx.fillStyle = fillGradient ? fillGradient[0] : fillColor;
+      ctx.fillRect(x, y+fontSize*0.14, width, Math.max(4, fontSize*0.05));
+    }
+    y += lh;
+  });
+}
+
+/* ── 디자인 페이지 JSON-LD 구조화 데이터 (검색엔진용) ── */
+function setDesignJsonLd(f){
+  removeDesignJsonLd();
+  const el = document.createElement('script');
+  el.type = 'application/ld+json';
+  el.id = 'designJsonLd';
+  el.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": `${f.name} 텍스트 디자인 만들기`,
+    "description": `${f.name} 무료폰트 다운로드와 텍스트 디자인. 외곽선, 그라데이션, 네온 등 30여 가지 효과를 적용하고 투명배경 PNG로 저장하세요.`,
+    "url": `https://freefontpick.co.kr/design/${f.id}`,
+    "inLanguage": "ko",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "폰트픽",
+      "url": "https://freefontpick.co.kr"
+    },
+    "mainEntity": {
+      "@type": "CreativeWork",
+      "name": f.name,
+      "creator": { "@type": "Organization", "name": f.maker || "" },
+      "keywords": (f.tags || []).join(', ')
+    },
+    "potentialAction": {
+      "@type": "CreateAction",
+      "name": `${f.name}(으)로 텍스트 디자인 이미지 만들기`,
+      "target": `https://freefontpick.co.kr/design/${f.id}`
+    }
+  });
+  document.head.appendChild(el);
+}
+function removeDesignJsonLd(){
+  const old = document.getElementById('designJsonLd');
+  if(old) old.remove();
+}
+
+/* ── 열기/닫기 + URL 연동 ── */
+async function openDesigner(fontId, viaUrl){
+  const f = FONTS.find(x=>x.id===fontId);
+  if(!f) return;
+  dsState.font = f;
+  dsState.effect = DS_EFFECTS[0];
+  dsState.textColorOverride = null;
+  dsState.outlineOverride = undefined;
+  document.getElementById('designerTitle').textContent = f.name + ' · 텍스트 디자인';
+  document.getElementById('designerOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  dsSyncUI();
+  setDesignJsonLd(f); /* 폰트별 구조화 데이터 주입 */
+
+  /* 고유 URL 부여: 갤러리에서 열면 pushState, /design/ 직접 접속이면 유지 */
+  if(!viaUrl){
+    history.pushState({designer:fontId}, '', '/design/' + fontId);
+    dsPushedUrl = true;
+  }
+
+  /* 폰트 로드 보장 후 그리기 */
+  ensureFontLoaded(f.id);
+  dsDraw(); /* 폴백 폰트로 1차 표시 */
+  try{
+    await document.fonts.load(`700 78px ${getEffectiveStack(f)}`);
+    await document.fonts.ready;
+  }catch(e){}
+  dsDraw(); /* 실제 폰트로 재렌더 */
+}
+
+function closeDesigner(){
+  document.getElementById('designerOverlay').classList.remove('open');
+  document.body.style.overflow='';
+  removeDesignJsonLd();
+  if(dsPushedUrl){
+    dsPushedUrl = false;
+    history.back(); /* /design/{id} → 이전 갤러리 URL로 복귀 */
+  } else if(location.pathname.startsWith('/design/')){
+    history.replaceState(null, '', '/');
+  }
+}
+
+/* 뒤로가기로 /design/ URL을 벗어나면 모달 닫기 */
+window.addEventListener('popstate', ()=>{
+  if(!location.pathname.startsWith('/design/')){
+    dsPushedUrl = false;
+    document.getElementById('designerOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
+});
+
+/* /design/{id} 직접 접속 처리 (init 완료 후 호출됨) */
+function handleDesignRoute(){
+  const m = location.pathname.match(/^\/design\/(\d+)/);
+  if(m) openDesigner(parseInt(m[1],10), true);
+}
+
+/* ── 저장 플로우: 저장 탭 → 광고 → 같은 팝업에서 저장 ── */
+function startDesignerSave(){
+  dsCanvas().toBlob(blob=>{
+    dsBlob = blob;
+    dsFilename = `폰트픽-${dsState.font.name}-디자인.png`;
+  }, 'image/png');
+
+  const ov = document.getElementById('dsaveOverlay');
+  const visual = document.getElementById('dsaveVisual');
+  const imgWrap = document.getElementById('dsaveImgWrap');
+  const hint = document.getElementById('dsaveHint');
+  const btn = document.getElementById('dsaveActionBtn');
+  const cd = document.getElementById('dsaveCountdown');
+
+  visual.style.display='flex'; imgWrap.style.display='none';
+  hint.textContent='잠시 후 저장할 수 있어요.';
+  btn.disabled=true; btn.classList.remove('primary');
+
+  let t=3; cd.textContent=t; btn.textContent=`잠시만요 (${t})`;
+  ov.classList.add('open');
+  const timer = setInterval(()=>{
+    t-=1;
+    if(t<=0){
+      clearInterval(timer);
+      cd.textContent='✓';
+      btn.disabled=false; btn.classList.add('primary');
+      btn.textContent = dsIsMobile() ? '갤러리에 저장' : 'PNG 다운로드';
+      hint.textContent = dsIsMobile() ? '버튼을 누르면 공유 시트에서 「사진에 저장」을 선택할 수 있어요.' : '버튼을 누르면 바로 다운로드됩니다.';
+    } else { cd.textContent=t; btn.textContent=`잠시만요 (${t})`; }
+  },1000);
+  btn.onclick = ()=>{ if(!btn.disabled) dsAttemptSave(); };
+}
+
+function dsIsMobile(){
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || matchMedia('(pointer:coarse)').matches;
+}
+
+async function dsAttemptSave(){
+  const file = new File([dsBlob], dsFilename, {type:'image/png'});
+  if(dsIsMobile() && navigator.canShare && navigator.canShare({files:[file]})){
+    try{
+      await navigator.share({files:[file], title:'폰트픽 텍스트 디자인'});
+      document.getElementById('dsaveOverlay').classList.remove('open');
+      showToast('저장 완료!');
+      return;
+    }catch(err){
+      if(err && err.name==='AbortError') return; /* 사용자가 공유시트만 닫음 — 다시 시도 가능 */
+    }
+  }
+  if(!dsIsMobile()){
+    dsDownloadFile();
+    document.getElementById('dsaveOverlay').classList.remove('open');
+    return;
+  }
+  /* 인앱 브라우저 등 공유 미지원 → 광고 자리를 실제 이미지로 교체 + 롱프레스 안내 */
+  const url = URL.createObjectURL(dsBlob);
+  document.getElementById('dsaveImg').src = url;
+  document.getElementById('dsaveVisual').style.display='none';
+  document.getElementById('dsaveImgWrap').style.display='block';
+  document.getElementById('dsaveHint').innerHTML='<b style="color:var(--accent)">이 브라우저는 바로 저장을 지원하지 않아요.</b><br>위 이미지를 길게 눌러 「사진에 저장」을 선택해주세요.';
+  const btn = document.getElementById('dsaveActionBtn');
+  btn.textContent='파일로 다운로드';
+  btn.onclick = dsDownloadFile;
+}
+
+function dsDownloadFile(){
+  const url = URL.createObjectURL(dsBlob);
+  const a = document.createElement('a');
+  a.href=url; a.download=dsFilename;
+  document.body.appendChild(a); a.click(); a.remove();
+  showToast('다운로드 완료!');
+}
+
+init().then(()=>{ handleDesignRoute(); });
 </script>
 </body>
 </html>
