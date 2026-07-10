@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google-adsense-account" content="ca-pub-6258337579944977">
-  <title>폰트픽-무료폰트 큐레이션</title>
+  <title>폰트픽-무료폰트 큐레이션 및 텍스트 디자인</title>
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18302402783"></script>
@@ -30,8 +30,8 @@
      crossorigin="anonymous"></script>
 
   <!-- ── 기본 SEO ── -->
-  <meta name="description" content="디자인 전문가가 딱 골라주는 무료폰트를 바로 다운로드하세요.">
-  <meta name="keywords" content="무료폰트, 한글폰트, 상업용폰트, 무료한글폰트, 폰트추천, 디자인폰트, 카페폰트, 유튜브폰트, 브랜드폰트, 캘리그라피">
+  <meta name="description" content="전문가 추천 무료폰트 다운로드 및 텍스트 디자인">
+  <meta name="keywords" content="무료폰트, 한글폰트, 상업용폰트, 무료한글폰트, 폰트추천, 디자인폰트, 카페폰트, 유튜브폰트, 브랜드폰트, 캘리그라피, 텍스트 디자인, 글자 디자인, 글씨 꾸미기, 타이포그래피, 썸네일 글씨, 투명배경 글자 PNG, 텍스트 효과">
   <meta name="author" content="(주)와이즈폰트">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <!-- 검색엔진별 크롤링 허용 -->
@@ -47,19 +47,19 @@
   <!-- ── Open Graph (카카오톡, 페이스북) ── -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="폰트픽">
-  <meta property="og:title" content=" 폰트픽-무료폰트 큐레이션">
-  <meta property="og:description" content="디자인 전문가가 딱 골라주는 무료폰트를 바로 다운로드하세요.">
+  <meta property="og:title" content="폰트픽-무료폰트 큐레이션 및 텍스트 디자인">
+  <meta property="og:description" content="전문가 추천 무료폰트 다운로드 및 텍스트 디자인">
   <meta property="og:url" content="https://freefontpick.co.kr/">
   <meta property="og:image" content="https://freefontpick.co.kr/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="폰트픽-무료폰트 큐레이션">
+  <meta property="og:image:alt" content="폰트픽-무료폰트 큐레이션 및 텍스트 디자인">
   <meta property="og:locale" content="ko_KR">
 
   <!-- ── Twitter Card ── -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="폰트픽-무료폰트 큐레이션">
-  <meta name="twitter:description" content="디자인 전문가가 딱 골라주는 무료폰트를 바로 다운로드하세요.">
+  <meta name="twitter:title" content="폰트픽-무료폰트 큐레이션 및 텍스트 디자인">
+  <meta name="twitter:description" content="전문가 추천 무료폰트 다운로드 및 텍스트 디자인">
   <meta name="twitter:image" content="https://freefontpick.co.kr/og-image.png">
 
   <!-- ── 구조화 데이터 (JSON-LD) ── -->
@@ -72,7 +72,7 @@
         "@id": "https://freefontpick.co.kr/#website",
         "url": "https://freefontpick.co.kr/",
         "name": "폰트픽",
-        "description": "디자인 전문가가 딱 골라주는 무료폰트 큐레이션",
+        "description": "전문가 추천 무료폰트 다운로드 및 텍스트 디자인",
         "inLanguage": "ko-KR",
         "publisher": { "@id": "https://freefontpick.co.kr/#organization" },
         "potentialAction": {
@@ -695,7 +695,8 @@
     @media(prefers-reduced-motion:reduce){.font-card{animation:none}*{transition:none!important}}
 
     /* ════════ 텍스트 디자인 에디터 ════════ */
-    .btn-design{display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:var(--radius-sm);border:none;color:#fff;background:linear-gradient(135deg,var(--accent),#E8431F);cursor:pointer;transition:filter .15s;font-family:inherit;white-space:nowrap}
+    .btn-design{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;line-height:1;padding:8px 10px;border-radius:var(--radius-sm);border:none;color:#fff;background:linear-gradient(135deg,var(--accent),#E8431F);cursor:pointer;transition:filter .15s;font-family:inherit;white-space:nowrap;text-align:center}
+    .btn-design i{line-height:1;display:inline-flex;align-items:center}
     .btn-design:hover{filter:brightness(1.08)}
     .designer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
     .designer-overlay.open{display:flex;animation:fadeIn .2s ease}
@@ -726,10 +727,13 @@
     .designer-subtab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
     .designer-subpanel{display:none}
     .designer-subpanel.active{display:block}
-    .fx-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px 8px;padding-bottom:14px}
-    .fx-swatch{aspect-ratio:1;border-radius:10px;border:2px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;position:relative}
-    .fx-swatch.active{border-color:var(--text-primary)}
-    .fx-swatch span{position:absolute;bottom:-15px;left:-2px;right:-2px;text-align:center;font-size:9px;font-weight:700;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .fx-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px 8px}
+    .fx-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+    .fx-chip{width:100%;aspect-ratio:1;border-radius:10px;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff}
+    .fx-item.active .fx-chip{border-color:var(--text-primary)}
+    .fx-item span{display:block;width:100%;text-align:center;font-size:9.5px;font-weight:700;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+    .fx-item.active span{color:var(--text-primary)}
+    .fx-chip.none-chip{background:var(--bg-card);border:2px dashed var(--border);color:var(--text-muted)}
     .clr-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:7px}
     .clr-dot{aspect-ratio:1;border-radius:8px;cursor:pointer;border:2px solid rgba(0,0,0,.08);position:relative}
     .clr-dot.active{border-color:var(--text-primary)}
@@ -745,8 +749,8 @@
     .dalign{display:flex;gap:6px}
     .dalign button{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
     .dalign button.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
-    .dhl{display:flex;gap:8px;flex-wrap:wrap}
-    .dhl-dot{width:26px;height:26px;border-radius:8px;border:2px solid var(--border);cursor:pointer}
+    .dhl{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;flex:1;max-width:280px}
+    .dhl-dot{width:100%;aspect-ratio:1;border-radius:7px;border:2px solid var(--border);cursor:pointer}
     .dhl-dot.active{border-color:var(--text-primary)}
     .designer-adslot{border:1.5px dashed var(--border);border-radius:12px;padding:12px;text-align:center;font-size:11px;color:var(--text-muted);background:var(--bg-secondary);line-height:1.5}
     .designer-save{width:100%;border:none;background:linear-gradient(135deg,var(--accent),#E8431F);color:#fff;font-weight:800;font-size:15px;padding:13px;border-radius:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -1125,14 +1129,14 @@
         <div class="designer-row"><label>줄간격</label><input type="range" id="dsLineHeight" min="10" max="22" value="13"></div>
         <div class="designer-row"><label>정렬</label>
           <div class="dalign">
-            <button data-dalign="left" class="active"><i class="ti ti-align-left"></i></button>
-            <button data-dalign="center"><i class="ti ti-align-center"></i></button>
-            <button data-dalign="right"><i class="ti ti-align-right"></i></button>
+            <button data-dalign="left" class="active" aria-label="왼쪽 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="13" y2="12"/><line x1="4" y1="18" x2="17" y2="18"/></svg></button>
+            <button data-dalign="center" aria-label="가운데 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7.5" y1="12" x2="16.5" y2="12"/><line x1="5.5" y1="18" x2="18.5" y2="18"/></svg></button>
+            <button data-dalign="right" aria-label="오른쪽 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="11" y1="12" x2="20" y2="12"/><line x1="7" y1="18" x2="20" y2="18"/></svg></button>
           </div>
         </div>
         <div class="designer-row" style="align-items:flex-start"><label style="padding-top:4px">하이라이트</label><div class="dhl" id="dsHlRow"></div></div>
       </div>
-      <div class="designer-adslot" id="designerAdSlot">
+      <div class="designer-adslot" id="designerAdSlot" style="display:none">
         <!-- AdSense 승인 후 이 자리에 배너 ins 태그 삽입 -->
         광고 영역
       </div>
@@ -3515,20 +3519,43 @@ function showToast(msg){
    - /design/{id} 직접 접속 시에도 자동 오픈
 ════════════════════════════════════════════ */
 const DS_EFFECTS = [
+  {id:'none', name:'없음', color:'#111111', outline:null, outlineW:0, shadow:'none'},
+  /* ── 클래식 ── */
   {id:'classic-white', name:'화이트', color:'#FFFFFF', outline:'#000000', outlineW:6, shadow:'soft'},
   {id:'classic-black', name:'블랙', color:'#000000', outline:'#FFFFFF', outlineW:6, shadow:'gray'},
   {id:'soft-shadow', name:'소프트', color:'#FFFFFF', outline:null, outlineW:0, shadow:'strong'},
   {id:'bold-outline', name:'굵은외곽선', color:'#FFFFFF', outline:'#000000', outlineW:12, shadow:'none'},
-  {id:'golden', name:'골드', color:'#FFD700', outline:'#000000', outlineW:6, shadow:'soft'},
+  {id:'double-line', name:'더블라인', color:'#111111', outline:'#FFFFFF', outlineW:10, shadow:'soft'},
+  /* ── 컬러 ── */
+  {id:'golden', name:'골드', color:'#FFD700', outline:'#7A5C00', outlineW:5, shadow:'soft'},
+  {id:'silver', name:'실버', color:'#E5E7EB', outline:'#6B7280', outlineW:5, shadow:'soft'},
   {id:'sky-blue', name:'스카이', color:'#7DD3FC', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
   {id:'rose-pink', name:'로즈핑크', color:'#EC4899', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'mint', name:'민트', color:'#5EEAD4', outline:'#0F766E', outlineW:5, shadow:'soft'},
+  {id:'lavender', name:'라벤더', color:'#C4B5FD', outline:'#6D28D9', outlineW:5, shadow:'soft'},
+  {id:'lemon', name:'레몬', color:'#FDE047', outline:'#A16207', outlineW:5, shadow:'none'},
+  {id:'cherry', name:'체리', color:'#DC2626', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'forest', name:'포레스트', color:'#16A34A', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'midnight', name:'미드나잇', color:'#1E3A8A', outline:'#93C5FD', outlineW:5, shadow:'gray'},
+  /* ── 네온 ── */
   {id:'neon-blue', name:'네온블루', color:'#06B6D4', outline:'#1D4ED8', outlineW:4, shadow:'glow'},
   {id:'neon-pink', name:'네온핑크', color:'#FF1493', outline:'#7C3AED', outlineW:4, shadow:'glow'},
+  {id:'neon-green', name:'네온그린', color:'#4ADE80', outline:'#15803D', outlineW:4, shadow:'glow'},
+  {id:'neon-purple', name:'네온퍼플', color:'#A855F7', outline:'#6D28D9', outlineW:4, shadow:'glow'},
+  {id:'neon-orange', name:'네온오렌지', color:'#FB923C', outline:'#C2410C', outlineW:4, shadow:'glow'},
+  /* ── 무드 ── */
   {id:'frost', name:'프로스트', color:'#BBE6FF', outline:'#FFFFFF', outlineW:4, shadow:'blur'},
   {id:'comic', name:'코믹', color:'#FBBF24', outline:'#000000', outlineW:12, shadow:'none'},
+  {id:'retro', name:'레트로', color:'#F59E0B', outline:'#78350F', outlineW:8, shadow:'gray'},
+  {id:'vintage', name:'빈티지', color:'#D4A574', outline:'#5C3D1E', outlineW:5, shadow:'gray'},
+  {id:'candy', name:'캔디', color:'#F9A8D4', outline:'#DB2777', outlineW:6, shadow:'none'},
+  /* ── 그라데이션 ── */
   {id:'sunset', name:'선셋', color:'#F97316', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#F97316','#EC4899']},
   {id:'ocean', name:'오션', color:'#06B6D4', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#06B6D4','#3B82F6','#7C3AED']},
   {id:'rainbow', name:'레인보우', color:'#EF4444', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#EF4444','#F97316','#FBBF24','#10B981','#06B6D4','#7C3AED','#EC4899']},
+  {id:'gold-grad', name:'골드빔', color:'#FCD34D', outline:'#92400E', outlineW:5, shadow:'soft', gradient:['#FEF3C7','#FCD34D','#D97706']},
+  {id:'purple-magenta', name:'퍼플마젠타', color:'#A855F7', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#A855F7','#EC4899']},
+  {id:'fire', name:'파이어', color:'#EF4444', outline:'#7F1D1D', outlineW:5, shadow:'glow', gradient:['#FBBF24','#F97316','#DC2626']},
 ];
 const DS_TEXT_COLORS = ['#111111','#374151','#6B7280','#9CA3AF','#FFFFFF','#EC4899','#F472B6','#EF4444','#B91C1C','#F97316','#C2410C','#FBBF24','#D97706','#CA8A04','#84CC16','#10B981','#047857','#14B8A6','#06B6D4','#60A5FA','#3B82F6','#1D4ED8','#1E3A8A','#A78BFA','#7C3AED','#5B21B6','#D4A574','#92400E','#FF7F50','#7F1D1D'];
 const DS_TEXT_GRADIENTS = [
@@ -3539,7 +3566,10 @@ const DS_TEXT_GRADIENTS = [
   {name:'purpleMagenta', colors:['#A855F7','#EC4899']},
 ];
 const DS_OUTLINE_COLORS = ['none','#000000','#374151','#6B7280','#9CA3AF','#FFFFFF','#EC4899','#EF4444','#F97316','#FBBF24','#84CC16','#10B981','#14B8A6','#06B6D4','#3B82F6','#1D4ED8','#7C3AED','#92400E'];
-const DS_HL_COLORS = [null,'#FFE58A','#FFB3C1','#B7E4C7','#A7C7FF'];
+const DS_HL_COLORS = [
+  null,      '#FDE047','#FFE58A','#FCD34D','#FDBA74','#FCA5A5','#FFB3C1','#F9A8D4','#E9D5FF','#C4B5FD',
+  '#BFDBFE','#A7C7FF','#99F6E4','#B7E4C7','#BBF7D0','#D9F99D','#FEF3C7','#FBCFE8','#E5E7EB','#D6CCC2',
+];
 
 let dsState = {
   font: null, effect: DS_EFFECTS[0], text: '안녕하세요',
@@ -3556,10 +3586,11 @@ const dsCanvas = () => document.getElementById('dsCanvas');
   const fx = document.getElementById('dsFxGrid');
   DS_EFFECTS.forEach(e=>{
     const el=document.createElement('div');
-    el.className='fx-swatch'; el.dataset.id=e.id;
-    el.style.background = e.gradient?`linear-gradient(135deg,${e.gradient.join(',')})`:e.color;
-    if(['#FFFFFF','#FBBF24','#FFD700','#BBE6FF','#7DD3FC'].includes(e.color)) el.style.color='rgba(0,0,0,.55)';
-    el.innerHTML=`Aa<span>${e.name}</span>`;
+    el.className='fx-item'; el.dataset.id=e.id;
+    const chipStyle = e.id==='none' ? '' :
+      `background:${e.gradient?`linear-gradient(135deg,${e.gradient.join(',')})`:e.color};` +
+      (['#FFFFFF','#FBBF24','#FFD700','#BBE6FF','#7DD3FC','#FDE047','#E5E7EB','#5EEAD4','#C4B5FD','#FCD34D','#F9A8D4'].includes(e.color)?'color:rgba(0,0,0,.55);':'');
+    el.innerHTML=`<div class="fx-chip${e.id==='none'?' none-chip':''}" style="${chipStyle}">Aa</div><span>${e.name}</span>`;
     el.onclick=()=>{ dsState.effect=e; dsState.textColorOverride=null; dsState.outlineOverride=undefined; dsSyncUI(); dsDraw(); };
     fx.appendChild(el);
   });
@@ -3626,7 +3657,7 @@ const dsCanvas = () => document.getElementById('dsCanvas');
 })();
 
 function dsSyncUI(){
-  document.querySelectorAll('#dsFxGrid .fx-swatch').forEach(s=>s.classList.toggle('active', s.dataset.id===dsState.effect.id));
+  document.querySelectorAll('#dsFxGrid .fx-item').forEach(s=>s.classList.toggle('active', s.dataset.id===dsState.effect.id));
   const tv = (dsState.textColorOverride && dsState.textColorOverride.gradient) ? 'grad:'+dsState.textColorOverride.name : dsState.textColorOverride;
   document.querySelectorAll('#dsTextColorGrid .clr-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===tv));
   document.querySelectorAll('#dsOutlineGrid .clr-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===dsState.outlineOverride));
@@ -3649,7 +3680,7 @@ function dsDraw(){
     else { outlineColor=dsState.outlineOverride; if(outlineW<=0) outlineW=6; }
   }
   const fontSize = 78;
-  const weight = dsState.bold ? '900':'700';
+  const weight = dsState.bold ? '700':'400'; /* 400 기본: 단일 웨이트 장식/손글씨 폰트의 가짜 굵기(faux bold) 뭉개짐 방지 */
   const fontSpec = `${weight} ${fontSize}px ${getEffectiveStack(f)}`;
 
   ctx.font = fontSpec;
@@ -3763,7 +3794,7 @@ async function openDesigner(fontId, viaUrl){
   ensureFontLoaded(f.id);
   dsDraw(); /* 폴백 폰트로 1차 표시 */
   try{
-    await document.fonts.load(`700 78px ${getEffectiveStack(f)}`);
+    await document.fonts.load(`400 78px ${getEffectiveStack(f)}`);
     await document.fonts.ready;
   }catch(e){}
   dsDraw(); /* 실제 폰트로 재렌더 */
@@ -3797,6 +3828,7 @@ function handleDesignRoute(){
 }
 
 /* ── 저장 플로우: 저장 탭 → 광고 → 같은 팝업에서 저장 ── */
+const DS_ADS_ENABLED = false; /* 애드센스 승인 후 true로 변경 */
 function startDesignerSave(){
   dsCanvas().toBlob(blob=>{
     dsBlob = blob;
@@ -3814,18 +3846,25 @@ function startDesignerSave(){
   hint.textContent='잠시 후 저장할 수 있어요.';
   btn.disabled=true; btn.classList.remove('primary');
 
-  let t=3; cd.textContent=t; btn.textContent=`잠시만요 (${t})`;
+  const readyState = ()=>{
+    cd.textContent='✓';
+    document.getElementById('dsaveLabel').textContent='이미지 준비 완료';
+    btn.disabled=false; btn.classList.add('primary');
+    btn.textContent = dsIsMobile() ? '갤러리에 저장' : 'PNG 다운로드';
+    hint.textContent = dsIsMobile() ? '버튼을 누르면 공유 시트에서 「사진에 저장」을 선택할 수 있어요.' : '버튼을 누르면 바로 다운로드됩니다.';
+  };
   ov.classList.add('open');
-  const timer = setInterval(()=>{
-    t-=1;
-    if(t<=0){
-      clearInterval(timer);
-      cd.textContent='✓';
-      btn.disabled=false; btn.classList.add('primary');
-      btn.textContent = dsIsMobile() ? '갤러리에 저장' : 'PNG 다운로드';
-      hint.textContent = dsIsMobile() ? '버튼을 누르면 공유 시트에서 「사진에 저장」을 선택할 수 있어요.' : '버튼을 누르면 바로 다운로드됩니다.';
-    } else { cd.textContent=t; btn.textContent=`잠시만요 (${t})`; }
-  },1000);
+  if(!DS_ADS_ENABLED){
+    /* 애드센스 승인 전: 광고 없이 즉시 저장 가능 */
+    readyState();
+  } else {
+    let t=3; cd.textContent=t; btn.textContent=`잠시만요 (${t})`;
+    const timer = setInterval(()=>{
+      t-=1;
+      if(t<=0){ clearInterval(timer); readyState(); }
+      else { cd.textContent=t; btn.textContent=`잠시만요 (${t})`; }
+    },1000);
+  }
   btn.onclick = ()=>{ if(!btn.disabled) dsAttemptSave(); };
 }
 

@@ -501,12 +501,12 @@
         <div class="drop-zone" id="fmDropZone" onclick="document.getElementById('fmFileInput').click()">
           <i class="ti ti-cloud-upload" aria-hidden="true"></i>
           <p>클릭하거나 파일을 끌어다 놓기</p>
-          <small>TTF · OTF · WOFF · WOFF2 (최대 20MB)</small>
-          <input type="file" id="fmFileInput" accept=".ttf,.otf,.woff,.woff2,font/*" onchange="handleFmFile(this.files[0])">
+          <small>WOFF2 전용 (최대 5MB)</small>
+          <input type="file" id="fmFileInput" accept=".woff2" onchange="handleFmFile(this.files[0])">
         </div>
         <div id="fmFilePreview"></div>
-        <div class="field-hint">파일을 올리면 메인 페이지 갤러리에서 실제 해당 폰트로 미리보기가 표시됩니다.</div>
-        <div class="field-hint" id="fmSizeWarning" style="display:none;color:var(--danger,#d33);font-weight:600">⚠ 파일이 큽니다. 백엔드 도입 후 자동 서브셋 변환 예정 — 현재는 사용자 로딩이 느릴 수 있습니다.</div>
+        <div class="field-hint">⚠ <strong>WOFF2 파일만</strong> 업로드할 수 있습니다. ttf/otf는 미리 woff2로 변환해서 올려주세요. 서버는 변환하지 않고 파일을 그대로 저장합니다.</div>
+        <div class="field-hint" id="fmSizeWarning" style="display:none;color:var(--danger,#d33);font-weight:600">⚠ 파일이 큽니다 (1MB 초과). 사용자 페이지 로딩이 느려질 수 있으니 서브셋으로 용량을 줄이는 것을 권장합니다.</div>
       </div>
     </div>
     <div class="modal-foot">
@@ -1067,12 +1067,15 @@ function toggleFmTag(tag, el){
 }
 function handleFmFile(file){
   if(!file) return;
-  const ok = /\.(ttf|otf|woff2?|TTF|OTF|WOFF2?)$/.test(file.name);
-  if(!ok){ showToast('지원하지 않는 파일 형식이에요'); return; }
-  if(file.size > 20*1024*1024){ showToast('20MB를 초과할 수 없어요'); return; }
+  // WOFF2 전용 — 서버가 변환하지 않으므로 다른 형식은 여기서 차단
+  if(!/\.woff2$/i.test(file.name)){
+    showToast('WOFF2 파일만 업로드할 수 있어요. ttf/otf는 먼저 woff2로 변환해주세요.');
+    return;
+  }
+  if(file.size > 5*1024*1024){ showToast('5MB를 초과할 수 없어요. 서브셋으로 용량을 줄여주세요.'); return; }
   pendingFile = file;
   renderFmFilePreview();
-  // 1MB 이상 파일은 사이즈 경고 (자동 서브셋 변환은 백엔드 도입 후 예정)
+  // 1MB 이상 파일은 로딩 속도 경고
   const warn = document.getElementById('fmSizeWarning');
   if(warn) warn.style.display = file.size > 1024*1024 ? 'block' : 'none';
 }
