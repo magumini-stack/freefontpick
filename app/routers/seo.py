@@ -4,8 +4,12 @@ import sys
 import traceback
 from datetime import datetime
 from pathlib import Path
-from fastapi import APIRouter, UploadFile, File, Request
+from fastapi import APIRouter, UploadFile, File, Request, Depends
 from fastapi.responses import Response, JSONResponse
+from sqlalchemy.orm import Session
+
+from ..database import get_db
+from ..models import Font
 
 
 router = APIRouter(tags=["seo"])
@@ -14,14 +18,29 @@ SITE_URL = os.getenv("SITE_URL", "https://freefontpick.co.kr").rstrip("/")
 
 
 @router.get("/sitemap.xml", include_in_schema=False)
-def sitemap():
+def sitemap(db: Session = Depends(get_db)):
     today = datetime.utcnow().strftime("%Y-%m-%d")
     pages = [
         {"loc": f"{SITE_URL}/", "priority": "1.0", "changefreq": "weekly"},
-        {"loc": f"{SITE_URL}/#notice", "priority": "0.7", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/find-font", "priority": "0.7", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/#notice", "priority": "0.6", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/about.html", "priority": "0.5", "changefreq": "monthly"},
+        {"loc": f"{SITE_URL}/faq.html", "priority": "0.5", "changefreq": "monthly"},
         {"loc": f"{SITE_URL}/policy.html", "priority": "0.3", "changefreq": "yearly"},
-        {"loc": f"{SITE_URL}/privacy.html", "priority": "0.3", "changefreq": "yearly"},
     ]
+    # 폰트별 디자인 페이지 (핵심 SEO 자산)
+    try:
+        fonts = db.query(Font.id).all()
+        for (fid,) in fonts:
+            pages.append({
+                "loc": f"{SITE_URL}/design/{fid}",
+                "priority": "0.8",
+                "changefreq": "monthly",
+            })
+    except Exception:
+        # DB 접근 실패해도 sitemap은 정적 페이지만이라도 반환
+        pass
+
     items = "\n".join(
         f"  <url>\n    <loc>{p['loc']}</loc>\n    <lastmod>{today}</lastmod>\n"
         f"    <changefreq>{p['changefreq']}</changefreq>\n    <priority>{p['priority']}</priority>\n  </url>"
