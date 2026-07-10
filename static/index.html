@@ -728,11 +728,11 @@
     .designer-subtab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
     .designer-subpanel{display:none}
     .designer-subpanel.active{display:block}
-    .fx-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px 8px}
+    .fx-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px 6px}
     .fx-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
-    .fx-chip{width:100%;aspect-ratio:1;border-radius:10px;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff}
+    .fx-chip{width:100%;height:34px;border-radius:8px;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff}
     .fx-item.active .fx-chip{border-color:var(--text-primary)}
-    .fx-item span{display:block;width:100%;text-align:center;font-size:9.5px;font-weight:700;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+    .fx-item span{display:block;width:100%;text-align:center;font-size:9px;font-weight:700;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
     .fx-item.active span{color:var(--text-primary)}
     .fx-chip.none-chip{background:var(--bg-card);border:2px dashed var(--border);color:var(--text-muted)}
     .clr-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:7px}
@@ -889,7 +889,7 @@
       </div>
       <div class="preview-divider"></div>
       <span class="preview-label"><i class="ti ti-eye" style="font-size:14px" aria-hidden="true"></i> 미리보기</span>
-      <input class="preview-input" id="previewText" type="text" value="기적처럼 내게 왔으니 별처럼 빛나주세요" placeholder="미리보기 문구 입력" aria-label="폰트 미리보기 문구" oninput="updatePreviews(); clearPresetActive()">
+      <input class="preview-input" id="previewText" type="text" value="" placeholder="미리보기 문구 입력" aria-label="폰트 미리보기 문구" oninput="updatePreviews(); clearPresetActive()">
       <button type="button" class="preview-toggle" id="previewToggleBtn" onclick="togglePreviewPresets()" aria-expanded="false" aria-controls="previewPresets" aria-label="미리보기 문구 선택 펼치기">
         <span class="preview-toggle-text">문구선택</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
@@ -2700,7 +2700,7 @@ function renderFonts(){
           <i class="ti ti-download" aria-hidden="true"></i> 무료 다운로드
         </button>
         <button class="btn-design" type="button" onclick="openDesigner(${f.id})" aria-label="${f.name}로 텍스트 디자인 만들기" title="이 폰트로 텍스트 디자인 만들기">
-          <i class="ti ti-sparkles" aria-hidden="true"></i> 디자인
+          디자인
         </button>
         <button class="btn-like${liked?' liked':''}" id="like-${f.id}" onclick="toggleLike(${f.id})" aria-label="좋아요${liked?' (선택됨)':''}" aria-pressed="${liked}">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 22h2a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H2zM22 11.5a2 2 0 0 0-2-2h-5.5l1-4.8.03-.34a1.5 1.5 0 0 0-.43-1.06L14.34 2 8 8.5V20a2 2 0 0 0 2 2h7a2 2 0 0 0 2-1.5z" stroke-linejoin="round" stroke-linecap="round"/></svg>
