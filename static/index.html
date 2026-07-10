@@ -3348,7 +3348,8 @@ async function renderSubmitList(){
     items = await SubmissionStore.getAll();
   } catch(e) {
     console.error('목록 로딩 실패:', e);
-    wrap.innerHTML = '<div class="notice-empty"><i class="ti ti-alert-circle" aria-hidden="true"></i><p>목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</p></div>';
+    const detail = `${e.name || 'Error'}: ${e.message || '알 수 없음'}${e.status ? ' (HTTP ' + e.status + ')' : ''}`;
+    wrap.innerHTML = `<div class="notice-empty"><i class="ti ti-alert-circle" aria-hidden="true"></i><p>목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</p><p style="font-size:11px;color:var(--text-muted);margin-top:6px;word-break:break-all">${escapeHtml(detail)}</p></div>`;
     return;
   }
   countEl.textContent = items.length;
