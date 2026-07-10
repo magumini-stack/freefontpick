@@ -61,3 +61,3855 @@
   <meta name="twitter:title" content="폰트픽-무료폰트 큐레이션 및 텍스트 디자인">
   <meta name="twitter:description" content="전문가 추천 무료폰트 다운로드 및 텍스트 디자인">
   <meta name="twitter:image" content="https://freefontpick.co.kr/og-image.png">
+
+  <!-- ── 구조화 데이터 (JSON-LD) ── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://freefontpick.co.kr/#website",
+        "url": "https://freefontpick.co.kr/",
+        "name": "폰트픽",
+        "description": "전문가 추천 무료폰트 다운로드 및 텍스트 디자인",
+        "inLanguage": "ko-KR",
+        "publisher": { "@id": "https://freefontpick.co.kr/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://freefontpick.co.kr/#search/{search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://freefontpick.co.kr/#organization",
+        "name": "(주)와이즈폰트",
+        "url": "https://freefontpick.co.kr/",
+        "logo": "https://freefontpick.co.kr/logo.png",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "당산로16길 9-7 3층",
+          "addressLocality": "영등포구",
+          "addressRegion": "서울특별시",
+          "addressCountry": "KR"
+        },
+        "email": "help@tdtd.io"
+      }
+    ]
+  }
+  </script>
+
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Pen+Script&family=Nanum+Square:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Brush+Script&family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Gugi&family=Hi+Melody&family=Noto+Sans+KR:wght@400;500;700&family=Anton&family=Bangers&family=Lobster&family=Monoton&family=Raleway:wght@400;700&family=Press+Start+2P&family=Dancing+Script:wght@400;700&family=Kaushan+Script&family=Cinzel+Decorative:wght@400;700&family=Bona+Nova:ital,wght@0,400;0,700;1,400&family=Bungee&family=Petrona:wght@400;700&family=Pavanam&display=swap" rel="stylesheet">
+  <!-- Tabler Icons — 여러 CDN을 미러링해서 하나가 실패해도 다른 것 사용 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/tabler-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6258337579944977" crossorigin="anonymous"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
+      --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+      --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+      --accent:#FF5C35;--accent-light:#FFF0EC;--accent-hover:#E84A25;
+      --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+      --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
+    }
+    @media(prefers-color-scheme:dark){:root{
+      --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+      --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+      --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+      --accent:#FF6B47;--accent-light:#2A1A14;--accent-hover:#FF8060;
+      --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+    }}
+    html{scroll-behavior:smooth}
+    body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;line-height:1.6}
+
+    /* HEADER */
+    .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
+    .header-inner{max-width:1240px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
+    .logo{display:flex;align-items:center;text-decoration:none;white-space:nowrap}
+    .logo img{height:32px;width:auto;display:block}
+    nav{display:flex;gap:2px}
+    nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:var(--radius-sm);text-decoration:none;transition:all .15s;white-space:nowrap}
+    nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
+    nav a.active{color:var(--accent);background:var(--accent-light);font-weight:700}
+    .header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+    .btn-subscribe{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:0 14px;height:36px;border-radius:20px;border:1px solid var(--accent);color:var(--accent);background:transparent;text-decoration:none;transition:all .15s;font-family:inherit;white-space:nowrap}
+    .btn-subscribe:hover{background:var(--accent);color:#fff}
+    .btn-subscribe i{font-size:14px}
+    .search-wrap{position:relative;flex-shrink:0}
+    .search-wrap i{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text-muted);pointer-events:none}
+    .search-wrap input{width:300px;height:34px;border:1px solid var(--border);border-radius:18px;padding:0 14px 0 34px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s,width .2s}
+    .search-wrap input::placeholder{color:var(--text-muted)}
+    .search-wrap input:focus{border-color:var(--accent);width:360px}
+
+    /* 모바일 햄버거 메뉴 */
+    .hamburger-btn{
+      display:none;
+      width:36px;height:36px;
+      border:none;background:transparent;color:var(--text-primary);
+      cursor:pointer;
+      align-items:center;justify-content:center;
+      border-radius:8px;
+      flex-shrink:0;
+    }
+    .hamburger-btn:hover{background:var(--bg-secondary)}
+    .hamburger-btn i{font-size:22px}
+    .mobile-nav-panel{
+      display:none;
+      position:fixed;
+      top:60px; right:0;
+      width:min(280px,80vw);
+      height:calc(100vh - 60px);
+      background:var(--bg-card);
+      border-left:1px solid var(--border);
+      box-shadow:-8px 0 24px rgba(0,0,0,.08);
+      z-index:199;
+      padding:14px;
+      transform:translateX(100%);
+      transition:transform .22s ease;
+      overflow-y:auto;
+    }
+    .mobile-nav-panel.open{display:block}
+    .mobile-nav-panel.animate-in{transform:translateX(0)}
+    .mobile-nav-panel a,.mobile-nav-panel button{
+      display:flex;align-items:center;gap:10px;
+      width:100%;
+      padding:13px 14px;
+      font-size:14.5px;font-weight:700;
+      color:var(--text-primary);
+      text-decoration:none;
+      border:none;background:transparent;
+      border-radius:10px;
+      text-align:left;
+      cursor:pointer;
+      font-family:inherit;
+      margin-bottom:2px;
+    }
+    .mobile-nav-panel a:hover,.mobile-nav-panel button:hover{background:var(--bg-secondary)}
+    .mobile-nav-panel a.active{color:var(--accent);background:var(--accent-light)}
+    .mobile-nav-panel i{font-size:17px;color:var(--text-muted);flex-shrink:0}
+    .mobile-nav-panel a.active i{color:var(--accent)}
+    .mobile-nav-divider{height:1px;background:var(--border);margin:8px 4px}
+    .mobile-nav-backdrop{
+      display:none;
+      position:fixed;inset:0;top:60px;
+      background:rgba(0,0,0,.35);
+      z-index:198;
+    }
+    .mobile-nav-backdrop.open{display:block}
+
+    /* HERO */
+    .hero{max-width:1240px;margin:0 auto;padding:44px 24px 28px;text-align:center}
+    .hero-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);background:var(--accent-light);padding:5px 12px;border-radius:20px;margin-bottom:14px;font-weight:700}
+    .hero-title{font-size:30px;font-weight:800;color:var(--text-primary);line-height:1.3;letter-spacing:-.8px;margin-bottom:8px}
+    .hero-title em{font-style:normal;color:var(--accent)}
+    .hero-sub{font-size:14px;color:var(--text-secondary);display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+
+    /* LICENSE BUTTON */
+    .btn-license{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+    .btn-license:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .btn-license i{font-size:14px}
+
+    /* LICENSE MODAL */
+    /* DOWNLOAD AD INTERSTITIAL */
+    .dlad-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:550;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+    .dlad-overlay.open{display:flex;animation:fadeIn .2s ease}
+    .dlad-modal{background:var(--bg-card);border-radius:18px;max-width:520px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .25s ease}
+    .dlad-head{padding:22px 24px 16px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--accent-light) 0%,var(--bg-card) 100%)}
+    .dlad-eyebrow{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--accent);background:var(--bg-card);padding:3px 9px;border-radius:20px;margin-bottom:8px;border:1px solid var(--accent-light);letter-spacing:.5px}
+    .dlad-eyebrow i{font-size:12px}
+    .dlad-head h3{font-size:17px;font-weight:800;color:var(--text-primary);letter-spacing:-.3px;margin-bottom:3px}
+    .dlad-head p{font-size:12px;color:var(--text-secondary);line-height:1.5}
+    .dlad-body{padding:18px 20px;flex:1;overflow-y:auto;background:var(--bg-secondary);min-height:200px;display:flex;align-items:center;justify-content:center}
+    .dlad-body #dladAdContainer{width:100%;display:flex;justify-content:center;align-items:center;min-height:200px}
+    .dlad-body .adsbygoogle{display:block;width:100%}
+    .dlad-foot{padding:14px 20px 18px;border-top:1px solid var(--border)}
+    .dlad-close-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:background .15s}
+    .dlad-close-btn:hover{background:var(--accent-hover)}
+    .dlad-close-btn small{font-size:11px;font-weight:400;opacity:.85;margin-left:-4px}
+    .dlad-close-btn i{font-size:16px}
+    @media(max-width:520px){
+      .dlad-modal{max-height:95vh}
+      .dlad-head{padding:18px 20px 14px}
+    }
+
+    .license-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;backdrop-filter:blur(4px)}
+    .license-overlay.open{display:flex;animation:fadeIn .2s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .license-modal{background:var(--bg-card);border-radius:20px;max-width:680px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideUp .25s ease}
+    @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .license-head{padding:28px 28px 20px;background:linear-gradient(135deg,var(--accent-light) 0%,var(--bg-card) 100%);border-bottom:1px solid var(--border);position:relative}
+    .license-head-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--accent);background:var(--bg-card);padding:4px 10px;border-radius:20px;margin-bottom:10px;border:1px solid var(--accent-light);letter-spacing:.5px}
+    .license-head h2{font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-.5px;margin-bottom:4px}
+    .license-head p{font-size:13px;color:var(--text-secondary);line-height:1.5}
+    .license-close{position:absolute;top:20px;right:20px;width:34px;height:34px;border-radius:50%;border:none;background:var(--bg-card);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    .license-close:hover{background:var(--accent);color:#fff;transform:rotate(90deg)}
+    .license-body{padding:24px 28px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .license-item{background:var(--bg-secondary);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;border:1px solid transparent;transition:border-color .15s}
+    .license-item:hover{border-color:var(--border-hover)}
+    .license-item-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .license-item-cat{display:flex;align-items:center;gap:8px}
+    .license-item-icon{width:32px;height:32px;border-radius:10px;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--accent);flex-shrink:0}
+    .license-item-name{font-size:14px;font-weight:800;color:var(--text-primary);letter-spacing:-.2px}
+    .license-status{font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap;letter-spacing:.3px}
+    .license-status.allow{background:#E8F7EE;color:#1A8A3A}
+    .license-status.deny{background:#FDECEC;color:#C8281F}
+    @media(prefers-color-scheme:dark){
+      .license-status.allow{background:#0F2A18;color:#5FCB85}
+      .license-status.deny{background:#2A0F0E;color:#FF7873}
+    }
+    .license-item-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
+    .license-item.is-ofl{background:linear-gradient(135deg,#FFF5F5 0%,var(--bg-secondary) 100%);border-color:#FFD9D7}
+    .license-item.is-ofl .license-item-icon{color:#C8281F;background:#FDECEC}
+    .license-item.is-ofl .license-item-name{color:#C8281F}
+    @media(prefers-color-scheme:dark){
+      .license-item.is-ofl{background:linear-gradient(135deg,#2A1614 0%,var(--bg-secondary) 100%);border-color:#3A1F1D}
+    }
+    .license-foot{padding:16px 28px 24px;border-top:1px solid var(--border);background:var(--bg-secondary)}
+    .license-foot p{font-size:11px;color:var(--text-muted);line-height:1.6;margin:0}
+    .license-foot p+p{margin-top:4px}
+    .license-foot strong{color:var(--text-secondary);font-weight:700}
+    @media(max-width:600px){
+      .license-body{grid-template-columns:1fr;padding:20px}
+      .license-head{padding:24px 24px 18px}
+      .license-head h2{font-size:19px}
+    }
+
+    /* FAQ 모달 — 아코디언 */
+    .btn-secondary{background:var(--bg-card);color:var(--text-primary);border:1.5px solid var(--border);border-radius:10px;font-weight:700;cursor:pointer;transition:border-color .15s,background-color .15s;font-family:inherit}
+    .btn-secondary:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+    .faq-modal{max-width:640px}
+    .faq-body{padding:16px 28px 8px;display:flex;flex-direction:column;gap:8px}
+    .faq-item{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg-secondary)}
+    .faq-q{
+      width:100%;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:15px 18px;
+      background:transparent;
+      border:none;
+      cursor:pointer;
+      text-align:left;
+      font-size:14.5px;
+      font-weight:700;
+      color:var(--text-primary);
+      font-family:inherit;
+      letter-spacing:-.2px;
+    }
+    .faq-q:hover{background:var(--accent-light)}
+    .faq-q-icon{flex-shrink:0;font-size:16px;color:var(--text-muted);transition:transform .2s}
+    .faq-item.open .faq-q-icon{transform:rotate(180deg);color:var(--accent)}
+    .faq-a{
+      max-height:0;
+      overflow:hidden;
+      transition:max-height .25s ease, padding .25s ease;
+      padding:0 18px;
+    }
+    .faq-item.open .faq-a{max-height:220px;padding:0 18px 16px}
+    .faq-a p{font-size:13px;line-height:1.7;color:var(--text-secondary)}
+    .faq-a strong{color:var(--text-primary);font-weight:700}
+    .faq-a u{text-decoration-color:var(--accent);text-underline-offset:2px}
+    .faq-foot{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+    .faq-notice-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;font-size:12.5px;white-space:nowrap}
+    @media(max-width:600px){
+      .faq-body{padding:14px 18px 6px}
+      .faq-q{padding:13px 14px;font-size:13.5px}
+    }
+
+    /* HERO FEATURES — 3-피처 배지 카드 */
+    .hero-features{display:flex;justify-content:center;align-items:flex-start;gap:36px;margin-top:28px;flex-wrap:nowrap}
+    .hero-feature{display:flex;flex-direction:column;align-items:center;gap:10px;flex:0 0 auto}
+    .hero-feature-badge{
+      width:74px;height:74px;
+      background:#fff;
+      border-radius:20px;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 4px 14px rgba(255,92,53,.10), 0 1px 3px rgba(0,0,0,.04);
+      transition:transform .18s,box-shadow .18s;
+    }
+    .hero-feature-badge i, .hero-feature-badge svg{
+      display:block;
+      margin:auto;
+      font-size:26px;
+      width:26px;
+      height:26px;
+      color:var(--accent);
+    }
+    .hero-feature:hover .hero-feature-badge{
+      transform:translateY(-2px);
+      box-shadow:0 8px 20px rgba(255,92,53,.15), 0 2px 4px rgba(0,0,0,.05);
+    }
+    .hero-feature-label{
+      font-size:14px;
+      font-weight:700;
+      color:var(--text-primary);
+      letter-spacing:-.3px;
+      text-align:center;
+      white-space:nowrap;
+    }
+
+    /* TOP RANKING */
+    .top-section{max-width:1240px;margin:0 auto;padding:0 24px 8px}
+    .top-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px}
+    .top-section-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:var(--text-primary);letter-spacing:-.3px}
+    .top-section-title .badge{font-size:10px;font-weight:800;letter-spacing:.5px;color:#fff;background:var(--accent);padding:3px 9px;border-radius:20px}
+    .top-section-title small{font-size:12px;font-weight:400;color:var(--text-muted);margin-left:4px}
+    .top-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+    .top-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s;text-align:left;font-family:inherit;color:var(--text-primary);text-decoration:none}
+    .top-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow-hover)}
+    .top-rank{flex-shrink:0;width:24px;height:24px;border-radius:6px;background:var(--bg-secondary);color:var(--text-muted);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+    .top-card.gold .top-rank{background:linear-gradient(135deg,#FFD66E,#FFA928);color:#fff}
+    .top-card.silver .top-rank{background:linear-gradient(135deg,#D8DEE5,#9BA5AE);color:#fff}
+    .top-card.bronze .top-rank{background:linear-gradient(135deg,#D9A66B,#A06D30);color:#fff}
+    .top-info{flex:1;min-width:0}
+    .top-name{font-size:13px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px}
+    .top-meta{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:5px;margin-top:1px}
+    .top-meta svg{width:11px;height:11px;stroke:var(--accent);fill:none;stroke-width:2.2;flex-shrink:0}
+    .top-meta .like-num{color:var(--accent);font-weight:700}
+    .top-empty{font-size:13px;color:var(--text-muted);padding:24px;text-align:center;background:var(--bg-card);border:1px dashed var(--border);border-radius:var(--radius-md)}
+    @media(max-width:480px){
+      .top-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+    }
+
+    /* MAIN */
+    .main{max-width:1240px;margin:0 auto;padding:0 24px 80px}
+
+    /* PREVIEW BAR */
+    .preview-bar{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:13px 18px;margin-bottom:0;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-card)}
+    .preview-bar-wrap{margin-bottom:18px}
+    .preview-label{font-size:12px;color:var(--text-muted);white-space:nowrap;display:flex;align-items:center;gap:4px}
+    .preview-input{flex:1;border:none;outline:none;font-size:15px;background:transparent;color:var(--text-primary);font-family:inherit;min-width:0}
+    .preview-input::placeholder{color:var(--text-muted)}
+    .preview-divider{width:1px;height:20px;background:var(--border);flex-shrink:0}
+    .size-wrap{display:flex;align-items:center;gap:7px;flex-shrink:0}
+    .size-wrap label{font-size:12px;color:var(--text-muted)}
+    .size-wrap input[type=range]{width:80px;accent-color:var(--accent);cursor:pointer}
+    .size-val{font-size:12px;color:var(--text-secondary);min-width:34px;font-weight:700}
+    .preview-toggle{
+      flex-shrink:0;
+      display:flex;align-items:center;gap:5px;
+      padding:6px 12px 6px 13px;
+      border:1.5px solid var(--accent);
+      background:var(--accent-light);
+      color:var(--accent);
+      cursor:pointer;
+      border-radius:20px;
+      font-size:12.5px;
+      font-weight:800;
+      font-family:inherit;
+      transition:background-color .15s,color .15s,transform .2s,box-shadow .15s;
+      white-space:nowrap;
+    }
+    .preview-toggle:hover{background:var(--accent);color:#fff;box-shadow:0 3px 10px rgba(255,92,53,.28)}
+    .preview-toggle.open{background:var(--accent);color:#fff}
+    .preview-toggle.open svg{transform:rotate(180deg)}
+    .preview-toggle svg{transition:transform .2s;display:block;flex-shrink:0}
+    .preview-toggle-text{display:inline-block}
+    /* 프리셋 문구 선택 영역 */
+    .preview-presets{
+      display:none;
+      background:var(--bg-card);
+      border:1px solid var(--border);
+      border-top:none;
+      border-radius:0 0 var(--radius-md) var(--radius-md);
+      padding:12px 18px 14px;
+      box-shadow:var(--shadow-card);
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .preview-presets.open{display:flex}
+    .preset-chip{
+      border:1px solid var(--border);
+      background:var(--bg-secondary);
+      color:var(--text-secondary);
+      font-size:13px;
+      font-weight:600;
+      padding:7px 14px;
+      border-radius:20px;
+      cursor:pointer;
+      white-space:nowrap;
+      transition:border-color .15s,color .15s,background-color .15s;
+      flex-shrink:0;
+    }
+    .preset-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .preset-chip.active{border-color:var(--accent);color:#fff;background:var(--accent)}
+
+    /* TAGS */
+    .tags-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px}
+    .tag{font-size:12px;padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-family:inherit;font-weight:700}
+    .tag:hover{border-color:var(--accent);color:var(--accent)}
+    .tag.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+    /* FILTER BAR */
+    .filter-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px}
+    .count-label{font-size:13px;color:var(--text-secondary)}
+    .count-label strong{color:var(--text-primary);font-weight:800}
+    .sort-select{font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;background:var(--bg-card);color:var(--text-secondary);outline:none;cursor:pointer;font-family:inherit;transition:border-color .15s}
+    .sort-select:focus{border-color:var(--accent)}
+
+    /* GRID */
+    .font-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px;grid-auto-flow:dense}
+    .font-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 18px 14px;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;position:relative;display:flex;flex-direction:column;box-shadow:var(--shadow-card);animation:fadeUp .25s ease both}
+
+    /* 추천 카드 스타일 */
+    .font-card.is-recommend{border-color:var(--accent);border-width:1.5px;padding-top:14px}
+    .recommend-match{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-light);padding:5px 9px;border-radius:12px;margin-bottom:10px;align-self:flex-start;line-height:1.3}
+    .recommend-match i{font-size:13px}
+    .recommend-more-btn{display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-size:13px;font-weight:700;color:var(--accent);background:var(--bg-card);border:1.5px dashed var(--accent);border-radius:24px;padding:12px 22px;cursor:pointer;transition:all .15s}
+    .recommend-more-btn:hover{background:var(--accent);color:#fff;border-style:solid}
+    .recommend-more-btn i{font-size:15px}
+    .recommend-more-btn small{font-weight:400;opacity:.8;font-size:11px}
+    .font-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* 앱 광고 카드 — 갤러리 첫 번째 칸 */
+    .app-ad-card{
+      padding:0;
+      overflow:hidden;
+      display:block;
+      text-decoration:none;
+      aspect-ratio:1/1.05;
+    }
+    .app-ad-image{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .app-ad-badge{
+      position:absolute;
+      top:10px; right:10px;
+      background:rgba(0,0,0,.55);
+      color:#fff;
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.5px;
+      padding:3px 8px;
+      border-radius:6px;
+      pointer-events:none;
+    }
+    .font-preview{min-height:66px;display:flex;align-items:center;margin-bottom:14px}
+    .font-preview-text{color:var(--text-primary);line-height:1.3;word-break:keep-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;cursor:text;outline:none;border-radius:4px;transition:background-color .15s}
+    .font-preview-text:hover{background:var(--bg-secondary)}
+    .font-preview-text:focus{background:var(--bg-secondary);-webkit-line-clamp:unset;display:block;overflow:visible}
+    .font-preview-text.is-custom{background:linear-gradient(to right, transparent 0, transparent calc(100% - 36px), var(--accent-light) calc(100% - 36px), var(--accent-light) 100%);position:relative}
+    .font-preview-text.is-custom::after{content:'✎';position:absolute;top:2px;right:6px;font-size:11px;color:var(--accent);font-weight:700;pointer-events:none}
+    .card-divider{height:1px;background:var(--border);margin-bottom:12px}
+    .font-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+    .font-name{font-size:14px;font-weight:800;color:var(--text-primary);margin-bottom:3px;letter-spacing:-.2px}
+    .font-maker{font-size:12px;color:var(--text-secondary)}
+    .font-weights{font-size:11px;color:var(--accent);background:var(--accent-light);padding:3px 8px;border-radius:10px;white-space:nowrap;font-weight:700;flex-shrink:0}
+    .font-tags-row{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+    .font-tag-pill{font-size:10px;padding:2px 7px;border-radius:8px;background:var(--bg-secondary);color:var(--text-muted);font-weight:700}
+
+    /* AD SLOTS (애드센스) */
+    .ad-slot{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);height:280px !important;max-height:280px;display:flex;align-items:center;justify-content:center;overflow:hidden;animation:fadeUp .25s ease both;align-self:start}
+    .ad-slot .adsbygoogle{display:inline-block !important;width:260px !important;height:280px !important;max-height:280px !important}
+    .ad-slot.row-1{grid-column:1;grid-row:1}
+    .ad-slot.row-3{grid-column:1;grid-row:3}
+    .font-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:12px;align-items:center}
+    .font-actions .like-btn{margin-left:auto}
+    .btn-download{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:700;line-height:1;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--accent);color:var(--accent);background:transparent;cursor:pointer;transition:all .15s;font-family:inherit;text-decoration:none;white-space:nowrap}
+    .btn-download:hover{background:var(--accent);color:#fff}
+    .btn-like{display:flex;align-items:center;justify-content:center;gap:5px;height:34px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;cursor:pointer;transition:all .15s;color:var(--text-secondary);font-size:13px;font-weight:700;flex-shrink:0;font-family:inherit}
+    .btn-like svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+    .btn-like:hover{border-color:var(--accent);color:var(--accent)}
+    .btn-like.liked{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .btn-like.liked svg{fill:var(--accent-light)}
+
+    /* NO RESULTS */
+    .no-results{grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-muted)}
+    .no-results i{font-size:40px;display:block;margin-bottom:12px}
+    .no-results p{font-size:15px;margin-bottom:6px;color:var(--text-secondary)}
+
+    /* FOOTER */
+    /* NOTICE VIEW */
+    .notice-hero{max-width:1240px;margin:0 auto;padding:44px 24px 28px;text-align:center}
+    .notice-hero-sub{font-size:14px;color:var(--text-secondary)}
+    .notice-list{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-card)}
+    .notice-row{display:flex;align-items:center;gap:14px;padding:18px 22px;border-top:1px solid var(--border);cursor:pointer;transition:background .15s;text-decoration:none;color:inherit}
+    .notice-row:first-child{border-top:none}
+    .notice-row:hover{background:var(--bg-secondary)}
+    .notice-pin{width:24px;height:24px;border-radius:6px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+    .notice-pin.empty{visibility:hidden}
+    .notice-row-content{flex:1;min-width:0}
+    .notice-row-title{font-size:14px;font-weight:700;color:var(--text-primary);letter-spacing:-.2px;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+    .notice-row-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:var(--accent-light);color:var(--accent);letter-spacing:.3px;flex-shrink:0}
+    .notice-row-date{font-size:12px;color:var(--text-muted)}
+    .notice-row i.chevron{color:var(--text-muted);font-size:18px;flex-shrink:0}
+    .notice-empty{padding:80px 20px;text-align:center;color:var(--text-muted)}
+    .notice-empty i{font-size:40px;display:block;margin-bottom:10px}
+
+    .notice-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text-secondary);background:transparent;border:none;cursor:pointer;padding:6px 0;margin-bottom:16px;font-family:inherit;transition:color .15s}
+    .notice-back:hover{color:var(--accent)}
+    .notice-detail{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px 32px 36px;box-shadow:var(--shadow-card)}
+    .notice-detail-head{padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:24px}
+    .notice-detail-head h2{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--text-primary);line-height:1.4;margin-bottom:10px}
+    .notice-detail-meta{font-size:12px;color:var(--text-muted);display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+    .notice-detail-meta .pin{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-weight:700}
+    .notice-detail-body{font-size:14px;line-height:1.8;color:var(--text-primary);word-break:break-word}
+    .notice-detail-body p{margin-bottom:1em}
+    .notice-detail-body p:last-child{margin-bottom:0}
+    .notice-detail-body strong,.notice-detail-body b{font-weight:800;color:var(--text-primary)}
+    .notice-detail-body a{color:var(--accent);text-decoration:underline}
+
+    @media(max-width:640px){
+      .notice-hero{padding:28px 16px 20px}
+      .notice-row{padding:16px 16px;gap:10px}
+      .notice-detail{padding:24px 20px}
+      .notice-detail-head h2{font-size:18px}
+    }
+
+    /* ━━━━ 폰트 찾아주세요 게시판 ━━━━ */
+    .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:800;padding:10px 18px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:background-color .15s,transform .15s;font-family:inherit;white-space:nowrap}
+    .btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+    .submit-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px}
+    .submit-count{font-size:13px;color:var(--text-secondary)}
+    .submit-count strong{color:var(--accent);font-weight:800}
+
+    .submit-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px}
+    .submit-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;box-shadow:var(--shadow-card);display:flex;flex-direction:column}
+    .submit-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+    .submit-card-thumb{width:100%;aspect-ratio:16/10;background:var(--bg-secondary);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:28px}
+    .submit-card-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .submit-card-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+    .submit-card-status{align-self:flex-start;font-size:10px;font-weight:800;padding:3px 9px;border-radius:10px;letter-spacing:.3px}
+    .submit-card-status.pending{background:var(--bg-secondary);color:var(--text-muted)}
+    .submit-card-status.reviewed{background:#FFF4E0;color:#B8790A}
+    .submit-card-status.added{background:#E8F7EE;color:#1A8A3A}
+    @media(prefers-color-scheme:dark){
+      .submit-card-status.reviewed{background:#2E2410;color:#E0AC4D}
+      .submit-card-status.added{background:#0F2A18;color:#5FCB85}
+    }
+    .submit-card-name{font-size:14.5px;font-weight:800;color:var(--text-primary);letter-spacing:-.2px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+    .submit-card-desc{font-size:12.5px;color:var(--text-secondary);line-height:1.5;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:2.6em}
+    .submit-card-meta{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px}
+
+    /* 제보 작성 폼 */
+    .submit-form-modal{max-width:520px}
+    .submit-form-body{padding:20px 28px;display:flex;flex-direction:column;gap:16px;max-height:60vh;overflow-y:auto}
+    .form-row{display:flex;flex-direction:column;gap:6px}
+    .form-row label{font-size:12.5px;font-weight:700;color:var(--text-secondary)}
+    .form-row label .req{color:var(--accent)}
+    .form-row input[type=text],.form-row textarea{
+      border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13.5px;
+      font-family:inherit;color:var(--text-primary);background:var(--bg-card);resize:vertical;
+      transition:border-color .15s;
+    }
+    .form-row input[type=text]:focus,.form-row textarea:focus{outline:none;border-color:var(--accent)}
+    .sf-image-picker{
+      border:1.5px dashed var(--border);border-radius:12px;padding:20px 14px;text-align:center;
+      cursor:pointer;color:var(--text-muted);font-size:12.5px;display:flex;flex-direction:column;
+      align-items:center;gap:8px;transition:border-color .15s,color .15s;
+    }
+    .sf-image-picker:hover{border-color:var(--accent);color:var(--accent)}
+    .sf-image-picker i{font-size:24px}
+    .sf-image-preview{position:relative;border-radius:12px;overflow:hidden;max-width:220px}
+    .sf-image-preview img{width:100%;display:block;border-radius:12px}
+    .sf-image-remove{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .submit-form-foot{display:flex;justify-content:flex-end}
+    .submit-form-foot .btn-primary{width:100%;padding:12px;font-size:14px}
+
+    /* 제보 상세 모달 */
+    .submit-detail-modal{max-width:560px}
+    .submit-detail-body{padding:20px 28px 28px;display:flex;flex-direction:column;gap:16px}
+    .submit-detail-image{border-radius:14px;overflow:hidden;max-height:320px}
+    .submit-detail-image img{width:100%;display:block;object-fit:cover}
+    .submit-detail-content{font-size:13.5px;line-height:1.8;color:var(--text-primary);white-space:pre-wrap;word-break:break-word}
+    .submit-detail-link{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--accent);text-decoration:underline;word-break:break-all}
+    .submit-detail-reply{background:var(--accent-light);border-radius:12px;padding:14px 16px;font-size:12.5px;color:var(--text-primary);line-height:1.6}
+    .submit-detail-reply-label{font-size:11px;font-weight:800;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+
+    @media(max-width:640px){
+      .submit-toolbar{flex-direction:row;align-items:center}
+      .submit-form-body{padding:16px 18px;max-height:55vh}
+      .submit-detail-body{padding:16px 18px 22px}
+    }
+
+    footer{border-top:1px solid var(--border);padding:32px 24px 32px;max-width:1240px;margin:0 auto}
+    .footer-logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-primary);margin-bottom:10px}
+    .footer-logo .logo-spark{width:22px;height:22px;font-size:11px;border-radius:6px}
+    .footer-copy{font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:18px}
+    .footer-links{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:18px;justify-content:center}
+    .footer-links a{font-size:12px;color:var(--text-secondary);text-decoration:none;transition:color .15s;font-weight:700}
+    .footer-links a:hover{color:var(--accent)}
+    .footer-divider{height:1px;background:var(--border);margin-bottom:18px}
+    .footer-company-name{font-size:12px;font-weight:800;color:var(--text-secondary);margin-bottom:8px;text-align:center}
+    .footer-company-info{font-size:11px;color:var(--text-muted);line-height:1.9;display:flex;flex-wrap:wrap;gap:0 14px;justify-content:center}
+    .footer-company-info span{display:inline-flex;align-items:center;white-space:nowrap}
+    .footer-company-info span::before{content:"";display:inline-block;width:3px;height:3px;border-radius:50%;background:var(--text-muted);margin-right:14px;flex-shrink:0;opacity:.5}
+    .footer-company-info a{color:var(--text-muted);text-decoration:none}
+    .footer-company-info a:hover{color:var(--accent)}
+    .footer-copyright{font-size:11px;color:var(--text-muted);margin-top:14px;letter-spacing:.3px;text-align:center}
+
+    /* SCROLL TOP */
+    .scroll-top{position:fixed;bottom:28px;right:28px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(255,92,53,.4);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s,bottom .2s;z-index:300}
+    .scroll-top.visible{opacity:1;transform:translateY(0)}
+    .scroll-top:hover{background:var(--accent-hover)}
+    .floating-ad-shown .scroll-top{bottom:160px}
+
+    /* FLOATING BOTTOM AD */
+    .floating-ad{position:fixed;left:0;right:0;bottom:0;z-index:400;display:flex;justify-content:center;align-items:flex-end;padding:0 16px 12px;pointer-events:none}
+    .floating-ad-inner{position:relative;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:8px 10px;pointer-events:auto;max-width:100%;animation:slideUpAd .3s ease both}
+    @keyframes slideUpAd{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+    .floating-ad-close{position:absolute;top:-12px;right:-12px;width:28px;height:28px;border-radius:50%;background:var(--text-primary);color:var(--bg);border:2px solid var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .15s;font-family:inherit;line-height:1;padding:0}
+    .floating-ad-close:hover{transform:scale(1.1)}
+    .floating-ad.hidden{display:none}
+    @media(max-width:900px){
+      .floating-ad-inner{width:100%}
+    }
+
+    @media(max-width:768px){
+      nav{display:none}
+      .hamburger-btn{display:flex}
+      .btn-subscribe{display:none}
+      .hero{padding:28px 16px 20px}.hero-title{font-size:24px}
+      .main{padding:0 16px 60px}
+      .preview-bar{flex-wrap:wrap}
+      .preview-bar .preview-divider{display:none}
+      .search-wrap{flex:1 1 100%}
+      .search-wrap input{width:100%}.search-wrap input:focus{width:100%}
+      .size-wrap input[type=range]{width:70px}
+      .preview-presets{padding:12px 14px 14px}
+      .preset-chip{font-size:12.5px;padding:7px 12px}
+      .preview-toggle{padding:7px;border-radius:50%}
+      .preview-toggle-text{display:none}
+      .hero-features{gap:14px;margin-top:22px}
+      .hero-feature{gap:8px}
+      .hero-feature-badge{width:56px;height:56px;border-radius:16px}
+      .hero-feature-badge i, .hero-feature-badge svg{font-size:22px;width:22px;height:22px}
+      .hero-feature-label{font-size:11.5px;letter-spacing:-.4px}
+    }
+    @media(max-width:360px){
+      .hero-features{gap:8px}
+      .hero-feature-badge{width:50px;height:50px;border-radius:14px}
+      .hero-feature-badge i, .hero-feature-badge svg{font-size:20px;width:20px;height:20px}
+      .hero-feature-label{font-size:10.5px}
+    }
+    @media(prefers-reduced-motion:reduce){.font-card{animation:none}*{transition:none!important}}
+
+    /* ════════ 텍스트 디자인 에디터 ════════ */
+    .btn-design{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;line-height:1;padding:8px 14px;border-radius:var(--radius-sm);border:none;color:#fff;background:linear-gradient(135deg,var(--accent),#E8431F);cursor:pointer;transition:filter .15s;font-family:inherit;white-space:nowrap;text-align:center}
+    .btn-design i{line-height:1;display:inline-flex;align-items:center}
+    .btn-design:hover{filter:brightness(1.08)}
+    .designer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+    .designer-overlay.open{display:flex;animation:fadeIn .2s ease}
+    .designer-sheet{background:var(--bg-card);width:100%;max-width:480px;max-height:92vh;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .22s ease}
+    .designer-head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+    .designer-head strong{font-size:14.5px;color:var(--text-primary)}
+    .designer-close{border:none;background:var(--bg-secondary);color:var(--text-primary);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer}
+    .designer-body{padding:14px 16px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:13px}
+    .designer-body textarea{width:100%;resize:none;border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:14px;line-height:1.5;min-height:50px;background:var(--bg-card);color:var(--text-primary)}
+    .designer-body textarea:focus{outline:none;border-color:var(--accent)}
+    .designer-preview-label{display:flex;align-items:baseline;gap:8px}
+    .designer-preview-label span{font-size:12px;font-weight:800;color:var(--text-primary)}
+    .designer-preview-label em{font-size:10.5px;font-style:normal;color:var(--text-muted)}
+    .designer-preview{border-radius:14px;overflow:hidden;border:1px solid var(--border);flex-shrink:0;padding:10px;display:flex;align-items:center;justify-content:center;min-height:80px;max-height:210px;
+      background:
+        linear-gradient(45deg,var(--bg-secondary) 25%,transparent 25%) -10px 0/20px 20px,
+        linear-gradient(-45deg,var(--bg-secondary) 25%,transparent 25%) -10px 0/20px 20px,
+        linear-gradient(45deg,transparent 75%,var(--bg-secondary) 75%) -10px 0/20px 20px,
+        linear-gradient(-45deg,transparent 75%,var(--bg-secondary) 75%) -10px 0/20px 20px;}
+    .designer-preview canvas{max-width:100%;max-height:190px;display:block}
+    .designer-tabs{display:flex;gap:6px;border-bottom:1px solid var(--border)}
+    .designer-tab{border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--text-muted);padding:7px 4px 9px;cursor:pointer;border-bottom:2px solid transparent}
+    .designer-tab.active{color:var(--accent);border-color:var(--accent)}
+    .designer-panel{display:none;flex-direction:column;gap:12px}
+    .designer-panel.active{display:flex}
+    .designer-subtabs{display:flex;gap:6px}
+    .designer-subtab{border:1.5px solid var(--border);background:var(--bg-card);font-family:inherit;font-size:11.5px;font-weight:700;color:var(--text-muted);padding:5px 12px;border-radius:20px;cursor:pointer}
+    .designer-subtab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .designer-subpanel{display:none}
+    .designer-subpanel.active{display:block}
+    .fx-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px 8px}
+    .fx-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+    .fx-chip{width:100%;aspect-ratio:1;border-radius:10px;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff}
+    .fx-item.active .fx-chip{border-color:var(--text-primary)}
+    .fx-item span{display:block;width:100%;text-align:center;font-size:9.5px;font-weight:700;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+    .fx-item.active span{color:var(--text-primary)}
+    .fx-chip.none-chip{background:var(--bg-card);border:2px dashed var(--border);color:var(--text-muted)}
+    .clr-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:7px}
+    .clr-dot{aspect-ratio:1;border-radius:8px;cursor:pointer;border:2px solid rgba(0,0,0,.08);position:relative}
+    .clr-dot.active{border-color:var(--text-primary)}
+    .clr-dot.none-dot{background:var(--bg-card);border:2px solid var(--border)}
+    .clr-dot.none-dot::after{content:'';position:absolute;left:10%;top:47%;width:80%;height:2px;background:#EF4444;transform:rotate(-45deg);border-radius:2px}
+    .designer-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .designer-row label{font-size:12.5px;font-weight:700;color:var(--text-primary)}
+    .designer-row input[type=range]{width:140px;accent-color:var(--accent)}
+    .dtoggle{width:40px;height:24px;border-radius:20px;background:var(--border);position:relative;cursor:pointer;border:none;flex-shrink:0}
+    .dtoggle.on{background:var(--accent)}
+    .dtoggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s ease}
+    .dtoggle.on::after{left:19px}
+    .dalign{display:flex;gap:6px}
+    .dalign button{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+    .dalign button.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .dhl{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;flex:1;max-width:280px}
+    .dhl-dot{width:100%;aspect-ratio:1;border-radius:7px;border:2px solid var(--border);cursor:pointer}
+    .dhl-dot.active{border-color:var(--text-primary)}
+    .designer-adslot{border:1.5px dashed var(--border);border-radius:12px;padding:12px;text-align:center;font-size:11px;color:var(--text-muted);background:var(--bg-secondary);line-height:1.5}
+    .designer-save{width:100%;border:none;background:linear-gradient(135deg,var(--accent),#E8431F);color:#fff;font-weight:800;font-size:15px;padding:13px;border-radius:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+    .designer-save:active{transform:scale(.99)}
+    /* 광고 인터스티셜 */
+    .dsave-overlay{display:none;position:fixed;inset:0;background:rgba(10,8,7,.85);z-index:650;align-items:center;justify-content:center;padding:20px}
+    .dsave-overlay.open{display:flex}
+    .dsave-card{background:var(--bg-card);border-radius:18px;max-width:340px;width:100%;overflow:hidden;text-align:center}
+    .dsave-visual{height:200px;background:linear-gradient(135deg,#FFD8CC,#FFB199,var(--accent));display:flex;align-items:center;justify-content:center;color:#7A2E1A;font-weight:900;font-size:15px;flex-direction:column;gap:6px}
+    .dsave-info{padding:16px}
+    .dsave-info p{margin:0 0 13px;font-size:12.5px;color:var(--text-secondary);line-height:1.55}
+    .dsave-btn{border:none;background:var(--text-primary);color:var(--bg-card);font-weight:700;font-size:13px;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:inherit;width:100%}
+    .dsave-btn:disabled{opacity:.4;cursor:not-allowed}
+    .dsave-btn.primary{background:var(--accent);color:#fff}
+    .dsave-sub{margin-top:8px;width:100%;border:none;background:none;color:var(--text-muted);font-size:11.5px;text-decoration:underline;cursor:pointer;padding:4px;font-family:inherit}
+    @media(max-width:640px){
+      .designer-overlay{align-items:flex-end;padding:0}
+      .designer-sheet{max-width:100%;border-radius:20px 20px 0 0;max-height:90vh}
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <a href="#" class="logo" onclick="goHome();return false;" aria-label="FreeFontPick 홈으로">
+      <img src="logo.png" alt="FreeFontPick">
+    </a>
+    <nav>
+      <a href="about.html">폰트픽 소개</a>
+      <a href="#notice" id="noticeMenuLink">공지사항</a>
+      <a href="faq.html">자주 묻는 질문</a>
+      <a href="/find-font" id="submitMenuLink" onclick="navFindFont(event)">폰트 찾아주세요</a>
+    </nav>
+    <div class="header-right">
+      <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer">
+        <i class="ti ti-bell" aria-hidden="true"></i>
+        <span>타닥타닥 구독</span>
+      </a>
+      <button type="button" class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mobileNavPanel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" aria-hidden="true">
+          <line x1="4" y1="7" x2="20" y2="7"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="17" x2="20" y2="17"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-nav-backdrop" id="mobileNavBackdrop" onclick="closeMobileNav()"></div>
+  <nav class="mobile-nav-panel" id="mobileNavPanel" aria-label="모바일 메뉴">
+    <a href="about.html">
+      <i class="ti ti-info-circle" aria-hidden="true"></i> 폰트픽 소개
+    </a>
+    <a href="#notice" id="mNoticeMenuLink" onclick="closeMobileNav()">
+      <i class="ti ti-speakerphone" aria-hidden="true"></i> 공지사항
+    </a>
+    <a href="faq.html">
+      <i class="ti ti-help-circle" aria-hidden="true"></i> 자주 묻는 질문
+    </a>
+    <a href="/find-font" id="mSubmitMenuLink" onclick="navFindFont(event);closeMobileNav()">
+      <i class="ti ti-bulb" aria-hidden="true"></i> 폰트 찾아주세요
+    </a>
+    <div class="mobile-nav-divider"></div>
+    <a href="https://tdtd.io" target="_blank" rel="noopener noreferrer" onclick="closeMobileNav()">
+      <i class="ti ti-bell" aria-hidden="true"></i> 타닥타닥 구독
+    </a>
+  </nav>
+</header>
+</header>
+
+<!-- ━━━━ HOME VIEW (폰트 갤러리) ━━━━ -->
+<div id="homeView">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow"><i class="ti ti-sparkles" aria-hidden="true"></i> 상업용 무료폰트 큐레이션 &amp; 텍스트 디자인</div>
+  <h1 class="hero-title">폰트픽, 디자인 전문가가 <em>딱 맞는 폰트</em> 골라드려요!</h1>
+  <p class="hero-sub">
+    추천 무료폰트를 다운로드하거나, 전문가 수준의 텍스트 효과를 직접 만들어 보세요
+    <button class="btn-license" onclick="openLicense()" aria-label="라이선스 요약표 보기">
+      <i class="ti ti-license" aria-hidden="true"></i> 라이선스 보기
+    </button>
+  </p>
+  <div class="hero-features" role="list" aria-label="폰트픽 주요 기능">
+    <div class="hero-feature" role="listitem">
+      <div class="hero-feature-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="10" cy="10" r="7"/>
+          <line x1="21" y1="21" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <div class="hero-feature-label">쉽고 빠른 검색</div>
+    </div>
+    <div class="hero-feature" role="listitem">
+      <div class="hero-feature-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </div>
+      <div class="hero-feature-label">간편한 다운로드</div>
+    </div>
+    <div class="hero-feature" role="listitem">
+      <div class="hero-feature-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
+        </svg>
+      </div>
+      <div class="hero-feature-label">원터치 디자인</div>
+    </div>
+  </div>
+</section>
+
+<!-- TOP RANKING -->
+<section class="top-section" id="topSection" aria-labelledby="topSectionTitle">
+  <div class="top-section-head">
+    <div class="top-section-title" id="topSectionTitle">
+      <span class="badge">TOP 10</span>
+      인기 폰트 순위
+      <small>좋아요 많은 폰트 TOP 10</small>
+    </div>
+  </div>
+  <div class="top-grid" id="topGrid"></div>
+</section>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="preview-bar-wrap">
+    <div class="preview-bar">
+      <div class="search-wrap" id="searchWrap">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input type="text" id="globalSearch" placeholder="폰트명 또는 분위기/용도로 추천 (예: 따뜻한 카페)" aria-label="폰트 검색 및 추천" oninput="filterFonts()">
+      </div>
+      <div class="preview-divider"></div>
+      <span class="preview-label"><i class="ti ti-eye" style="font-size:14px" aria-hidden="true"></i> 미리보기</span>
+      <input class="preview-input" id="previewText" type="text" value="기적처럼 내게 왔으니 별처럼 빛나주세요" placeholder="미리보기 문구 입력" aria-label="폰트 미리보기 문구" oninput="updatePreviews(); clearPresetActive()">
+      <button type="button" class="preview-toggle" id="previewToggleBtn" onclick="togglePreviewPresets()" aria-expanded="false" aria-controls="previewPresets" aria-label="미리보기 문구 선택 펼치기">
+        <span class="preview-toggle-text">문구선택</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div class="preview-divider"></div>
+      <div class="size-wrap">
+        <label for="fontSize">크기</label>
+        <input type="range" id="fontSize" min="12" max="60" value="26" step="1" aria-label="폰트 크기 조절" oninput="updateFontSize(this.value)">
+        <span class="size-val" id="fontSizeVal">26px</span>
+      </div>
+    </div>
+    <div class="preview-presets" id="previewPresets" role="group" aria-label="미리보기 문구 프리셋">
+      <button type="button" class="preset-chip" data-preset="0" onclick="applyPresetText(this, 'SUMMER SALE 오늘만 50% 할인')">SUMMER SALE 오늘만 50% 할인</button>
+      <button type="button" class="preset-chip" data-preset="1" onclick="applyPresetText(this, &quot;Today's Special 아메리카노 3,900원&quot;)">Today's Special 아메리카노 3,900원</button>
+      <button type="button" class="preset-chip" data-preset="2" onclick="applyPresetText(this, '회원가입 / 3초 만에 시작하기')">회원가입 / 3초 만에 시작하기</button>
+      <button type="button" class="preset-chip" data-preset="3" onclick="applyPresetText(this, '디자이너가 매일 쓰는 무료폰트')">디자이너가 매일 쓰는 무료폰트</button>
+      <button type="button" class="preset-chip" data-preset="4" onclick="applyPresetText(this, 'UI Design 깔끔한 인터페이스')">UI Design 깔끔한 인터페이스</button>
+    </div>
+  </div>
+
+  <div class="tags-bar" id="tagsBar" role="group" aria-label="폰트 카테고리 필터"></div>
+
+  <div class="filter-bar">
+    <span class="count-label" id="countLabel">폰트 <strong>142</strong>종</span>
+    <select class="sort-select" onchange="renderFonts()" aria-label="정렬 기준">
+      <option value="curator">추천순</option>
+      <option value="popular">인기순</option>
+      <option value="name">이름순</option>
+    </select>
+  </div>
+
+  <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
+</main>
+
+</div><!-- /homeView -->
+
+<!-- ━━━━ NOTICE VIEW (공지사항) ━━━━ -->
+<div id="noticeView" style="display:none">
+  <section class="notice-hero">
+    <div class="hero-eyebrow"><i class="ti ti-speakerphone" aria-hidden="true"></i> NOTICE</div>
+    <h1 class="hero-title">공지사항</h1>
+    <p class="notice-hero-sub">FreeFontPick에서 알려드리는 최신 소식</p>
+  </section>
+
+  <main class="main">
+    <!-- 목록 화면 -->
+    <div id="noticeListPanel">
+      <div class="notice-list" id="noticeList"></div>
+    </div>
+
+    <!-- 상세 화면 -->
+    <div id="noticeDetailPanel" style="display:none">
+      <button class="notice-back" onclick="goNoticeList()">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> 목록으로
+      </button>
+      <article class="notice-detail">
+        <div class="notice-detail-head">
+          <h2 id="noticeDetailTitle"></h2>
+          <div class="notice-detail-meta" id="noticeDetailMeta"></div>
+        </div>
+        <div class="notice-detail-body" id="noticeDetailBody"></div>
+      </article>
+    </div>
+  </main>
+</div><!-- /noticeView -->
+
+<!-- ━━━━ SUBMIT VIEW (폰트 찾아주세요) ━━━━ -->
+<div id="submitView" style="display:none">
+  <section class="notice-hero">
+    <div class="hero-eyebrow"><i class="ti ti-search" aria-hidden="true"></i> FIND</div>
+    <h1 class="hero-title">폰트 찾아주세요</h1>
+    <p class="notice-hero-sub">어디선가 본 폰트, 사진을 올려주시면 확인 후 알려드려요</p>
+  </section>
+
+  <main class="main">
+    <div class="submit-toolbar">
+      <div class="submit-count"><strong id="submitCount">0</strong>개의 질문</div>
+      <button class="btn-primary" onclick="openSubmitForm()">
+        <i class="ti ti-camera-plus" aria-hidden="true"></i> 이미지로 물어보기
+      </button>
+    </div>
+
+    <div class="submit-list" id="submitList"></div>
+  </main>
+</div><!-- /submitView -->
+
+<!-- 폰트 찾기 요청 작성 모달 -->
+<div class="license-overlay" id="submitFormOverlay" role="dialog" aria-modal="true" aria-labelledby="submitFormTitle">
+  <div class="license-modal submit-form-modal">
+    <div class="license-head">
+      <div class="license-head-eyebrow"><i class="ti ti-search" aria-hidden="true"></i> FIND</div>
+      <h2 id="submitFormTitle">폰트 찾아주세요</h2>
+      <p>이미지와 설명을 남겨주시면 확인 후 알려드려요</p>
+      <button class="license-close" onclick="closeSubmitForm()" aria-label="닫기">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="submit-form-body">
+      <div class="form-row">
+        <label for="sfNickname">닉네임</label>
+        <input type="text" id="sfNickname" placeholder="익명" maxlength="50">
+      </div>
+      <div class="form-row">
+        <label>이미지 첨부</label>
+        <div class="sf-image-picker" id="sfImagePicker" onclick="document.getElementById('sfImageInput').click()">
+          <i class="ti ti-photo-plus" aria-hidden="true"></i>
+          <span>클릭해서 이미지 선택 (jpg, png, gif, webp / 최대 8MB)</span>
+        </div>
+        <input type="file" id="sfImageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" onchange="handleSfImageChange(this)">
+        <div class="sf-image-preview" id="sfImagePreview" style="display:none">
+          <img id="sfImagePreviewImg" alt="첨부 이미지 미리보기">
+          <button type="button" class="sf-image-remove" onclick="clearSfImage()" aria-label="이미지 제거">
+            <i class="ti ti-x" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="sfContent">설명</label>
+        <textarea id="sfContent" rows="4" placeholder="어디서 보셨는지, 어떤 느낌인지 알려주시면 찾는 데 도움이 돼요" maxlength="2000"></textarea>
+      </div>
+    </div>
+    <div class="license-foot submit-form-foot">
+      <button class="btn-primary" id="sfSubmitBtn" onclick="submitFontTip()">
+        <i class="ti ti-send" aria-hidden="true"></i> 질문 등록하기
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 제보 상세 보기 모달 -->
+<div class="license-overlay" id="submitDetailOverlay" role="dialog" aria-modal="true" aria-labelledby="submitDetailTitle">
+  <div class="license-modal submit-detail-modal">
+    <div class="license-head">
+      <div class="license-head-eyebrow" id="submitDetailStatus">대기중</div>
+      <h2 id="submitDetailTitle"></h2>
+      <p id="submitDetailMeta"></p>
+      <button class="license-close" onclick="closeSubmitDetail()" aria-label="닫기">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="submit-detail-body" id="submitDetailBody"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="policy.html" target="_blank" rel="noopener noreferrer">이용약관</a><a href="privacy.html" target="_blank" rel="noopener noreferrer">개인정보처리방침</a><a href="mailto:help@tdtd.io?subject=폰트제보">폰트제보</a><a href="mailto:help@tdtd.io?subject=문의하기">문의하기</a>
+  </div>
+  <div class="footer-divider"></div>
+  <div class="footer-company-name">(주)와이즈폰트</div>
+  <div class="footer-company-info">
+    <span>사업자등록번호 589-87-00921</span>
+    <span>대표 박종열</span>
+    <span>주소 서울시 영등포구 당산로16길 9-7 3층</span>
+    <span>통신판매업신고 제 2024-서울영등포-3037호</span>
+    <span>제휴문의 <a href="mailto:biz@wisefont.co.kr">biz@wisefont.co.kr</a></span>
+  </div>
+  <div class="footer-copyright">COPYRIGHT © (주)와이즈폰트 CO., LTD. ALL RIGHTS RESERVED.</div>
+</footer>
+
+<button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="맨 위로">
+  <i class="ti ti-arrow-up" aria-hidden="true"></i>
+</button>
+
+<!-- FLOATING BOTTOM AD (하단광고2) — AdSense 승인 대기 중 임시 비활성화
+<div class="floating-ad" id="floatingAd" aria-label="광고">
+  <div class="floating-ad-inner">
+    <button class="floating-ad-close" onclick="closeFloatingAd()" aria-label="광고 닫기">×</button>
+    <ins class="adsbygoogle"
+         style="display:inline-block;width:850px;height:120px;max-width:100%"
+         data-ad-client="ca-pub-6258337579944977"
+         data-ad-slot="1813844341"></ins>
+  </div>
+</div>
+-->
+
+<!-- 광고 자리 유지용 빈 placeholder (JS가 참조하므로 삭제하지 않음) -->
+<div class="floating-ad hidden" id="floatingAd" style="display:none" aria-hidden="true"></div>
+
+<!-- DOWNLOAD AD INTERSTITIAL (다운로드광고) -->
+<div class="dlad-overlay" id="dladOverlay" role="dialog" aria-modal="true" aria-labelledby="dladTitle">
+  <div class="dlad-modal">
+    <div class="dlad-head">
+      <div>
+        <div class="dlad-eyebrow"><i class="ti ti-download" aria-hidden="true"></i> 다운로드</div>
+        <h3 id="dladTitle">잠시만 기다려주세요</h3>
+        <p id="dladSub">아래 광고 확인 후 [닫기]를 누르면 다운로드 페이지로 이동합니다.</p>
+      </div>
+    </div>
+    <div class="dlad-body">
+      <div id="dladAdContainer">
+        <!-- 광고는 매번 동적으로 삽입 (push 가능하도록) -->
+      </div>
+    </div>
+    <div class="dlad-foot">
+      <button class="dlad-close-btn" onclick="closeDownloadAd()">
+        <span>닫기</span>
+        <small id="dladTargetName"></small>
+        <i class="ti ti-arrow-right" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TEXT DESIGNER MODAL -->
+<div class="designer-overlay" id="designerOverlay" role="dialog" aria-modal="true" aria-labelledby="designerTitle">
+  <div class="designer-sheet">
+    <div class="designer-head">
+      <strong id="designerTitle">텍스트 디자인</strong>
+      <button class="designer-close" onclick="closeDesigner()" aria-label="닫기"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="designer-body">
+      <textarea id="dsText" maxlength="80" rows="2" placeholder="문구를 입력하세요">안녕하세요</textarea>
+      <div class="designer-preview-label">
+        <span>미리보기</span><em>보이는 그대로 저장 · 배경 투명 PNG</em>
+      </div>
+      <div class="designer-preview"><canvas id="dsCanvas" width="300" height="120"></canvas></div>
+      <div class="designer-tabs">
+        <button class="designer-tab active" data-dtab="style">스타일</button>
+        <button class="designer-tab" data-dtab="detail">디테일</button>
+      </div>
+      <div class="designer-panel active" data-dpanel="style">
+        <div class="designer-subtabs">
+          <button class="designer-subtab active" data-dsub="effect">효과</button>
+          <button class="designer-subtab" data-dsub="textcolor">글자색</button>
+          <button class="designer-subtab" data-dsub="outline">외곽선</button>
+        </div>
+        <div class="designer-subpanel active" data-dsubpanel="effect"><div class="fx-grid" id="dsFxGrid"></div></div>
+        <div class="designer-subpanel" data-dsubpanel="textcolor"><div class="clr-grid" id="dsTextColorGrid"></div></div>
+        <div class="designer-subpanel" data-dsubpanel="outline"><div class="clr-grid" id="dsOutlineGrid"></div></div>
+      </div>
+      <div class="designer-panel" data-dpanel="detail">
+        <div class="designer-row"><label>굵게</label><button class="dtoggle" id="dsBold"></button></div>
+        <div class="designer-row"><label>밑줄</label><button class="dtoggle" id="dsUnderline"></button></div>
+        <div class="designer-row"><label>자간</label><input type="range" id="dsSpacing" min="-4" max="12" value="0"></div>
+        <div class="designer-row"><label>줄간격</label><input type="range" id="dsLineHeight" min="10" max="22" value="13"></div>
+        <div class="designer-row"><label>정렬</label>
+          <div class="dalign">
+            <button data-dalign="left" class="active" aria-label="왼쪽 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="13" y2="12"/><line x1="4" y1="18" x2="17" y2="18"/></svg></button>
+            <button data-dalign="center" aria-label="가운데 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7.5" y1="12" x2="16.5" y2="12"/><line x1="5.5" y1="18" x2="18.5" y2="18"/></svg></button>
+            <button data-dalign="right" aria-label="오른쪽 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="11" y1="12" x2="20" y2="12"/><line x1="7" y1="18" x2="20" y2="18"/></svg></button>
+          </div>
+        </div>
+        <div class="designer-row" style="align-items:flex-start"><label style="padding-top:4px">하이라이트</label><div class="dhl" id="dsHlRow"></div></div>
+      </div>
+      <div class="designer-adslot" id="designerAdSlot" style="display:none">
+        <!-- AdSense 승인 후 이 자리에 배너 ins 태그 삽입 -->
+        광고 영역
+      </div>
+      <button class="designer-save" onclick="startDesignerSave()"><i class="ti ti-download" aria-hidden="true"></i> PNG로 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- DESIGNER SAVE INTERSTITIAL -->
+<div class="dsave-overlay" id="dsaveOverlay">
+  <div class="dsave-card">
+    <div class="dsave-visual" id="dsaveVisual">
+      <div id="dsaveLabel">&#9654; 광고 재생 중</div>
+      <div id="dsaveCountdown" style="font-size:26px">3</div>
+    </div>
+    <div style="display:none;padding:16px 16px 0" id="dsaveImgWrap">
+      <img id="dsaveImg" alt="저장할 텍스트 디자인 이미지" style="width:100%;border-radius:12px;display:block;background:repeating-conic-gradient(var(--bg-secondary) 0% 25%, transparent 0% 50%) 50% / 20px 20px">
+    </div>
+    <div class="dsave-info">
+      <p id="dsaveHint">잠시 후 저장할 수 있어요.</p>
+      <button class="dsave-btn" id="dsaveActionBtn" disabled>잠시만요 (3)</button>
+      <button class="dsave-sub" onclick="document.getElementById('dsaveOverlay').classList.remove('open')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- LICENSE MODAL -->
+<div class="license-overlay" id="licenseOverlay" role="dialog" aria-modal="true" aria-labelledby="licenseTitle">
+  <div class="license-modal">
+    <div class="license-head">
+      <div class="license-head-eyebrow"><i class="ti ti-license" aria-hidden="true"></i> LICENSE</div>
+      <h2 id="licenseTitle">라이선스 요약표</h2>
+      <p>큐레이션된 폰트의 일반적인 사용 범위 안내</p>
+      <button class="license-close" onclick="closeLicense()" aria-label="닫기">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="license-body">
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-printer" aria-hidden="true"></i></div>
+            <div class="license-item-name">인쇄</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">브로슈어, 포스터, 책, 잡지 및 출판용 인쇄물 등</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-world" aria-hidden="true"></i></div>
+            <div class="license-item-name">웹사이트</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">웹페이지, 광고 배너, 메일, E-브로슈어 등</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-package" aria-hidden="true"></i></div>
+            <div class="license-item-name">포장지</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">판매용 상품의 패키지</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-video" aria-hidden="true"></i></div>
+            <div class="license-item-name">영상</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">유튜브, CF, 상업영화, 뮤직비디오, 영상 자막, 영상 오프닝/엔딩 크레딧 등</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-code" aria-hidden="true"></i></div>
+            <div class="license-item-name">임베딩</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">웹사이트 및 프로그램 서버 내 폰트 탑재, E-book 제작</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-building-store" aria-hidden="true"></i></div>
+            <div class="license-item-name">BI/CI</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">회사명, 브랜드명, 상품명, 로고, 마크, 슬로건, 캐치프레이즈</p>
+      </div>
+
+      <div class="license-item is-ofl" style="grid-column:1/-1">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-ban" aria-hidden="true"></i></div>
+            <div class="license-item-name">OFL</div>
+          </div>
+          <span class="license-status deny">금지</span>
+        </div>
+        <p class="license-item-desc">폰트 파일의 수정·복제·배포 및 유료 판매 모두 금지</p>
+      </div>
+    </div>
+
+    <div class="license-foot">
+      <p>※ 위 사용범위는 <strong>참고용</strong>으로, 정확한 사용범위는 이용 전 폰트 저작권자에게 확인 바랍니다.</p>
+      <p>사용범위는 저작권자의 규정에 따라 달라질 수 있습니다. 조건부 허용의 경우, 사용 조건을 꼭 원본 라이선스 내용에서 확인 후 이용하세요.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 공유 데이터 레이어 (관리자 페이지와 동일 파일을 사용) -->
+<script src="/static/api-client.js"></script>
+<script>
+let FONTS=[];
+let currentTag='all';
+/* ── 좋아요 저장 (localStorage 영구 저장) ── */
+const LIKE_KEYS = { liked: 'tadak_liked_v1', counts: 'tadak_like_counts_v1' };
+function loadLikes(){
+  try {
+    const likedRaw = localStorage.getItem(LIKE_KEYS.liked);
+    const countsRaw = localStorage.getItem(LIKE_KEYS.counts);
+    return {
+      liked: new Set(likedRaw ? JSON.parse(likedRaw) : []),
+      counts: countsRaw ? JSON.parse(countsRaw) : {}
+    };
+  } catch(e) { return { liked: new Set(), counts: {} }; }
+}
+function saveLikes(){
+  try {
+    localStorage.setItem(LIKE_KEYS.liked, JSON.stringify([...likedSet]));
+    localStorage.setItem(LIKE_KEYS.counts, JSON.stringify(likeCounts));
+  } catch(e){}
+}
+const _likeState = loadLikes();
+const likedSet = _likeState.liked;
+const likeCounts = _likeState.counts;
+let currentFontSize=26;
+
+function getPreviewText(){
+  return document.getElementById('previewText').value.trim() || DEFAULT_PREVIEW;
+}
+const DEFAULT_PREVIEW = '기적처럼 내게 왔으니 별처럼 빛나주세요';
+/* 사용자가 미리보기 입력창에 직접 문구를 입력했는지 (기본값 그대로면 false) */
+function isCustomPreview(){
+  const v = document.getElementById('previewText').value.trim();
+  return v !== '' && v !== DEFAULT_PREVIEW;
+}
+
+/* ── 폰트별 고유 미리보기 문구 풀 ──
+   사용자가 문구를 직접 입력하기 전에는 폰트마다 서로 다른 문구가 표시됨.
+   admin에서 폰트별 문구(meta.preview_text)를 지정하면 그것이 최우선. */
+const KO_PREVIEW_POOL = [
+  '오늘도 좋은 하루가 시작되었어요','골목 끝 작은 서점의 오후 세 시','따뜻한 커피 한 잔의 여유로운 아침',
+  '창밖으로 첫눈이 소복소복 내려요','바다가 보이는 창가 자리로 주세요','봄바람에 실려 온 벚꽃 향기처럼',
+  '너의 하루는 오늘도 반짝였을까','한 걸음씩 천천히 가도 괜찮아요','달빛 아래 고요히 흐르는 강물처럼',
+  '지금 이 순간이 가장 빛나는 시간','읽고 싶은 책이 쌓여가는 즐거움','여행은 언제나 옳다, 떠나자 지금',
+  '갓 구운 빵 냄새 가득한 골목길','초록이 짙어지는 유월의 숲속에서','손편지에 꾹꾹 눌러 담은 진심',
+  '별이 쏟아지는 밤하늘을 담아서','매일 조금씩 자라나는 마음의 키','고양이와 함께하는 나른한 일요일',
+  '빗소리를 들으며 잠드는 밤이 좋아','네가 웃으면 나도 따라 웃게 돼','오래된 노래가 문득 생각나는 밤',
+  '가을 하늘은 눈부시게 높고 파랗다','포근한 이불 속 세상에서 제일 행복','시작이 반이다, 오늘 바로 시작해요',
+  '천천히 우려낸 차 한 잔의 온기','반짝이는 윤슬을 바라보던 그 여름','내일의 나에게 보내는 응원 한마디',
+  '작은 습관이 모여 큰 변화가 된다','골목마다 숨어있는 맛집을 찾아서','흐린 날에도 마음만은 맑음이기를',
+  '노을이 물드는 하늘을 함께 봐요','좋아하는 일을 오래 하고 싶어요','새벽 공기를 가르며 달리는 기분',
+  '단골 카페의 늘 앉던 그 자리','꽃 한 송이로 충분히 행복한 날','겨울밤엔 역시 귤과 따뜻한 코코아',
+  '수고했어요, 오늘도 정말 애썼어요','마음이 머무는 곳이 곧 집이에요','파도 소리를 배경음악 삼아 낮잠을',
+  '첫 페이지를 넘기는 설레는 기분','당신의 취향이 가장 정확한 답이다','늦은 밤 라면은 언제나 진리입니다',
+  '캠핑장의 모닥불이 타닥타닥 타요','기록은 기억보다 오래 남는 법이죠','휴일 아침 늦잠만큼 달콤한 게 있을까',
+  '설레는 마음을 안고 떠나는 첫차','우리 동네 산책 코스를 소개합니다','할 수 있다고 믿으면 이미 절반은 성공',
+  '반가워요, 처음 뵙겠습니다 잘 부탁해요','좋은 글은 마음을 오래 붙잡아둔다','한여름 밤의 시원한 수박 한 조각',
+  '지친 하루 끝엔 맥주 한 캔의 위로','책갈피 사이에 끼워둔 네잎클로버','내 방 창가에서 키우는 작은 화분',
+  '아무것도 안 하는 날도 필요해요','스무 살의 나에게 해주고 싶은 말','단풍잎을 주워 책 사이에 끼웠다',
+  '눈 오는 날엔 어묵 국물이 최고죠','목표를 적으면 이루어질 확률이 커진다','오늘의 플레이리스트를 공유합니다',
+  '느리게 걸어야 보이는 것들이 있다','정성껏 차린 집밥 한 상의 감동','매주 금요일 저녁이 기다려지는 이유',
+  '빛나는 청춘의 한가운데를 지나며','다정한 말 한마디가 하루를 바꾼다','새 노트 첫 장에 쓰는 다짐 한 줄',
+  '비 온 뒤 땅이 더 단단해지듯이','주말 아침 시장 구경 가실 분 여기','달리기를 시작한 지 백 일째 되는 날',
+  '커튼 사이로 스며드는 아침 햇살','실패는 성공으로 가는 계단일 뿐','제주 바다색을 닮은 하늘색 원피스',
+  '퇴근길 버스 창가 자리의 행복','뜨끈한 국밥 한 그릇이면 충분해','흔들리며 피지 않는 꽃이 어디 있으랴',
+  '오늘 밤 주인공은 바로 당신입니다','같이 걷는 길이라서 더 좋았어요','도서관 특유의 종이 냄새가 좋다',
+  '한 뼘 더 자란 마음을 발견한 날','겨울 바다는 여름보다 낭만적이다','시간을 달리는 소년의 모험 이야기',
+  '엄마의 김치찌개는 세상에서 제일','너무 애쓰지 않아도 괜찮은 하루','불 꺼진 방에서 듣는 새벽 감성 음악',
+  '어제보다 나은 오늘이면 충분하다','우산 속 두 사람의 어깨가 닿았다','첫 월급으로 부모님께 선물을 샀다',
+  '숲속 오두막에서 보내는 일주일','디저트는 언제나 배부른 뒤에 시작','반짝이는 아이디어가 떠오른 순간',
+  '골목 어귀 포장마차의 붕어빵 냄새','일단 저지르고 수습은 나중에 하자','네 꿈을 응원해, 언제나 네 편이야',
+  '보고 싶다는 말 대신 안부를 묻는다','한 장의 사진이 천 마디를 말한다','일요일 오후 네 시의 낮잠 예찬',
+  '초심을 잃지 않는 사람이 되고 싶다','밤하늘 별자리 이름을 외우던 시절','따끈한 찐빵을 호호 불며 먹는 겨울',
+  '내가 좋아하는 것들을 모아둔 상자','천 리 길도 한 걸음부터 시작된다'
+];
+const EN_PREVIEW_POOL = [
+  'Coffee first, then we can talk about it','Stay curious and keep exploring the world',
+  'Good design is honest and speaks clearly','A little progress each day adds up big',
+  'Sunset drives and open roads ahead of us','Make it simple, but make it significant',
+  'Books, rain, and a warm cup of tea','Dream big, start small, act right now',
+  'The best view comes after the hardest climb','Collect moments, not things, my friend',
+  'Creativity takes courage and lots of coffee','Do more of what makes you truly happy',
+  'Every day is a fresh new beginning','Kindness is free, sprinkle it everywhere',
+  'Adventure awaits just beyond your comfort zone','Slow mornings and quiet cups of coffee',
+  'Typography is what language looks like','Small steps every day lead to big change',
+  'Chase the light wherever it may lead you','Less noise, more meaningful conversations',
+  'Weekend plans: nothing, and lots of it','Great things never come from comfort zones',
+  'Handwritten letters never go out of style','The ocean breeze fixes almost everything',
+  'Design is thinking made beautifully visible','Take the scenic route home tonight',
+  'Fresh bread, old books, and slow Sundays','Your only limit is your imagination',
+  'Music sounds better on rainy evenings','Bloom where you are planted, always'
+];
+
+/* 폰트별 문구 결정: ① admin 지정(meta.preview_text) → ② 풀에서 id 기반 자동 배정 */
+function fontOwnPreview(f){
+  if(f && f.meta && f.meta.preview_text) return f.meta.preview_text;
+  const pool = (f && f.isEnglish) ? EN_PREVIEW_POOL : KO_PREVIEW_POOL;
+  return pool[(f ? f.id : 0) % pool.length];
+}
+
+/* 영문 폰트는 영문 미리보기 문구 사용 */
+const ENGLISH_PREVIEW = 'The quick brown fox jumps over the lazy dog';
+function getPreviewTextFor(font){
+  /* 사용자가 문구를 직접 입력했다면 전체 카드에 그 문구 적용 (영문 폰트는 기존처럼 영문 유지) */
+  if(isCustomPreview()) return (font && font.isEnglish) ? ENGLISH_PREVIEW : getPreviewText();
+  /* 그 외에는 폰트마다 서로 다른 고유 문구 */
+  return fontOwnPreview(font);
+}
+function updatePreviews(){
+  document.querySelectorAll('.font-preview-text').forEach(el=>{
+    // 사용자가 직접 입력한 카드는 건드리지 않음
+    if(el.classList.contains('is-custom')) return;
+    const card = el.closest('[data-font-id]');
+    const f = card ? FONTS.find(x=>x.id===parseInt(card.dataset.fontId,10)) : null;
+    el.textContent = getPreviewTextFor(f);
+  });
+}
+function updateFontSize(v){
+  currentFontSize=parseInt(v);
+  document.getElementById('fontSizeVal').textContent=v+'px';
+  document.querySelectorAll('.font-preview-text').forEach(el=>el.style.fontSize=v+'px');
+}
+
+/* ── 미리보기 문구 프리셋 (펼침/선택) ── */
+function togglePreviewPresets(){
+  const panel = document.getElementById('previewPresets');
+  const btn = document.getElementById('previewToggleBtn');
+  const isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  btn.setAttribute('aria-expanded', String(isOpen));
+}
+function applyPresetText(btnEl, text){
+  const input = document.getElementById('previewText');
+  input.value = text;
+  updatePreviews();
+  // 선택된 칩 활성 표시 (나머지는 해제)
+  document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+}
+/* 사용자가 입력창을 직접 수정하면 프리셋 활성 표시 해제 */
+function clearPresetActive(){
+  document.querySelectorAll('.preset-chip.active').forEach(chip => chip.classList.remove('active'));
+}
+
+/* ════════════════════════════════════════════
+   개별 카드 미리보기 — 클릭하면 직접 텍스트 입력 가능
+   카드별로 독립적으로 동작. 상단 입력창과 영문 자동 전환은 영향 없음.
+════════════════════════════════════════════ */
+function handlePreviewFocus(el){
+  // 포커스 시 텍스트 전체 선택 (사용자가 바로 새 텍스트 타이핑하기 편함)
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+function handlePreviewInput(el){
+  // 입력 시작하는 순간 "사용자 직접 입력" 상태로 표시
+  el.classList.add('is-custom');
+}
+function handlePreviewKeydown(e, el){
+  // Enter 누르면 줄바꿈 막고 포커스 해제 (편집 종료)
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    el.blur();
+  }
+  // Esc 누르면 편집 취소 — 원래 텍스트로 복원
+  if(e.key === 'Escape'){
+    e.preventDefault();
+    const card = el.closest('[data-font-id]');
+    const f = card ? FONTS.find(x=>x.id===parseInt(card.dataset.fontId,10)) : null;
+    el.textContent = getPreviewTextFor(f);
+    el.classList.remove('is-custom');
+    el.blur();
+  }
+}
+function handlePreviewBlur(el){
+  // 빈 상태로 포커스 잃으면 기본값으로 되돌림
+  const text = el.textContent.trim();
+  if(!text){
+    const card = el.closest('[data-font-id]');
+    const f = card ? FONTS.find(x=>x.id===parseInt(card.dataset.fontId,10)) : null;
+    el.textContent = getPreviewTextFor(f);
+    el.classList.remove('is-custom');
+  }
+}
+
+function setTag(tag,el){
+  currentTag=tag;
+  document.querySelectorAll('.tag').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  // 카테고리 클릭 시: 검색창 클리어 + hash 초기화 (홈 상태)
+  const input = document.getElementById('globalSearch');
+  if(input && input.value){
+    input.value = '';
+  }
+  if(location.hash.startsWith('#search/')){
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+  renderFonts();
+}
+
+/* 검색창 입력: 디바운스 후 hash 동기화 (뒤로가기로 복귀 가능) */
+let _searchHashTimer = null;
+function filterFonts(){
+  // 새 검색 시작 시 추천 카운트 초기화
+  _recommendShowCount = 5;
+  renderFonts();
+  // hash 업데이트는 디바운스 — 타이핑 한 글자마다 history 쌓이지 않도록
+  clearTimeout(_searchHashTimer);
+  const q = document.getElementById('globalSearch').value.trim();
+  _searchHashTimer = setTimeout(() => {
+    const targetHash = q ? '#search/' + encodeURIComponent(q) : '';
+    const currentHash = location.hash;
+    if(targetHash !== currentHash){
+      if(q){
+        // 새 검색 시작 시점에 한 번만 history push
+        if(currentHash.startsWith('#search/')){
+          // 이미 검색 상태 — replace로 갱신 (같은 화면 내 검색어 수정)
+          history.replaceState(null, '', targetHash);
+        } else {
+          // 다른 상태 → 검색 진입 (push해서 뒤로가기 가능)
+          history.pushState(null, '', targetHash);
+        }
+      } else {
+        // 검색어 비움 → 홈 hash로 복귀 (replace)
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+    }
+  }, 400);
+}
+
+function getFilteredFonts(){
+  const sort=document.querySelector('.sort-select').value;
+  const q=(document.getElementById('globalSearch').value||'').trim().toLowerCase();
+  let list=[...FONTS];
+  if(currentTag!=='all') list=list.filter(f=>f.tags.includes(currentTag));
+
+  if(q){
+    // 1단계: 일반 텍스트 검색 (폰트명/제작자/카테고리)
+    const textMatches = list.filter(f =>
+      f.name.toLowerCase().includes(q) ||
+      f.maker.toLowerCase().includes(q) ||
+      f.tags.some(t => t.toLowerCase().includes(q))
+    );
+
+    // 2단계: 추천 키워드 매칭 시도
+    const recommendations = recommendFonts(q, list);
+
+    if(textMatches.length > 0){
+      // 텍스트 매칭이 있으면 우선 표시
+      list = textMatches;
+    } else if(recommendations.length > 0){
+      // 추천 결과 (이미 점수순 정렬됨)
+      list = recommendations;
+      // sort 무시하고 추천 점수 순서 유지 (아래 sort 단계 스킵)
+      return list;
+    } else {
+      list = [];
+    }
+  }
+
+  if(sort==='popular') list.sort((a,b)=>(likeCounts[b.id]||0)-(likeCounts[a.id]||0));
+  else if(sort==='name') list.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  // 'curator' (기본값): FONTS 배열의 저장 순서 그대로 유지 — 관리자가 정한 순서
+  return list;
+}
+
+/* ════════════════════════════════════════════════════
+   폰트 추천 키워드 사전 (237개)
+   사용자 자연어 입력 → 메타데이터 태그 매핑
+════════════════════════════════════════════════════ */
+const RECOMMEND_KEYWORDS = {
+  '따뜻한':{mood:["따뜻한", "부드러운", "친근한"]},
+  '따뜻':{mood:["따뜻한", "부드러운", "친근한"]},
+  '따스한':{mood:["따뜻한", "부드러운"]},
+  '따스':{mood:["따뜻한", "부드러운"]},
+  '포근한':{mood:["따뜻한", "부드러운"]},
+  '포근':{mood:["따뜻한", "부드러운"]},
+  '아늑한':{mood:["따뜻한", "감성적"]},
+  '아늑':{mood:["따뜻한", "감성적"]},
+  '온화한':{mood:["따뜻한", "부드러운"]},
+  '온순한':{mood:["부드러운", "친근한"]},
+  '훈훈한':{mood:["따뜻한", "친근한"]},
+  '다정한':{mood:["따뜻한", "친근한"]},
+  '다정':{mood:["따뜻한", "친근한"]},
+  '정겨운':{mood:["따뜻한", "친근한"]},
+  '정감':{mood:["따뜻한", "친근한"]},
+  '부드러운':{mood:["부드러운", "친근한"]},
+  '부드러':{mood:["부드러운", "친근한"]},
+  '말랑한':{mood:["부드러운", "장난스러운"]},
+  '말랑':{mood:["부드러운", "장난스러운"]},
+  '폭신한':{mood:["부드러운"]},
+  '말캉한':{mood:["부드러운", "장난스러운"]},
+  '소프트':{mood:["부드러운"]},
+  '편안한':{mood:["친근한", "부드러운"]},
+  '편안':{mood:["친근한", "부드러운"]},
+  '편한':{mood:["친근한"],formality:'캐주얼'},
+  '잔잔한':{mood:["부드러운", "감성적"]},
+  '잔잔':{mood:["부드러운", "감성적"]},
+  '여유로운':{mood:["부드러운"]},
+  '감성':{mood:["감성적", "부드러운"]},
+  '감성적':{mood:["감성적", "부드러운"]},
+  '감성적인':{mood:["감성적", "부드러운"]},
+  '서정적':{mood:["감성적"],personality:["전통적"]},
+  '서정':{mood:["감성적"],personality:["전통적"]},
+  '낭만적':{mood:["감성적", "고급스러운"]},
+  '낭만':{mood:["감성적", "고급스러운"]},
+  '로맨틱':{mood:["감성적", "고급스러운"],personality:["여성적"]},
+  '로멘틱':{mood:["감성적", "고급스러운"],personality:["여성적"]},
+  '몽환적':{mood:["감성적", "꿈같은", "독특한"]},
+  '몽환':{mood:["감성적", "꿈같은"]},
+  '꿈같은':{mood:["꿈같은", "감성적"]},
+  '꿈결':{mood:["꿈같은", "감성적"]},
+  '환상적':{mood:["꿈같은", "독특한"]},
+  '아련한':{mood:["감성적", "꿈같은"]},
+  '아련':{mood:["감성적", "꿈같은"]},
+  '센치한':{mood:["감성적"]},
+  '센치':{mood:["감성적"]},
+  '시적인':{mood:["감성적"]},
+  '시적':{mood:["감성적"]},
+  '서사적':{mood:["진중한", "감성적"]},
+  '강한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강렬한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강렬':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강조':{mood:["임팩트"],weight_feel:'굵음'},
+  '강인한':{mood:["강인한", "임팩트"]},
+  '강인':{mood:["강인한", "임팩트"]},
+  '굵은':{weight_feel:'굵음'},
+  '굵직한':{mood:["임팩트"],weight_feel:'굵음'},
+  '두꺼운':{weight_feel:'굵음'},
+  '진한':{mood:["임팩트"],weight_feel:'굵음'},
+  '진중한':{mood:["진중한"],formality:'격식'},
+  '임팩트':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '임팩트있는':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '눈에띄는':{mood:["임팩트"],usage:["제목", "캐치프레이즈"],weight_feel:'굵음'},
+  '눈길':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '시선':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '주목':{mood:["임팩트"],weight_feel:'굵음'},
+  '주목받는':{mood:["임팩트"],weight_feel:'굵음'},
+  '존재감':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '카리스마':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '파워':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '파워풀':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '박력':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '대담한':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '대담':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '볼드':{weight_feel:'굵음'},
+  '도전적':{mood:["임팩트"]},
+  '터프한':{mood:["강인한", "임팩트"],personality:["남성적"]},
+  '터프':{mood:["강인한", "임팩트"],personality:["남성적"]},
+  '핫한':{mood:["임팩트"],personality:["현대적"]},
+  '얇은':{weight_feel:'얇음'},
+  '가는':{weight_feel:'얇음'},
+  '가느다란':{weight_feel:'얇음'},
+  '날렵한':{mood:["깔끔한"],weight_feel:'얇음'},
+  '슬림':{weight_feel:'얇음'},
+  '라이트':{weight_feel:'얇음'},
+  '섬세한':{mood:["고급스러운"],weight_feel:'얇음'},
+  '섬세':{mood:["고급스러운"],weight_feel:'얇음'},
+  '여린':{mood:["부드러운"],weight_feel:'얇음'},
+  '연약한':{mood:["부드러운"],weight_feel:'얇음'},
+  '우아한':{mood:["고급스러운", "감성적"],personality:["여성적"]},
+  '우아':{mood:["고급스러운", "감성적"],personality:["여성적"]},
+  '엘레강스':{mood:["고급스러운"],personality:["여성적"]},
+  '여성적':{mood:["부드러운", "감성적"],personality:["여성적"]},
+  '여성스러운':{mood:["부드러운"],personality:["여성적"]},
+  '여리여리':{mood:["부드러운"],personality:["여성적"]},
+  '남성적':{mood:["강인한"],personality:["남성적"]},
+  '남성스러운':{mood:["강인한"],personality:["남성적"]},
+  '중성적':{personality:["중성적"]},
+  '유니섹스':{personality:["중성적"]},
+  '젠더리스':{personality:["중성적"]},
+  '고급':{mood:["고급스러운"],formality:'격식'},
+  '고급스러운':{mood:["고급스러운"],formality:'격식'},
+  '고급스러':{mood:["고급스러운"],formality:'격식'},
+  '럭셔리':{mood:["고급스러운"],formality:'격식'},
+  '럭셔리한':{mood:["고급스러운"],formality:'격식'},
+  '럭스':{mood:["고급스러운"]},
+  '명품':{mood:["고급스러운"],formality:'격식'},
+  '프리미엄':{mood:["고급스러운"],formality:'격식'},
+  '품격':{mood:["고급스러운", "진중한"],formality:'격식'},
+  '기품':{mood:["고급스러운", "진중한"]},
+  '고상한':{mood:["고급스러운", "진중한"]},
+  '고풍스러운':{mood:["고급스러운"],personality:["전통적"]},
+  '클래식':{mood:["고급스러운", "진중한"],personality:["전통적"]},
+  '클래시컬':{mood:["고급스러운"],personality:["전통적"]},
+  '세련된':{mood:["고급스러운"],personality:["현대적"]},
+  '세련':{mood:["고급스러운"],personality:["현대적"]},
+  '시크한':{mood:["고급스러운"],personality:["현대적"]},
+  '시크':{mood:["고급스러운"],personality:["현대적"]},
+  '도시적':{mood:["깔끔한"],personality:["현대적"]},
+  '도시':{mood:["깔끔한"],personality:["현대적"]},
+  '스타일리시':{mood:["고급스러운"],personality:["현대적"]},
+  '쿨한':{mood:["깔끔한"],personality:["현대적"]},
+  '쿨':{mood:["깔끔한"],personality:["현대적"]},
+  '미니멀':{mood:["깔끔한"],personality:["현대적"]},
+  '미니멀한':{mood:["깔끔한"],personality:["현대적"]},
+  '심플':{mood:["깔끔한"],personality:["현대적"]},
+  '심플한':{mood:["깔끔한"],personality:["현대적"]},
+  '간결한':{mood:["깔끔한"]},
+  '간결':{mood:["깔끔한"]},
+  '단정한':{mood:["깔끔한", "진중한"]},
+  '단정':{mood:["깔끔한", "진중한"]},
+  '깔끔한':{mood:["깔끔한"]},
+  '깔끔':{mood:["깔끔한"]},
+  '깨끗한':{mood:["깔끔한"]},
+  '깨끗':{mood:["깔끔한"]},
+  '클린':{mood:["깔끔한"],personality:["현대적"]},
+  '말끔한':{mood:["깔끔한"]},
+  '명료한':{mood:["깔끔한", "신뢰감"]},
+  '힙한':{mood:["독특한"],personality:["현대적"]},
+  '힙':{mood:["독특한"],personality:["현대적"]},
+  '트렌디':{mood:["독특한"],personality:["현대적"]},
+  '트렌디한':{mood:["독특한"],personality:["현대적"]},
+  '트렌드':{personality:["현대적"]},
+  '모던':{mood:["깔끔한"],personality:["현대적"]},
+  '모던한':{mood:["깔끔한"],personality:["현대적"]},
+  '현대적':{personality:["현대적"]},
+  '현대적인':{personality:["현대적"]},
+  '최신':{personality:["현대적"]},
+  '요즘':{personality:["현대적"]},
+  '요새':{personality:["현대적"]},
+  'MZ':{personality:["현대적", "어린이"]},
+  'mz':{personality:["현대적", "어린이"]},
+  '신선한':{personality:["현대적"]},
+  '신선':{personality:["현대적"]},
+  '미래적':{mood:["독특한"],personality:["미래적"]},
+  '미래':{personality:["미래적"]},
+  '미래적인':{mood:["독특한"],personality:["미래적"]},
+  '퓨처':{personality:["미래적"]},
+  '퓨처리스틱':{mood:["독특한"],personality:["미래적"]},
+  '테크':{industry:["IT"],personality:["미래적", "현대적"]},
+  '테크니컬':{industry:["IT"],personality:["미래적"]},
+  '디지털':{industry:["IT"],personality:["미래적", "현대적"]},
+  '하이테크':{industry:["IT"],personality:["미래적"]},
+  '사이버':{mood:["독특한"],personality:["미래적"]},
+  '신기술':{industry:["IT"],personality:["미래적"]},
+  '혁신':{personality:["미래적", "현대적"]},
+  '혁신적':{personality:["미래적", "현대적"]},
+  '전통':{mood:["진중한"],personality:["전통적"]},
+  '전통적':{personality:["전통적"]},
+  '전통적인':{personality:["전통적"]},
+  '한국적':{mood:["진중한"],personality:["전통적"]},
+  '한국적인':{mood:["진중한"],personality:["전통적"]},
+  '한국풍':{personality:["전통적"]},
+  '한식':{industry:["푸드"],personality:["전통적"]},
+  '한복':{mood:["고급스러운"],personality:["전통적"]},
+  '한옥':{mood:["진중한"],personality:["전통적"]},
+  '국악':{personality:["전통적"]},
+  '동양':{personality:["전통적"]},
+  '동양적':{personality:["전통적"]},
+  '고전':{mood:["진중한"],personality:["전통적"]},
+  '고전적':{mood:["진중한"],personality:["전통적"]},
+  '복고':{mood:["독특한"],personality:["복고적"]},
+  '복고풍':{mood:["독특한"],personality:["복고적"]},
+  '레트로':{mood:["독특한"],personality:["복고적"]},
+  '레트로풍':{mood:["독특한"],personality:["복고적"]},
+  '빈티지':{mood:["독특한"],personality:["복고적"]},
+  '빈티지한':{mood:["독특한"],personality:["복고적"]},
+  '뉴트로':{mood:["독특한"],personality:["복고적", "현대적"]},
+  '아날로그':{mood:["감성적"],personality:["복고적"]},
+  '추억':{mood:["감성적"],personality:["복고적"]},
+  '8090':{personality:["복고적"]},
+  '90년대':{personality:["복고적"]},
+  '80년대':{personality:["복고적"]},
+  '70년대':{personality:["복고적"]},
+  '옛날':{personality:["전통적", "복고적"]},
+  '옛것':{personality:["전통적", "복고적"]},
+  '친근한':{mood:["친근한"],formality:'캐주얼'},
+  '친근':{mood:["친근한"],formality:'캐주얼'},
+  '친숙한':{mood:["친근한"],formality:'캐주얼'},
+  '캐주얼':{formality:'캐주얼'},
+  '캐쥬얼':{formality:'캐주얼'},
+  '일상적':{formality:'캐주얼'},
+  '일상':{formality:'캐주얼'},
+  '자유로운':{mood:["독특한"],formality:'캐주얼'},
+  '자유':{formality:'캐주얼'},
+  '소박한':{mood:["친근한", "부드러운"]},
+  '소박':{mood:["친근한", "부드러운"]},
+  '진지한':{mood:["진중한"],formality:'격식'},
+  '진지':{mood:["진중한"],formality:'격식'},
+  '격식':{formality:'격식'},
+  '격식있는':{mood:["진중한"],formality:'격식'},
+  '공식적':{mood:["진중한", "신뢰감"],formality:'격식'},
+  '공식':{mood:["진중한"],formality:'격식'},
+  '엄숙한':{mood:["진중한"],formality:'격식'},
+  '점잖은':{mood:["진중한"],formality:'격식'},
+  '점잖':{mood:["진중한"],formality:'격식'},
+  '신뢰감':{mood:["신뢰감", "진중한"]},
+  '신뢰':{mood:["신뢰감", "진중한"]},
+  '신뢰감있는':{mood:["신뢰감", "진중한"]},
+  '안정적':{mood:["신뢰감"]},
+  '안정감':{mood:["신뢰감"]},
+  '믿음직한':{mood:["신뢰감"]},
+  '믿을':{mood:["신뢰감"]},
+  '안전한':{mood:["신뢰감"]},
+  '단단한':{mood:["강인한", "신뢰감"]},
+  '튼튼한':{mood:["신뢰감", "강인한"]},
+  '견고한':{mood:["신뢰감", "강인한"]},
+  '권위':{mood:["진중한"],formality:'격식'},
+  '권위적':{mood:["진중한"],formality:'격식'},
+  '위엄':{mood:["진중한"],formality:'격식'},
+  '장난스러운':{mood:["장난스러운"],formality:'캐주얼'},
+  '장난스런':{mood:["장난스러운"],formality:'캐주얼'},
+  '장난':{mood:["장난스러운"],formality:'캐주얼'},
+  '귀여운':{mood:["장난스러운", "친근한"],personality:["어린이", "여성적"]},
+  '귀여움':{mood:["장난스러운", "친근한"],personality:["어린이"]},
+  '귀여':{mood:["장난스러운", "친근한"],personality:["어린이"]},
+  '귀엽':{mood:["장난스러운", "친근한"],personality:["어린이"]},
+  '깜찍한':{mood:["장난스러운"],personality:["어린이"]},
+  '깜찍':{mood:["장난스러운"],personality:["어린이"]},
+  '발랄한':{mood:["장난스러운", "친근한"]},
+  '발랄':{mood:["장난스러운", "친근한"]},
+  '경쾌한':{mood:["장난스러운", "친근한"]},
+  '경쾌':{mood:["장난스러운", "친근한"]},
+  '활기찬':{mood:["장난스러운", "임팩트"]},
+  '활기':{mood:["장난스러운", "임팩트"]},
+  '명랑한':{mood:["장난스러운", "친근한"]},
+  '명랑':{mood:["장난스러운", "친근한"]},
+  '재밌는':{mood:["장난스러운", "독특한"]},
+  '재미':{mood:["장난스러운", "독특한"]},
+  '재미있는':{mood:["장난스러운", "독특한"]},
+  '유쾌한':{mood:["장난스러운", "친근한"]},
+  '유쾌':{mood:["장난스러운", "친근한"]},
+  '키치':{mood:["독특한", "장난스러운"]},
+  '키치한':{mood:["독특한", "장난스러운"]},
+  '톡톡튀는':{mood:["독특한", "장난스러운"]},
+  '톡톡':{mood:["독특한", "장난스러운"]},
+  '톡톡한':{mood:["독특한", "장난스러운"]},
+  '발랄발랄':{mood:["장난스러운", "친근한"]},
+  '엉뚱한':{mood:["장난스러운", "독특한"]},
+  '엉뚱':{mood:["장난스러운", "독특한"]},
+  '동심':{mood:["장난스러운"],personality:["어린이"]},
+  '동화':{mood:["장난스러운", "꿈같은"],personality:["어린이"]},
+  '동화적':{mood:["장난스러운", "꿈같은"],personality:["어린이"]},
+  '독특한':{mood:["독특한"]},
+  '독특':{mood:["독특한"]},
+  '특이한':{mood:["독특한"]},
+  '특이':{mood:["독특한"]},
+  '개성있는':{mood:["독특한"]},
+  '개성':{mood:["독특한"]},
+  '개성적':{mood:["독특한"]},
+  '창의적':{mood:["독특한"]},
+  '창의':{mood:["독특한"]},
+  '실험적':{mood:["독특한"]},
+  '실험':{mood:["독특한"]},
+  '아방가르드':{mood:["독특한"],personality:["현대적"]},
+  '예술적':{mood:["독특한", "감성적"]},
+  '예술':{mood:["독특한", "감성적"]},
+  '아트':{mood:["독특한", "감성적"]},
+  '독창적':{mood:["독특한"]},
+  '자연':{mood:["따뜻한", "부드러운"]},
+  '자연스러운':{mood:["부드러운"]},
+  '내추럴':{mood:["부드러운", "따뜻한"]},
+  '봄':{mood:["부드러운", "감성적", "장난스러운"]},
+  '봄날':{mood:["부드러운", "감성적"]},
+  '봄날씨':{mood:["부드러운", "감성적"]},
+  '벚꽃':{mood:["부드러운", "감성적"],personality:["여성적"]},
+  '여름':{mood:["친근한", "장난스러운"]},
+  '여름밤':{mood:["감성적"]},
+  '한여름':{mood:["친근한", "장난스러운"]},
+  '시원한':{mood:["시원한"]},
+  '청량한':{mood:["시원한", "깔끔한"]},
+  '청량':{mood:["시원한", "깔끔한"]},
+  '청춘':{mood:["장난스러운"],personality:["어린이", "현대적"]},
+  '가을':{mood:["감성적", "따뜻한"]},
+  '가을밤':{mood:["감성적"]},
+  '단풍':{mood:["감성적", "따뜻한"]},
+  '겨울':{mood:["고급스러운", "진중한"]},
+  '눈':{mood:["고급스러운", "깔끔한"]},
+  '눈꽃':{mood:["고급스러운"]},
+  '크리스마스':{mood:["따뜻한", "장난스러운"]},
+  '연말':{mood:["따뜻한", "고급스러운"]},
+  '새해':{mood:["따뜻한", "신뢰감"]},
+  '꽃':{mood:["감성적", "부드러운"],personality:["여성적"]},
+  '꽃잎':{mood:["감성적", "부드러운"],personality:["여성적"]},
+  '하늘':{mood:["감성적", "시원한"]},
+  '바다':{mood:["감성적", "시원한"]},
+  '바닷가':{mood:["감성적", "시원한"]},
+  '나무':{mood:["따뜻한"]},
+  '숲':{mood:["따뜻한"]},
+  '들꽃':{mood:["감성적", "부드러운"]},
+  '햇살':{mood:["따뜻한", "부드러운"]},
+  '햇볕':{mood:["따뜻한"]},
+  '본문':{usage:["본문"],reading_length:'장문 가능'},
+  '본문용':{usage:["본문"],reading_length:'장문 가능'},
+  '긴글':{usage:["본문"],reading_length:'장문 가능'},
+  '긴 글':{usage:["본문"],reading_length:'장문 가능'},
+  '장문':{usage:["본문"],reading_length:'장문 가능'},
+  '읽기':{usage:["본문"],reading_length:'장문 가능'},
+  '읽는':{usage:["본문"],reading_length:'장문 가능'},
+  '독서':{usage:["본문"],reading_length:'장문 가능'},
+  '제목':{usage:["제목", "캐치프레이즈"],reading_length:'짧은 글자',weight_feel:'굵음'},
+  '제목용':{usage:["제목", "캐치프레이즈"],weight_feel:'굵음'},
+  '헤드라인':{usage:["제목", "캐치프레이즈"],weight_feel:'굵음'},
+  '헤더':{usage:["제목"],weight_feel:'굵음'},
+  '큰글씨':{usage:["제목"],weight_feel:'굵음'},
+  '큰 글씨':{usage:["제목"],weight_feel:'굵음'},
+  '큰글자':{usage:["제목"],weight_feel:'굵음'},
+  '타이틀':{usage:["제목", "캐치프레이즈"],weight_feel:'굵음'},
+  '메인타이틀':{usage:["제목"],weight_feel:'굵음'},
+  '메인제목':{usage:["제목"],weight_feel:'굵음'},
+  '서브타이틀':{usage:["제목"]},
+  '로고':{usage:["로고", "캐치프레이즈"]},
+  '로고타입':{usage:["로고"]},
+  '로고체':{usage:["로고"]},
+  '심볼':{usage:["로고"]},
+  '브랜드':{usage:["로고", "캐치프레이즈"]},
+  '브랜딩':{usage:["로고", "캐치프레이즈"]},
+  'BI':{usage:["로고"]},
+  'CI':{usage:["로고"]},
+  '간판':{usage:["로고", "캐치프레이즈"],weight_feel:'굵음'},
+  '슬로건':{usage:["캐치프레이즈"]},
+  '카피':{usage:["캐치프레이즈"]},
+  '카피라이팅':{usage:["캐치프레이즈"]},
+  '캐치프레이즈':{usage:["캐치프레이즈"]},
+  '캐치카피':{usage:["캐치프레이즈"]},
+  '문구':{usage:["캐치프레이즈"]},
+  '간판체':{usage:["로고", "캐치프레이즈"],weight_feel:'굵음'},
+  'SNS':{usage:["SNS카드"]},
+  'sns':{usage:["SNS카드"]},
+  '인스타':{usage:["SNS카드"],personality:["현대적"]},
+  '인스타그램':{usage:["SNS카드"],personality:["현대적"]},
+  '페이스북':{usage:["SNS카드"]},
+  '트위터':{usage:["SNS카드"]},
+  '엑스':{usage:["SNS카드"]},
+  '카드뉴스':{usage:["SNS카드", "정보전달"]},
+  '카드':{usage:["SNS카드"]},
+  '피드':{usage:["SNS카드"]},
+  '게시물':{usage:["SNS카드"]},
+  '게시글':{usage:["SNS카드"]},
+  '스토리':{usage:["SNS카드"]},
+  '프로필':{usage:["SNS카드"]},
+  '해시태그':{usage:["SNS카드"],personality:["현대적"]},
+  '썸네일':{usage:["썸네일", "캐치프레이즈"],weight_feel:'굵음'},
+  '섬네일':{usage:["썸네일", "캐치프레이즈"],weight_feel:'굵음'},
+  '유튜브':{usage:["썸네일", "영상자막"]},
+  '유튭':{usage:["썸네일", "영상자막"]},
+  '유튜버':{usage:["썸네일", "영상자막"]},
+  '쇼츠':{usage:["썸네일", "영상자막"],personality:["현대적"]},
+  '릴스':{usage:["SNS카드", "썸네일"],personality:["현대적"]},
+  '틱톡':{usage:["SNS카드", "썸네일"],personality:["현대적"]},
+  '자막':{usage:["영상자막"]},
+  '자막용':{usage:["영상자막"]},
+  '영상':{usage:["영상자막", "썸네일"]},
+  '영상자막':{usage:["영상자막"]},
+  '영상편집':{usage:["영상자막"]},
+  '브이로그':{mood:["친근한"],usage:["영상자막"]},
+  '동영상':{usage:["영상자막", "썸네일"]},
+  '미디어':{usage:["영상자막"]},
+  '포스터':{usage:["포스터", "캐치프레이즈"],weight_feel:'굵음'},
+  '포스터용':{usage:["포스터", "캐치프레이즈"],weight_feel:'굵음'},
+  '벽보':{usage:["포스터", "캐치프레이즈"]},
+  '전단':{usage:["포스터", "정보전달"]},
+  '전단지':{usage:["포스터", "정보전달"]},
+  '리플렛':{usage:["포스터", "정보전달"]},
+  '브로슈어':{usage:["포스터", "출판"]},
+  '카탈로그':{usage:["포스터", "출판"]},
+  '광고':{usage:["포스터", "캐치프레이즈"]},
+  '광고용':{usage:["포스터", "캐치프레이즈"]},
+  '배너':{usage:["포스터", "캐치프레이즈"],weight_feel:'굵음'},
+  '배너용':{usage:["포스터", "캐치프레이즈"]},
+  '디스플레이':{usage:["포스터"]},
+  '간판이미지':{usage:["포스터"]},
+  '패키지':{usage:["패키지", "로고"]},
+  '패키지디자인':{usage:["패키지"]},
+  '포장':{usage:["패키지"]},
+  '포장지':{usage:["패키지"]},
+  '박스':{usage:["패키지"]},
+  '라벨':{usage:["패키지"]},
+  '제품':{usage:["패키지", "로고"]},
+  '굿즈':{usage:["패키지", "로고"]},
+  '머천다이즈':{usage:["패키지"]},
+  '책':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '책자':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '도서':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '출판':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '출판물':{usage:["출판", "본문"]},
+  '잡지':{usage:["출판", "캐치프레이즈"]},
+  '신문':{usage:["출판", "본문"],formality:'격식',reading_length:'장문 가능'},
+  '에세이':{mood:["감성적"],usage:["출판", "본문"],reading_length:'장문 가능'},
+  '수필':{mood:["감성적"],usage:["출판", "본문"]},
+  '시집':{mood:["감성적"],usage:["출판"]},
+  '소설':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '단편':{usage:["출판", "본문"]},
+  '동화책':{usage:["출판", "본문"],personality:["어린이"]},
+  '그림책':{usage:["출판"],personality:["어린이"]},
+  '편집':{usage:["출판", "본문"]},
+  '편집디자인':{usage:["출판", "본문"]},
+  'UI':{usage:["UI"],industry:["IT"]},
+  'ui':{usage:["UI"],industry:["IT"]},
+  'UX':{usage:["UI"],industry:["IT"]},
+  'ux':{usage:["UI"],industry:["IT"]},
+  '웹':{usage:["UI"],industry:["IT"]},
+  '웹사이트':{usage:["UI"],industry:["IT"]},
+  '홈페이지':{usage:["UI"],industry:["IT"]},
+  '앱':{usage:["UI"],industry:["IT"]},
+  '앱디자인':{usage:["UI"],industry:["IT"]},
+  '어플':{usage:["UI"],industry:["IT"]},
+  '모바일':{usage:["UI"],industry:["IT"]},
+  '서비스':{usage:["UI"]},
+  '대시보드':{usage:["UI"],formality:'중간'},
+  '인터페이스':{usage:["UI"]},
+  '뷰':{usage:["UI"]},
+  '화면':{usage:["UI"]},
+  '플랫폼':{usage:["UI"],industry:["IT"]},
+  '정보':{usage:["정보전달"],formality:'중간'},
+  '정보전달':{usage:["정보전달"]},
+  '안내':{usage:["정보전달"],formality:'중간'},
+  '안내문':{usage:["정보전달"],formality:'격식'},
+  '공지':{usage:["정보전달"],formality:'격식'},
+  '공지사항':{usage:["정보전달"],formality:'격식'},
+  '문서':{usage:["본문", "출판"],formality:'격식'},
+  '리포트':{usage:["본문", "정보전달"],formality:'격식'},
+  '보고서':{usage:["본문", "정보전달"],formality:'격식'},
+  '논문':{usage:["본문"],formality:'격식',reading_length:'장문 가능'},
+  '발표':{usage:["정보전달", "제목"],formality:'중간'},
+  'PPT':{usage:["정보전달", "제목"]},
+  'ppt':{usage:["정보전달", "제목"]},
+  '슬라이드':{usage:["정보전달", "제목"]},
+  '키노트':{usage:["정보전달", "제목"]},
+  '프레젠테이션':{usage:["정보전달", "제목"]},
+  '제안서':{usage:["본문", "정보전달"],formality:'격식'},
+  '기획서':{usage:["본문", "정보전달"],formality:'격식'},
+  '교재':{usage:["본문", "정보전달"],industry:["교육"]},
+  '교과서':{usage:["본문", "정보전달"],industry:["교육"]},
+  '워크북':{usage:["본문"],industry:["교육"]},
+  '인포그래픽':{usage:["정보전달", "SNS카드"]},
+  '카페':{mood:["따뜻한", "감성적"],industry:["카페", "푸드"]},
+  '커피':{mood:["따뜻한"],industry:["카페", "푸드"]},
+  '커피숍':{mood:["따뜻한"],industry:["카페", "푸드"]},
+  '베이커리':{mood:["따뜻한"],industry:["카페", "푸드"]},
+  '빵집':{mood:["따뜻한"],industry:["카페", "푸드"]},
+  '디저트':{mood:["장난스러운", "부드러운"],industry:["카페", "푸드"]},
+  '케이크':{mood:["장난스러운"],industry:["카페", "푸드"]},
+  '쿠키':{mood:["장난스러운"],industry:["카페", "푸드"]},
+  '브런치':{mood:["감성적"],industry:["카페", "푸드"]},
+  '레스토랑':{industry:["푸드"]},
+  '식당':{industry:["푸드"]},
+  '음식':{industry:["푸드"]},
+  '맛집':{industry:["푸드"]},
+  '푸드':{industry:["푸드"]},
+  '음료':{industry:["푸드", "카페"]},
+  '와인':{mood:["고급스러운"],industry:["푸드"]},
+  '바':{mood:["고급스러운"],industry:["푸드"]},
+  '주점':{industry:["푸드"]},
+  '술집':{industry:["푸드"]},
+  '치맥':{mood:["친근한"],industry:["푸드"]},
+  '치킨':{industry:["푸드"]},
+  '피자':{industry:["푸드"]},
+  '버거':{industry:["푸드"]},
+  '햄버거':{industry:["푸드"]},
+  '분식':{mood:["친근한"],industry:["푸드"]},
+  '일식':{industry:["푸드"]},
+  '중식':{industry:["푸드"]},
+  '양식':{industry:["푸드"]},
+  '디저트카페':{industry:["카페", "푸드"]},
+  '도시락':{industry:["푸드"]},
+  '먹방':{mood:["친근한"],industry:["푸드"]},
+  '뷰티':{mood:["고급스러운"],industry:["뷰티"],personality:["여성적"]},
+  '화장품':{mood:["고급스러운"],industry:["뷰티"]},
+  '코스메틱':{mood:["고급스러운"],industry:["뷰티"]},
+  '메이크업':{industry:["뷰티"],personality:["여성적"]},
+  '미용실':{industry:["뷰티"]},
+  '미용':{industry:["뷰티"]},
+  '헤어':{industry:["뷰티"]},
+  '헤어샵':{industry:["뷰티"]},
+  '네일':{industry:["뷰티"],personality:["여성적"]},
+  '네일아트':{industry:["뷰티"],personality:["여성적"]},
+  '스파':{mood:["부드러운"],industry:["뷰티", "헬스케어"]},
+  '에스테틱':{mood:["고급스러운"],industry:["뷰티"]},
+  '피부':{industry:["뷰티"]},
+  '스킨케어':{industry:["뷰티"]},
+  '향수':{mood:["고급스러운"],industry:["뷰티"]},
+  '패션':{industry:["패션"]},
+  '의류':{industry:["패션"]},
+  '옷':{industry:["패션"]},
+  '쇼핑':{industry:["패션"]},
+  '쇼핑몰':{industry:["패션"]},
+  '편집샵':{industry:["패션"],personality:["현대적"]},
+  '주얼리':{mood:["고급스러운"],industry:["패션", "뷰티"]},
+  '액세서리':{industry:["패션", "뷰티"]},
+  '가방':{industry:["패션"]},
+  '신발':{industry:["패션"]},
+  '스타일링':{mood:["고급스러운"],industry:["패션"]},
+  '룩북':{industry:["패션"],personality:["현대적"]},
+  '키즈':{mood:["장난스러운"],industry:["키즈", "교육"],personality:["어린이"]},
+  '어린이':{mood:["장난스러운"],industry:["키즈", "교육"],personality:["어린이"]},
+  '아동':{industry:["키즈"],personality:["어린이"]},
+  '유아':{industry:["키즈"],personality:["어린이"]},
+  '아이':{industry:["키즈"],personality:["어린이"]},
+  '아기':{mood:["부드러운"],industry:["키즈"],personality:["어린이"]},
+  '어린이집':{industry:["키즈", "교육"]},
+  '유치원':{industry:["키즈", "교육"]},
+  '초등':{industry:["교육"],personality:["어린이"]},
+  '초등학생':{industry:["교육"],personality:["어린이"]},
+  '중등':{industry:["교육"]},
+  '고등':{industry:["교육"]},
+  '학원':{industry:["교육"]},
+  '학교':{mood:["친근한"],industry:["교육"]},
+  '교육':{mood:["신뢰감"],industry:["교육"]},
+  '강의':{industry:["교육"]},
+  '강좌':{industry:["교육"]},
+  '학습':{industry:["교육"]},
+  '공부':{industry:["교육"]},
+  '튜토리얼':{industry:["교육"]},
+  '스터디':{industry:["교육"]},
+  '입시':{mood:["진중한"],industry:["교육"]},
+  '학습지':{industry:["교육"]},
+  '온라인강의':{industry:["교육", "IT"]},
+  '병원':{mood:["신뢰감"],industry:["헬스케어"]},
+  '병원용':{mood:["신뢰감"],industry:["헬스케어"]},
+  '약국':{mood:["신뢰감"],industry:["헬스케어"]},
+  '의료':{mood:["신뢰감", "진중한"],industry:["헬스케어"]},
+  '의약':{mood:["신뢰감"],industry:["헬스케어"]},
+  '치과':{mood:["깔끔한"],industry:["헬스케어"]},
+  '한의원':{industry:["헬스케어"],personality:["전통적"]},
+  '클리닉':{mood:["신뢰감"],industry:["헬스케어"]},
+  '헬스':{industry:["헬스케어"]},
+  '운동':{mood:["강인한"],industry:["헬스케어"]},
+  '피트니스':{mood:["강인한"],industry:["헬스케어"]},
+  '체육관':{mood:["강인한"],industry:["헬스케어"]},
+  '요가':{mood:["부드러운"],industry:["헬스케어"]},
+  '필라테스':{mood:["부드러운"],industry:["헬스케어"]},
+  '명상':{mood:["부드러운"],industry:["헬스케어"]},
+  '웰니스':{mood:["부드러운"],industry:["헬스케어"]},
+  '재활':{mood:["신뢰감"],industry:["헬스케어"]},
+  '심리':{mood:["부드러운"],industry:["헬스케어"]},
+  '상담':{mood:["신뢰감", "부드러운"],industry:["헬스케어"]},
+  '스타트업':{industry:["IT"],personality:["현대적"]},
+  '기술':{industry:["IT"],personality:["미래적"]},
+  '게임':{mood:["장난스러운", "독특한"],industry:["IT"]},
+  '소프트웨어':{industry:["IT"]},
+  '하드웨어':{industry:["IT"]},
+  '코딩':{industry:["IT"]},
+  '개발':{industry:["IT"]},
+  '개발자':{industry:["IT"]},
+  '프로그래밍':{industry:["IT"]},
+  '데이터':{mood:["신뢰감"],industry:["IT"]},
+  '클라우드':{industry:["IT"]},
+  '서버':{industry:["IT"]},
+  '인공지능':{industry:["IT"],personality:["미래적"]},
+  'AI':{industry:["IT"],personality:["미래적"]},
+  '머신러닝':{industry:["IT"],personality:["미래적"]},
+  '핀테크':{mood:["신뢰감"],industry:["IT"]},
+  '플랫폼서비스':{industry:["IT"]},
+  'IT':{industry:["IT"],personality:["현대적"]},
+  'it':{industry:["IT"],personality:["현대적"]},
+  '관공서':{mood:["신뢰감", "진중한"],industry:["공공기관"],formality:'격식'},
+  '공공':{mood:["신뢰감"],industry:["공공기관"]},
+  '공공기관':{mood:["신뢰감", "진중한"],industry:["공공기관"]},
+  '시청':{industry:["공공기관"]},
+  '구청':{industry:["공공기관"]},
+  '도청':{industry:["공공기관"]},
+  '정부':{mood:["진중한"],industry:["공공기관"],formality:'격식'},
+  '국가':{mood:["진중한"],industry:["공공기관"]},
+  '공기업':{mood:["신뢰감"],industry:["공공기관"]},
+  '협회':{mood:["진중한"],industry:["공공기관"]},
+  '재단':{mood:["진중한"],industry:["공공기관"]},
+  '복지':{mood:["따뜻한"],industry:["공공기관"]},
+  '기부':{mood:["따뜻한"],industry:["공공기관"]},
+  '자선':{mood:["따뜻한"],industry:["공공기관"]},
+  '이벤트':{mood:["장난스러운", "임팩트"],industry:["이벤트"]},
+  '축제':{mood:["장난스러운"],industry:["이벤트"]},
+  '행사':{industry:["이벤트"]},
+  '결혼식':{mood:["고급스러운", "감성적"],industry:["이벤트"]},
+  '청첩장':{mood:["고급스러운", "감성적"],industry:["이벤트"]},
+  '돌잔치':{mood:["장난스러운"],industry:["이벤트"],personality:["어린이"]},
+  '생일':{mood:["장난스러운"],industry:["이벤트"]},
+  '파티':{mood:["장난스러운"],industry:["이벤트"]},
+  '콘서트':{mood:["임팩트"],industry:["이벤트"]},
+  '공연':{mood:["임팩트"],industry:["이벤트"]},
+  '전시':{mood:["감성적"],industry:["이벤트"]},
+  '전시회':{mood:["감성적"],industry:["이벤트"]},
+  '컨퍼런스':{mood:["진중한"],industry:["이벤트", "공공기관"]},
+  '세미나':{mood:["진중한"],industry:["이벤트", "교육"]},
+  '워크숍':{industry:["이벤트", "교육"]},
+  '박람회':{industry:["이벤트"]},
+  '페스티벌':{mood:["장난스러운", "임팩트"],industry:["이벤트"]},
+  '캠페인':{mood:["임팩트"],industry:["이벤트"]},
+  '플리마켓':{mood:["친근한"],industry:["이벤트"]},
+  '팝업스토어':{industry:["이벤트", "패션"],personality:["현대적"]},
+  '독립출판':{mood:["감성적"],industry:["출판"]},
+  '잡지사':{industry:["출판"]},
+  '북디자인':{industry:["출판"]},
+  '20대':{personality:["현대적"]},
+  '30대':{personality:["현대적", "중성적"]},
+  '40대':{personality:["전통적", "중성적"]},
+  '50대':{personality:["전통적"]},
+  '60대':{personality:["전통적"]},
+  '10대':{personality:["현대적", "어린이"]},
+  '청소년':{personality:["현대적", "어린이"]},
+  '학생':{industry:["교육"],personality:["어린이"]},
+  '대학생':{personality:["현대적"]},
+  '직장인':{personality:["중성적"],formality:'중간'},
+  '회사원':{personality:["중성적"],formality:'중간'},
+  '주부':{mood:["친근한"],personality:["중성적"]},
+  '여성':{personality:["여성적"]},
+  '남성':{personality:["남성적"]},
+  '여자':{personality:["여성적"]},
+  '남자':{personality:["남성적"]},
+  '시니어':{personality:["전통적"]},
+  '어른':{personality:["중성적"]},
+  '청년':{personality:["현대적"]},
+  '가독성':{mood:["깔끔한"],reading_length:'장문 가능'},
+  '가독성좋은':{mood:["깔끔한"],reading_length:'장문 가능'},
+  '읽기쉬운':{mood:["깔끔한"],reading_length:'장문 가능'},
+  '읽기편한':{mood:["부드러운"],reading_length:'장문 가능'},
+  '눈에편한':{mood:["부드러운"],reading_length:'장문 가능'},
+  '편한글씨':{mood:["부드러운"],reading_length:'장문 가능'},
+  '잘읽히는':{mood:["깔끔한"],reading_length:'장문 가능'},
+  '손글씨':{mood:["친근한", "부드러운"],personality:["전통적", "중성적"],formality:'캐주얼'},
+  '손편지':{mood:["친근한", "감성적"],personality:["전통적"]},
+  '편지':{mood:["감성적", "친근한"]},
+  '연필':{mood:["친근한", "감성적"]},
+  '펜글씨':{mood:["친근한"],personality:["전통적"]},
+  '캘리그라피':{mood:["감성적", "독특한"],personality:["전통적"]},
+  '캘리':{mood:["감성적", "독특한"],personality:["전통적"]},
+  '붓글씨':{mood:["진중한"],personality:["전통적"],formality:'격식'},
+  '서예':{mood:["진중한"],personality:["전통적"],formality:'격식'},
+  '한글서예':{mood:["진중한"],personality:["전통적"]},
+  '몽글몽글':{mood:["부드러운", "장난스러운"],personality:["여성적"]},
+  '말랑말랑':{mood:["부드러운", "장난스러운"]},
+  '뽀송뽀송':{mood:["부드러운", "장난스러운"]},
+  '동글동글':{mood:["부드러운", "장난스러운"],personality:["어린이"]},
+  '둥근':{mood:["부드러운", "친근한"]},
+  '둥글둥글':{mood:["부드러운", "친근한"]},
+  '각진':{mood:["강인한"],weight_feel:'굵음'},
+  '각이살아있는':{mood:["강인한", "깔끔한"]},
+  '날카로운':{mood:["임팩트", "강인한"]},
+  '뾰족한':{mood:["임팩트"]},
+  '부드럽고':{mood:["부드러운"]},
+  '진하고':{mood:["임팩트"],weight_feel:'굵음'},
+  '애틋한':{mood:["감성적", "부드러운"]},
+  '애틋':{mood:["감성적", "부드러운"]},
+  '그리운':{mood:["감성적", "부드러운"]},
+  '추억의':{mood:["감성적", "부드러운"]},
+  '노스탤지어':{mood:["감성적", "부드러운"]},
+  '서글픈':{mood:["감성적", "부드러운"]},
+  '애잔한':{mood:["감성적", "부드러운"]},
+  '애잔':{mood:["감성적", "부드러운"]},
+  '쓸쓸한':{mood:["감성적", "부드러운"]},
+  '쓸쓸':{mood:["감성적", "부드러운"]},
+  '외로운':{mood:["감성적", "부드러운"]},
+  '고독한':{mood:["감성적", "부드러운"]},
+  '고독':{mood:["감성적", "부드러운"]},
+  '적막한':{mood:["감성적", "부드러운"]},
+  '고요한':{mood:["감성적", "부드러운"]},
+  '고요':{mood:["감성적", "부드러운"]},
+  '평온한':{mood:["감성적", "부드러운"]},
+  '평온':{mood:["감성적", "부드러운"]},
+  '차분한':{mood:["감성적", "부드러운"]},
+  '차분':{mood:["감성적", "부드러운"]},
+  '잔향':{mood:["감성적", "부드러운"]},
+  '여운':{mood:["감성적", "부드러운"]},
+  '은은한':{mood:["감성적", "부드러운"]},
+  '은은':{mood:["감성적", "부드러운"]},
+  '담담한':{mood:["감성적", "부드러운"]},
+  '담담':{mood:["감성적", "부드러운"]},
+  '묵직한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '묵직':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '단단':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '견고':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '웅장한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '웅장':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '압도적':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '압도':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '폭발적':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강렬함':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '센':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '쎈':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강력한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강력':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '힘찬':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '힘있는':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '역동적':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '역동':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '다이나믹':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '스트롱':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '와일드':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '야성적':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '야성':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '거친':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '거칠은':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '터프가이':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '품격있는':{mood:["고급스러운"]},
+  '격조있는':{mood:["고급스러운"]},
+  '격조':{mood:["고급스러운"]},
+  '클래식한':{mood:["고급스러운"]},
+  '앤틱':{mood:["고급스러운"]},
+  '귀족적':{mood:["고급스러운"]},
+  '귀족':{mood:["고급스러운"]},
+  '고귀한':{mood:["고급스러운"]},
+  '고귀':{mood:["고급스러운"]},
+  '우아함':{mood:["고급스러운"]},
+  '세련된느낌':{mood:["고급스러운"]},
+  '품위있는':{mood:["고급스러운"]},
+  '품위':{mood:["고급스러운"]},
+  '고상':{mood:["고급스러운"]},
+  '깊이있는':{mood:["고급스러운"]},
+  '정갈한':{mood:["깔끔한"]},
+  '정갈':{mood:["깔끔한"]},
+  '심플한느낌':{mood:["깔끔한"]},
+  '말끔':{mood:["깔끔한"]},
+  '정돈된':{mood:["깔끔한"]},
+  '군더더기없는':{mood:["깔끔한"]},
+  '여백있는':{mood:["깔끔한"]},
+  '미니멀한느낌':{mood:["깔끔한"]},
+  '클린한':{mood:["깔끔한"]},
+  '깔끔깔끔':{mood:["깔끔한"]},
+  '단순명료':{mood:["깔끔한"]},
+  '군더더기 없는':{mood:["깔끔한"]},
+  '신비로운':{mood:["꿈같은", "독특한"]},
+  '신비':{mood:["꿈같은", "독특한"]},
+  '환상같은':{mood:["꿈같은", "독특한"]},
+  '비현실적':{mood:["꿈같은", "독특한"]},
+  '초현실적':{mood:["꿈같은", "독특한"]},
+  '초현실':{mood:["꿈같은", "독특한"]},
+  '공상적':{mood:["꿈같은", "독특한"]},
+  '공상':{mood:["꿈같은", "독특한"]},
+  '판타지':{mood:["꿈같은", "독특한"]},
+  '판타지스러운':{mood:["꿈같은", "독특한"]},
+  '기묘한':{mood:["꿈같은", "독특한"]},
+  '기묘':{mood:["꿈같은", "독특한"]},
+  '기이한':{mood:["꿈같은", "독특한"]},
+  '기이':{mood:["꿈같은", "독특한"]},
+  '괴짜같은':{mood:["꿈같은", "독특한"]},
+  '괴짜':{mood:["꿈같은", "독특한"]},
+  '실험적인':{mood:["꿈같은", "독특한"]},
+  '전위적':{mood:["꿈같은", "독특한"]},
+  '전위':{mood:["꿈같은", "독특한"]},
+  '살가운':{mood:["따뜻한", "친근한"]},
+  '살갑':{mood:["따뜻한", "친근한"]},
+  '싹싹한':{mood:["따뜻한", "친근한"]},
+  '싹싹':{mood:["따뜻한", "친근한"]},
+  '붙임성있는':{mood:["따뜻한", "친근한"]},
+  '붙임성':{mood:["따뜻한", "친근한"]},
+  '다감한':{mood:["따뜻한", "친근한"]},
+  '다감':{mood:["따뜻한", "친근한"]},
+  '인정있는':{mood:["따뜻한", "친근한"]},
+  '인정':{mood:["따뜻한", "친근한"]},
+  '훈훈함':{mood:["따뜻한", "친근한"]},
+  '마음따뜻한':{mood:["따뜻한", "친근한"]},
+  '동네친구같은':{mood:["따뜻한", "친근한"]},
+  '이웃같은':{mood:["따뜻한", "친근한"]},
+  '가족같은':{mood:["따뜻한", "친근한"]},
+  '정다운':{mood:["따뜻한", "친근한"]},
+  '정다움':{mood:["따뜻한", "친근한"]},
+  '살뜰한':{mood:["따뜻한", "친근한"]},
+  '살뜰':{mood:["따뜻한", "친근한"]},
+  '몰랑한':{mood:["부드러운"]},
+  '몰랑':{mood:["부드러운"]},
+  '보들보들':{mood:["부드러운"]},
+  '보드라운':{mood:["부드러운"]},
+  '포슬포슬':{mood:["부드러운"]},
+  '사르르':{mood:["부드러운"]},
+  '살랑한':{mood:["부드러운"]},
+  '살랑':{mood:["부드러운"]},
+  '산들한':{mood:["부드러운"]},
+  '산들':{mood:["부드러운"]},
+  '나긋한':{mood:["부드러운"]},
+  '나긋나긋':{mood:["부드러운"]},
+  '순한':{mood:["부드러운"]},
+  '순함':{mood:["부드러운"]},
+  '연한느낌':{mood:["부드러운"]},
+  '매끄러운':{mood:["부드러운"]},
+  '매끈한':{mood:["부드러운"]},
+  '상쾌한':{mood:["시원한"]},
+  '상쾌':{mood:["시원한"]},
+  '시원시원':{mood:["시원한"]},
+  '쿨함':{mood:["시원한"]},
+  '산뜻한':{mood:["시원한"]},
+  '산뜻':{mood:["시원한"]},
+  '청아한':{mood:["시원한"]},
+  '청아':{mood:["시원한"]},
+  '맑은느낌':{mood:["시원한"]},
+  '깨끗한느낌':{mood:["시원한"]},
+  '시원스러운':{mood:["시원한"]},
+  '트인':{mood:["시원한"]},
+  '탁트인':{mood:["시원한"]},
+  '믿음직':{mood:["신뢰감"],formality:'격식'},
+  '안정적인':{mood:["신뢰감"],formality:'격식'},
+  '견실한':{mood:["신뢰감"],formality:'격식'},
+  '견실':{mood:["신뢰감"],formality:'격식'},
+  '공신력있는':{mood:["신뢰감"],formality:'격식'},
+  '공신력':{mood:["신뢰감"],formality:'격식'},
+  '권위있는':{mood:["신뢰감"],formality:'격식'},
+  '전문적인느낌':{mood:["신뢰감"],formality:'격식'},
+  '프로페셔널한':{mood:["신뢰감"],formality:'격식'},
+  '공식적인':{mood:["신뢰감"],formality:'격식'},
+  '정확한느낌':{mood:["신뢰감"],formality:'격식'},
+  '탄탄한':{mood:["신뢰감"],formality:'격식'},
+  '귀엽고발랄한':{mood:["장난스러운"]},
+  '코믹한':{mood:["장난스러운"]},
+  '코믹':{mood:["장난스러운"]},
+  '익살스러운':{mood:["장난스러운"]},
+  '익살':{mood:["장난스러운"]},
+  '유쾌한느낌':{mood:["장난스러운"]},
+  '유머러스한':{mood:["장난스러운"]},
+  '유머':{mood:["장난스러운"]},
+  '천진난만한':{mood:["장난스러운"]},
+  '천진난만':{mood:["장난스러운"]},
+  '앙증맞은':{mood:["장난스러운"]},
+  '앙증':{mood:["장난스러운"]},
+  '방정맞은':{mood:["장난스러운"]},
+  '까불까불':{mood:["장난스러운"]},
+  '장난기있는':{mood:["장난스러운"]},
+  '장난기':{mood:["장난스러운"]},
+  '신중한':{mood:["진중한"],formality:'격식'},
+  '신중':{mood:["진중한"],formality:'격식'},
+  '묵묵한':{mood:["진중한"],formality:'격식'},
+  '묵묵':{mood:["진중한"],formality:'격식'},
+  '무게감있는':{mood:["진중한"],formality:'격식'},
+  '무게감':{mood:["진중한"],formality:'격식'},
+  '엄숙':{mood:["진중한"],formality:'격식'},
+  '경건한':{mood:["진중한"],formality:'격식'},
+  '경건':{mood:["진중한"],formality:'격식'},
+  '숙연한':{mood:["진중한"],formality:'격식'},
+  '숙연':{mood:["진중한"],formality:'격식'},
+  '초대장':{usage:["출판", "캐치프레이즈"]},
+  '명함':{usage:["로고", "제목"]},
+  '현수막':{usage:["포스터", "캐치프레이즈"]},
+  '블로그제목':{usage:["제목", "SNS카드"]},
+  '블로그 제목':{usage:["제목", "SNS카드"]},
+  '인스타피드':{usage:["SNS카드"]},
+  '상세페이지':{usage:["제목", "본문"]},
+  '상세 페이지':{usage:["제목", "본문"]},
+  '메뉴판':{usage:["출판", "제목"]},
+  '메뉴':{usage:["출판", "제목"]},
+  '가격표':{usage:["본문", "정보전달"]},
+  '네이밍':{usage:["로고", "제목"]},
+  '브랜드네임':{usage:["로고"]},
+  '유튜브자막':{usage:["영상자막"]},
+  '유튜브 자막':{usage:["영상자막"]},
+  '브이로그자막':{usage:["영상자막"]},
+  '숏폼':{usage:["영상자막", "SNS카드"]},
+  '썸네일제목':{usage:["썸네일", "제목"]},
+  '영상썸네일':{usage:["썸네일"]},
+  '표지':{usage:["출판", "제목"]},
+  '책표지':{usage:["출판", "제목"]},
+  '스티커':{usage:["패키지", "SNS카드"]},
+  '박스디자인':{usage:["패키지"]},
+  '제품패키지':{usage:["패키지"]},
+  '앱화면':{usage:["UI"]},
+  '웹디자인':{usage:["UI"]},
+  '버튼':{usage:["UI"]},
+  '설명서':{usage:["정보전달", "본문"]},
+  '매뉴얼':{usage:["정보전달", "본문"]},
+  '포스터문구':{usage:["포스터"]},
+  '행사포스터':{usage:["포스터"]},
+  '공연포스터':{usage:["포스터"]},
+  '브런치카페':{industry:["카페", "푸드"]},
+  '네일샵':{industry:["뷰티"]},
+  '피부관리':{industry:["뷰티", "헬스케어"]},
+  '의류브랜드':{industry:["패션"]},
+  '쇼핑몰패션':{industry:["패션"]},
+  '초등학교':{industry:["교육", "키즈"]},
+  '인강':{industry:["교육"]},
+  '테크기업':{industry:["IT"]},
+  '앱스타트업':{industry:["IT"]},
+  '게임회사':{industry:["IT"]},
+  '정부기관':{industry:["공공기관"]},
+  '동사무소':{industry:["공공기관"]},
+  '헬스장':{industry:["헬스케어"]},
+  '요가원':{industry:["헬스케어"]},
+  '웨딩':{industry:["이벤트"]},
+  '장난감':{industry:["키즈"]},
+  '아기용품':{industry:["키즈"]},
+  '유아용품':{industry:["키즈"]},
+  '키즈카페':{industry:["키즈"]},
+  '미니멀리즘':{personality:["현대적"]},
+  '세련됨':{personality:["현대적"]},
+  '빈티지스타일':{personality:["전통적", "복고적"]},
+  '레트로한':{personality:["전통적", "복고적"]},
+  '옛날느낌':{personality:["전통적", "복고적"]},
+  '향토적':{personality:["전통적", "복고적"]},
+  '전통있는':{personality:["전통적", "복고적"]},
+  '미래지향적':{personality:["미래적"]},
+  'futuristic':{personality:["미래적"]},
+  '공상과학':{personality:["미래적"]},
+  'SF느낌':{personality:["미래적"]},
+  '사이버틱':{personality:["미래적"]},
+  '테크느낌':{personality:["미래적"]},
+  '소년같은':{personality:["어린이"]},
+  '소녀같은':{personality:["어린이"]},
+  '아이같은':{personality:["어린이"]},
+  '동화같은':{personality:["어린이"]},
+  '성별무관':{personality:["중성적"]},
+  '보편적인':{personality:["중성적"]},
+  '누구나':{personality:["중성적"]},
+  '헤비한':{weight_feel:'굵음'},
+  '헤비웨이트':{weight_feel:'굵음'},
+  '묵직체':{weight_feel:'굵음'},
+  '블랙체':{weight_feel:'굵음'},
+  '씬한':{weight_feel:'얇음'},
+  '씬체':{weight_feel:'얇음'},
+  '라이트웨이트':{weight_feel:'얇음'},
+  '경량체':{weight_feel:'얇음'},
+  '캐주얼한':{formality:'캐주얼'},
+  '편안캐주얼':{formality:'캐주얼'},
+  '일상적인':{formality:'캐주얼'},
+  '데일리한':{formality:'캐주얼'},
+  '데일리':{formality:'캐주얼'},
+  '포멀한':{formality:'격식'},
+  '비즈니스용':{formality:'격식'},
+  '공식문서':{formality:'격식'},
+  '격식있는느낌':{formality:'격식'},
+  '짧은문구':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '짧은글귀':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '한줄문구':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '임팩트문구':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '줄글':{mood:["깔끔한"],usage:["본문"]},
+  '산뜻함':{mood:["시원한"]},
+  '청초한':{mood:["감성적"],personality:["여성적"]},
+  '청초':{mood:["감성적"],personality:["여성적"]},
+  '단아한':{mood:["고급스러운"]},
+  '단아':{mood:["고급스러운"]},
+  '정중한':{formality:'격식'},
+  '무난한':{mood:["깔끔한"]},
+  '평범한':{mood:["깔끔한"]},
+  '화려한':{mood:["임팩트", "고급스러운"]},
+  '화려':{mood:["임팩트", "고급스러운"]},
+  '심플하고깔끔한':{mood:["깔끔한"]},
+  '차가운':{mood:["시원한"],personality:["현대적"]},
+  '쿨시크':{mood:["시원한"],personality:["현대적"]},
+  '센스있는':{mood:["독특한"]},
+  '감각적인':{mood:["독특한", "고급스러운"]},
+  '감각적':{mood:["독특한", "고급스러운"]},
+  '특별한':{mood:["독특한"]},
+  '차별화된':{mood:["독특한"]},
+  '유니크한':{mood:["독특한"]},
+  '유니크':{mood:["독특한"]},
+  '생기있는':{mood:["장난스러운"]},
+  '생기':{mood:["장난스러운"]},
+  '리듬감있는':{mood:["장난스러운"]},
+  '펀한':{mood:["장난스러운"]},
+  '재치있는':{mood:["장난스러운"]},
+  '재치':{mood:["장난스러운"]},
+  '위트있는':{mood:["장난스러운"]},
+  '위트':{mood:["장난스러운"]},
+  '카페감성':{mood:["따뜻한"],industry:["카페"]},
+  '카페느낌':{industry:["카페"]},
+  '제과점':{industry:["푸드", "카페"]},
+  '홈베이킹':{industry:["푸드"]},
+  '홈카페':{industry:["카페"]},
+  '델리':{industry:["푸드"]},
+  '펍':{industry:["푸드"]},
+  '스몰비즈니스':{industry:["IT"]},
+  '1인샵':{industry:["뷰티"]},
+  '온라인쇼핑몰':{industry:["패션"]},
+  '빈티지샵':{industry:["패션"],personality:["복고적"]},
+  '필기체같은':{mood:["감성적"]},
+  '손글씨느낌':{mood:["감성적", "친근한"]},
+  '캘리그래피':{mood:["감성적", "고급스러운"]},
+  '편지지':{mood:["감성적"]},
+  '일기장':{mood:["감성적", "친근한"]},
+  '다이어리':{mood:["감성적", "친근한"]},
+  '플래너':{mood:["깔끔한"],usage:["정보전달"]},
+  '머그컵':{usage:["패키지"]},
+  '티셔츠':{usage:["패키지"]},
+  '에코백':{usage:["패키지"]},
+  '포스트잇':{usage:["패키지"]},
+  '달력':{usage:["출판"]},
+  '다이어리커버':{usage:["패키지"]},
+  '이력서':{usage:["본문", "정보전달"],formality:'격식'},
+  '자기소개서':{usage:["본문"],formality:'격식'},
+  '포트폴리오':{usage:["본문", "제목"]},
+  '발표자료':{usage:["제목", "본문"]},
+  'MZ세대':{personality:["현대적"]},
+  'Z세대':{personality:["현대적"]},
+  '밀레니얼':{personality:["현대적"]},
+  '어르신':{personality:["전통적"]},
+  '레트로감성':{mood:["감성적"],personality:["복고적"]},
+  'SF':{personality:["미래적"]},
+  '사이버펑크':{personality:["미래적"]},
+  '메타버스':{personality:["미래적"]},
+};
+
+/* 추천 결과 보유 변수 — UI 표시용 */
+let _lastRecommended = null;
+let _recommendShowCount = 5;
+
+/* 사용자 입력에서 추천 태그 추출 */
+function extractTagsFromQuery(query){
+  const q = String(query || '').toLowerCase();
+  const found = {
+    mood: new Set(), usage: new Set(), industry: new Set(),
+    personality: new Set(), formality: null, reading_length: null, weight_feel: null
+  };
+  // 사전의 키워드를 길이 내림차순으로 정렬 (긴 키워드 우선 매칭)
+  const keys = Object.keys(RECOMMEND_KEYWORDS).sort((a,b)=>b.length-a.length);
+  for(const key of keys){
+    if(q.includes(key.toLowerCase())){
+      const data = RECOMMEND_KEYWORDS[key];
+      if(data.mood) data.mood.forEach(v=>found.mood.add(v));
+      if(data.usage) data.usage.forEach(v=>found.usage.add(v));
+      if(data.industry) data.industry.forEach(v=>found.industry.add(v));
+      if(data.personality) data.personality.forEach(v=>found.personality.add(v));
+      if(data.formality && !found.formality) found.formality = data.formality;
+      if(data.reading_length && !found.reading_length) found.reading_length = data.reading_length;
+      if(data.weight_feel && !found.weight_feel) found.weight_feel = data.weight_feel;
+    }
+  }
+  return found;
+}
+
+/* 단일 폰트에 대한 매칭 점수 계산 */
+function scoreFont(font, extracted){
+  if(!font.meta) return 0;
+  const m = font.meta;
+  let score = 0;
+  let matches = [];
+
+  // usage: 가중치 3 (가장 중요)
+  for(const u of extracted.usage){
+    if(m.usage && m.usage.includes(u)){ score += 3; matches.push(u); }
+  }
+  // industry: 가중치 2
+  for(const i of extracted.industry){
+    if(m.industry && m.industry.includes(i)){ score += 2; matches.push(i); }
+  }
+  // mood: 가중치 2
+  for(const mo of extracted.mood){
+    if(m.mood && m.mood.includes(mo)){ score += 2; matches.push(mo); }
+  }
+  // personality: 가중치 1.5
+  for(const p of extracted.personality){
+    if(m.personality && m.personality.includes(p)){ score += 1.5; matches.push(p); }
+  }
+  // formality, weight_feel, reading_length: 가중치 1
+  if(extracted.formality && m.formality === extracted.formality){ score += 1; matches.push(m.formality); }
+  if(extracted.weight_feel && m.weight_feel === extracted.weight_feel){ score += 1; matches.push(m.weight_feel); }
+  if(extracted.reading_length && m.reading_length === extracted.reading_length){ score += 1; matches.push(m.reading_length); }
+
+  return { score, matches };
+}
+
+/* 추천 결과 생성 — 점수 상위 폰트들 반환 */
+function recommendFonts(query, candidates){
+  const extracted = extractTagsFromQuery(query);
+  // 추출된 태그가 하나도 없으면 추천 안함
+  const totalTags = extracted.mood.size + extracted.usage.size + extracted.industry.size +
+                    extracted.personality.size +
+                    (extracted.formality?1:0) + (extracted.weight_feel?1:0) + (extracted.reading_length?1:0);
+  if(totalTags === 0) return [];
+
+  const scored = candidates.map(f => {
+    const r = scoreFont(f, extracted);
+    return { font: f, score: r.score, matches: r.matches };
+  }).filter(x => x.score > 0);
+
+  // 점수 내림차순 정렬 (동률 시 좋아요 수 → id)
+  scored.sort((a,b) => {
+    if(b.score !== a.score) return b.score - a.score;
+    const la = likeCounts[a.font.id] || 0;
+    const lb = likeCounts[b.font.id] || 0;
+    if(lb !== la) return lb - la;
+    return a.font.id - b.font.id;
+  });
+
+  // 상위 항목들 반환 (UI에서 5/8/11... 더보기로 확장)
+  _lastRecommended = scored;
+  return scored.slice(0, _recommendShowCount).map(s => ({...s.font, _matches: s.matches, _isRecommend: true}));
+}
+
+function renderFonts(){
+  const list=getFilteredFonts();
+  const grid=document.getElementById('fontGrid');
+  const txt=getPreviewText();
+  const isRecommendMode = list.length > 0 && list[0]._isRecommend === true;
+  const countLabel = document.getElementById('countLabel');
+
+  if(isRecommendMode){
+    const total = (_lastRecommended || []).length;
+    countLabel.innerHTML = `<i class="ti ti-sparkles" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i> 추천 폰트 <strong>${list.length}</strong>개 <span style="color:var(--text-muted);font-size:12px">(총 ${total}개 후보 중)</span>`;
+  } else {
+    countLabel.innerHTML=`폰트 <strong>${list.length}</strong>종`;
+  }
+
+  if(!list.length){
+    grid.innerHTML=`<div class="no-results" role="status"><i class="ti ti-mood-sad" aria-hidden="true"></i><p>검색 결과가 없어요</p><small>다른 키워드를 시도해보세요</small></div>`;
+    return;
+  }
+  // 갤러리 광고 (AdSense 승인 대기 중 임시 비활성화)
+  // AdSense 승인 후 아래 adSlots를 원래 코드로 복구:
+  /*
+  const adSlots = isRecommendMode ? '' : `
+    <div class="ad-slot row-1" role="complementary" aria-label="광고 영역 1">
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:260px;height:280px"
+           data-ad-client="ca-pub-6258337579944977"
+           data-ad-slot="4304276310"></ins>
+    </div>
+    <div class="ad-slot row-3" role="complementary" aria-label="광고 영역 2">
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:260px;height:280px"
+           data-ad-client="ca-pub-6258337579944977"
+           data-ad-slot="3185233399"></ins>
+    </div>`;
+  */
+  const adSlots = '';
+
+  // 앱 광고 카드 — 제거됨 (첫 칸부터 폰트 카드 노출)
+  const appAdCard = '';
+
+  grid.innerHTML = appAdCard + list.map((f,idx)=>{
+    const tagPills=f.tags.map(t=>`<span class="font-tag-pill">${t}</span>`).join('');
+    const downloadUrl=f.url||('https://noonnu.cc/index?keyword='+encodeURIComponent(f.name));
+    const liked=likedSet.has(f.id);
+    const count=likeCounts[f.id]||0;
+    const previewTxt = getPreviewTextFor(f);
+    // 추천 모드일 때 매칭 태그를 카드 상단에 작은 배지로 표시
+    const matchBadge = (isRecommendMode && f._matches && f._matches.length)
+      ? `<div class="recommend-match"><i class="ti ti-sparkles" aria-hidden="true"></i> ${[...new Set(f._matches)].slice(0,4).join(' · ')}</div>`
+      : '';
+    return `
+    <article class="font-card${isRecommendMode ? ' is-recommend' : ''}" role="listitem" data-font-id="${f.id}" style="animation-delay:${Math.min(idx*20,300)}ms">
+      ${matchBadge}
+      <div class="font-preview">
+        <div class="font-preview-text" data-english="${f.isEnglish?'1':'0'}" style="font-family:${getEffectiveStack(f)};font-size:${currentFontSize}px" contenteditable="true" spellcheck="false" onfocus="handlePreviewFocus(this)" onblur="handlePreviewBlur(this)" oninput="handlePreviewInput(this)" onkeydown="handlePreviewKeydown(event,this)" title="클릭해서 직접 입력해보세요">${previewTxt}</div>
+      </div>
+      <div class="card-divider"></div>
+      <div class="font-meta">
+        <div>
+          <div class="font-name">${f.name}</div>
+          <div class="font-maker">${f.maker}</div>
+        </div>
+        <span class="font-weights">${f.weights}</span>
+      </div>
+      <div class="font-tags-row">${tagPills}</div>
+      <div class="font-actions">
+        <button class="btn-download" type="button" onclick="openDownloadAd('${downloadUrl.replace(/'/g,"\\'")}', '${f.name.replace(/'/g,"\\'")}')">
+          <i class="ti ti-download" aria-hidden="true"></i> 무료 다운로드
+        </button>
+        <button class="btn-design" type="button" onclick="openDesigner(${f.id})" aria-label="${f.name}로 텍스트 디자인 만들기" title="이 폰트로 텍스트 디자인 만들기">
+          <i class="ti ti-sparkles" aria-hidden="true"></i> 디자인
+        </button>
+        <button class="btn-like${liked?' liked':''}" id="like-${f.id}" onclick="toggleLike(${f.id})" aria-label="좋아요${liked?' (선택됨)':''}" aria-pressed="${liked}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 22h2a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H2zM22 11.5a2 2 0 0 0-2-2h-5.5l1-4.8.03-.34a1.5 1.5 0 0 0-.43-1.06L14.34 2 8 8.5V20a2 2 0 0 0 2 2h7a2 2 0 0 0 2-1.5z" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          <span id="like-count-${f.id}">${count}</span>
+        </button>
+      </div>
+    </article>`;
+  }).join('');
+
+  // 추천 모드일 때 더보기 버튼 추가
+  if(isRecommendMode){
+    const total = (_lastRecommended || []).length;
+    if(_recommendShowCount < total){
+      grid.insertAdjacentHTML('beforeend', `
+        <div class="recommend-more-wrap" style="grid-column:1/-1;display:flex;justify-content:center;padding:8px 0">
+          <button class="recommend-more-btn" onclick="showMoreRecommendations()">
+            <i class="ti ti-plus" aria-hidden="true"></i>
+            <span>다른 추천 3개 더 보기</span>
+            <small>(${total - _recommendShowCount}개 더 있음)</small>
+          </button>
+        </div>`);
+    }
+  }
+
+  // 애드센스 광고 푸시 — 갤러리가 다시 렌더링될 때마다 새 <ins> 태그가 만들어지므로 매번 호출
+  pushAdSlots();
+  // 폰트 지연 로딩: 화면에 들어오는 카드만 폰트 등록
+  observeFontCards(document.getElementById('fontGrid'));
+}
+
+/* 추천 더보기: show count를 3씩 증가시키고 다시 렌더 */
+function showMoreRecommendations(){
+  _recommendShowCount += 3;
+  renderFonts();
+}
+
+/* 갤러리에 삽입된 광고 슬롯에 애드센스 광고 요청 */
+function pushAdSlots(){
+  try {
+    const slots = document.querySelectorAll('#fontGrid .adsbygoogle:not([data-adsbygoogle-status])');
+    slots.forEach(() => {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    });
+  } catch(e) {
+    console.warn('AdSense push failed', e);
+  }
+}
+
+/* ════════════════════════════════════════
+   폰트 지연 로딩 (Lazy Font Loading)
+   - 카드가 화면에 들어오면 해당 폰트의 @font-face를 동적 등록
+   - 한 번 등록된 폰트는 다시 등록하지 않음
+   - 폰트 파일은 fonts/ 폴더에 font-{id:03d}.woff2 형식으로 위치
+════════════════════════════════════════ */
+const _fontLoaded = new Set();          // 이미 @font-face 등록된 폰트 id
+const _fontStyleEl = (() => {           // 모든 @font-face 규칙을 담을 단일 <style>
+  const el = document.createElement('style');
+  el.id = 'ffp-dynamic-fonts';
+  document.head.appendChild(el);
+  return el;
+})();
+
+function ensureFontLoaded(id){
+  if(_fontLoaded.has(id)) return;
+  _fontLoaded.add(id);
+  const family = `FFP-${String(id).padStart(3,'0')}`;
+  const url = `/api/fonts/${id}/file`;
+  // @font-face 규칙을 누적 추가
+  _fontStyleEl.appendChild(document.createTextNode(
+    `@font-face{font-family:'${family}';src:url('${url}') format('woff2');font-display:swap;font-weight:normal;font-style:normal}`
+  ));
+}
+
+/* 폰트의 stack을 사용 가능한 형태로 정규화.
+   has_file=true인데 stack에 FFP-{id} family가 빠져 있으면 자동으로 prepend.
+   백엔드는 이미 업로드 시점에 stack을 갱신하지만, 옛 데이터 호환을 위한 안전망. */
+function getEffectiveStack(f){
+  if(!f) return "'Nanum Gothic',sans-serif";
+  const baseStack = f.stack || "'Nanum Gothic',sans-serif";
+  if(!f.hasFile) return baseStack;
+  const family = `FFP-${String(f.id).padStart(3,'0')}`;
+  if(baseStack.includes(family)) return baseStack;
+  return `'${family}',${baseStack}`;
+}
+
+/* IntersectionObserver — 화면에 들어오는 카드의 폰트만 로드 */
+const _fontObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(!entry.isIntersecting) return;
+    const id = parseInt(entry.target.dataset.fontId, 10);
+    if(!isNaN(id)) ensureFontLoaded(id);
+    _fontObserver.unobserve(entry.target);
+  });
+}, { rootMargin: '200px 0px' }); // 화면 200px 전부터 미리 로드
+
+function observeFontCards(scope){
+  const root = scope || document;
+  root.querySelectorAll('[data-font-id]:not([data-font-observed])').forEach(el => {
+    el.dataset.fontObserved = '1';
+    _fontObserver.observe(el);
+  });
+}
+
+/* ── 인기 TOP 10 ── */
+function renderTopRanking(){
+  const grid = document.getElementById('topGrid');
+  if(!grid) return;
+
+  // 좋아요 1개 이상인 폰트만 + 좋아요 수 기준 내림차순, 최대 10개
+  const ranked = FONTS
+    .filter(f => (likeCounts[f.id] || 0) > 0)
+    .map(f => ({ ...f, _likes: likeCounts[f.id] || 0 }))
+    .sort((a, b) => b._likes - a._likes || a.id - b.id)
+    .slice(0, 10);
+
+  if(!ranked.length){
+    grid.innerHTML = `<div class="top-empty" style="grid-column:1/-1">
+      아직 좋아요를 받은 폰트가 없어요 — 좋아하는 폰트에 <span style="color:var(--accent);font-weight:700">엄지척</span>을 눌러주세요!
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = ranked.map((f, i) => {
+    const rank = i + 1;
+    const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+    return `
+      <button class="top-card ${rankClass}" data-font-id="${f.id}" onclick="searchByFontName('${f.name.replace(/'/g, "\\'")}')" aria-label="${f.name} 검색">
+        <div class="top-rank">${rank}</div>
+        <div class="top-info">
+          <div class="top-name" style="font-family:${getEffectiveStack(f)}">${f.name}</div>
+          <div class="top-meta">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 22h2a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H2zM22 11.5a2 2 0 0 0-2-2h-5.5l1-4.8.03-.34a1.5 1.5 0 0 0-.43-1.06L14.34 2 8 8.5V20a2 2 0 0 0 2 2h7a2 2 0 0 0 2-1.5z" stroke-linejoin="round" stroke-linecap="round"/></svg>
+            <span class="like-num">${f._likes}</span>
+            <span style="color:var(--text-muted)">· ${f.maker}</span>
+          </div>
+        </div>
+      </button>`;
+  }).join('');
+  observeFontCards(grid);
+}
+
+/* TOP 카드 클릭 → 검색창에 폰트명 입력 + 카테고리 '전체'로 리셋 + 갤러리로 스크롤 */
+function searchByFontName(name){
+  // applySearch가 카테고리 리셋 + 검색창 입력 + 렌더링 + hash 푸시까지 처리
+  applySearch(name, /*pushHash*/ true);
+
+  // 갤러리로 부드럽게 스크롤
+  const grid = document.getElementById('fontGrid');
+  if(grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function toggleLike(id){
+  const wasLiked = likedSet.has(id);
+  const prevCount = likeCounts[id] || 0;
+
+  // 옵티미스틱 UI: 서버 응답 기다리지 않고 즉시 반영
+  if(wasLiked){
+    likedSet.delete(id);
+    likeCounts[id] = Math.max(prevCount - 1, 0);
+  } else {
+    likedSet.add(id);
+    likeCounts[id] = prevCount + 1;
+  }
+  saveLikes();
+  _updateLikeUI(id);
+
+  // 서버 호출 — 진짜 카운트는 서버가 관리
+  try {
+    const result = wasLiked
+      ? await LikeAPI.remove(id)
+      : await LikeAPI.add(id);
+    // 서버에서 받은 진짜 카운트로 갱신
+    likeCounts[id] = result.like_count;
+    saveLikes();
+    _updateLikeUI(id);
+    renderTopRanking();
+  } catch (err) {
+    // 실패 → 롤백
+    if(wasLiked){
+      likedSet.add(id);
+    } else {
+      likedSet.delete(id);
+    }
+    likeCounts[id] = prevCount;
+    saveLikes();
+    _updateLikeUI(id);
+    if(err.status === 429){
+      // rate limit - 조용히 무시 (사용자가 너무 빠르게 클릭한 경우)
+      console.debug('Like rate limited');
+    } else {
+      console.warn('Failed to toggle like:', err);
+    }
+  }
+}
+
+function _updateLikeUI(id){
+  const btn = document.getElementById('like-'+id);
+  const countEl = document.getElementById('like-count-'+id);
+  if(btn){
+    const nowLiked = likedSet.has(id);
+    btn.classList.toggle('liked', nowLiked);
+    btn.setAttribute('aria-pressed', String(nowLiked));
+    btn.setAttribute('aria-label', '좋아요' + (nowLiked ? ' (선택됨)' : ''));
+  }
+  if(countEl) countEl.textContent = likeCounts[id] || 0;
+}
+
+window.addEventListener('scroll',()=>document.getElementById('scrollTopBtn').classList.toggle('visible',window.scrollY>400),{passive:true});
+
+/* ── 하단 플로팅 광고 (AdSense 승인 대기 중 임시 비활성화) ── */
+function initFloatingAd(){
+  // AdSense 승인 후 아래 코드 다시 활성화
+  return;
+  /* AdSense 승인 후 복구:
+  try {
+    if(sessionStorage.getItem('floating_ad_closed') === 'yes'){
+      document.getElementById('floatingAd').classList.add('hidden');
+      return;
+    }
+  } catch(e){}
+  document.body.classList.add('floating-ad-shown');
+  try {
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  } catch(e) {
+    console.warn('Floating ad push failed', e);
+  }
+  */
+}
+function closeFloatingAd(){
+  const el = document.getElementById('floatingAd');
+  if(el) el.classList.add('hidden');
+  document.body.classList.remove('floating-ad-shown');
+  try { sessionStorage.setItem('floating_ad_closed', 'yes'); } catch(e){}
+}
+initFloatingAd();
+
+/* ── 다운로드 광고 인터스티셜 ── */
+let _dlPendingUrl = null;
+function openDownloadAd(url, fontName){
+  // AdSense 승인 대기 중 — 광고 모달 건너뛰고 바로 다운로드 페이지로 이동
+  if(url){
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+  return;
+
+  /* AdSense 승인 후 아래 코드로 복구:
+  _dlPendingUrl = url;
+  const nameEl = document.getElementById('dladTargetName');
+  if(nameEl) nameEl.textContent = fontName ? `(${fontName} 다운로드 페이지로 이동)` : '';
+
+  const container = document.getElementById('dladAdContainer');
+  container.innerHTML = `
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-6258337579944977"
+         data-ad-slot="3355412338"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>`;
+
+  document.getElementById('dladOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  setTimeout(() => {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch(e) {
+      console.warn('Download ad push failed', e);
+    }
+  }, 50);
+  */
+}
+function closeDownloadAd(){
+  const url = _dlPendingUrl;
+  document.getElementById('dladOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  // 광고 컨테이너 비우기 (다음 호출 시 깨끗하게)
+  document.getElementById('dladAdContainer').innerHTML = '';
+  _dlPendingUrl = null;
+  // 다운로드 페이지로 이동 (새 창)
+  if(url){
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+}
+
+/* ── 라이선스 모달 ── */
+/* ── 모바일 햄버거 메뉴 ── */
+function toggleMobileNav(){
+  const panel = document.getElementById('mobileNavPanel');
+  if(panel.classList.contains('open')) closeMobileNav();
+  else openMobileNav();
+}
+function openMobileNav(){
+  const panel = document.getElementById('mobileNavPanel');
+  const backdrop = document.getElementById('mobileNavBackdrop');
+  const btn = document.getElementById('hamburgerBtn');
+  panel.classList.add('open');
+  backdrop.classList.add('open');
+  btn.setAttribute('aria-expanded', 'true');
+  document.body.style.overflow = 'hidden';
+  // 트랜지션 적용을 위해 다음 프레임에 클래스 추가
+  requestAnimationFrame(() => panel.classList.add('animate-in'));
+}
+function closeMobileNav(){
+  const panel = document.getElementById('mobileNavPanel');
+  const backdrop = document.getElementById('mobileNavBackdrop');
+  const btn = document.getElementById('hamburgerBtn');
+  panel.classList.remove('animate-in');
+  backdrop.classList.remove('open');
+  btn.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+  setTimeout(() => panel.classList.remove('open'), 220);
+}
+
+function openLicense(){
+  document.getElementById('licenseOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLicense(){
+  document.getElementById('licenseOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+document.getElementById('licenseOverlay').addEventListener('click',function(e){
+  if(e.target===this) closeLicense();
+});
+document.getElementById('dladOverlay').addEventListener('click',function(e){
+  if(e.target===this) closeDownloadAd();
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    if(document.getElementById('licenseOverlay').classList.contains('open')) closeLicense();
+    else if(document.getElementById('submitFormOverlay').classList.contains('open')) closeSubmitForm();
+    else if(document.getElementById('submitDetailOverlay').classList.contains('open')) closeSubmitDetail();
+    else if(document.getElementById('dladOverlay').classList.contains('open')) closeDownloadAd();
+    else if(document.getElementById('mobileNavPanel').classList.contains('open')) closeMobileNav();
+  }
+});
+
+/* ── 카테고리 태그 동적 렌더링 ── */
+async function renderTagsBar(){
+  const tags = await TagStore.getAll();
+  const bar = document.getElementById('tagsBar');
+  // 현재 활성 태그가 삭제됐다면 'all'로 리셋
+  if(currentTag !== 'all' && !tags.includes(currentTag)){
+    currentTag = 'all';
+  }
+  bar.innerHTML = `<button class="tag${currentTag==='all'?' active':''}" onclick="setTag('all',this)">전체</button>` +
+    tags.map(t=>`<button class="tag${currentTag===t?' active':''}" onclick="setTag('${t.replace(/'/g,"\\'")}',this)">${t}</button>`).join('');
+}
+
+/* ── 업로드된 폰트 등록 ──
+   백엔드 도입 후엔 모든 폰트가 /api/fonts/{id}/file로 통일되어 서빙되므로,
+   ensureFontLoaded만으로 충분. 이 함수는 호환을 위해 남겨두지만 no-op. */
+async function registerUploadedFonts(){
+  return;
+}
+
+/* 서버에서 받은 like_count로 localStorage의 카운트 동기화 */
+function syncServerLikeCounts(){
+  for(const f of FONTS){
+    if(typeof f.like_count === 'number'){
+      likeCounts[f.id] = f.like_count;
+    }
+  }
+  saveLikes();
+}
+
+async function init(){
+  FONTS = await FontStore.getAll();
+  syncServerLikeCounts();
+  const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
+  await renderTagsBar();
+  await registerUploadedFonts();
+  renderFonts();
+  renderTopRanking();
+
+  // 라우팅 처리 (해시 기반)
+  await route();
+  window.addEventListener('hashchange', route);
+  window.addEventListener('popstate', route);
+
+  // 관리자 페이지에서 변경된 내용이 실시간으로 반영되도록 구독
+  onDataChanged(async () => {
+    FONTS = await FontStore.getAll();
+    syncServerLikeCounts();
+    const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
+    await renderTagsBar();
+    await registerUploadedFonts();
+    renderFonts();
+    renderTopRanking();
+    // 공지사항 화면이 활성화돼있다면 같이 갱신
+    if(location.hash.startsWith('#notice')) await route();
+  });
+}
+
+/* ════════════════════════════════════════════
+   라우팅
+   - 빈 해시 또는 #home → 홈(폰트 갤러리)
+   - #notice → 공지사항 목록
+   - #notice/123 → 공지사항 상세 (id=123)
+════════════════════════════════════════════ */
+async function route(){
+  /* 고유 경로 라우팅: /find-font → 폰트 찾아주세요 게시판 */
+  if(location.pathname === '/find-font'){
+    showSubmitView();
+    document.getElementById('noticeMenuLink').classList.remove('active');
+    document.getElementById('submitMenuLink').classList.add('active');
+    document.getElementById('mNoticeMenuLink').classList.remove('active');
+    document.getElementById('mSubmitMenuLink').classList.add('active');
+    await renderSubmitList();
+    window.scrollTo({top:0});
+    return;
+  }
+  const hash = location.hash;
+  const noticeMenu = document.getElementById('noticeMenuLink');
+  const submitMenu = document.getElementById('submitMenuLink');
+  const mNoticeMenu = document.getElementById('mNoticeMenuLink');
+  const mSubmitMenu = document.getElementById('mSubmitMenuLink');
+
+  if(hash === '#notice'){
+    showNoticeView();
+    noticeMenu.classList.add('active');
+    submitMenu.classList.remove('active');
+    mNoticeMenu.classList.add('active');
+    mSubmitMenu.classList.remove('active');
+    await renderNoticeList();
+    showNoticePanel('list');
+    window.scrollTo({top:0});
+  } else if(hash.startsWith('#notice/')){
+    const id = parseInt(hash.split('/')[1], 10);
+    showNoticeView();
+    noticeMenu.classList.add('active');
+    submitMenu.classList.remove('active');
+    mNoticeMenu.classList.add('active');
+    mSubmitMenu.classList.remove('active');
+    await renderNoticeDetail(id);
+    showNoticePanel('detail');
+    window.scrollTo({top:0});
+  } else if(hash === '#submit'){
+    /* 구 해시 URL 호환: 고유 경로로 전환 */
+    history.replaceState(null, '', '/find-font');
+    return route();
+  } else if(false){
+    showSubmitView();
+    noticeMenu.classList.remove('active');
+    submitMenu.classList.add('active');
+    mNoticeMenu.classList.remove('active');
+    mSubmitMenu.classList.add('active');
+    await renderSubmitList();
+    window.scrollTo({top:0});
+  } else if(hash.startsWith('#search/')){
+    showHomeView();
+    noticeMenu.classList.remove('active');
+    submitMenu.classList.remove('active');
+    mNoticeMenu.classList.remove('active');
+    mSubmitMenu.classList.remove('active');
+    // hash로부터 검색어 복원
+    const query = decodeURIComponent(hash.slice('#search/'.length));
+    applySearch(query, /*pushHash*/ false);
+  } else {
+    showHomeView();
+    noticeMenu.classList.remove('active');
+    submitMenu.classList.remove('active');
+    mNoticeMenu.classList.remove('active');
+    mSubmitMenu.classList.remove('active');
+    // 홈으로 돌아온 경우: 검색·태그 초기화
+    clearSearchAndFilter();
+  }
+}
+
+/* 검색어를 적용하면서 hash 푸시(뒤로가기 작동을 위해) */
+function applySearch(query, pushHash){
+  // 카테고리 '전체'로 리셋 + 검색창에 값 입력
+  currentTag = 'all';
+  const tagBtns = document.querySelectorAll('.tag');
+  tagBtns.forEach(t => t.classList.remove('active'));
+  if(tagBtns[0]) tagBtns[0].classList.add('active');
+
+  document.getElementById('globalSearch').value = query;
+  renderFonts();
+
+  if(pushHash){
+    const newHash = query ? '#search/' + encodeURIComponent(query) : '';
+    if(location.hash !== newHash){
+      // hashchange 무한 루프 방지를 위해 동일하지 않을 때만 변경
+      history.pushState(null, '', newHash || location.pathname + location.search);
+    }
+  }
+}
+
+/* 홈으로 돌아왔을 때 검색·필터 초기화 */
+function clearSearchAndFilter(){
+  currentTag = 'all';
+  const tagBtns = document.querySelectorAll('.tag');
+  tagBtns.forEach(t => t.classList.remove('active'));
+  if(tagBtns[0]) tagBtns[0].classList.add('active');
+  const input = document.getElementById('globalSearch');
+  if(input) input.value = '';
+  renderFonts();
+}
+
+function showHomeView(){
+  document.getElementById('homeView').style.display = '';
+  document.getElementById('noticeView').style.display = 'none';
+  document.getElementById('submitView').style.display = 'none';
+}
+function showNoticeView(){
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('noticeView').style.display = '';
+  document.getElementById('submitView').style.display = 'none';
+}
+function showSubmitView(){
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('noticeView').style.display = 'none';
+  document.getElementById('submitView').style.display = '';
+}
+function showNoticePanel(which){
+  document.getElementById('noticeListPanel').style.display = which==='list' ? '' : 'none';
+  document.getElementById('noticeDetailPanel').style.display = which==='detail' ? '' : 'none';
+}
+
+function goHome(){
+  if(location.pathname !== '/' && location.pathname !== '/index.html'){
+    history.pushState(null, '', '/');
+  }
+  location.hash = '';
+  route();
+}
+/* 폰트 찾아주세요 — 고유 URL(/find-font)로 이동 (SEO용 실제 경로, SPA 내비게이션 유지) */
+function navFindFont(e){
+  if(e) e.preventDefault();
+  if(location.pathname !== '/find-font') history.pushState(null, '', '/find-font');
+  location.hash = '';
+  route();
+}
+function goNoticeList(){ location.hash = '#notice'; }
+function goNoticeDetail(id){ location.hash = '#notice/' + id; }
+
+/* ════════════════════════════════════════════
+   공지사항 렌더링
+════════════════════════════════════════════ */
+function formatNoticeDate(ts){
+  if(ts == null || ts === '') return '';
+  const d = new Date(ts);
+  // 유효하지 않은 날짜면 원본 문자열이라도 반환하지 않고 빈 문자열
+  if(isNaN(d.getTime())) return '';
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}.${mm}.${dd}`;
+}
+/* 공지사항 객체에서 등록일/수정일 추출 (snake_case, camelCase 모두 지원) */
+function noticeCreatedAt(n){ return n.created_at || n.createdAt || null; }
+function noticeUpdatedAt(n){ return n.updated_at || n.updatedAt || null; }
+
+async function renderNoticeList(){
+  const notices = await NoticeStore.getAll();
+  const wrap = document.getElementById('noticeList');
+  if(!notices.length){
+    wrap.innerHTML = `<div class="notice-empty">
+      <i class="ti ti-speakerphone" aria-hidden="true"></i>
+      <p>등록된 공지사항이 없어요</p>
+    </div>`;
+    return;
+  }
+  // 핀 고정된 글이 위로 오도록 정렬
+  notices.sort((a,b)=>{
+    if(a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+    // 날짜 문자열을 timestamp로 변환해서 비교 (snake_case, camelCase 둘 다 대응)
+    const ta = new Date(noticeCreatedAt(a) || 0).getTime();
+    const tb = new Date(noticeCreatedAt(b) || 0).getTime();
+    return tb - ta;
+  });
+  wrap.innerHTML = notices.map(n => `
+    <a class="notice-row" href="#notice/${n.id}" aria-label="${escapeHtml(n.title)}">
+      <div class="notice-pin${n.pinned?'':' empty'}" aria-hidden="true"><i class="ti ti-pin-filled"></i></div>
+      <div class="notice-row-content">
+        <div class="notice-row-title">${n.pinned?'<span class="notice-row-badge">중요</span>':''}${escapeHtml(n.title)}</div>
+        <div class="notice-row-date">${formatNoticeDate(noticeCreatedAt(n))}</div>
+      </div>
+      <i class="ti ti-chevron-right chevron" aria-hidden="true"></i>
+    </a>
+  `).join('');
+}
+
+async function renderNoticeDetail(id){
+  const n = await NoticeStore.getById(id);
+  const titleEl = document.getElementById('noticeDetailTitle');
+  const metaEl = document.getElementById('noticeDetailMeta');
+  const bodyEl = document.getElementById('noticeDetailBody');
+  if(!n){
+    titleEl.textContent = '존재하지 않는 공지사항이에요';
+    metaEl.innerHTML = '';
+    bodyEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px">목록으로 돌아가서 다른 글을 확인해주세요.</p>';
+    return;
+  }
+  titleEl.textContent = n.title;
+  const updatedAt = noticeUpdatedAt(n);
+  const createdAt = noticeCreatedAt(n);
+  metaEl.innerHTML = (n.pinned?'<span class="pin"><i class="ti ti-pin-filled" style="font-size:13px"></i> 중요</span>':'') +
+    `<span>등록일 ${formatNoticeDate(createdAt)}</span>` +
+    (updatedAt && updatedAt !== createdAt ? `<span>수정일 ${formatNoticeDate(updatedAt)}</span>` : '');
+  // 본문은 관리자에서 sanitize된 HTML이 들어있음 (b, strong, br, p만 허용)
+  bodyEl.innerHTML = sanitizeNoticeHtml(n.content || '');
+}
+
+/* HTML 화이트리스트 (관리자가 저장한 서식만 허용) */
+function sanitizeNoticeHtml(html){
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const allowed = new Set(['B','STRONG','BR','P','DIV']);
+  const walk = (node) => {
+    [...node.children].forEach(child => {
+      walk(child);
+      if(!allowed.has(child.tagName)){
+        // 허용되지 않은 태그는 자식만 남기고 자기 자신 제거
+        const parent = child.parentNode;
+        while(child.firstChild) parent.insertBefore(child.firstChild, child);
+        parent.removeChild(child);
+      } else {
+        // 속성 모두 제거
+        [...child.attributes].forEach(attr => child.removeAttribute(attr.name));
+      }
+    });
+  };
+  walk(tmp);
+  return tmp.innerHTML;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ══════════════════════════════════════════
+   폰트 찾아주세요 게시판
+══════════════════════════════════════════ */
+const SUBMIT_STATUS_LABEL = {pending:'대기중', reviewed:'검토중', added:'답변완료'};
+let sfPendingImageFile = null;
+
+async function renderSubmitList(){
+  const wrap = document.getElementById('submitList');
+  const countEl = document.getElementById('submitCount');
+  let items = [];
+  try {
+    items = await SubmissionStore.getAll();
+  } catch(e) {
+    console.error('목록 로딩 실패:', e);
+    wrap.innerHTML = '<div class="notice-empty"><i class="ti ti-alert-circle" aria-hidden="true"></i><p>목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</p></div>';
+    return;
+  }
+  countEl.textContent = items.length;
+
+  if(!items.length){
+    wrap.innerHTML = '<div class="notice-empty" style="grid-column:1/-1"><i class="ti ti-search" aria-hidden="true"></i><p>아직 등록된 질문이 없어요. 첫 번째로 물어보세요!</p></div>';
+    return;
+  }
+
+  wrap.innerHTML = items.map(item => {
+    const thumb = item.image_path
+      ? `<img src="${SubmissionStore.imageUrl(item.id)}" alt="문의 첨부 이미지" loading="lazy">`
+      : `<i class="ti ti-message-question" aria-hidden="true"></i>`;
+    const statusLabel = SUBMIT_STATUS_LABEL[item.status] || '대기중';
+    const desc = item.content ? escapeHtml(item.content) : '이미지를 확인해주세요';
+    return `<article class="submit-card" onclick="openSubmitDetail(${item.id})" role="listitem">
+      <div class="submit-card-thumb">${thumb}</div>
+      <div class="submit-card-body">
+        <span class="submit-card-status ${item.status}">${statusLabel}</span>
+        <div class="submit-card-desc">${desc}</div>
+        <div class="submit-card-meta">
+          <span>${escapeHtml(item.nickname)}</span>
+          <span>${formatNoticeDate(item.created_at)}</span>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+/* 폰트 찾기 요청 작성 모달 */
+function openSubmitForm(){
+  document.getElementById('sfNickname').value = '';
+  document.getElementById('sfContent').value = '';
+  clearSfImage();
+  document.getElementById('submitFormOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSubmitForm(){
+  document.getElementById('submitFormOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleSfImageChange(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  if(file.size > 8*1024*1024){
+    showToast && showToast('이미지는 최대 8MB까지 첨부할 수 있어요');
+    input.value = '';
+    return;
+  }
+  sfPendingImageFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('sfImagePreviewImg').src = e.target.result;
+    document.getElementById('sfImagePreview').style.display = 'block';
+    document.getElementById('sfImagePicker').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+function clearSfImage(){
+  sfPendingImageFile = null;
+  document.getElementById('sfImageInput').value = '';
+  document.getElementById('sfImagePreview').style.display = 'none';
+  document.getElementById('sfImagePicker').style.display = 'flex';
+}
+
+async function submitFontTip(){
+  const content = document.getElementById('sfContent').value.trim();
+  if(!content && !sfPendingImageFile){
+    alert('이미지 또는 설명 중 하나는 알려주세요');
+    return;
+  }
+  const btn = document.getElementById('sfSubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> 등록 중...';
+
+  try {
+    await SubmissionStore.add({
+      nickname: document.getElementById('sfNickname').value.trim() || '익명',
+      content: content,
+      imageFile: sfPendingImageFile,
+    });
+    closeSubmitForm();
+    await renderSubmitList();
+    if(typeof showToast === 'function') showToast('질문을 등록했어요! 확인 후 답변해드릴게요.');
+  } catch(e) {
+    console.error('등록 실패:', e);
+    if(e.status === 429){
+      alert(e.message || '너무 빠르게 작성하셨어요. 잠시 후 다시 시도해주세요.');
+    } else {
+      alert('등록에 실패했어요: ' + (e.message || '알 수 없는 오류'));
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-send" aria-hidden="true"></i> 질문 등록하기';
+  }
+}
+
+/* 상세 모달 */
+async function openSubmitDetail(id){
+  const overlay = document.getElementById('submitDetailOverlay');
+  const titleEl = document.getElementById('submitDetailTitle');
+  const metaEl = document.getElementById('submitDetailMeta');
+  const statusEl = document.getElementById('submitDetailStatus');
+  const bodyEl = document.getElementById('submitDetailBody');
+
+  titleEl.textContent = '불러오는 중...';
+  metaEl.textContent = '';
+  bodyEl.innerHTML = '';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  try {
+    const item = await SubmissionStore.getById(id);
+    titleEl.textContent = item.font_name;
+    metaEl.textContent = `${item.nickname} · ${formatNoticeDate(item.created_at)}`;
+    statusEl.textContent = SUBMIT_STATUS_LABEL[item.status] || '대기중';
+
+    let html = '';
+    if(item.image_path){
+      html += `<div class="submit-detail-image"><img src="${SubmissionStore.imageUrl(item.id)}" alt="${escapeHtml(item.font_name)} 첨부 이미지"></div>`;
+    }
+    if(item.content){
+      html += `<div class="submit-detail-content">${escapeHtml(item.content)}</div>`;
+    }
+    if(item.link){
+      html += `<a class="submit-detail-link" href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer"><i class="ti ti-link" aria-hidden="true"></i> ${escapeHtml(item.link)}</a>`;
+    }
+    if(item.admin_reply){
+      html += `<div class="submit-detail-reply"><div class="submit-detail-reply-label"><i class="ti ti-message-circle" aria-hidden="true"></i> 운영자 답변</div>${escapeHtml(item.admin_reply)}</div>`;
+    }
+    bodyEl.innerHTML = html || '<p style="color:var(--text-muted);font-size:13px">추가 설명이 없어요.</p>';
+  } catch(e) {
+    console.error('제보 상세 로딩 실패:', e);
+    titleEl.textContent = '불러오지 못했어요';
+    bodyEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px">잠시 후 다시 시도해주세요.</p>';
+  }
+}
+function closeSubmitDetail(){
+  document.getElementById('submitDetailOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('submitFormOverlay').addEventListener('click', function(e){
+  if(e.target===this) closeSubmitForm();
+});
+document.getElementById('submitDetailOverlay').addEventListener('click', function(e){
+  if(e.target===this) closeSubmitDetail();
+});
+
+
+/* ── 토스트 (전역) ── */
+function showToast(msg){
+  let el = document.getElementById('ffpToast');
+  if(!el){
+    el = document.createElement('div');
+    el.id='ffpToast';
+    el.style.cssText='position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--text-primary);color:var(--bg-card);font-size:13px;font-weight:700;padding:12px 18px;border-radius:12px;z-index:900;opacity:0;transition:opacity .25s ease;pointer-events:none;font-family:inherit';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  requestAnimationFrame(()=>{ el.style.opacity='1'; });
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>{ el.style.opacity='0'; }, 2400);
+}
+
+/* ════════════════════════════════════════════
+   텍스트 디자인 에디터
+   - 갤러리 카드 [디자인] 버튼 → 모달 오픈 (UX)
+   - 오픈 시 URL을 /design/{id}로 변경 (SEO/애드센스용 고유 URL)
+   - /design/{id} 직접 접속 시에도 자동 오픈
+════════════════════════════════════════════ */
+const DS_EFFECTS = [
+  {id:'none', name:'없음', color:'#111111', outline:null, outlineW:0, shadow:'none'},
+  /* ── 클래식 ── */
+  {id:'classic-white', name:'화이트', color:'#FFFFFF', outline:'#000000', outlineW:6, shadow:'soft'},
+  {id:'classic-black', name:'블랙', color:'#000000', outline:'#FFFFFF', outlineW:6, shadow:'gray'},
+  {id:'soft-shadow', name:'소프트', color:'#FFFFFF', outline:null, outlineW:0, shadow:'strong'},
+  {id:'bold-outline', name:'굵은외곽선', color:'#FFFFFF', outline:'#000000', outlineW:12, shadow:'none'},
+  {id:'double-line', name:'더블라인', color:'#111111', outline:'#FFFFFF', outlineW:10, shadow:'soft'},
+  /* ── 컬러 ── */
+  {id:'golden', name:'골드', color:'#FFD700', outline:'#7A5C00', outlineW:5, shadow:'soft'},
+  {id:'silver', name:'실버', color:'#E5E7EB', outline:'#6B7280', outlineW:5, shadow:'soft'},
+  {id:'sky-blue', name:'스카이', color:'#7DD3FC', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'rose-pink', name:'로즈핑크', color:'#EC4899', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'mint', name:'민트', color:'#5EEAD4', outline:'#0F766E', outlineW:5, shadow:'soft'},
+  {id:'lavender', name:'라벤더', color:'#C4B5FD', outline:'#6D28D9', outlineW:5, shadow:'soft'},
+  {id:'lemon', name:'레몬', color:'#FDE047', outline:'#A16207', outlineW:5, shadow:'none'},
+  {id:'cherry', name:'체리', color:'#DC2626', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'forest', name:'포레스트', color:'#16A34A', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'midnight', name:'미드나잇', color:'#1E3A8A', outline:'#93C5FD', outlineW:5, shadow:'gray'},
+  /* ── 네온 ── */
+  {id:'neon-blue', name:'네온블루', color:'#06B6D4', outline:'#1D4ED8', outlineW:4, shadow:'glow'},
+  {id:'neon-pink', name:'네온핑크', color:'#FF1493', outline:'#7C3AED', outlineW:4, shadow:'glow'},
+  {id:'neon-green', name:'네온그린', color:'#4ADE80', outline:'#15803D', outlineW:4, shadow:'glow'},
+  {id:'neon-purple', name:'네온퍼플', color:'#A855F7', outline:'#6D28D9', outlineW:4, shadow:'glow'},
+  {id:'neon-orange', name:'네온오렌지', color:'#FB923C', outline:'#C2410C', outlineW:4, shadow:'glow'},
+  /* ── 무드 ── */
+  {id:'frost', name:'프로스트', color:'#BBE6FF', outline:'#FFFFFF', outlineW:4, shadow:'blur'},
+  {id:'comic', name:'코믹', color:'#FBBF24', outline:'#000000', outlineW:12, shadow:'none'},
+  {id:'retro', name:'레트로', color:'#F59E0B', outline:'#78350F', outlineW:8, shadow:'gray'},
+  {id:'vintage', name:'빈티지', color:'#D4A574', outline:'#5C3D1E', outlineW:5, shadow:'gray'},
+  {id:'candy', name:'캔디', color:'#F9A8D4', outline:'#DB2777', outlineW:6, shadow:'none'},
+  /* ── 그라데이션 ── */
+  {id:'sunset', name:'선셋', color:'#F97316', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#F97316','#EC4899']},
+  {id:'ocean', name:'오션', color:'#06B6D4', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#06B6D4','#3B82F6','#7C3AED']},
+  {id:'rainbow', name:'레인보우', color:'#EF4444', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#EF4444','#F97316','#FBBF24','#10B981','#06B6D4','#7C3AED','#EC4899']},
+  {id:'gold-grad', name:'골드빔', color:'#FCD34D', outline:'#92400E', outlineW:5, shadow:'soft', gradient:['#FEF3C7','#FCD34D','#D97706']},
+  {id:'purple-magenta', name:'퍼플마젠타', color:'#A855F7', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#A855F7','#EC4899']},
+  {id:'fire', name:'파이어', color:'#EF4444', outline:'#7F1D1D', outlineW:5, shadow:'glow', gradient:['#FBBF24','#F97316','#DC2626']},
+];
+const DS_TEXT_COLORS = ['#111111','#374151','#6B7280','#9CA3AF','#FFFFFF','#EC4899','#F472B6','#EF4444','#B91C1C','#F97316','#C2410C','#FBBF24','#D97706','#CA8A04','#84CC16','#10B981','#047857','#14B8A6','#06B6D4','#60A5FA','#3B82F6','#1D4ED8','#1E3A8A','#A78BFA','#7C3AED','#5B21B6','#D4A574','#92400E','#FF7F50','#7F1D1D'];
+const DS_TEXT_GRADIENTS = [
+  {name:'sunset', colors:['#F97316','#EC4899']},
+  {name:'ocean', colors:['#06B6D4','#3B82F6','#7C3AED']},
+  {name:'rainbow', colors:['#EF4444','#F97316','#FBBF24','#10B981','#06B6D4','#7C3AED','#EC4899']},
+  {name:'gold', colors:['#FEF3C7','#FCD34D','#D97706']},
+  {name:'purpleMagenta', colors:['#A855F7','#EC4899']},
+];
+const DS_OUTLINE_COLORS = ['none','#000000','#374151','#6B7280','#9CA3AF','#FFFFFF','#EC4899','#EF4444','#F97316','#FBBF24','#84CC16','#10B981','#14B8A6','#06B6D4','#3B82F6','#1D4ED8','#7C3AED','#92400E'];
+const DS_HL_COLORS = [
+  null,      '#FDE047','#FFE58A','#FCD34D','#FDBA74','#FCA5A5','#FFB3C1','#F9A8D4','#E9D5FF','#C4B5FD',
+  '#BFDBFE','#A7C7FF','#99F6E4','#B7E4C7','#BBF7D0','#D9F99D','#FEF3C7','#FBCFE8','#E5E7EB','#D6CCC2',
+];
+
+let dsState = {
+  font: null, effect: DS_EFFECTS[0], text: '안녕하세요',
+  bold:false, underline:false, spacing:0, lineHeight:13, align:'left',
+  highlight:null, textColorOverride:null, outlineOverride:undefined,
+};
+let dsPushedUrl = false;
+let dsBlob = null, dsFilename = '';
+
+const dsCanvas = () => document.getElementById('dsCanvas');
+
+/* ── 팔레트 렌더 (1회) ── */
+(function buildDesignerPalettes(){
+  const fx = document.getElementById('dsFxGrid');
+  DS_EFFECTS.forEach(e=>{
+    const el=document.createElement('div');
+    el.className='fx-item'; el.dataset.id=e.id;
+    const chipStyle = e.id==='none' ? '' :
+      `background:${e.gradient?`linear-gradient(135deg,${e.gradient.join(',')})`:e.color};` +
+      (['#FFFFFF','#FBBF24','#FFD700','#BBE6FF','#7DD3FC','#FDE047','#E5E7EB','#5EEAD4','#C4B5FD','#FCD34D','#F9A8D4'].includes(e.color)?'color:rgba(0,0,0,.55);':'');
+    el.innerHTML=`<div class="fx-chip${e.id==='none'?' none-chip':''}" style="${chipStyle}">Aa</div><span>${e.name}</span>`;
+    el.onclick=()=>{ dsState.effect=e; dsState.textColorOverride=null; dsState.outlineOverride=undefined; dsSyncUI(); dsDraw(); };
+    fx.appendChild(el);
+  });
+  const tc = document.getElementById('dsTextColorGrid');
+  DS_TEXT_COLORS.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='clr-dot'; el.dataset.val=c; el.style.background=c;
+    el.onclick=()=>{ dsState.textColorOverride=c; dsSyncUI(); dsDraw(); };
+    tc.appendChild(el);
+  });
+  DS_TEXT_GRADIENTS.forEach(g=>{
+    const el=document.createElement('div');
+    el.className='clr-dot'; el.dataset.val='grad:'+g.name;
+    el.style.background=`linear-gradient(135deg,${g.colors.join(',')})`;
+    el.onclick=()=>{ dsState.textColorOverride={gradient:g.colors,name:g.name}; dsSyncUI(); dsDraw(); };
+    tc.appendChild(el);
+  });
+  const oc = document.getElementById('dsOutlineGrid');
+  DS_OUTLINE_COLORS.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='clr-dot'+(c==='none'?' none-dot':''); el.dataset.val=c;
+    if(c!=='none') el.style.background=c;
+    el.onclick=()=>{ dsState.outlineOverride=c; dsSyncUI(); dsDraw(); };
+    oc.appendChild(el);
+  });
+  const hl = document.getElementById('dsHlRow');
+  DS_HL_COLORS.forEach((c,i)=>{
+    const el=document.createElement('div');
+    el.className='dhl-dot'+(i===0?' active':'');
+    el.dataset.val = c===null ? 'none' : c;
+    el.style.background = c || 'repeating-linear-gradient(45deg,var(--bg-card),var(--bg-card) 4px,var(--border) 4px,var(--border) 8px)';
+    el.onclick=()=>{ dsState.highlight=c; dsSyncUI(); dsDraw(); };
+    hl.appendChild(el);
+  });
+  /* 탭/서브탭 */
+  document.querySelectorAll('.designer-tab').forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll('.designer-tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.designer-panel').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      document.querySelector(`.designer-panel[data-dpanel="${t.dataset.dtab}"]`).classList.add('active');
+    };
+  });
+  document.querySelectorAll('.designer-subtab').forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll('.designer-subtab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.designer-subpanel').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      document.querySelector(`.designer-subpanel[data-dsubpanel="${t.dataset.dsub}"]`).classList.add('active');
+    };
+  });
+  /* 디테일 컨트롤 */
+  document.getElementById('dsText').addEventListener('input', e=>{ dsState.text=e.target.value||' '; dsDraw(); });
+  document.getElementById('dsBold').onclick=function(){ dsState.bold=!dsState.bold; this.classList.toggle('on'); dsDraw(); };
+  document.getElementById('dsUnderline').onclick=function(){ dsState.underline=!dsState.underline; this.classList.toggle('on'); dsDraw(); };
+  document.getElementById('dsSpacing').addEventListener('input', e=>{ dsState.spacing=+e.target.value; dsDraw(); });
+  document.getElementById('dsLineHeight').addEventListener('input', e=>{ dsState.lineHeight=+e.target.value; dsDraw(); });
+  document.querySelectorAll('.dalign button').forEach(b=>{
+    b.onclick=()=>{ dsState.align=b.dataset.dalign;
+      document.querySelectorAll('.dalign button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active'); dsDraw(); };
+  });
+  document.getElementById('designerOverlay').addEventListener('click', function(e){ if(e.target===this) closeDesigner(); });
+})();
+
+function dsSyncUI(){
+  document.querySelectorAll('#dsFxGrid .fx-item').forEach(s=>s.classList.toggle('active', s.dataset.id===dsState.effect.id));
+  const tv = (dsState.textColorOverride && dsState.textColorOverride.gradient) ? 'grad:'+dsState.textColorOverride.name : dsState.textColorOverride;
+  document.querySelectorAll('#dsTextColorGrid .clr-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===tv));
+  document.querySelectorAll('#dsOutlineGrid .clr-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===dsState.outlineOverride));
+  document.querySelectorAll('#dsHlRow .dhl-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===(dsState.highlight===null?'none':dsState.highlight)));
+}
+
+/* ── WYSIWYG 렌더링: 캔버스 = 저장본 (콘텐츠 크기에 딱 맞게) ── */
+function dsDraw(){
+  const canvas = dsCanvas();
+  const ctx = canvas.getContext('2d');
+  const f = dsState.font;
+  if(!f) return;
+  const eff = dsState.effect;
+  const ov = dsState.textColorOverride;
+  const fillGradient = (ov && ov.gradient) ? ov.gradient : (ov ? null : eff.gradient);
+  const fillColor = (ov && !ov.gradient) ? ov : eff.color;
+  let outlineColor = eff.outline, outlineW = eff.outlineW;
+  if(dsState.outlineOverride !== undefined){
+    if(dsState.outlineOverride === 'none'){ outlineColor=null; outlineW=0; }
+    else { outlineColor=dsState.outlineOverride; if(outlineW<=0) outlineW=6; }
+  }
+  const fontSize = 78;
+  const weight = dsState.bold ? '700':'400'; /* 400 기본: 단일 웨이트 장식/손글씨 폰트의 가짜 굵기(faux bold) 뭉개짐 방지 */
+  const fontSpec = `${weight} ${fontSize}px ${getEffectiveStack(f)}`;
+
+  ctx.font = fontSpec;
+  try{ ctx.letterSpacing = dsState.spacing+'px'; }catch(e){}
+  const lines = dsState.text.split('\n');
+  const lh = fontSize*(dsState.lineHeight/10);
+  const widths = lines.map(l=>ctx.measureText(l).width);
+  const maxW = Math.max(...widths, 10);
+  const pad = 34, ascent = fontSize*0.88, descent = fontSize*0.28;
+  canvas.width = Math.ceil(maxW+pad*2);
+  canvas.height = Math.ceil(ascent+descent+lh*(lines.length-1)+pad*2);
+  ctx.font = fontSpec; ctx.textBaseline='alphabetic';
+  try{ ctx.letterSpacing = dsState.spacing+'px'; }catch(e){}
+
+  let y = pad + ascent;
+  lines.forEach((line, idx)=>{
+    const width = widths[idx];
+    let x;
+    if(dsState.align==='left') x = pad;
+    else if(dsState.align==='right') x = pad+maxW-width;
+    else x = pad+(maxW-width)/2;
+
+    if(dsState.highlight && line.trim()!==''){
+      ctx.fillStyle = dsState.highlight;
+      ctx.fillRect(x-8, y-fontSize*0.82, width+16, fontSize*1.05);
+    }
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+    if(eff.shadow==='soft'){ ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=10; ctx.shadowOffsetY=6; }
+    if(eff.shadow==='strong'){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=4; ctx.shadowOffsetY=10; }
+    if(eff.shadow==='gray'){ ctx.shadowColor='rgba(120,120,120,.5)'; ctx.shadowBlur=8; ctx.shadowOffsetY=4; }
+    if(eff.shadow==='glow'){ ctx.shadowColor=fillGradient?fillGradient[0]:fillColor; ctx.shadowBlur=28; }
+    if(eff.shadow==='blur'){ ctx.shadowColor='rgba(150,200,255,.6)'; ctx.shadowBlur=14; }
+    if(outlineColor && outlineW>0){
+      ctx.lineJoin='round'; ctx.strokeStyle=outlineColor; ctx.lineWidth=outlineW;
+      ctx.strokeText(line, x, y);
+    }
+    if(fillGradient){
+      const grad = ctx.createLinearGradient(x,0,x+width,0);
+      fillGradient.forEach((c,i)=>grad.addColorStop(i/(fillGradient.length-1), c));
+      ctx.fillStyle = grad;
+    } else ctx.fillStyle = fillColor;
+    ctx.shadowColor = eff.shadow!=='none' ? ctx.shadowColor : 'transparent';
+    ctx.fillText(line, x, y);
+    ctx.shadowColor='transparent';
+    if(dsState.underline){
+      ctx.fillStyle = fillGradient ? fillGradient[0] : fillColor;
+      ctx.fillRect(x, y+fontSize*0.14, width, Math.max(4, fontSize*0.05));
+    }
+    y += lh;
+  });
+}
+
+/* ── 디자인 페이지 JSON-LD 구조화 데이터 (검색엔진용) ── */
+function setDesignJsonLd(f){
+  removeDesignJsonLd();
+  const el = document.createElement('script');
+  el.type = 'application/ld+json';
+  el.id = 'designJsonLd';
+  el.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": `${f.name} 텍스트 디자인 만들기`,
+    "description": `${f.name} 무료폰트 다운로드와 텍스트 디자인. 외곽선, 그라데이션, 네온 등 30여 가지 효과를 적용하고 투명배경 PNG로 저장하세요.`,
+    "url": `https://freefontpick.co.kr/design/${f.id}`,
+    "inLanguage": "ko",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "폰트픽",
+      "url": "https://freefontpick.co.kr"
+    },
+    "mainEntity": {
+      "@type": "CreativeWork",
+      "name": f.name,
+      "creator": { "@type": "Organization", "name": f.maker || "" },
+      "keywords": (f.tags || []).join(', ')
+    },
+    "potentialAction": {
+      "@type": "CreateAction",
+      "name": `${f.name}(으)로 텍스트 디자인 이미지 만들기`,
+      "target": `https://freefontpick.co.kr/design/${f.id}`
+    }
+  });
+  document.head.appendChild(el);
+}
+function removeDesignJsonLd(){
+  const old = document.getElementById('designJsonLd');
+  if(old) old.remove();
+}
+
+/* ── 열기/닫기 + URL 연동 ── */
+async function openDesigner(fontId, viaUrl){
+  const f = FONTS.find(x=>x.id===fontId);
+  if(!f) return;
+  dsState.font = f;
+  dsState.effect = DS_EFFECTS[0];
+  dsState.textColorOverride = null;
+  dsState.outlineOverride = undefined;
+  document.getElementById('designerTitle').textContent = f.name + ' · 텍스트 디자인';
+  document.getElementById('designerOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  dsSyncUI();
+  setDesignJsonLd(f); /* 폰트별 구조화 데이터 주입 */
+
+  /* 고유 URL 부여: 갤러리에서 열면 pushState, /design/ 직접 접속이면 유지 */
+  if(!viaUrl){
+    history.pushState({designer:fontId}, '', '/design/' + fontId);
+    dsPushedUrl = true;
+  }
+
+  /* 폰트 로드 보장 후 그리기 */
+  ensureFontLoaded(f.id);
+  dsDraw(); /* 폴백 폰트로 1차 표시 */
+  try{
+    await document.fonts.load(`400 78px ${getEffectiveStack(f)}`);
+    await document.fonts.ready;
+  }catch(e){}
+  dsDraw(); /* 실제 폰트로 재렌더 */
+}
+
+function closeDesigner(){
+  document.getElementById('designerOverlay').classList.remove('open');
+  document.body.style.overflow='';
+  removeDesignJsonLd();
+  if(dsPushedUrl){
+    dsPushedUrl = false;
+    history.back(); /* /design/{id} → 이전 갤러리 URL로 복귀 */
+  } else if(location.pathname.startsWith('/design/')){
+    history.replaceState(null, '', '/');
+  }
+}
+
+/* 뒤로가기로 /design/ URL을 벗어나면 모달 닫기 */
+window.addEventListener('popstate', ()=>{
+  if(!location.pathname.startsWith('/design/')){
+    dsPushedUrl = false;
+    document.getElementById('designerOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
+});
+
+/* /design/{id} 직접 접속 처리 (init 완료 후 호출됨) */
+function handleDesignRoute(){
+  const m = location.pathname.match(/^\/design\/(\d+)/);
+  if(m) openDesigner(parseInt(m[1],10), true);
+}
+
+/* ── 저장 플로우: 저장 탭 → 광고 → 같은 팝업에서 저장 ── */
+const DS_ADS_ENABLED = false; /* 애드센스 승인 후 true로 변경 */
+function startDesignerSave(){
+  dsCanvas().toBlob(blob=>{
+    dsBlob = blob;
+    dsFilename = `폰트픽-${dsState.font.name}-디자인.png`;
+  }, 'image/png');
+
+  const ov = document.getElementById('dsaveOverlay');
+  const visual = document.getElementById('dsaveVisual');
+  const imgWrap = document.getElementById('dsaveImgWrap');
+  const hint = document.getElementById('dsaveHint');
+  const btn = document.getElementById('dsaveActionBtn');
+  const cd = document.getElementById('dsaveCountdown');
+
+  visual.style.display='flex'; imgWrap.style.display='none';
+  hint.textContent='잠시 후 저장할 수 있어요.';
+  btn.disabled=true; btn.classList.remove('primary');
+
+  const readyState = ()=>{
+    cd.textContent='✓';
+    document.getElementById('dsaveLabel').textContent='이미지 준비 완료';
+    btn.disabled=false; btn.classList.add('primary');
+    btn.textContent = dsIsMobile() ? '갤러리에 저장' : 'PNG 다운로드';
+    hint.textContent = dsIsMobile() ? '버튼을 누르면 공유 시트에서 「사진에 저장」을 선택할 수 있어요.' : '버튼을 누르면 바로 다운로드됩니다.';
+  };
+  ov.classList.add('open');
+  if(!DS_ADS_ENABLED){
+    /* 애드센스 승인 전: 광고 없이 즉시 저장 가능 */
+    readyState();
+  } else {
+    let t=3; cd.textContent=t; btn.textContent=`잠시만요 (${t})`;
+    const timer = setInterval(()=>{
+      t-=1;
+      if(t<=0){ clearInterval(timer); readyState(); }
+      else { cd.textContent=t; btn.textContent=`잠시만요 (${t})`; }
+    },1000);
+  }
+  btn.onclick = ()=>{ if(!btn.disabled) dsAttemptSave(); };
+}
+
+function dsIsMobile(){
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || matchMedia('(pointer:coarse)').matches;
+}
+
+async function dsAttemptSave(){
+  const file = new File([dsBlob], dsFilename, {type:'image/png'});
+  if(dsIsMobile() && navigator.canShare && navigator.canShare({files:[file]})){
+    try{
+      await navigator.share({files:[file], title:'폰트픽 텍스트 디자인'});
+      document.getElementById('dsaveOverlay').classList.remove('open');
+      showToast('저장 완료!');
+      return;
+    }catch(err){
+      if(err && err.name==='AbortError') return; /* 사용자가 공유시트만 닫음 — 다시 시도 가능 */
+    }
+  }
+  if(!dsIsMobile()){
+    dsDownloadFile();
+    document.getElementById('dsaveOverlay').classList.remove('open');
+    return;
+  }
+  /* 인앱 브라우저 등 공유 미지원 → 광고 자리를 실제 이미지로 교체 + 롱프레스 안내 */
+  const url = URL.createObjectURL(dsBlob);
+  document.getElementById('dsaveImg').src = url;
+  document.getElementById('dsaveVisual').style.display='none';
+  document.getElementById('dsaveImgWrap').style.display='block';
+  document.getElementById('dsaveHint').innerHTML='<b style="color:var(--accent)">이 브라우저는 바로 저장을 지원하지 않아요.</b><br>위 이미지를 길게 눌러 「사진에 저장」을 선택해주세요.';
+  const btn = document.getElementById('dsaveActionBtn');
+  btn.textContent='파일로 다운로드';
+  btn.onclick = dsDownloadFile;
+}
+
+function dsDownloadFile(){
+  const url = URL.createObjectURL(dsBlob);
+  const a = document.createElement('a');
+  a.href=url; a.download=dsFilename;
+  document.body.appendChild(a); a.click(); a.remove();
+  showToast('다운로드 완료!');
+}
+
+init().then(()=>{ handleDesignRoute(); });
+</script>
+</body>
+</html>
