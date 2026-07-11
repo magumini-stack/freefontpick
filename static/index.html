@@ -506,6 +506,7 @@
     .font-weights{font-size:11px;color:var(--accent);background:var(--accent-light);padding:3px 8px;border-radius:10px;white-space:nowrap;font-weight:700;flex-shrink:0}
     .font-tags-row{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
     .font-tag-pill{font-size:10px;padding:2px 7px;border-radius:8px;background:var(--bg-secondary);color:var(--text-muted);font-weight:700}
+  .font-tag-pill.pair{background:var(--accent-light);color:var(--accent);font-weight:700}
 
     /* AD SLOTS (애드센스) */
     .ad-slot{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);height:280px !important;max-height:280px;display:flex;align-items:center;justify-content:center;overflow:hidden;animation:fadeUp .25s ease both;align-self:start}
@@ -513,6 +514,8 @@
     .ad-slot.row-1{grid-column:1;grid-row:1}
     .ad-slot.row-3{grid-column:1;grid-row:3}
     .font-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:12px;align-items:center}
+  .font-actions .btn-download{flex:1}
+  .font-actions .btn-like{margin-left:auto}
     .font-actions .like-btn{margin-left:auto}
     .btn-download{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:700;line-height:1;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--accent);color:var(--accent);background:transparent;cursor:pointer;transition:all .15s;font-family:inherit;text-decoration:none;white-space:nowrap}
     .btn-download:hover{background:var(--accent);color:#fff}
@@ -779,7 +782,7 @@
 <header class="header">
   <div class="header-inner">
     <a href="#" class="logo" onclick="goHome();return false;" aria-label="FreeFontPick 홈으로">
-      <img src="logo.png" alt="FreeFontPick">
+      <img src="/logo.png" alt="FreeFontPick">
     </a>
     <nav>
       <a href="about.html">폰트픽 소개</a>
@@ -832,9 +835,6 @@
   <h1 class="hero-title">폰트픽, 디자인 전문가가 <em>딱 맞는 폰트</em> 골라드려요!</h1>
   <p class="hero-sub">
     추천 무료폰트를 다운로드하거나, 전문가 수준의 텍스트 효과를 직접 만들어 보세요
-    <button class="btn-license" onclick="openLicense()" aria-label="라이선스 요약표 보기">
-      <i class="ti ti-license" aria-hidden="true"></i> 라이선스 보기
-    </button>
   </p>
   <div class="hero-features" role="list" aria-label="폰트픽 주요 기능">
     <div class="hero-feature" role="listitem">
@@ -1105,6 +1105,10 @@
     </div>
     <div class="designer-body">
       <textarea id="dsText" maxlength="80" rows="2" placeholder="문구를 입력하세요">안녕하세요</textarea>
+        <div id="dsWeightRow" style="display:none;align-items:center;gap:8px;margin-top:8px">
+          <span style="font-size:12.5px;font-weight:700;color:var(--text-secondary);white-space:nowrap">굵기</span>
+          <select id="dsWeight" style="flex:1;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text-primary)"></select>
+        </div>
       <div class="designer-preview-label">
         <span>미리보기</span><em>보이는 그대로 저장 · 배경 투명 PNG</em>
       </div>
@@ -2672,6 +2676,7 @@ function renderFonts(){
 
   grid.innerHTML = appAdCard + list.map((f,idx)=>{
     const tagPills=f.tags.map(t=>`<span class="font-tag-pill">${t}</span>`).join('');
+      const pairPill = f.hasPairing ? `<span class="font-tag-pill pair" title="어울리는 폰트 조합이 준비되어 있어요">조합추천</span>` : '';
     const downloadUrl=f.url||('https://noonnu.cc/index?keyword='+encodeURIComponent(f.name));
     const liked=likedSet.has(f.id);
     const count=likeCounts[f.id]||0;
@@ -2694,7 +2699,7 @@ function renderFonts(){
         </div>
         <span class="font-weights">${f.weights}</span>
       </div>
-      <div class="font-tags-row">${tagPills}</div>
+      <div class="font-tags-row">${pairPill}${tagPills}</div>
       <div class="font-actions">
         <button class="btn-download" type="button" onclick="event.stopPropagation();goFontDetail(${f.id})" aria-label="${f.name} 상세 페이지로 이동" title="미리 써보기 · 어울리는 조합 · 다운로드">
           <i class="ti ti-arrow-right" aria-hidden="true"></i> 자세히 보기
@@ -2752,7 +2757,29 @@ function pushAdSlots(){
    - 한 번 등록된 폰트는 다시 등록하지 않음
    - 폰트 파일은 fonts/ 폴더에 font-{id:03d}.woff2 형식으로 위치
 ════════════════════════════════════════ */
-const _fontLoaded = new Set();          // 이미 @font-face 등록된 폰트 id
+/* 구글·네이버·CDN 웹폰트 배포 폰트 → 디자이너에서 실제 굵기 선택 지원 */
+    const DS_W9 = [[100,'Thin'],[200,'ExtraLight'],[300,'Light'],[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold'],[900,'Black']];
+    const WEBFONT_MAP = {
+      'notosanscjkkr': {css:'', family:"'Noto Sans KR'", weights:DS_W9},
+      '노토산스':      {css:'', family:"'Noto Sans KR'", weights:DS_W9},
+      '나눔고딕': {css:'', family:"'Nanum Gothic'", weights:[[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
+      '나눔명조': {css:'', family:"'Nanum Myeongjo'", weights:[[400,'Regular'],[700,'Bold']]},
+      '프리텐다드': {css:'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css', family:"'Pretendard Variable'", weights:DS_W9},
+      '수트': {css:'https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css', family:"'SUIT Variable'", weights:DS_W9},
+      '마루부리': {css:'https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css', family:"'MaruBuri'", weights:[[300,'Light'],[400,'Regular'],[600,'SemiBold'],[700,'Bold']]},
+    };
+    function webfontOf(name){
+      const key = (name||'').replace(/\s+/g,'').toLowerCase();
+      const wf = WEBFONT_MAP[key];
+      if (wf && wf.css && !wf._loaded){
+        wf._loaded = true;
+        const l = document.createElement('link');
+        l.rel = 'stylesheet'; l.href = wf.css;
+        document.head.appendChild(l);
+      }
+      return wf || null;
+    }
+    const _fontLoaded = new Set();          // 이미 @font-face 등록된 폰트 id
 const _fontStyleEl = (() => {           // 모든 @font-face 규칙을 담을 단일 <style>
   const el = document.createElement('style');
   el.id = 'ffp-dynamic-fonts';
@@ -3094,6 +3121,10 @@ async function init(){
   await route();
   window.addEventListener('hashchange', route);
   window.addEventListener('popstate', route);
+      /* 상세페이지의 [라이선스 보기] → /?license=1 로 진입하면 요약표 모달 자동 오픈 */
+      if(new URLSearchParams(location.search).has('license')){
+        try{ openLicense(); history.replaceState(null, '', '/'); }catch(e){}
+      }
 
   // 관리자 페이지에서 변경된 내용이 실시간으로 반영되도록 구독
   onDataChanged(async () => {
@@ -3659,7 +3690,12 @@ const dsCanvas = () => document.getElementById('dsCanvas');
   });
   /* 디테일 컨트롤 */
   document.getElementById('dsText').addEventListener('input', e=>{ dsState.text=e.target.value||' '; dsDraw(); });
-  document.getElementById('dsBold').onclick=function(){ dsState.bold=!dsState.bold; this.classList.toggle('on'); dsDraw(); };
+  document.getElementById('dsWeight').addEventListener('change', function(){
+      dsState.weight = parseInt(this.value, 10);
+      try{ document.fonts.load(this.value + ' 78px ' + (dsState.webFamily||'').replace(/'/g,'')).then(()=>dsDraw()); }catch(e){}
+      dsDraw();
+    });
+    document.getElementById('dsBold').onclick=function(){ dsState.bold=!dsState.bold; this.classList.toggle('on'); dsDraw(); };
   document.getElementById('dsUnderline').onclick=function(){ dsState.underline=!dsState.underline; this.classList.toggle('on'); dsDraw(); };
   document.getElementById('dsSpacing').addEventListener('input', e=>{ dsState.spacing=+e.target.value; dsDraw(); });
   document.getElementById('dsLineHeight').addEventListener('input', e=>{ dsState.lineHeight=+e.target.value; dsDraw(); });
@@ -3695,8 +3731,9 @@ function dsDraw(){
     else { outlineColor=dsState.outlineOverride; if(outlineW<=0) outlineW=6; }
   }
   const fontSize = 78;
-  const weight = dsState.bold ? '700':'400'; /* 400 기본: 단일 웨이트 장식/손글씨 폰트의 가짜 굵기(faux bold) 뭉개짐 방지 */
-  const fontSpec = `${weight} ${fontSize}px ${getEffectiveStack(f)}`;
+  const weight = dsState.weight ? String(dsState.weight) : (dsState.bold ? '700':'400'); /* 400 기본: 단일 웨이트 장식/손글씨 폰트의 가짜 굵기(faux bold) 뭉개짐 방지 */
+  const famStack = dsState.webFamily ? (dsState.webFamily + ',' + getEffectiveStack(f)) : getEffectiveStack(f);
+    const fontSpec = `${weight} ${fontSize}px ${famStack}`;
 
   ctx.font = fontSpec;
   try{ ctx.letterSpacing = dsState.spacing+'px'; }catch(e){}
@@ -3790,6 +3827,23 @@ async function openDesigner(fontId, viaUrl){
   const f = FONTS.find(x=>x.id===fontId);
   if(!f) return;
   dsState.font = f;
+      /* 다중 굵기 웹폰트면 굵기 선택 박스 표시 */
+      (function(){
+        const wf = webfontOf(f.name);
+        const row = document.getElementById('dsWeightRow');
+        const sel = document.getElementById('dsWeight');
+        if (wf && wf.weights.length > 1){
+          sel.innerHTML = wf.weights.map(w=>`<option value="${w[0]}"${w[0]===700?' selected':''}>${w[1]} (${w[0]})</option>`).join('');
+          dsState.weight = 700;
+          dsState.webFamily = wf.family;
+          row.style.display = 'flex';
+          try{ document.fonts.load('700 78px ' + wf.family.replace(/'/g,'')).then(()=>dsDraw()); }catch(e){}
+        } else {
+          dsState.weight = null;
+          dsState.webFamily = null;
+          row.style.display = 'none';
+        }
+      })();
   dsState.effect = DS_EFFECTS[0];
   dsState.textColorOverride = null;
   dsState.outlineOverride = undefined;
