@@ -4,15 +4,24 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from ..database import get_db
-from ..models import Font, Tag, FontTag
+from ..models import Font, Tag, FontTag, FontPairing
 from ..auth import require_password_changed
 from ..schemas import FontCreate, FontUpdate, FontOut, FontReorderRequest
 
 router = APIRouter(prefix="/api/fonts", tags=["fonts"])
 
 
-def _to_out(font: Font) -> FontOut:
+def _paired_font_ids(db: Session) -> set:
+    """페어링에 포함된 폰트 id 집합 (조합추천 뱃지용)"""
+    ids = set()
+    for (a, b) in db.query(FontPairing.title_font_id, FontPairing.body_font_id).all():
+        ids.add(a); ids.add(b)
+    return ids
+
+
+def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
     return FontOut(
+        has_pairing=font.id in paired_ids,
         id=font.id,
         name=font.name,
         maker=font.maker,
@@ -50,7 +59,8 @@ def _resolve_tags(db: Session, tag_names: list) -> List[Tag]:
 def list_fonts(db: Session = Depends(get_db)):
     """모든 방문자가 호출. sort_order 순으로 정렬."""
     fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
-    return [_to_out(f) for f in fonts]
+    paired = _paired_font_ids(db)
+    return [_to_out(f, paired) for f in fonts]
 
 
 @router.get("/{font_id}", response_model=FontOut)
@@ -58,7 +68,7 @@ def get_font(font_id: int, db: Session = Depends(get_db)):
     font = db.query(Font).filter(Font.id == font_id).first()
     if not font:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
-    return _to_out(font)
+    return _to_out(font, _paired_font_ids(db))
 
 
 # 관리자 API
@@ -136,4 +146,5 @@ def reorder_fonts(
         db.query(Font).filter(Font.id == item.id).update({"sort_order": item.sort_order})
     db.commit()
     fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
-    return [_to_out(f) for f in fonts]
+    paired = _paired_font_ids(db)
+    return [_to_out(f, paired) for f in fonts]
