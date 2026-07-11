@@ -454,7 +454,7 @@
 
     /* GRID */
     .font-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px;grid-auto-flow:dense}
-    .font-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 18px 14px;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;position:relative;display:flex;flex-direction:column;box-shadow:var(--shadow-card);animation:fadeUp .25s ease both}
+    .font-card{cursor:pointer;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 18px 14px;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;position:relative;display:flex;flex-direction:column;box-shadow:var(--shadow-card);animation:fadeUp .25s ease both}
 
     /* 추천 카드 스타일 */
     .font-card.is-recommend{border-color:var(--accent);border-width:1.5px;padding-top:14px}
@@ -2681,7 +2681,7 @@ function renderFonts(){
       ? `<div class="recommend-match"><i class="ti ti-sparkles" aria-hidden="true"></i> ${[...new Set(f._matches)].slice(0,4).join(' · ')}</div>`
       : '';
     return `
-    <article class="font-card${isRecommendMode ? ' is-recommend' : ''}" role="listitem" data-font-id="${f.id}" style="animation-delay:${Math.min(idx*20,300)}ms">
+    <article class="font-card${isRecommendMode ? ' is-recommend' : ''}" role="listitem" data-font-id="${f.id}" style="animation-delay:${Math.min(idx*20,300)}ms" onclick="cardNavigate(event, ${f.id})">
       ${matchBadge}
       <div class="font-preview">
         <div class="font-preview-text" data-english="${f.isEnglish?'1':'0'}" style="font-family:${getEffectiveStack(f)};font-size:${currentFontSize}px" contenteditable="true" spellcheck="false" onfocus="handlePreviewFocus(this)" onblur="handlePreviewBlur(this)" oninput="handlePreviewInput(this)" onkeydown="handlePreviewKeydown(event,this)" title="클릭해서 직접 입력해보세요">${previewTxt}</div>
@@ -2696,11 +2696,8 @@ function renderFonts(){
       </div>
       <div class="font-tags-row">${tagPills}</div>
       <div class="font-actions">
-        <button class="btn-download" type="button" onclick="openDownloadAd('${downloadUrl.replace(/'/g,"\\'")}', '${f.name.replace(/'/g,"\\'")}')">
-          <i class="ti ti-download" aria-hidden="true"></i> 무료 다운로드
-        </button>
-        <button class="btn-design" type="button" onclick="openDesigner(${f.id})" aria-label="${f.name}로 텍스트 디자인 만들기" title="이 폰트로 텍스트 디자인 만들기">
-          디자인
+        <button class="btn-download" type="button" onclick="event.stopPropagation();goFontDetail(${f.id})" aria-label="${f.name} 상세 페이지로 이동" title="미리 써보기 · 어울리는 조합 · 다운로드">
+          <i class="ti ti-arrow-right" aria-hidden="true"></i> 자세히 보기
         </button>
         <button class="btn-like${liked?' liked':''}" id="like-${f.id}" onclick="toggleLike(${f.id})" aria-label="좋아요${liked?' (선택됨)':''}" aria-pressed="${liked}">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 22h2a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H2zM22 11.5a2 2 0 0 0-2-2h-5.5l1-4.8.03-.34a1.5 1.5 0 0 0-.43-1.06L14.34 2 8 8.5V20a2 2 0 0 0 2 2h7a2 2 0 0 0 2-1.5z" stroke-linejoin="round" stroke-linecap="round"/></svg>
@@ -2777,6 +2774,22 @@ function ensureFontLoaded(id){
 /* 폰트의 stack을 사용 가능한 형태로 정규화.
    has_file=true인데 stack에 FFP-{id} family가 빠져 있으면 자동으로 prepend.
    백엔드는 이미 업로드 시점에 stack을 갱신하지만, 옛 데이터 호환을 위한 안전망. */
+/* ── 폰트 상세페이지 이동 ──
+   카드의 현재 미리보기 문구를 sessionStorage로 넘겨서
+   상세페이지 '미리 써보기'에 그대로 이어지게 한다. */
+function goFontDetail(id){
+  try{
+    const card = document.querySelector(`.font-card[data-font-id="${id}"] .font-preview-text`);
+    const txt = card ? card.textContent.trim() : (typeof getPreviewText==='function' ? getPreviewText() : '');
+    if(txt) sessionStorage.setItem('ffp_preview_text', txt);
+  }catch(e){}
+  location.href = '/font/' + id;
+}
+function cardNavigate(e, id){
+  // 버튼/링크/미리보기(직접입력) 클릭은 카드 이동에서 제외
+  if(e.target.closest('button, a, [contenteditable]')) return;
+  goFontDetail(id);
+}
 function getEffectiveStack(f){
   if(!f) return "'Nanum Gothic',sans-serif";
   const baseStack = f.stack || "'Nanum Gothic',sans-serif";
