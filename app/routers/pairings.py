@@ -62,3 +62,27 @@ def font_pairings(font_id: int, db: Session = Depends(get_db)) -> List[dict]:
         .all()
     )
     return [_to_out(p) for p in rows]
+
+
+@router.get("/debug/font-audit")
+def font_audit(rebuild: int = 0, db: Session = Depends(get_db)) -> dict:
+    """폰트별 서빙 파일 소스 점검 (문제 폰트 전수조사용).
+
+    ?rebuild=1 을 붙이면 해석 캐시를 다시 계산.
+    """
+    from .files import FONT_AUDIT, FONT_RESOLUTION, build_font_resolution
+    summary = None
+    if rebuild or not FONT_AUDIT:
+        summary = build_font_resolution(db)
+    problems = [e for e in FONT_AUDIT if e["source"] in ("none",) or e.get("note")]
+    return {
+        "summary": summary or {
+            "total": len(FONT_AUDIT),
+            "user": sum(1 for e in FONT_AUDIT if e["source"] == "user"),
+            "bundled_by_name": sum(1 for e in FONT_AUDIT if e["source"] == "bundled-by-name"),
+            "bundled_by_id": sum(1 for e in FONT_AUDIT if e["source"] == "bundled-by-id"),
+            "missing": sum(1 for e in FONT_AUDIT if e["source"] == "none"),
+        },
+        "problems": problems,
+        "all": FONT_AUDIT,
+    }
