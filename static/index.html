@@ -103,7 +103,7 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Pen+Script&family=Nanum+Square:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Brush+Script&family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Gugi&family=Hi+Melody&family=Noto+Sans+KR:wght@400;500;700&family=Anton&family=Bangers&family=Lobster&family=Monoton&family=Raleway:wght@400;700&family=Press+Start+2P&family=Dancing+Script:wght@400;700&family=Kaushan+Script&family=Cinzel+Decorative:wght@400;700&family=Bona+Nova:ital,wght@0,400;0,700;1,400&family=Bungee&family=Petrona:wght@400;700&family=Pavanam&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Pen+Script&family=Nanum+Square:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Brush+Script&family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Gugi&family=Hi+Melody&family=Noto+Sans+KR:wght@100..900&family=Anton&family=Bangers&family=Lobster&family=Monoton&family=Raleway:wght@400;700&family=Press+Start+2P&family=Dancing+Script:wght@400;700&family=Kaushan+Script&family=Cinzel+Decorative:wght@400;700&family=Bona+Nova:ital,wght@0,400;0,700;1,400&family=Bungee&family=Petrona:wght@400;700&family=Pavanam&display=swap" rel="stylesheet">
   <!-- Tabler Icons — 여러 CDN을 미러링해서 하나가 실패해도 다른 것 사용 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/tabler-icons.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
@@ -2767,7 +2767,31 @@ function pushAdSlots(){
       '프리텐다드': {css:'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css', family:"'Pretendard Variable'", weights:DS_W9},
       '수트': {css:'https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css', family:"'SUIT Variable'", weights:DS_W9},
       '마루부리': {css:'https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css', family:"'MaruBuri'", weights:[[300,'Light'],[400,'Regular'],[600,'SemiBold'],[700,'Bold']]},
+      '나눔스퀘어': {css:'https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@master/nanumsquare.css', family:"'NanumSquare'", weights:[[300,'Light'],[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
+      'montserrat': {css:'https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap', family:"'Montserrat'", weights:DS_W9},
+      'opensans': {css:'https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap', family:"'Open Sans'", weights:[[300,'Light'],[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold']]},
+      'roboto': {css:'https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap', family:"'Roboto'", weights:[[100,'Thin'],[300,'Light'],[400,'Regular'],[500,'Medium'],[700,'Bold'],[900,'Black']]},
+      'raleway': {css:'https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap', family:"'Raleway'", weights:DS_W9},
+      'petrona': {css:'https://fonts.googleapis.com/css2?family=Petrona:wght@100..900&display=swap', family:"'Petrona'", weights:DS_W9},
+      'playfairdisplay': {css:'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&display=swap', family:"'Playfair Display'", weights:[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold'],[900,'Black']]},
+      'librebodoni': {css:'https://fonts.googleapis.com/css2?family=Libre+Bodoni:wght@400..700&display=swap', family:"'Libre Bodoni'", weights:[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold']]},
+      'dancingscript': {css:'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap', family:"'Dancing Script'", weights:[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold']]},
+      'cinzeldecorative': {css:'https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&display=swap', family:"'Cinzel Decorative'", weights:[[400,'Regular'],[700,'Bold'],[900,'Black']]},
+      'bonanova': {css:'https://fonts.googleapis.com/css2?family=Bona+Nova:wght@400;700&display=swap', family:"'Bona Nova'", weights:[[400,'Regular'],[700,'Bold']]},
     };
+    const _dsWeightStyle = document.createElement('style');
+    document.head.appendChild(_dsWeightStyle);
+    const _dsWeightDone = {};
+    function dsRegisterWeightFaces(id, list){
+      if (_dsWeightDone[id]) return;
+      _dsWeightDone[id] = true;
+      const fam = 'FFP-' + String(id).padStart(3,'0');
+      list.forEach(w=>{
+        _dsWeightStyle.appendChild(document.createTextNode(
+          `@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file?weight=${w.weight}') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`
+        ));
+      });
+    }
     function webfontOf(name){
       const key = (name||'').replace(/\s+/g,'').toLowerCase();
       const wf = WEBFONT_MAP[key];
@@ -3692,7 +3716,7 @@ const dsCanvas = () => document.getElementById('dsCanvas');
   document.getElementById('dsText').addEventListener('input', e=>{ dsState.text=e.target.value||' '; dsDraw(); });
   document.getElementById('dsWeight').addEventListener('change', function(){
       dsState.weight = parseInt(this.value, 10);
-      try{ document.fonts.load(this.value + ' 78px ' + (dsState.webFamily||'').replace(/'/g,'')).then(()=>dsDraw()); }catch(e){}
+      if (dsState.loadFamily){ try{ document.fonts.load(this.value + ' 78px ' + dsState.loadFamily).then(()=>dsDraw()); }catch(e){} }
       dsDraw();
     });
     document.getElementById('dsBold').onclick=function(){ dsState.bold=!dsState.bold; this.classList.toggle('on'); dsDraw(); };
@@ -3827,20 +3851,40 @@ async function openDesigner(fontId, viaUrl){
   const f = FONTS.find(x=>x.id===fontId);
   if(!f) return;
   dsState.font = f;
-      /* 다중 굵기 웹폰트면 굵기 선택 박스 표시 */
-      (function(){
-        const wf = webfontOf(f.name);
+      /* 굵기 선택 박스: ① 서버 굵기 파일(최우선) ② 다중 굵기 웹폰트 */
+      (async function(){
         const row = document.getElementById('dsWeightRow');
         const sel = document.getElementById('dsWeight');
-        if (wf && wf.weights.length > 1){
-          sel.innerHTML = wf.weights.map(w=>`<option value="${w[0]}"${w[0]===700?' selected':''}>${w[1]} (${w[0]})</option>`).join('');
-          dsState.weight = 700;
-          dsState.webFamily = wf.family;
+        const setOptions = (list, fam) => {
+          sel.innerHTML = list.map(w=>`<option value="${w.weight}"${w.weight===w.def?' selected':''}>${w.label} (${w.weight})</option>`).join('');
+          dsState.webFamily = fam;
           row.style.display = 'flex';
-          try{ document.fonts.load('700 78px ' + wf.family.replace(/'/g,'')).then(()=>dsDraw()); }catch(e){}
+        };
+        let fw = [];
+        try{
+          const r = await fetch('/api/fonts/' + f.id + '/weights');
+          if (r.ok) fw = await r.json();
+        }catch(e){}
+        if (fw.length > 1){
+          // 서버 굵기 파일 — FFP family에 굵기별 @font-face 등록 후 사용
+          dsRegisterWeightFaces(f.id, fw);
+          const def = fw.some(w=>w.weight===700) ? 700 : fw[Math.floor(fw.length/2)].weight;
+          setOptions(fw.map(w=>({weight:w.weight, label:w.label, def})), null);
+          dsState.weight = def;
+          dsState.loadFamily = "FFP-" + String(f.id).padStart(3,'0');
+          try{ document.fonts.load(def + ' 78px ' + dsState.loadFamily).then(()=>dsDraw()); }catch(e){}
+          return;
+        }
+        const wf = webfontOf(f.name);
+        if (wf && wf.weights.length > 1){
+          setOptions(wf.weights.map(w=>({weight:w[0], label:w[1], def:700})), wf.family);
+          dsState.weight = 700;
+          dsState.loadFamily = wf.family.replace(/'/g,'');
+          try{ document.fonts.load('700 78px ' + dsState.loadFamily).then(()=>dsDraw()); }catch(e){}
         } else {
           dsState.weight = null;
           dsState.webFamily = null;
+          dsState.loadFamily = null;
           row.style.display = 'none';
         }
       })();
@@ -3877,7 +3921,10 @@ function closeDesigner(){
     dsPushedUrl = false;
     history.back(); /* /design/{id} → 이전 갤러리 URL로 복귀 */
   } else if(location.pathname.startsWith('/design/')){
-    history.replaceState(null, '', '/');
+    /* 상세페이지에서 넘어온 경우엔 상세페이지로 복귀 */
+    var ref = document.referrer || '';
+    if (ref.indexOf('/font/') >= 0 && history.length > 1) { history.back(); }
+    else { history.replaceState(null, '', '/'); }
   }
 }
 

@@ -1,0 +1,937 @@
+[
+ {
+  "name": "G마켓 산스",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "gmarketsansttfmedium-300.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "gmarketsansttfmedium-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "gmarketsansttfmedium-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "IM혜민체",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "hyemin-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "hyemin-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "KoPub돋움",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "dotum-300.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "dotum-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "dotum-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "KoPub바탕",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "batang-300.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "batang-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "batang-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "SB어그로체",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "fam-300.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "fam-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "fam-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "Y최애체",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "yonepick-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "yonepick-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "Y클로버체",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "yclover-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "yclover-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "tvN 즐거운 이야기",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "tvn-300.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "tvn-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "tvn-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "강원교육모두",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "light-300.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "light-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "고운바탕",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "gowunbatang-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "gowunbatang-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "국립박물관문화재단클래식",
+  "files": [
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "fam10-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "날쌘돌이체",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "callifontsharpie-300.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "callifontsharpie-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "callifontsharpie-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "넷마블체",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "netmarbleb-300.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "netmarbleb-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "netmarbleb-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "더잠실체",
+  "files": [
+   {
+    "weight": 100,
+    "label": "Thin",
+    "file": "jamsil-100.woff2"
+   },
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "jamsil-300.woff2"
+   },
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "jamsil-400.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "jamsil-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "jamsil-700.woff2"
+   },
+   {
+    "weight": 800,
+    "label": "ExtraBold",
+    "file": "jamsil-800.woff2"
+   }
+  ]
+ },
+ {
+  "name": "땅스부대찌개",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "medium-300.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "medium-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "medium-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "리아체",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "riasans-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "riasans-700.woff2"
+   },
+   {
+    "weight": 800,
+    "label": "ExtraBold",
+    "file": "riasans-800.woff2"
+   }
+  ]
+ },
+ {
+  "name": "망고보드 또박체",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "mangoddobak-300.woff2"
+   },
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "mangoddobak-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "mangoddobak-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "머니그라피",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "moneygraphy-400.woff2"
+   }
+  ]
+ },
+ {
+  "name": "부크크 명조",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "bookkmyungjo-300.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "bookkmyungjo-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "빙그레싸만코체",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "binggraesamanco-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "binggraesamanco-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "빙그레체",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "binggrae-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "binggrae-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "빛의계승자체",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "heiroflightregular-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "heiroflightregular-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "서울알림체",
+  "files": [
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "seoulalrimttf-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "seoulalrimttf-700.woff2"
+   },
+   {
+    "weight": 800,
+    "label": "ExtraBold",
+    "file": "seoulalrimttf-800.woff2"
+   },
+   {
+    "weight": 900,
+    "label": "Heavy",
+    "file": "seoulalrimttf-900.woff2"
+   }
+  ]
+ },
+ {
+  "name": "세방고딕",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "sebang-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "sebang-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "세종학당",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "kingsejonginstitute-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "kingsejonginstitute-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "수트",
+  "files": [
+   {
+    "weight": 100,
+    "label": "Thin",
+    "file": "suit-100.woff2"
+   },
+   {
+    "weight": 200,
+    "label": "ExtraLight",
+    "file": "suit-200.woff2"
+   },
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "suit-300.woff2"
+   },
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "suit-400.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "suit-500.woff2"
+   },
+   {
+    "weight": 600,
+    "label": "SemiBold",
+    "file": "suit-600.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "suit-700.woff2"
+   },
+   {
+    "weight": 800,
+    "label": "ExtraBold",
+    "file": "suit-800.woff2"
+   },
+   {
+    "weight": 900,
+    "label": "Heavy",
+    "file": "suit-900.woff2"
+   }
+  ]
+ },
+ {
+  "name": "스포카 한 산스",
+  "files": [
+   {
+    "weight": 100,
+    "label": "Thin",
+    "file": "spoqahansansneo-100.woff2"
+   },
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "spoqahansansneo-300.woff2"
+   },
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "spoqahansansneo-400.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "spoqahansansneo-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "spoqahansansneo-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "에스코어드림",
+  "files": [
+   {
+    "weight": 100,
+    "label": "Thin",
+    "file": "scdream-100.woff2"
+   },
+   {
+    "weight": 200,
+    "label": "ExtraLight",
+    "file": "scdream-200.woff2"
+   },
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "scdream-300.woff2"
+   },
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "scdream-400.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "scdream-500.woff2"
+   },
+   {
+    "weight": 600,
+    "label": "SemiBold",
+    "file": "scdream-600.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "scdream-700.woff2"
+   },
+   {
+    "weight": 800,
+    "label": "ExtraBold",
+    "file": "scdream-800.woff2"
+   },
+   {
+    "weight": 900,
+    "label": "Heavy",
+    "file": "scdream-900.woff2"
+   }
+  ]
+ },
+ {
+  "name": "완도희망체",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "wandohoper-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "wandohoper-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "우아한 세리프",
+  "files": [
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "graceserif-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "워헤이븐",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "warhaven-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "warhaven-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "을유1945",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "eulyoo-400.woff2"
+   },
+   {
+    "weight": 600,
+    "label": "SemiBold",
+    "file": "eulyoo-600.woff2"
+   }
+  ]
+ },
+ {
+  "name": "이사만루체",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "esamanru-300.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "esamanru-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "esamanru-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "카카오큰글씨",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "kakaobigsans-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "kakaobigsans-700.woff2"
+   },
+   {
+    "weight": 800,
+    "label": "ExtraBold",
+    "file": "kakaobigsans-800.woff2"
+   }
+  ]
+ },
+ {
+  "name": "케리스 케듀체",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "keriskedu-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "keriskedu-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "쿠키런",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "cookierun-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "cookierun-700.woff2"
+   },
+   {
+    "weight": 900,
+    "label": "Heavy",
+    "file": "cookierun-900.woff2"
+   }
+  ]
+ },
+ {
+  "name": "쿨가이체",
+  "files": [
+   {
+    "weight": 100,
+    "label": "Thin",
+    "file": "callifontcoolguy-100.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "callifontcoolguy-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "callifontcoolguy-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "티머니 둥근바람",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "tmoneyroundwindextra-400.woff2"
+   },
+   {
+    "weight": 800,
+    "label": "ExtraBold",
+    "file": "tmoneyroundwindextra-800.woff2"
+   }
+  ]
+ },
+ {
+  "name": "페이퍼로지",
+  "files": [
+   {
+    "weight": 100,
+    "label": "Thin",
+    "file": "paperlogy-100.woff2"
+   },
+   {
+    "weight": 200,
+    "label": "ExtraLight",
+    "file": "paperlogy-200.woff2"
+   },
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "paperlogy-300.woff2"
+   },
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "paperlogy-400.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "paperlogy-500.woff2"
+   },
+   {
+    "weight": 600,
+    "label": "SemiBold",
+    "file": "paperlogy-600.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "paperlogy-700.woff2"
+   },
+   {
+    "weight": 800,
+    "label": "ExtraBold",
+    "file": "paperlogy-800.woff2"
+   },
+   {
+    "weight": 900,
+    "label": "Heavy",
+    "file": "paperlogy-900.woff2"
+   }
+  ]
+ },
+ {
+  "name": "평창평화체",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "pyeongchangpeace-300.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "pyeongchangpeace-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "푸른숲체",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "medium40-300.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "medium40-500.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "medium40-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "프리텐다드",
+  "files": [
+   {
+    "weight": 100,
+    "label": "Thin",
+    "file": "pretendard-100.woff2"
+   },
+   {
+    "weight": 200,
+    "label": "ExtraLight",
+    "file": "pretendard-200.woff2"
+   },
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "pretendard-300.woff2"
+   },
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "pretendard-400.woff2"
+   },
+   {
+    "weight": 500,
+    "label": "Medium",
+    "file": "pretendard-500.woff2"
+   },
+   {
+    "weight": 600,
+    "label": "SemiBold",
+    "file": "pretendard-600.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "pretendard-700.woff2"
+   },
+   {
+    "weight": 800,
+    "label": "ExtraBold",
+    "file": "pretendard-800.woff2"
+   },
+   {
+    "weight": 900,
+    "label": "Heavy",
+    "file": "pretendard-900.woff2"
+   }
+  ]
+ },
+ {
+  "name": "핑크퐁 아기상어체",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "pinkfong-300.woff2"
+   },
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "pinkfong-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "pinkfong-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "하남다움체",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "hanamdaum-400.woff2"
+   }
+  ]
+ },
+ {
+  "name": "학교안심 받아쓰기",
+  "files": [
+   {
+    "weight": 300,
+    "label": "Light",
+    "file": "hakgyoansim-300.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "hakgyoansim-700.woff2"
+   }
+  ]
+ },
+ {
+  "name": "학교안심 둥근미소",
+  "files": [
+   {
+    "weight": 400,
+    "label": "Regular",
+    "file": "dunggeunmiso-400.woff2"
+   },
+   {
+    "weight": 700,
+    "label": "Bold",
+    "file": "dunggeunmiso-700.woff2"
+   }
+  ]
+ }
+]
