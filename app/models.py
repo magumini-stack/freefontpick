@@ -127,3 +127,10 @@ class FontPairing(Base):
         Index("idx_pairings_title", "title_font_id"),
         Index("idx_pairings_body", "body_font_id"),
     )
+
+
+class AppMeta(Base):
+    """앱 내부 메타 (시드 버전 등 키-값 저장)"""
+    __tablename__ = "app_meta"
+    key = Column(String(50), primary_key=True)
+    value = Column(String(200), nullable=False, default="")
