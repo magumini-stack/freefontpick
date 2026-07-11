@@ -14,7 +14,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from .database import engine, SessionLocal, Base
-from .models import Font, Tag, AdminUser
+from .models import Font, Tag, AdminUser, FontPairing
 from .auth import hash_password
 
 
@@ -34,6 +34,7 @@ def init_db():
     try:
         _seed_admin(db)
         _seed_fonts_and_tags(db)
+        _seed_pairings(db)
     finally:
         db.close()
 
@@ -109,3 +110,47 @@ def _seed_fonts_and_tags(db: Session):
         db.add(font)
     db.commit()
     print(f"[seed] 폰트 {len(data['fonts'])}개, 카테고리 {len(data['tags'])}개 삽입")
+
+
+from .pairing_data import PAIRING_SEED
+
+
+def _norm_name(s: str) -> str:
+    """폰트 이름 정규화 — 공백 제거 + 소문자 (시드/업로드 표기 차이 흡수)"""
+    return "".join((s or "").split()).lower()
+
+
+def _seed_pairings(db: Session):
+    """페어링 시드 삽입 (이름 매칭, 멱등).
+
+    - font_pairings가 비어있을 때만 실행
+    - pairing_seed.json의 이름을 DB 폰트 이름과 정규화 매칭
+    - 매칭 실패한 조합은 건너뛰고 로그만 남김 (사이트에는 자동으로 안 보임)
+    """
+    if db.query(FontPairing).count() > 0:
+        return
+    items = PAIRING_SEED
+
+    fonts_by_norm = {}
+    for font in db.query(Font).all():
+        fonts_by_norm.setdefault(_norm_name(font.name), font)
+
+    inserted, skipped = 0, []
+    for i, it in enumerate(items):
+        tf = fonts_by_norm.get(_norm_name(it.get("title_font_name", "")))
+        bf = fonts_by_norm.get(_norm_name(it.get("body_font_name", "")))
+        if not tf or not bf:
+            skipped.append(f"#{it.get('id', i)} {it.get('title_font_name')}+{it.get('body_font_name')}")
+            continue
+        db.add(FontPairing(
+            theme=it.get("theme", ""),
+            title_font_id=tf.id,
+            body_font_id=bf.id,
+            sample_title=it.get("sample_title", ""),
+            sample_body=it.get("sample_body", ""),
+            description=it.get("description", ""),
+            sort_order=(i + 1) * 10,
+        ))
+        inserted += 1
+    db.commit()
+    print(f"[seed] 페어링 {inserted}개 삽입" + (f", 매칭실패 {len(skipped)}건: {', '.join(skipped)}" if skipped else ""))
