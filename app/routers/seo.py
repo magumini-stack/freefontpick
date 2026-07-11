@@ -32,6 +32,12 @@ def sitemap(db: Session = Depends(get_db)):
     try:
         fonts = db.query(Font.id).all()
         for (fid,) in fonts:
+            # 폰트 상세페이지 (미리 써보기/페어링/다운로드)
+            pages.append({
+                "loc": f"{SITE_URL}/font/{fid}",
+                "priority": "0.9",
+                "changefreq": "monthly",
+            })
             pages.append({
                 "loc": f"{SITE_URL}/design/{fid}",
                 "priority": "0.8",
