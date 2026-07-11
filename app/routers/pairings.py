@@ -70,7 +70,7 @@ def font_audit(rebuild: int = 0, db: Session = Depends(get_db)) -> dict:
 
     ?rebuild=1 을 붙이면 해석 캐시를 다시 계산.
     """
-    from .files import FONT_AUDIT, FONT_RESOLUTION, build_font_resolution
+    from .files import FONT_AUDIT, FONT_RESOLUTION, WEIGHT_RESOLUTION, WEIGHT_UNMATCHED, build_font_resolution
     summary = None
     if rebuild or not FONT_AUDIT:
         summary = build_font_resolution(db)
@@ -82,6 +82,8 @@ def font_audit(rebuild: int = 0, db: Session = Depends(get_db)) -> dict:
             "bundled_by_name": sum(1 for e in FONT_AUDIT if e["source"] == "bundled-by-name"),
             "bundled_by_id": sum(1 for e in FONT_AUDIT if e["source"] == "bundled-by-id"),
             "missing": sum(1 for e in FONT_AUDIT if e["source"] == "none"),
+            "weight_fonts": len(WEIGHT_RESOLUTION),
+            "weight_unmatched": WEIGHT_UNMATCHED,
         },
         "problems": problems,
         "all": FONT_AUDIT,
