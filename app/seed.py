@@ -14,7 +14,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from .database import engine, SessionLocal, Base
-from .models import Font, Tag, AdminUser, FontPairing
+from .models import Font, Tag, AdminUser, FontPairing, AppMeta
 from .auth import hash_password
 
 
@@ -35,6 +35,9 @@ def init_db():
         _seed_admin(db)
         _seed_fonts_and_tags(db)
         _seed_pairings(db)
+        # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
+        from .routers.files import build_font_resolution
+        build_font_resolution(db)
     finally:
         db.close()
 
@@ -112,7 +115,7 @@ def _seed_fonts_and_tags(db: Session):
     print(f"[seed] 폰트 {len(data['fonts'])}개, 카테고리 {len(data['tags'])}개 삽입")
 
 
-from .pairing_data import PAIRING_SEED
+from .pairing_data import PAIRING_SEED, PAIRING_SEED_VERSION
 
 
 def _norm_name(s: str) -> str:
@@ -121,14 +124,22 @@ def _norm_name(s: str) -> str:
 
 
 def _seed_pairings(db: Session):
-    """페어링 시드 삽입 (이름 매칭, 멱등).
+    """페어링 시드 삽입 (이름 매칭, 버전 관리).
 
-    - font_pairings가 비어있을 때만 실행
-    - pairing_seed.json의 이름을 DB 폰트 이름과 정규화 매칭
-    - 매칭 실패한 조합은 건너뛰고 로그만 남김 (사이트에는 자동으로 안 보임)
+    - 저장된 pairing_seed_version과 현재 버전이 다르면 지우고 재삽입
+    - 이름을 DB 폰트 이름과 정규화 매칭, 실패한 조합은 스킵 (사이트엔 자동으로 안 보임)
+    - 어드민 페어링 관리 도입 후에는 버전을 올리지 말 것 (수동 데이터 보호)
     """
-    if db.query(FontPairing).count() > 0:
-        return
+    meta = db.query(AppMeta).filter(AppMeta.key == "pairing_seed_version").first()
+    if meta and meta.value == PAIRING_SEED_VERSION:
+        return  # 최신 버전 시드 이미 적용됨
+    # 버전이 다르면 기존 시드를 지우고 재삽입 (어드민 관리 도입 후엔 버전 올리지 말 것)
+    db.query(FontPairing).delete()
+    if meta is None:
+        meta = AppMeta(key="pairing_seed_version", value=PAIRING_SEED_VERSION)
+        db.add(meta)
+    else:
+        meta.value = PAIRING_SEED_VERSION
     items = PAIRING_SEED
 
     fonts_by_norm = {}
@@ -153,4 +164,4 @@ def _seed_pairings(db: Session):
         ))
         inserted += 1
     db.commit()
-    print(f"[seed] 페어링 {inserted}개 삽입" + (f", 매칭실패 {len(skipped)}건: {', '.join(skipped)}" if skipped else ""))
+    print(f"[seed] 페어링 {inserted}개 삽입 (v{PAIRING_SEED_VERSION})" + (f", 매칭실패 {len(skipped)}건: {', '.join(skipped)}" if skipped else ""))
