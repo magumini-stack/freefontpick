@@ -54,6 +54,7 @@ class FontUpdate(BaseModel):
 class FontOut(FontBase):
     id: int
     has_file: bool
+    has_pairing: bool = False
     sort_order: int
     tags: List[str]  # 이름 배열
     meta: Dict[str, Any] = Field(default_factory=dict)
