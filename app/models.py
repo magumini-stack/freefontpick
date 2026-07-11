@@ -100,3 +100,30 @@ class FontSubmission(Base):
     __table_args__ = (
         Index("idx_submissions_created", "created_at"),
     )
+
+
+class FontPairing(Base):
+    """폰트 페어링 조합 (제목 폰트 + 본문 폰트).
+
+    - 시드는 pairing_seed.json에서 이름 매칭으로 삽입 (seed.py)
+    - 폰트가 삭제되면 조합도 함께 삭제 (CASCADE)
+    - 어드민 관리 기능은 2단계에서 추가 예정
+    """
+    __tablename__ = "font_pairings"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    theme = Column(String(50), nullable=False)
+    title_font_id = Column(Integer, ForeignKey("fonts.id", ondelete="CASCADE"), nullable=False)
+    body_font_id = Column(Integer, ForeignKey("fonts.id", ondelete="CASCADE"), nullable=False)
+    sample_title = Column(String(100), nullable=False, default="")
+    sample_body = Column(String(200), nullable=False, default="")
+    description = Column(String(300), nullable=False, default="")
+    sort_order = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, server_default=func.now())
+
+    title_font = relationship("Font", foreign_keys=[title_font_id], lazy="joined")
+    body_font = relationship("Font", foreign_keys=[body_font_id], lazy="joined")
+
+    __table_args__ = (
+        Index("idx_pairings_title", "title_font_id"),
+        Index("idx_pairings_body", "body_font_id"),
+    )
