@@ -34,6 +34,8 @@ def _to_out(p: FontPairing) -> dict:
         "sample_title": p.sample_title or "",
         "sample_body": p.sample_body or "",
         "description": p.description or "",
+        "title_weight": int(getattr(p, "title_weight", 700) or 700),
+        "body_weight": int(getattr(p, "body_weight", 400) or 400),
         "title_font": _font_brief(p.title_font),
         "body_font": _font_brief(p.body_font),
     }
