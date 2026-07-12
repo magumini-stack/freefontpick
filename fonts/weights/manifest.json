@@ -76,7 +76,7 @@
   ]
  },
  {
-  "name": "국립박물관문화재단클래식",
+  "name": "국립중앙박물관문화재단클래식",
   "files": [
    {"weight": 700, "label": "Bold", "file": "fam10-700.woff2"}
   ]
@@ -152,7 +152,7 @@
   ]
  },
  {
-  "name": "빛의계승자체",
+  "name": "빛의계승자",
   "files": [
    {"weight": 400, "label": "Regular", "file": "heiroflightregular-400.woff2"},
    {"weight": 700, "label": "Bold", "file": "heiroflightregular-700.woff2"}
@@ -227,7 +227,7 @@
   ]
  },
  {
-  "name": "우아한 세리프",
+  "name": "우아한세리프",
   "files": [
    {"weight": 700, "label": "Bold", "file": "graceserif-700.woff2"}
   ]
