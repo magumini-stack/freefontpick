@@ -56,7 +56,15 @@ def list_pairings(db: Session = Depends(get_db)) -> List[dict]:
 
 @router.get("/fonts/{font_id}/pairings")
 def font_pairings(font_id: int, db: Session = Depends(get_db)) -> List[dict]:
-    """해당 폰트가 제목 또는 본문으로 들어간 조합. 없으면 빈 배열."""
+    """해당 폰트가 제목 또는 본문으로 들어간 조합. 없으면 빈 배열.
+
+    프론트엔드가 상위 6개만 잘라 보여주므로, 같은 폰트가 수십 개 조합에
+    쓰이는 경우(수트/프리텐다드/나눔스퀘어/노토산스/나눔고딕 등) 항상 옛날
+    조합만 노출되고 새로 추가된 굵기 활용 조합(v5, 모던 미니멀 제목/굵은
+    산세리프 슬로건/큰 안내 본문)은 뒤로 밀려 절대 안 보이는 문제가 있었다.
+    해당 폰트가 이 조합에서 700 이상 굵기로 쓰인 경우를 "굵기 활용 조합"으로
+    보고 우선 정렬해 상위 6개 안에 반드시 포함되도록 한다.
+    """
     rows = (
         db.query(FontPairing)
         .filter(or_(
@@ -66,6 +74,15 @@ def font_pairings(font_id: int, db: Session = Depends(get_db)) -> List[dict]:
         .order_by(FontPairing.sort_order, FontPairing.id)
         .all()
     )
+
+    def _is_weight_showcase(p: FontPairing) -> bool:
+        if p.title_font_id == font_id and (p.title_weight or 0) >= 700:
+            return True
+        if p.body_font_id == font_id and (p.body_weight or 0) >= 700:
+            return True
+        return False
+
+    rows.sort(key=lambda p: (0 if _is_weight_showcase(p) else 1, p.sort_order, p.id))
     return [_to_out(p) for p in rows]
 
 
