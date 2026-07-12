@@ -309,13 +309,16 @@
     ));
   }
 
-  /* 페어링 카드용 헬퍼 (v6): 폰트를 특정 굵기로 로드하고 실제 사용할 font-family 스택 + 실제 적용 weight 반환.
+  /* 페어링 카드용 헬퍼 (v5): 폰트를 특정 굵기로 로드하고 실제 사용할 font-family 스택 반환.
      - 웹폰트 배포 폰트(노토산스/수트/프리텐다드/나눔스퀘어/마루부리 등)는 CDN CSS 로드 후 웹폰트 family 사용.
-     - 로컬 파일 폰트: available_weights(실제 굵기 파일 목록)가 있으면 가장 가까운 실제 굵기로 등록.
-       없으면(단일 파일) 가짜 weight face를 등록하지 않고 기본 face만 등록 — css font-weight는 브라우저가 합성(볼드 시뮬레이션)한다.
-       * 주의: 실제 없는 굵기를 @font-face로 선언해버리면 브라우저가 "이미 그 굵기 파일이 있다"고 판단해
-         자동 볼드 합성을 하지 않아 시각적으로 아무 변화가 없어 보이는 버그가 있었음(이번에 수정). */
+     - 로컬 파일 폰트는 굵기별 @font-face 등록 (서버에 해당 굵기가 없으면 자동 폴백).
+     - 파일 없는 폰트는 시스템 스택 반환 (font-weight CSS는 브라우저 시뮬레이션). */
   var pairLoaded = {};
+  /* 굵기 파일이 실제로 없는데 font-weight:900 같은 @font-face를 등록해버리면,
+     브라우저가 "이미 900 굵기 파일이 있다"고 착각해서 자동 볼드 합성을 하지 않는다.
+     → 반드시 f.available_weights(실제 굵기 파일 목록)를 확인해서:
+       - 있으면: 가장 가까운 실제 굵기로 등록하고 그 굵기값을 그대로 반환(css와 일치시킴)
+       - 없으면: 기본 파일만 font-weight:normal로 등록 → css font-weight는 브라우저가 합성 */
   function ensureFontForPair(f, weight){
     if (!f) return { stack: "'Nanum Gothic',sans-serif", weight: weight };
     var wf = webfontOf(f.name);
@@ -330,6 +333,7 @@
     var base = f.stack || "'Nanum Gothic',sans-serif";
     var stack = base.indexOf(fam) >= 0 ? base : "'" + fam + "'," + base;
     if (avail.length === 0){
+      // 굵기 파일 없음 — 기본 face만 등록(font-weight:normal), css font-weight는 브라우저가 합성(볼드 시뮬레이션)
       ensureFont(f);
       return { stack: stack, weight: weight };
     }
@@ -349,7 +353,7 @@
     var base = f.stack || "'Nanum Gothic',sans-serif";
     if (!f.has_file) return base;
     var fam = "FFP-" + String(f.id).padStart(3, '0');
-    return base.indexOf(fam) >= 0 ? base : "'" + fam + "',' + base;
+    return base.indexOf(fam) >= 0 ? base : "'" + fam + "'," + base;
   }
   function esc(s){ var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
@@ -380,6 +384,7 @@
     var wf = webfontOf(FONT.name);
     var rows;
     if (FILE_WEIGHTS.length > 0){
+      // 서버 굵기 파일 (최우선) — FFP family에 굵기별 @font-face 등록됨
       rows = FILE_WEIGHTS.map(function(w){
         return { label: w.label, sub: String(w.weight), family: stackOf(FONT), weight: w.weight };
       });
@@ -388,6 +393,7 @@
         document.getElementById('weightsLabel').textContent = FILE_WEIGHTS.length + '종';
       }
     } else if (wf && wf.weights.length > 1){
+      // 웹폰트 배포 폰트: 전체 굵기 표시 (CDN 굵기 + FFP 파일 폴백)
       var fam = wf.family + ',' + stackOf(FONT);
       rows = wf.weights.map(function(w){
         return { label: w[1], sub: String(w[0]), family: fam, weight: w[0] };
@@ -395,6 +401,7 @@
       document.getElementById('previewHeading').textContent = '굵기별 보기';
       document.getElementById('weightsLabel').textContent = wf.weights.length + '종';
     } else {
+      // 단일 파일 폰트: 대표 미리보기 1행 (굵기 파일 추가 시 확장)
       rows = [{ label: FONT.weights || '1종', sub: FONT.maker || '', family: stackOf(FONT), weight: 400 }];
     }
     wl.innerHTML = rows.map(function(r){
