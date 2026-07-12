@@ -30,6 +30,7 @@ def init_db():
     """테이블 생성 + 시드 데이터 (가벼움 — 폰트 파일 복사 없음)"""
     Base.metadata.create_all(bind=engine)
     _ensure_like_count_column()
+    _ensure_pairing_weight_columns()
     db = SessionLocal()
     try:
         _seed_admin(db)
@@ -59,6 +60,28 @@ def _ensure_like_count_column():
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE fonts ADD COLUMN like_count INTEGER NOT NULL DEFAULT 0"))
     print("[migrate] fonts.like_count 컬럼 추가 완료")
+
+
+def _ensure_pairing_weight_columns():
+    """font_pairings 테이블에 title_weight/body_weight 컬럼이 없으면 추가.
+
+    v5 페어링에서 조합별 굵기 지정을 위해 도입.
+    """
+    from sqlalchemy import text, inspect
+    inspector = inspect(engine)
+    if "font_pairings" not in inspector.get_table_names():
+        return  # create_all이 이번에 만들었음
+    columns = {col["name"] for col in inspector.get_columns("font_pairings")}
+    added = []
+    with engine.begin() as conn:
+        if "title_weight" not in columns:
+            conn.execute(text("ALTER TABLE font_pairings ADD COLUMN title_weight INTEGER NOT NULL DEFAULT 700"))
+            added.append("title_weight")
+        if "body_weight" not in columns:
+            conn.execute(text("ALTER TABLE font_pairings ADD COLUMN body_weight INTEGER NOT NULL DEFAULT 400"))
+            added.append("body_weight")
+    if added:
+        print(f"[migrate] font_pairings 컬럼 추가 완료: {added}")
 
 
 def _seed_admin(db: Session):
@@ -160,6 +183,8 @@ def _seed_pairings(db: Session):
             sample_title=it.get("sample_title", ""),
             sample_body=it.get("sample_body", ""),
             description=it.get("description", ""),
+            title_weight=int(it.get("title_weight", 700)),
+            body_weight=int(it.get("body_weight", 400)),
             sort_order=(i + 1) * 10,
         ))
         inserted += 1
