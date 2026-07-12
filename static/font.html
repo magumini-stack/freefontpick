@@ -311,42 +311,40 @@
 
   /* 페어링 카드용 헬퍼 (v5): 폰트를 특정 굵기로 로드하고 실제 사용할 font-family 스택 반환.
      - 웹폰트 배포 폰트(노토산스/수트/프리텐다드/나눔스퀘어/마루부리 등)는 CDN CSS 로드 후 웹폰트 family 사용.
-     - 로컬 파일 폰트는 굵기별 @font-face 등록 (서버에 해당 굵기가 없으면 자동 폴백).
-     - 파일 없는 폰트는 시스템 스택 반환 (font-weight CSS는 브라우저 시뮬레이션). */
+     - 로컬 파일 폰트는 서버에 해당 굵기 파일이 실제 있을 때만 정확한 굵기로 등록.
+       없으면 넓은 굵기 범위(1~999)로 등록해 브라우저가 자동으로 합성 굵게를 적용하게 함
+       (그래야 페어링 카드에서 title_weight/body_weight가 시각적으로 반영됨).
+     - 파일 없는 폰트는 시스템 스택 반환. */
   var pairLoaded = {};
-  /* 굵기 파일이 실제로 없는데 font-weight:900 같은 @font-face를 등록해버리면,
-     브라우저가 "이미 900 굵기 파일이 있다"고 착각해서 자동 볼드 합성을 하지 않는다.
-     → 반드시 f.available_weights(실제 굵기 파일 목록)를 확인해서:
-       - 있으면: 가장 가까운 실제 굵기로 등록하고 그 굵기값을 그대로 반환(css와 일치시킴)
-       - 없으면: 기본 파일만 font-weight:normal로 등록 → css font-weight는 브라우저가 합성 */
   function ensureFontForPair(f, weight){
-    if (!f) return { stack: "'Nanum Gothic',sans-serif", weight: weight };
+    if (!f) return "'Nanum Gothic',sans-serif";
     var wf = webfontOf(f.name);
     if (wf){
-      return { stack: wf.family + ',' + (f.stack || "'Nanum Gothic',sans-serif"), weight: weight };
+      return wf.family + ',' + (f.stack || "'Nanum Gothic',sans-serif");
     }
     if (!f.has_file){
-      return { stack: f.stack || "'Nanum Gothic',sans-serif", weight: weight };
+      return f.stack || "'Nanum Gothic',sans-serif";
     }
     var avail = f.available_weights || [];
-    var fam = 'FFP-' + String(f.id).padStart(3, '0');
-    var base = f.stack || "'Nanum Gothic',sans-serif";
-    var stack = base.indexOf(fam) >= 0 ? base : "'" + fam + "'," + base;
-    if (avail.length === 0){
-      // 굵기 파일 없음 — 기본 face만 등록(font-weight:normal), css font-weight는 브라우저가 합성(볼드 시뮬레이션)
-      ensureFont(f);
-      return { stack: stack, weight: weight };
-    }
-    var actual = avail.reduce(function(a, b){ return Math.abs(b - weight) < Math.abs(a - weight) ? b : a; });
-    var key = f.id + '-' + actual;
+    var hasExact = avail.indexOf(weight) >= 0;
+    var fam = (hasExact ? 'FFP-' : 'FFPW-') + String(f.id).padStart(3, '0');
+    var key = fam + '-' + (hasExact ? weight : 'wide');
     if (!pairLoaded[key]){
       pairLoaded[key] = true;
-      fontStyleEl.appendChild(document.createTextNode(
-        "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + f.id +
-        "/file?weight=" + actual + "') format('woff2');font-display:swap;font-weight:" + actual + ";font-style:normal}"
-      ));
+      if (hasExact){
+        fontStyleEl.appendChild(document.createTextNode(
+          "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + f.id +
+          "/file?weight=" + weight + "') format('woff2');font-display:swap;font-weight:" + weight + ";font-style:normal}"
+        ));
+      } else {
+        fontStyleEl.appendChild(document.createTextNode(
+          "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + f.id +
+          "/file') format('woff2');font-display:swap;font-weight:1 999;font-style:normal}"
+        ));
+      }
     }
-    return { stack: stack, weight: actual };
+    var base = (f.stack || "'Nanum Gothic',sans-serif").replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
+    return "'" + fam + "'," + base;
   }
 
   function stackOf(f){
@@ -425,13 +423,13 @@
     grid.innerHTML = list.slice(0, 6).map(function(p){
       var tw = p.title_weight || 700;
       var bw = p.body_weight || 400;
-      var titleR = ensureFontForPair(p.title_font, tw);
-      var bodyR = ensureFontForPair(p.body_font, bw);
+      var titleStack = ensureFontForPair(p.title_font, tw);
+      var bodyStack = ensureFontForPair(p.body_font, bw);
       var partner = (p.title_font.id === fid) ? p.body_font : p.title_font;
       return '<a class="pair-card" href="/font/' + partner.id + '">' +
         '<div class="pair-stage">' +
-          '<div class="pair-title" style="font-family:' + titleR.stack + ';font-weight:' + titleR.weight + '">' + esc(p.sample_title) + '</div>' +
-          '<div class="pair-body" style="font-family:' + bodyR.stack + ';font-weight:' + bodyR.weight + '">' + esc(p.sample_body) + '</div>' +
+          '<div class="pair-title" style="font-family:' + titleStack + ';font-weight:' + tw + '">' + esc(p.sample_title) + '</div>' +
+          '<div class="pair-body" style="font-family:' + bodyStack + ';font-weight:' + bw + '">' + esc(p.sample_body) + '</div>' +
         '</div>' +
         '<div class="pair-meta">' +
           '<span class="pair-theme">' + esc(p.theme) + '</span>' +
