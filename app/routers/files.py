@@ -103,13 +103,15 @@ FONT_AUDIT: list = []
 # 저장 위치: {fonts|static/fonts|user_data/fonts}/weights/ 안에
 #   manifest.json  : [{"name": "폰트명", "files": [{"weight":700,"label":"Bold","file":"slug-700.woff2"}]}]
 #   slug-700.woff2 : 실제 파일 (ASCII 파일명)
-# 이름 기준으로 DB 폰트와 매칭. user_data가 저장소 번들보다 우선.
+# 이름 기준으로 DB 폰트와 매칭.
 WEIGHT_RESOLUTION: dict = {}      # font_id -> [{"weight","label","path"}]
 WEIGHT_UNMATCHED: list = []       # DB에 없는 매니페스트 폰트명
 
 
 def _weight_dirs():
-    return [FONTS_DIR / "weights", ROOT_FONTS_DIR / "weights", BUNDLED_FONTS_DIR / "weights"]
+    # 저장소(ROOT_FONTS_DIR)가 관리 주체이므로 최우선 — user_data에 남은 오래된
+    # manifest.json이 최신 수정사항을 가리는 문제를 막기 위해 순서를 바꿈.
+    return [ROOT_FONTS_DIR / "weights", FONTS_DIR / "weights", BUNDLED_FONTS_DIR / "weights"]
 
 
 def _load_weight_manifests() -> dict:
