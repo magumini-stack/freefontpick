@@ -32,10 +32,6 @@ BUNDLED_FONTS_DIR = Path(__file__).resolve().parent.parent.parent / "static" / "
 ROOT_FONTS_DIR = Path(__file__).resolve().parent.parent.parent / "fonts"
 
 # ─── 폰트 파일 해석 (이름 기반) ───────────────────────────
-# 문제: 번들 파일 번호(시드 id)와 운영 DB의 폰트 id가 어긋날 수 있음.
-#   → id로만 찾으면 '다른 폰트'가 서빙되는 사고 발생.
-# 해결: 시작 시 폰트별로 올바른 파일을 이름 기준으로 확정해 캐시.
-#   우선순위: 업로드본(내장 이름 검증 통과) → 굵기 파일(이름 매칭, 신뢰도 높음) → id 번들(번호 매칭, 배치 간 어긋날 수 있어 최후 순위)
 import json as _json2
 import re as _re2
 
@@ -47,7 +43,6 @@ def _norm_font_name(s: str) -> str:
 
 
 def _seed_name_map() -> dict:
-    """정규화된 시드 폰트 이름 → 시드 id"""
     try:
         with open(_SEED_JSON, encoding="utf-8") as f:
             data = _json2.load(f)
@@ -57,7 +52,6 @@ def _seed_name_map() -> dict:
 
 
 def _bundled_candidates(fid: int):
-    """읽기 전용 번들 폴더만 — 업로드 폴더(FONTS_DIR)는 id 체계가 달라 제외"""
     for d in (BUNDLED_FONTS_DIR, ROOT_FONTS_DIR):
         p = d / f"font-{fid:03d}.woff2"
         if p.exists():
@@ -65,7 +59,6 @@ def _bundled_candidates(fid: int):
 
 
 def _embedded_names(path: Path) -> list:
-    """woff2 내장 name 테이블의 이름 문자열들 (fontTools 없으면 빈 리스트)"""
     try:
         from fontTools.ttLib import TTFont
         ft = TTFont(str(path), lazy=True)
@@ -83,9 +76,8 @@ def _embedded_names(path: Path) -> list:
 
 
 def _name_matches(db_name: str, embedded: list) -> bool:
-    """내장 이름과 DB 이름의 느슨한 일치 (부분 포함 양방향)"""
     if not embedded:
-        return True  # 검증 불가 시 통과 (fontTools 미설치 등)
+        return True
     dn = _norm_font_name(db_name)
     if len(dn) < 2:
         return True
@@ -95,27 +87,19 @@ def _name_matches(db_name: str, embedded: list) -> bool:
     return False
 
 
-# 폰트 id → (경로 문자열, 소스 라벨). 시작 시 build_font_resolution()이 채움.
 FONT_RESOLUTION: dict = {}
 FONT_AUDIT: list = []
 
-# ─── 굵기별 폰트 파일 (weights) ───────────────────────────
-# 저장 위치: {fonts|static/fonts|user_data/fonts}/weights/ 안에
-#   manifest.json  : [{"name": "폰트명", "files": [{"weight":700,"label":"Bold","file":"slug-700.woff2"}]}]
-#   slug-700.woff2 : 실제 파일 (ASCII 파일명)
-# 이름 기준으로 DB 폰트와 매칭.
-WEIGHT_RESOLUTION: dict = {}      # font_id -> [{"weight","label","path"}]
-WEIGHT_UNMATCHED: list = []       # DB에 없는 매니페스트 폰트명
+WEIGHT_RESOLUTION: dict = {}
+WEIGHT_UNMATCHED: list = []
 
 
 def _weight_dirs():
-    # 저장소(ROOT_FONTS_DIR)가 관리 주체이므로 최우선 — user_data에 남은 오래된
-    # manifest.json이 최신 수정사항을 가리는 문제를 막기 위해 순서를 바꿈.
+    # 저장소(ROOT_FONTS_DIR)가 관리 주체이므로 최우선
     return [ROOT_FONTS_DIR / "weights", FONTS_DIR / "weights", BUNDLED_FONTS_DIR / "weights"]
 
 
 def _load_weight_manifests() -> dict:
-    """정규화된 이름 → [{"weight","label","path"}] (앞선 디렉토리가 우선)"""
     merged = {}
     for d in _weight_dirs():
         mf = d / "manifest.json"
@@ -130,7 +114,7 @@ def _load_weight_manifests() -> dict:
         for it in items:
             key = _norm_font_name(it.get("name", ""))
             if not key or key in merged:
-                continue  # 우선순위 높은 디렉토리가 이미 등록
+                continue
             entries = []
             for fe in it.get("files", []):
                 p = d / fe.get("file", "")
@@ -147,10 +131,6 @@ def _load_weight_manifests() -> dict:
 
 
 def build_font_resolution(db) -> dict:
-    """모든 폰트의 서빙 파일을 이름 기준으로 확정 + has_file/stack 자가치유.
-
-    반환: 요약 dict (audit용). FONT_RESOLUTION/FONT_AUDIT 갱신.
-    """
     from ..models import Font as _Font
 
     seed_map = _seed_name_map()
@@ -167,8 +147,6 @@ def build_font_resolution(db) -> dict:
                  "path": None, "note": ""}
         chosen = None
 
-        # 1) 사용자 업로드본 — 어드민이 폰트별로 직접 올린 파일이므로 신뢰.
-        #    내장 이름은 감사(audit) 참고용으로만 기록 (영문 내부명 vs 한글 표시명이라 판정에 못 씀)
         up = font_path(font.id)
         if up.exists():
             chosen = (up, "user")
@@ -176,8 +154,6 @@ def build_font_resolution(db) -> dict:
             if emb and not _name_matches(font.name, emb):
                 entry["note"] = f"내장이름 확인 필요: {emb[:3]}"
 
-        # 2) 굵기 파일 매칭 (이름 기준 — 배치 간 번호 어긋남이 없어 신뢰도가 높음)
-        #    번호 매칭 번들(3번)보다 먼저 확인해서, 있으면 대표 파일로도 채택한다.
         wkey = _norm_font_name(font.name)
         weights = weight_map.get(wkey)
         if weights:
@@ -188,9 +164,6 @@ def build_font_resolution(db) -> dict:
                 base = min(weights, key=lambda w: abs(w["weight"] - 400))
                 chosen = (Path(base["path"]), "weights")
 
-        # 3) 시드 이름 → 시드 id 번들 (굵기 파일이 없을 때만 폴백)
-        #    번들 파일은 시드 id 체계로 번호가 매겨져 있는데, 배치가 여러 번 바뀌며
-        #    번호와 실제 폰트가 어긋난 사례가 있어 굵기 파일보다 신뢰도가 낮다.
         if chosen is None:
             sid = seed_map.get(_norm_font_name(font.name))
             if sid:
@@ -202,14 +175,12 @@ def build_font_resolution(db) -> dict:
             FONT_RESOLUTION[font.id] = (str(chosen[0]), chosen[1])
             entry["source"], entry["path"] = chosen[1], str(chosen[0])
 
-        # ── 자가치유: has_file / stack / 굵기 표기 정합화 ──
         want_has_file = chosen is not None
         if weights:
             want_weights_label = f"{len(weights)}종"
             if font.weights != want_weights_label:
                 font.weights = want_weights_label
                 healed += 1
-        # stack에서 잘못된 FFP-xxx 토큰 제거 후 올바른 것만 prepend
         raw = font.stack or "'Nanum Gothic',sans-serif"
         cleaned = _re2.sub(r"'?FFP-\d{3}'?\s*,?\s*", "", raw).strip().strip(",").strip()
         if not cleaned:
@@ -222,7 +193,6 @@ def build_font_resolution(db) -> dict:
 
         FONT_AUDIT.append(entry)
 
-    # 매니페스트에 있지만 DB에 없는 폰트 (신규 등록 대상)
     for key in weight_map:
         if key not in weight_keys_used:
             WEIGHT_UNMATCHED.append(key)
@@ -237,15 +207,13 @@ def build_font_resolution(db) -> dict:
         "bundled_by_id": sum(1 for e in FONT_AUDIT if e["source"] == "bundled-by-id"),
         "missing": sum(1 for e in FONT_AUDIT if e["source"] == "none"),
         "healed_rows": healed,
+        "_debug_marker": "v2-priority-fix-20260712",
     }
     print(f"[fonts] 파일 해석 완료: {summary}")
     return summary
 
 
-# 업로드 최대 크기 — 웹 서빙용 woff2는 이 이하가 정상 범위
-MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
-
-# WOFF2 파일 시그니처 (magic bytes): 'wOF2'
+MAX_UPLOAD_SIZE = 5 * 1024 * 1024
 WOFF2_MAGIC = b"wOF2"
 
 
@@ -278,17 +246,10 @@ async def upload_font_file(
     db: Session = Depends(get_db),
     _admin = Depends(require_password_changed),
 ):
-    """폰트 파일 업로드 — WOFF2 전용.
-
-    서버는 변환을 일절 하지 않는다. 확장자 + magic bytes + 크기만 검증하고
-    파일을 그대로 저장한다. (변환 중 OOM으로 앱이 다운되는 사고 재발 방지)
-    """
-    # 1. 폰트 존재 확인
     font = db.query(Font).filter(Font.id == font_id).first()
     if not font:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
 
-    # 2. 확장자 검증 — woff2만 허용
     filename = (file.filename or "").lower()
     if not filename.endswith(".woff2"):
         raise HTTPException(
@@ -298,7 +259,6 @@ async def upload_font_file(
                    "(변환 도구 예: cloudconvert.com, fonttools 등)",
         )
 
-    # 3. 본문 읽기 + 크기 제한
     try:
         content = await file.read()
     except Exception as e:
@@ -316,7 +276,6 @@ async def upload_font_file(
                    f"서브셋(글립 수 축소)으로 용량을 줄여서 올려주세요.",
         )
 
-    # 4. WOFF2 시그니처 검증 — 확장자만 바꾼 가짜 파일 차단
     if content[:4] != WOFF2_MAGIC:
         raise HTTPException(
             status_code=400,
@@ -325,7 +284,6 @@ async def upload_font_file(
                    "실제 woff2 형식으로 변환한 파일을 올려주세요.",
         )
 
-    # 5. 파일 저장 — 변환 없이 그대로
     out_path = font_path(font_id)
     try:
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -337,20 +295,17 @@ async def upload_font_file(
             detail=f"파일 저장 실패 (디스크 권한 문제일 수 있어요): {type(e).__name__}: {e}",
         )
 
-    # 6. DB 업데이트
     try:
         font.has_file = True
         font.stack = _ensure_stack_has_family(font.stack or "", font_id)
         db.commit()
     except Exception as e:
         traceback.print_exc()
-        # 파일은 저장됐는데 DB 업데이트 실패 — 부분 성공 케이스
         raise HTTPException(
             status_code=500,
             detail=f"파일은 저장됐지만 DB 업데이트 실패: {e}",
         )
 
-    # 7. 해석 캐시 갱신 — 새 업로드본이 즉시 서빙되도록
     FONT_RESOLUTION[font_id] = (str(out_path), "user")
 
     size = len(content)
@@ -367,7 +322,6 @@ async def upload_font_file(
 
 @router.get("/{font_id}/weights")
 def font_weights(font_id: int):
-    """공개 — 굵기별 파일 목록. 없으면 빈 배열."""
     return [
         {"weight": w["weight"], "label": w["label"]}
         for w in WEIGHT_RESOLUTION.get(font_id, [])
@@ -376,11 +330,6 @@ def font_weights(font_id: int):
 
 @router.get("/{font_id}/file")
 def download_font_file(font_id: int, weight: int = 0):
-    """공개 — 폰트 파일 서빙. @font-face로 호출됨.
-
-    ?weight=700 처럼 굵기를 지정하면 굵기별 파일을 서빙.
-    우선순위: 굵기 파일 → 해석 캐시 → 업로드본 → 시드 번들
-    """
     _headers = {
         "Cache-Control": "public, max-age=31536000, immutable",
         "Access-Control-Allow-Origin": "*",
@@ -389,12 +338,9 @@ def download_font_file(font_id: int, weight: int = 0):
         for w in WEIGHT_RESOLUTION.get(font_id, []):
             if w["weight"] == weight and Path(w["path"]).exists():
                 return FileResponse(path=w["path"], media_type="font/woff2", headers=_headers)
-        # 지정 굵기가 없으면 아래 기본 파일로 폴백
-    # 1) 시작 시 확정된 해석 캐시 (이름 검증 완료된 경로)
     resolved = FONT_RESOLUTION.get(font_id)
     if resolved and Path(resolved[0]).exists():
         return FileResponse(path=resolved[0], media_type="font/woff2", headers=_headers)
-    # 2) 캐시에 없으면 (부팅 후 새로 업로드된 폰트) 업로드본 직접 서빙
     p = font_path(font_id)
     if p.exists():
         FONT_RESOLUTION[font_id] = (str(p), "user")
