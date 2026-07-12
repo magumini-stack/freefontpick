@@ -17,6 +17,8 @@ router = APIRouter(prefix="/api", tags=["pairings"])
 
 
 def _font_brief(f: Font) -> dict:
+    from .files import WEIGHT_RESOLUTION
+    weights = WEIGHT_RESOLUTION.get(f.id, [])
     return {
         "id": f.id,
         "name": f.name,
@@ -24,6 +26,7 @@ def _font_brief(f: Font) -> dict:
         "stack": f.stack or "'Nanum Gothic',sans-serif",
         "has_file": bool(f.has_file),
         "is_english": bool(f.is_english),
+        "available_weights": [w["weight"] for w in weights],
     }
 
 
