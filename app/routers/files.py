@@ -35,7 +35,7 @@ ROOT_FONTS_DIR = Path(__file__).resolve().parent.parent.parent / "fonts"
 # 문제: 번들 파일 번호(시드 id)와 운영 DB의 폰트 id가 어긋날 수 있음.
 #   → id로만 찾으면 '다른 폰트'가 서빙되는 사고 발생.
 # 해결: 시작 시 폰트별로 올바른 파일을 이름 기준으로 확정해 캐시.
-#   우선순위: 업로드본(내장 이름 검증 통과) → 시드이름 매칭 번들 → id 번들(이름 검증 통과)
+#   우선순위: 업로드본(내장 이름 검증 통과) → 굵기 파일(이름 매칭, 신뢰도 높음) → id 번들(번호 매칭, 배치 간 어긋날 수 있어 최후 순위)
 import json as _json2
 import re as _re2
 
@@ -174,25 +174,27 @@ def build_font_resolution(db) -> dict:
             if emb and not _name_matches(font.name, emb):
                 entry["note"] = f"내장이름 확인 필요: {emb[:3]}"
 
-        # 2) 시드 이름 → 시드 id 번들 (번들 파일은 시드 id 체계로 번호가 매겨져 있음)
-        if chosen is None:
-            sid = seed_map.get(_norm_font_name(font.name))
-            if sid:
-                for p in _bundled_candidates(sid):
-                    chosen = (p, "bundled-by-name")
-                    break
-
-        # 2.5) 굵기 파일 매칭 (이름 기준)
+        # 2) 굵기 파일 매칭 (이름 기준 — 배치 간 번호 어긋남이 없어 신뢰도가 높음)
+        #    번호 매칭 번들(3번)보다 먼저 확인해서, 있으면 대표 파일로도 채택한다.
         wkey = _norm_font_name(font.name)
         weights = weight_map.get(wkey)
         if weights:
             WEIGHT_RESOLUTION[font.id] = weights
             weight_keys_used.add(wkey)
             entry["weights"] = [w["weight"] for w in weights]
-            # 대표 파일이 없으면 400(없으면 가장 가까운) 굵기를 대표로 사용
             if chosen is None:
                 base = min(weights, key=lambda w: abs(w["weight"] - 400))
                 chosen = (Path(base["path"]), "weights")
+
+        # 3) 시드 이름 → 시드 id 번들 (굵기 파일이 없을 때만 폴백)
+        #    번들 파일은 시드 id 체계로 번호가 매겨져 있는데, 배치가 여러 번 바뀌며
+        #    번호와 실제 폰트가 어긋난 사례가 있어 굵기 파일보다 신뢰도가 낮다.
+        if chosen is None:
+            sid = seed_map.get(_norm_font_name(font.name))
+            if sid:
+                for p in _bundled_candidates(sid):
+                    chosen = (p, "bundled-by-name")
+                    break
 
         if chosen:
             FONT_RESOLUTION[font.id] = (str(chosen[0]), chosen[1])
