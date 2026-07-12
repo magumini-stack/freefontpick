@@ -105,9 +105,11 @@ class FontSubmission(Base):
 class FontPairing(Base):
     """폰트 페어링 조합 (제목 폰트 + 본문 폰트).
 
-    - 시드는 pairing_seed.json에서 이름 매칭으로 삽입 (seed.py)
+    - 시드는 pairing_data.PAIRING_SEED에서 이름 매칭으로 삽입 (seed.py)
     - 폰트가 삭제되면 조합도 함께 삭제 (CASCADE)
-    - 어드민 관리 기능은 2단계에서 추가 예정
+    - title_weight/body_weight: 페어링 카드에서 사용할 굵기 (v5에서 도입)
+      · 굵기 파일이 있는 폰트만 실제로 반영됨. 없는 폰트는 기본 굵기로 폴백.
+      · 400=Regular, 500=Medium, 700=Bold, 800=ExtraBold, 900=Heavy
     """
     __tablename__ = "font_pairings"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -117,6 +119,8 @@ class FontPairing(Base):
     sample_title = Column(String(100), nullable=False, default="")
     sample_body = Column(String(200), nullable=False, default="")
     description = Column(String(300), nullable=False, default="")
+    title_weight = Column(Integer, nullable=False, default=700, server_default="700")
+    body_weight = Column(Integer, nullable=False, default=400, server_default="400")
     sort_order = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, server_default=func.now())
 
