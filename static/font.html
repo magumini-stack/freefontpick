@@ -308,6 +308,34 @@
       "/file') format('woff2');font-display:swap;font-weight:normal;font-style:normal}"
     ));
   }
+
+  /* 페어링 카드용 헬퍼 (v5): 폰트를 특정 굵기로 로드하고 실제 사용할 font-family 스택 반환.
+     - 웹폰트 배포 폰트(노토산스/수트/프리텐다드/나눔스퀘어/마루부리 등)는 CDN CSS 로드 후 웹폰트 family 사용.
+     - 로컬 파일 폰트는 굵기별 @font-face 등록 (서버에 해당 굵기가 없으면 자동 폴백).
+     - 파일 없는 폰트는 시스템 스택 반환 (font-weight CSS는 브라우저 시뮬레이션). */
+  var pairLoaded = {};
+  function ensureFontForPair(f, weight){
+    if (!f) return "'Nanum Gothic',sans-serif";
+    var wf = webfontOf(f.name);
+    if (wf){
+      return wf.family + ',' + (f.stack || "'Nanum Gothic',sans-serif");
+    }
+    if (!f.has_file){
+      return f.stack || "'Nanum Gothic',sans-serif";
+    }
+    var key = f.id + '-' + weight;
+    var fam = 'FFP-' + String(f.id).padStart(3, '0');
+    if (!pairLoaded[key]){
+      pairLoaded[key] = true;
+      fontStyleEl.appendChild(document.createTextNode(
+        "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + f.id +
+        "/file?weight=" + weight + "') format('woff2');font-display:swap;font-weight:" + weight + ";font-style:normal}"
+      ));
+    }
+    var base = f.stack || "'Nanum Gothic',sans-serif";
+    return base.indexOf(fam) >= 0 ? base : "'" + fam + "'," + base;
+  }
+
   function stackOf(f){
     var base = f.stack || "'Nanum Gothic',sans-serif";
     if (!f.has_file) return base;
@@ -382,12 +410,15 @@
       FONT.name + '이(가) 들어간 추천 페어링이에요. 카드를 누르면 상대 폰트 페이지로 이동합니다.';
     var grid = document.getElementById('pairGrid');
     grid.innerHTML = list.slice(0, 6).map(function(p){
-      ensureFont(p.title_font); ensureFont(p.body_font);
+      var tw = p.title_weight || 700;
+      var bw = p.body_weight || 400;
+      var titleStack = ensureFontForPair(p.title_font, tw);
+      var bodyStack = ensureFontForPair(p.body_font, bw);
       var partner = (p.title_font.id === fid) ? p.body_font : p.title_font;
       return '<a class="pair-card" href="/font/' + partner.id + '">' +
         '<div class="pair-stage">' +
-          '<div class="pair-title" style="font-family:' + stackOf(p.title_font) + '">' + esc(p.sample_title) + '</div>' +
-          '<div class="pair-body" style="font-family:' + stackOf(p.body_font) + '">' + esc(p.sample_body) + '</div>' +
+          '<div class="pair-title" style="font-family:' + titleStack + ';font-weight:' + tw + '">' + esc(p.sample_title) + '</div>' +
+          '<div class="pair-body" style="font-family:' + bodyStack + ';font-weight:' + bw + '">' + esc(p.sample_body) + '</div>' +
         '</div>' +
         '<div class="pair-meta">' +
           '<span class="pair-theme">' + esc(p.theme) + '</span>' +
