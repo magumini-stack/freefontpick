@@ -381,25 +381,28 @@
     var wl = document.getElementById('weightRows');
     var wf = webfontOf(FONT.name);
     var rows;
-    if (FILE_WEIGHTS.length > 0){
-      // 서버 굵기 파일 (최우선) — FFP family에 굵기별 @font-face 등록됨
+    if (FILE_WEIGHTS.length > 1){
+      // 서버에 굵기 파일이 2개 이상 개별 등록된 경우 최우선 (어드민 실제 업로드)
       rows = FILE_WEIGHTS.map(function(w){
         return { label: w.label, sub: String(w.weight), family: stackOf(FONT), weight: w.weight };
       });
-      if (FILE_WEIGHTS.length > 1){
-        document.getElementById('previewHeading').textContent = '굵기별 보기';
-        document.getElementById('weightsLabel').textContent = FILE_WEIGHTS.length + '종';
-      }
+      document.getElementById('previewHeading').textContent = '굵기별 보기';
+      document.getElementById('weightsLabel').textContent = FILE_WEIGHTS.length + '종';
     } else if (wf && wf.weights.length > 1){
-      // 웹폰트 배포 폰트: 전체 굵기 표시 (CDN 굵기 + FFP 파일 폴백)
+      // 웹폰트 배포 폰트(구글 폰트 CDN 등): 전체 굵기 표시
+      // 서버에 대표 파일 1개만 있는 경우에도 CDN 쪽이 굵기 정보가 더 풍부하므로 이쪽을 우선한다.
       var fam = wf.family + ',' + stackOf(FONT);
       rows = wf.weights.map(function(w){
         return { label: w[1], sub: String(w[0]), family: fam, weight: w[0] };
       });
       document.getElementById('previewHeading').textContent = '굵기별 보기';
       document.getElementById('weightsLabel').textContent = wf.weights.length + '종';
+    } else if (FILE_WEIGHTS.length === 1){
+      // 대표 파일 1개만 등록된 경우: 그 굵기로 단일 행 표시
+      var w0 = FILE_WEIGHTS[0];
+      rows = [{ label: w0.label, sub: String(w0.weight), family: stackOf(FONT), weight: w0.weight }];
     } else {
-      // 단일 파일 폰트: 대표 미리보기 1행 (굵기 파일 추가 시 확장)
+      // 파일이 아예 없는 폰트: 대표 미리보기 1행 (굵기 파일 추가 시 확장)
       rows = [{ label: FONT.weights || '1종', sub: FONT.maker || '', family: stackOf(FONT), weight: 400 }];
     }
     wl.innerHTML = rows.map(function(r){
