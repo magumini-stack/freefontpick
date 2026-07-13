@@ -558,7 +558,7 @@
         <div class="field-hint" id="fmSizeWarning" style="display:none;color:var(--danger,#d33);font-weight:600">⚠ 파일이 큽니다 (1MB 초과). 사용자 페이지 로딩이 느려질 수 있으니 서브셋으로 용량을 줄이는 것을 권장합니다.</div>
       </div>
 
-      <div class="field meta-section" id="fmExtraWeightsSection" style="display:none">
+      <div class="field meta-section" id="fmExtraWeightsSection">
         <div class="meta-header">
           <label>
             <i class="ti ti-align-box-bottom-center" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i>
@@ -566,33 +566,38 @@
             <span class="meta-sub">— 대표 굵기 외에 상세페이지·디자인 모달에서 선택 가능한 굵기를 더 등록해요</span>
           </label>
         </div>
-        <div id="fmExtraWeightsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
-        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
-          <div style="width:140px">
-            <div class="meta-label">굵기</div>
-            <select id="fmNewWeightValue">
-              <option value="100">100 · Thin</option>
-              <option value="200">200 · ExtraLight</option>
-              <option value="300">300 · Light</option>
-              <option value="400">400 · Regular</option>
-              <option value="500">500 · Medium</option>
-              <option value="600">600 · SemiBold</option>
-              <option value="700" selected>700 · Bold</option>
-              <option value="800">800 · ExtraBold</option>
-              <option value="900">900 · Black</option>
-            </select>
-          </div>
-          <div style="width:140px">
-            <div class="meta-label">라벨 (선택)</div>
-            <input type="text" id="fmNewWeightLabel" placeholder="예: Bold" style="width:100%;height:38px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 10px;font-size:13px;background:var(--bg-card);color:var(--text-primary);font-family:inherit">
-          </div>
-          <div style="flex:1;min-width:180px">
-            <div class="meta-label">WOFF2 파일</div>
-            <input type="file" id="fmNewWeightFile" accept=".woff2" style="width:100%;font-size:12px">
-          </div>
-          <button type="button" class="btn-secondary" onclick="addExtraWeight()"><i class="ti ti-plus" aria-hidden="true"></i> 추가</button>
+        <div id="fmExtraWeightsLocked" style="font-size:12px;color:var(--text-muted);padding:10px 0">
+          이 폰트를 먼저 <strong>저장</strong>한 뒤, 다시 <strong>수정</strong>에서 추가 굵기를 등록할 수 있어요.
         </div>
-        <div class="field-hint" style="margin-top:8px">굵기 파일이 실제로 있어야 상세페이지/디자인 모달에 정확히 반영돼요. 같은 굵기를 다시 올리면 기존 파일을 교체합니다.</div>
+        <div id="fmExtraWeightsBody" style="display:none">
+          <div id="fmExtraWeightsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+            <div style="width:140px">
+              <div class="meta-label">굵기</div>
+              <select id="fmNewWeightValue">
+                <option value="100">100 · Thin</option>
+                <option value="200">200 · ExtraLight</option>
+                <option value="300">300 · Light</option>
+                <option value="400">400 · Regular</option>
+                <option value="500">500 · Medium</option>
+                <option value="600">600 · SemiBold</option>
+                <option value="700" selected>700 · Bold</option>
+                <option value="800">800 · ExtraBold</option>
+                <option value="900">900 · Black</option>
+              </select>
+            </div>
+            <div style="width:140px">
+              <div class="meta-label">라벨 (선택)</div>
+              <input type="text" id="fmNewWeightLabel" placeholder="예: Bold" style="width:100%;height:38px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 10px;font-size:13px;background:var(--bg-card);color:var(--text-primary);font-family:inherit">
+            </div>
+            <div style="flex:1;min-width:180px">
+              <div class="meta-label">WOFF2 파일</div>
+              <input type="file" id="fmNewWeightFile" accept=".woff2" style="width:100%;font-size:12px">
+            </div>
+            <button type="button" class="btn-secondary" onclick="addExtraWeight()"><i class="ti ti-plus" aria-hidden="true"></i> 추가</button>
+          </div>
+          <div class="field-hint" style="margin-top:8px">굵기 파일이 실제로 있어야 상세페이지/디자인 모달에 정확히 반영돼요. 같은 굵기를 다시 올리면 기존 파일을 교체합니다.</div>
+        </div>
       </div>
     </div>
     <div class="modal-foot">
@@ -1193,8 +1198,9 @@ function openFontModal(){
   renderMetaSection();
   renderFmFilePreview();
   document.getElementById('fmSizeWarning').style.display = 'none';
-  // 추가 굵기 등록은 폰트를 먼저 저장해야 가능 (font_id 필요) — 새 등록에서는 숨김
-  document.getElementById('fmExtraWeightsSection').style.display = 'none';
+  // 추가 굵기 등록은 폰트를 먼저 저장해야 가능 (font_id 필요) — 새 등록에서는 안내 문구만
+  document.getElementById('fmExtraWeightsLocked').style.display = 'block';
+  document.getElementById('fmExtraWeightsBody').style.display = 'none';
   document.getElementById('fontModal').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -1223,8 +1229,9 @@ function editFont(id){
   renderMetaSection();
   renderFmFilePreview(f.hasFile ? '(업로드된 파일 있음 — 다시 올리면 교체됨)' : '');
   document.getElementById('fmSizeWarning').style.display = 'none';
-  // 기존 폰트는 추가 굵기 등록 섹션 노출
-  document.getElementById('fmExtraWeightsSection').style.display = 'block';
+  // 기존 폰트는 추가 굵기 등록 폼 노출
+  document.getElementById('fmExtraWeightsLocked').style.display = 'none';
+  document.getElementById('fmExtraWeightsBody').style.display = 'block';
   refreshExtraWeights(id);
   document.getElementById('fontModal').classList.add('open');
   document.body.style.overflow='hidden';
