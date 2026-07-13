@@ -1,17 +1,21 @@
-"""폰트 페어링 공개 API
+"""폰트 페어링 API
 
-- GET /api/pairings                 : 전체 페어링 (테마별 정렬)
-- GET /api/fonts/{font_id}/pairings : 특정 폰트가 포함된 페어링
-
-어드민 CRUD는 2단계에서 추가.
+- GET /api/pairings                 : 전체 페어링 (테마별 정렬) — 공개
+- GET /api/fonts/{font_id}/pairings : 특정 폰트가 포함된 페어링 — 공개
+- GET /api/pairings/themes          : 전체 테마 이름 목록 — 공개 (어드민 드롭다운용)
+- POST /api/pairings                : 페어링 생성 — 관리자
+- PATCH /api/pairings/{id}          : 페어링 수정 — 관리자
+- DELETE /api/pairings/{id}         : 페어링 삭제 — 관리자
 """
 from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Font, FontPairing
+from ..auth import require_password_changed
+from ..schemas import PairingCreate, PairingUpdate
 
 router = APIRouter(prefix="/api", tags=["pairings"])
 
@@ -39,6 +43,7 @@ def _to_out(p: FontPairing) -> dict:
         "description": p.description or "",
         "title_weight": int(getattr(p, "title_weight", 700) or 700),
         "body_weight": int(getattr(p, "body_weight", 400) or 400),
+        "sort_order": p.sort_order,
         "title_font": _font_brief(p.title_font),
         "body_font": _font_brief(p.body_font),
     }
@@ -52,6 +57,13 @@ def list_pairings(db: Session = Depends(get_db)) -> List[dict]:
         .all()
     )
     return [_to_out(p) for p in rows]
+
+
+@router.get("/pairings/themes")
+def list_pairing_themes(db: Session = Depends(get_db)) -> List[str]:
+    """등록된 페어링 테마 이름 전체 (어드민 드롭다운/자동완성용)."""
+    rows = db.query(FontPairing.theme).distinct().all()
+    return sorted({r[0] for r in rows if r[0]})
 
 
 @router.get("/fonts/{font_id}/pairings")
@@ -110,3 +122,74 @@ def font_audit(rebuild: int = 0, db: Session = Depends(get_db)) -> dict:
         "problems": problems,
         "all": FONT_AUDIT,
     }
+
+
+# ═══════════════════════════════════════════════════════
+# 어드민 CRUD — 페어링 관리
+# ═══════════════════════════════════════════════════════
+
+def _get_font_or_400(db: Session, font_id: int, label: str) -> Font:
+    font = db.query(Font).filter(Font.id == font_id).first()
+    if not font:
+        raise HTTPException(status_code=400, detail=f"존재하지 않는 {label} 폰트입니다")
+    return font
+
+
+@router.post("/pairings", status_code=status.HTTP_201_CREATED)
+def create_pairing(
+    payload: PairingCreate,
+    db: Session = Depends(get_db),
+    _admin=Depends(require_password_changed),
+) -> dict:
+    _get_font_or_400(db, payload.title_font_id, "제목")
+    _get_font_or_400(db, payload.body_font_id, "본문")
+    p = FontPairing(
+        theme=payload.theme,
+        title_font_id=payload.title_font_id,
+        body_font_id=payload.body_font_id,
+        sample_title=payload.sample_title,
+        sample_body=payload.sample_body,
+        description=payload.description,
+        title_weight=payload.title_weight,
+        body_weight=payload.body_weight,
+        sort_order=payload.sort_order,
+    )
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+    return _to_out(p)
+
+
+@router.patch("/pairings/{pairing_id}")
+def update_pairing(
+    pairing_id: int,
+    payload: PairingUpdate,
+    db: Session = Depends(get_db),
+    _admin=Depends(require_password_changed),
+) -> dict:
+    p = db.query(FontPairing).filter(FontPairing.id == pairing_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="페어링을 찾을 수 없습니다")
+    data = payload.model_dump(exclude_unset=True)
+    if "title_font_id" in data:
+        _get_font_or_400(db, data["title_font_id"], "제목")
+    if "body_font_id" in data:
+        _get_font_or_400(db, data["body_font_id"], "본문")
+    for k, v in data.items():
+        setattr(p, k, v)
+    db.commit()
+    db.refresh(p)
+    return _to_out(p)
+
+
+@router.delete("/pairings/{pairing_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_pairing(
+    pairing_id: int,
+    db: Session = Depends(get_db),
+    _admin=Depends(require_password_changed),
+):
+    p = db.query(FontPairing).filter(FontPairing.id == pairing_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="페어링을 찾을 수 없습니다")
+    db.delete(p)
+    db.commit()
