@@ -455,9 +455,27 @@
         <label>제작자 <span class="req">*</span></label>
         <input type="text" id="fmMaker" placeholder="예: 네이버, 또는 개인 제작자명">
       </div>
-      <div class="field">
-        <label>종수</label>
-        <input type="text" id="fmWeights" placeholder="1종" value="1종">
+      <div class="field" style="display:flex;gap:12px">
+        <div style="flex:1">
+          <label>종수</label>
+          <input type="text" id="fmWeights" placeholder="1종" value="1종">
+          <div class="field-hint">굵기를 등록/삭제하면 자동으로 갱신돼요. 직접 수정해도 되지만 다음 굵기 변경 시 덮어써질 수 있어요.</div>
+        </div>
+        <div style="width:180px">
+          <label>대표 굵기</label>
+          <select id="fmPrimaryWeight">
+            <option value="100">100 · Thin</option>
+            <option value="200">200 · ExtraLight</option>
+            <option value="300">300 · Light</option>
+            <option value="400" selected>400 · Regular</option>
+            <option value="500">500 · Medium</option>
+            <option value="600">600 · SemiBold</option>
+            <option value="700">700 · Bold</option>
+            <option value="800">800 · ExtraBold</option>
+            <option value="900">900 · Black</option>
+          </select>
+          <div class="field-hint">아래 업로드 파일의 실제 굵기</div>
+        </div>
       </div>
       <div class="field">
         <label>다운로드 URL</label>
@@ -528,7 +546,7 @@
       </div>
 
       <div class="field">
-        <label>폰트 파일 업로드 (미리보기용)</label>
+        <label>폰트 파일 업로드 (미리보기용, 대표 굵기)</label>
         <div class="drop-zone" id="fmDropZone" onclick="document.getElementById('fmFileInput').click()">
           <i class="ti ti-cloud-upload" aria-hidden="true"></i>
           <p>클릭하거나 파일을 끌어다 놓기</p>
@@ -538,6 +556,43 @@
         <div id="fmFilePreview"></div>
         <div class="field-hint">⚠ <strong>WOFF2 파일만</strong> 업로드할 수 있습니다. ttf/otf는 미리 woff2로 변환해서 올려주세요. 서버는 변환하지 않고 파일을 그대로 저장합니다.</div>
         <div class="field-hint" id="fmSizeWarning" style="display:none;color:var(--danger,#d33);font-weight:600">⚠ 파일이 큽니다 (1MB 초과). 사용자 페이지 로딩이 느려질 수 있으니 서브셋으로 용량을 줄이는 것을 권장합니다.</div>
+      </div>
+
+      <div class="field meta-section" id="fmExtraWeightsSection" style="display:none">
+        <div class="meta-header">
+          <label>
+            <i class="ti ti-align-box-bottom-center" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i>
+            추가 굵기 등록
+            <span class="meta-sub">— 대표 굵기 외에 상세페이지·디자인 모달에서 선택 가능한 굵기를 더 등록해요</span>
+          </label>
+        </div>
+        <div id="fmExtraWeightsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+          <div style="width:140px">
+            <div class="meta-label">굵기</div>
+            <select id="fmNewWeightValue">
+              <option value="100">100 · Thin</option>
+              <option value="200">200 · ExtraLight</option>
+              <option value="300">300 · Light</option>
+              <option value="400">400 · Regular</option>
+              <option value="500">500 · Medium</option>
+              <option value="600">600 · SemiBold</option>
+              <option value="700" selected>700 · Bold</option>
+              <option value="800">800 · ExtraBold</option>
+              <option value="900">900 · Black</option>
+            </select>
+          </div>
+          <div style="width:140px">
+            <div class="meta-label">라벨 (선택)</div>
+            <input type="text" id="fmNewWeightLabel" placeholder="예: Bold" style="width:100%;height:38px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 10px;font-size:13px;background:var(--bg-card);color:var(--text-primary);font-family:inherit">
+          </div>
+          <div style="flex:1;min-width:180px">
+            <div class="meta-label">WOFF2 파일</div>
+            <input type="file" id="fmNewWeightFile" accept=".woff2" style="width:100%;font-size:12px">
+          </div>
+          <button type="button" class="btn-secondary" onclick="addExtraWeight()"><i class="ti ti-plus" aria-hidden="true"></i> 추가</button>
+        </div>
+        <div class="field-hint" style="margin-top:8px">굵기 파일이 실제로 있어야 상세페이지/디자인 모달에 정확히 반영돼요. 같은 굵기를 다시 올리면 기존 파일을 교체합니다.</div>
       </div>
     </div>
     <div class="modal-foot">
@@ -1127,6 +1182,7 @@ function openFontModal(){
   document.getElementById('fmName').value = '';
   document.getElementById('fmMaker').value = '';
   document.getElementById('fmWeights').value = '1종';
+  document.getElementById('fmPrimaryWeight').value = '400';
   document.getElementById('fmUrl').value = '';
   document.getElementById('fmPreviewText').value = '';
   document.getElementById('fmFileInput').value = '';
@@ -1137,6 +1193,8 @@ function openFontModal(){
   renderMetaSection();
   renderFmFilePreview();
   document.getElementById('fmSizeWarning').style.display = 'none';
+  // 추가 굵기 등록은 폰트를 먼저 저장해야 가능 (font_id 필요) — 새 등록에서는 숨김
+  document.getElementById('fmExtraWeightsSection').style.display = 'none';
   document.getElementById('fontModal').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -1150,6 +1208,7 @@ function editFont(id){
   document.getElementById('fmName').value = f.name;
   document.getElementById('fmMaker').value = f.maker;
   document.getElementById('fmWeights').value = f.weights;
+  document.getElementById('fmPrimaryWeight').value = String(f.primaryWeight || 400);
   document.getElementById('fmUrl').value = f.url || '';
   document.getElementById('fmPreviewText').value = (f.meta && f.meta.preview_text) || '';
   document.getElementById('fmFileInput').value = '';
@@ -1164,12 +1223,90 @@ function editFont(id){
   renderMetaSection();
   renderFmFilePreview(f.hasFile ? '(업로드된 파일 있음 — 다시 올리면 교체됨)' : '');
   document.getElementById('fmSizeWarning').style.display = 'none';
+  // 기존 폰트는 추가 굵기 등록 섹션 노출
+  document.getElementById('fmExtraWeightsSection').style.display = 'block';
+  refreshExtraWeights(id);
   document.getElementById('fontModal').classList.add('open');
   document.body.style.overflow='hidden';
 }
 function closeFontModal(){
   document.getElementById('fontModal').classList.remove('open');
   document.body.style.overflow='';
+}
+
+/* ════════════════════════════════════════
+   추가 굵기 관리 (폰트 수정 모달 내)
+════════════════════════════════════════ */
+async function refreshExtraWeights(fontId){
+  const list = document.getElementById('fmExtraWeightsList');
+  list.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">불러오는 중...</div>';
+  try {
+    const weights = await FontWeightStore.list(fontId);
+    renderExtraWeightsList(fontId, weights);
+  } catch(e) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--danger)">굵기 목록을 불러오지 못했어요</div>';
+  }
+}
+
+function renderExtraWeightsList(fontId, weights){
+  const list = document.getElementById('fmExtraWeightsList');
+  if(!weights.length){
+    list.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">등록된 굵기가 없어요</div>';
+    return;
+  }
+  const sourceLabel = {primary:'대표', extra:'추가 등록', legacy:'일괄 업로드'};
+  list.innerHTML = weights.map(w => `
+    <div style="display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px">
+      <span class="pill">${w.weight}</span>
+      <span style="font-size:13px;font-weight:700;flex:1">${escapeHtml(w.label || String(w.weight))}</span>
+      <span style="font-size:11px;color:var(--text-muted)">${sourceLabel[w.source] || w.source}</span>
+      ${w.source === 'extra'
+        ? `<button class="btn-icon danger" onclick="deleteExtraWeight(${fontId}, ${w.weight})" aria-label="굵기 삭제" title="삭제">
+             <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+           </button>`
+        : `<span style="font-size:11px;color:var(--text-muted)">-</span>`}
+    </div>
+  `).join('');
+}
+
+async function addExtraWeight(){
+  if(!editingId){ showToast('폰트를 먼저 저장한 뒤 추가 굵기를 등록해주세요'); return; }
+  const weight = parseInt(document.getElementById('fmNewWeightValue').value, 10);
+  const label = document.getElementById('fmNewWeightLabel').value.trim();
+  const fileInput = document.getElementById('fmNewWeightFile');
+  const file = fileInput.files[0];
+  if(!file){ showToast('WOFF2 파일을 선택해주세요'); return; }
+  if(!/\.woff2$/i.test(file.name)){ showToast('WOFF2 파일만 업로드할 수 있어요'); return; }
+  if(file.size > 5*1024*1024){ showToast('5MB를 초과할 수 없어요'); return; }
+
+  try {
+    await FontWeightStore.add(editingId, weight, label, file);
+    document.getElementById('fmNewWeightLabel').value = '';
+    fileInput.value = '';
+    showToast(`${weight} 굵기를 등록했어요`);
+    await refreshExtraWeights(editingId);
+    // 종수 라벨이 서버에서 자동 갱신되므로 목록도 다시 불러와 반영
+    FONTS = await FontStore.getAll();
+    const f = FONTS.find(x=>x.id===editingId);
+    if(f) document.getElementById('fmWeights').value = f.weights;
+    renderFontTable();
+  } catch(e) {
+    showToast('굵기 등록 실패: ' + (e.message || '알 수 없는 오류'));
+  }
+}
+
+async function deleteExtraWeight(fontId, weight){
+  try {
+    await FontWeightStore.remove(fontId, weight);
+    showToast(`${weight} 굵기를 삭제했어요`);
+    await refreshExtraWeights(fontId);
+    FONTS = await FontStore.getAll();
+    const f = FONTS.find(x=>x.id===fontId);
+    if(f) document.getElementById('fmWeights').value = f.weights;
+    renderFontTable();
+  } catch(e) {
+    showToast('굵기 삭제 실패: ' + (e.message || '알 수 없는 오류'));
+  }
 }
 function renderFmTags(){
   const grid = document.getElementById('fmTagGrid');
@@ -1399,6 +1536,7 @@ async function saveFont(){
   const name = document.getElementById('fmName').value.trim();
   const maker = document.getElementById('fmMaker').value.trim();
   const weights = document.getElementById('fmWeights').value.trim() || '1종';
+  const primaryWeight = parseInt(document.getElementById('fmPrimaryWeight').value, 10) || 400;
   const url = document.getElementById('fmUrl').value.trim();
   const tags = [...fmSelectedTags];
 
@@ -1421,10 +1559,10 @@ async function saveFont(){
   let saved;
   try {
     if(editingId){
-      saved = await FontStore.update(editingId, {name,maker,weights,url,tags,meta,
+      saved = await FontStore.update(editingId, {name,maker,weights,url,tags,meta,primaryWeight,
         hasFile: pendingFile ? true : undefined});
     } else {
-      saved = await FontStore.add({name,maker,weights,url,stack,tags,meta, hasFile: !!pendingFile});
+      saved = await FontStore.add({name,maker,weights,url,stack,tags,meta,primaryWeight, hasFile: !!pendingFile});
     }
   } catch (e) {
     console.error('폰트 저장 실패:', e);
