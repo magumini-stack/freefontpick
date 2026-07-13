@@ -420,6 +420,7 @@
         <option value="all">전체 테마</option>
       </select>
       <button class="btn-primary" onclick="openPairingModal()"><i class="ti ti-plus" aria-hidden="true"></i> 새 조합 등록</button>
+      <button class="btn-secondary" onclick="openAutoGenModal()"><i class="ti ti-sparkles" aria-hidden="true"></i> 자동 생성</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -775,6 +776,41 @@
     <div class="modal-foot">
       <button class="btn-cancel" onclick="closePairingModal()">취소</button>
       <button class="btn-save" onclick="savePairing()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTO-GENERATE PAIRING MODAL -->
+<div class="modal-overlay" id="autoGenModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-head">
+      <h3>페어링 자동 생성</h3>
+      <button class="modal-close" onclick="closeAutoGenModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field" style="display:flex;gap:10px;align-items:flex-end">
+        <div style="flex:1">
+          <label>기준 폰트 <span class="req">*</span></label>
+          <select id="agFontSelect"></select>
+          <div class="field-hint">이 폰트의 무드·용도·업종·격식 메타데이터를 기준으로 전체 폰트 중 어울리는 상대를 찾아요.</div>
+        </div>
+        <button type="button" class="btn-primary" style="height:44px" onclick="runAutoGenerate()"><i class="ti ti-sparkles" aria-hidden="true"></i> 생성</button>
+      </div>
+      <div id="agResultsWrap" style="display:none">
+        <div class="field-hint" style="margin:2px 0 10px">체크한 조합만 저장돼요. 저장 전에 테마·문구·굵기는 등록 후 "조합 관리"에서 언제든 수정할 수 있어요.</div>
+        <div id="agResults" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+      <div id="agEmpty" class="empty" style="display:none">
+        <i class="ti ti-mood-empty" aria-hidden="true"></i>어울리는 조합을 찾지 못했어요. 이 폰트에 카테고리·메타데이터가 등록돼 있는지 확인해주세요.
+      </div>
+      <div id="agLoading" style="display:none;font-size:13px;color:var(--text-muted);padding:20px 0;text-align:center">생성 중...</div>
+    </div>
+    <div class="modal-foot" style="justify-content:space-between">
+      <span id="agSelectedCount" style="font-size:13px;color:var(--text-muted)"></span>
+      <div style="display:flex;gap:8px">
+        <button class="btn-cancel" onclick="closeAutoGenModal()">닫기</button>
+        <button class="btn-save" id="agSaveBtn" onclick="saveSelectedAutoPairings()" disabled>선택한 조합 저장</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2123,6 +2159,116 @@ function askDeletePairing(id){
   document.getElementById('confirmTitle').textContent = `'${p.theme}' 조합을 삭제할까요?`;
   document.getElementById('confirmDesc').textContent = `${p.title_font?.name || '?'} + ${p.body_font?.name || '?'} 조합이 상세페이지에서 사라집니다.`;
   document.getElementById('confirmModal').classList.add('open');
+}
+
+/* ════════════════════════════════════════
+   페어링 자동 생성 (메타/태그 기반 추천)
+════════════════════════════════════════ */
+let agResults = [];      // 마지막 생성 결과
+let agSelected = new Set();  // 선택된 결과 인덱스
+
+function openAutoGenModal(){
+  const sel = document.getElementById('agFontSelect');
+  sel.innerHTML = FONTS.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko'))
+    .map(f=>`<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
+  agResults = [];
+  agSelected = new Set();
+  document.getElementById('agResultsWrap').style.display = 'none';
+  document.getElementById('agEmpty').style.display = 'none';
+  document.getElementById('agLoading').style.display = 'none';
+  updateAgSelectedCount();
+  document.getElementById('autoGenModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAutoGenModal(){
+  document.getElementById('autoGenModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function runAutoGenerate(){
+  const fontId = parseInt(document.getElementById('agFontSelect').value, 10);
+  if(!fontId) return;
+  document.getElementById('agResultsWrap').style.display = 'none';
+  document.getElementById('agEmpty').style.display = 'none';
+  document.getElementById('agLoading').style.display = 'block';
+  try {
+    agResults = await PairingStore.autoGenerate(fontId, 6);
+  } catch(e) {
+    showToast('자동 생성 실패: ' + (e.message || '알 수 없는 오류'));
+    document.getElementById('agLoading').style.display = 'none';
+    return;
+  }
+  document.getElementById('agLoading').style.display = 'none';
+  agSelected = new Set();
+  if(!agResults.length){
+    document.getElementById('agEmpty').style.display = 'block';
+    updateAgSelectedCount();
+    return;
+  }
+  // 상위 3개는 기본 선택
+  agResults.slice(0, 3).forEach((_, i) => agSelected.add(i));
+  renderAutoGenResults();
+  document.getElementById('agResultsWrap').style.display = 'block';
+  updateAgSelectedCount();
+}
+
+function renderAutoGenResults(){
+  const wrap = document.getElementById('agResults');
+  wrap.innerHTML = agResults.map((r, i) => `
+    <label style="display:flex;gap:12px;align-items:flex-start;background:var(--bg-card);border:1.5px solid ${agSelected.has(i) ? 'var(--accent)' : 'var(--border)'};border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer">
+      <input type="checkbox" style="margin-top:3px" ${agSelected.has(i) ? 'checked' : ''} onchange="toggleAgSelection(${i})">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span class="pill">${escapeHtml(r.theme)}</span>
+          <span style="font-size:11px;color:var(--text-muted)">점수 ${r.score}</span>
+        </div>
+        <div style="font-size:13.5px;font-weight:700;margin-bottom:2px">${escapeHtml(r.title_font_name)}<span style="color:var(--text-muted);font-weight:400"> (제목 · ${r.title_weight})</span> + ${escapeHtml(r.body_font_name)}<span style="color:var(--text-muted);font-weight:400"> (본문 · ${r.body_weight})</span></div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:2px">"${escapeHtml(r.sample_title)}" · ${escapeHtml(r.sample_body)}</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.5">${escapeHtml(r.description)}</div>
+      </div>
+    </label>
+  `).join('');
+}
+
+function toggleAgSelection(i){
+  if(agSelected.has(i)) agSelected.delete(i);
+  else agSelected.add(i);
+  renderAutoGenResults();
+  updateAgSelectedCount();
+}
+
+function updateAgSelectedCount(){
+  document.getElementById('agSelectedCount').textContent =
+    agSelected.size > 0 ? `${agSelected.size}개 선택됨` : '';
+  document.getElementById('agSaveBtn').disabled = agSelected.size === 0;
+}
+
+async function saveSelectedAutoPairings(){
+  const items = [...agSelected].map(i => agResults[i]).filter(Boolean);
+  if(!items.length) return;
+  let ok = 0, fail = 0;
+  for(const r of items){
+    try {
+      await PairingStore.add({
+        theme: r.theme,
+        title_font_id: r.title_font_id,
+        body_font_id: r.body_font_id,
+        title_weight: r.title_weight,
+        body_weight: r.body_weight,
+        sample_title: r.sample_title,
+        sample_body: r.sample_body,
+        description: r.description,
+        sort_order: 0,
+      });
+      ok++;
+    } catch(e) {
+      fail++;
+    }
+  }
+  showToast(fail ? `${ok}개 저장, ${fail}개 실패` : `${ok}개 조합을 저장했어요`);
+  closeAutoGenModal();
+  await refreshPairings();
 }
 
 /* ════════════════════════════════════════
