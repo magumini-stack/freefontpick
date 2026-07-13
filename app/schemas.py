@@ -149,3 +149,32 @@ class SubmissionUpdate(BaseModel):
     """관리자 전용 — 상태/답변 수정"""
     status: Optional[str] = None
     admin_reply: Optional[str] = None
+
+
+# ─────────── FontPairing (페어링 어드민 CRUD) ───────────
+class PairingBase(BaseModel):
+    theme: str = Field(min_length=1, max_length=50)
+    title_font_id: int
+    body_font_id: int
+    sample_title: str = ""
+    sample_body: str = ""
+    description: str = ""
+    title_weight: int = 700
+    body_weight: int = 400
+    sort_order: int = 0
+
+
+class PairingCreate(PairingBase):
+    pass
+
+
+class PairingUpdate(BaseModel):
+    theme: Optional[str] = None
+    title_font_id: Optional[int] = None
+    body_font_id: Optional[int] = None
+    sample_title: Optional[str] = None
+    sample_body: Optional[str] = None
+    description: Optional[str] = None
+    title_weight: Optional[int] = None
+    body_weight: Optional[int] = None
+    sort_order: Optional[int] = None
