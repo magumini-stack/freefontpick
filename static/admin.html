@@ -311,6 +311,10 @@
       <div class="stat-icon"><i class="ti ti-bulb" aria-hidden="true"></i></div>
       <div><div class="stat-num" id="statSubmissionPending">0</div><div class="stat-label">답변 대기중인 질문</div></div>
     </div>
+    <div class="stat-card">
+      <div class="stat-icon"><i class="ti ti-layout-grid" aria-hidden="true"></i></div>
+      <div><div class="stat-num" id="statPairingCount">0</div><div class="stat-label">페어링 조합</div></div>
+    </div>
   </div>
 
   <!-- TABS -->
@@ -319,6 +323,7 @@
     <button class="tab-btn" onclick="switchTab('cats',this)">카테고리 관리</button>
     <button class="tab-btn" onclick="switchTab('notices',this)">공지사항 관리</button>
     <button class="tab-btn" onclick="switchTab('submissions',this)">폰트 찾아주세요</button>
+    <button class="tab-btn" onclick="switchTab('pairings',this)">페어링 관리</button>
   </div>
 
   <!-- FONTS TAB -->
@@ -403,6 +408,32 @@
       </table>
       <div id="submissionEmpty" class="empty" style="display:none">
         <i class="ti ti-search" aria-hidden="true"></i>등록된 질문이 없어요
+      </div>
+    </div>
+  </div>
+
+  <!-- PAIRINGS TAB (폰트 페어링 관리) -->
+  <div class="tab-panel" id="tab-pairings">
+    <div class="toolbar">
+      <input type="text" id="pairingSearch" placeholder="테마, 폰트명, 샘플 문구 검색" oninput="renderPairingTable()">
+      <select id="pairingThemeFilter" onchange="renderPairingTable()">
+        <option value="all">전체 테마</option>
+      </select>
+      <button class="btn-primary" onclick="openPairingModal()"><i class="ti ti-plus" aria-hidden="true"></i> 새 조합 등록</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:130px">테마</th>
+          <th>제목 폰트</th><th>본문 폰트</th>
+          <th style="width:110px">굵기(제목/본문)</th>
+          <th style="width:70px;text-align:center">순서</th>
+          <th style="text-align:right;width:100px">관리</th>
+        </tr></thead>
+        <tbody id="pairingTableBody"></tbody>
+      </table>
+      <div id="pairingEmpty" class="empty" style="display:none">
+        <i class="ti ti-layout-grid" aria-hidden="true"></i>등록된 조합이 없어요
       </div>
     </div>
   </div>
@@ -609,6 +640,85 @@
   </div>
 </div>
 
+<!-- PAIRING MODAL -->
+<div class="modal-overlay" id="pairingModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-head">
+      <h3 id="pairingModalTitle">새 조합 등록</h3>
+      <button class="modal-close" onclick="closePairingModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>테마 <span class="req">*</span></label>
+        <input type="text" id="pmTheme" list="pmThemeList" placeholder="예: 카드뉴스·SNS, 또는 새 테마 이름 입력">
+        <datalist id="pmThemeList"></datalist>
+        <div class="field-hint">기존 테마 목록에서 골라도 되고, 새 테마 이름을 직접 입력해도 됩니다.</div>
+      </div>
+      <div class="field" style="display:flex;gap:12px">
+        <div style="flex:1">
+          <label>제목 폰트 <span class="req">*</span></label>
+          <select id="pmTitleFont"></select>
+        </div>
+        <div style="flex:1">
+          <label>본문 폰트 <span class="req">*</span></label>
+          <select id="pmBodyFont"></select>
+        </div>
+      </div>
+      <div class="field" style="display:flex;gap:12px">
+        <div style="flex:1">
+          <label>제목 굵기</label>
+          <select id="pmTitleWeight">
+            <option value="100">100 · Thin</option>
+            <option value="200">200 · ExtraLight</option>
+            <option value="300">300 · Light</option>
+            <option value="400">400 · Regular</option>
+            <option value="500">500 · Medium</option>
+            <option value="600">600 · SemiBold</option>
+            <option value="700" selected>700 · Bold</option>
+            <option value="800">800 · ExtraBold</option>
+            <option value="900">900 · Black</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label>본문 굵기</label>
+          <select id="pmBodyWeight">
+            <option value="100">100 · Thin</option>
+            <option value="200">200 · ExtraLight</option>
+            <option value="300">300 · Light</option>
+            <option value="400" selected>400 · Regular</option>
+            <option value="500">500 · Medium</option>
+            <option value="600">600 · SemiBold</option>
+            <option value="700">700 · Bold</option>
+            <option value="800">800 · ExtraBold</option>
+            <option value="900">900 · Black</option>
+          </select>
+        </div>
+        <div style="width:110px">
+          <label>순서</label>
+          <input type="text" id="pmSortOrder" inputmode="numeric" placeholder="0" value="0">
+        </div>
+      </div>
+      <div class="field-hint" style="margin:-6px 0 14px">굵기는 해당 폰트에 실제 파일이 있는 굵기를 선택해야 화면에 그대로 반영돼요. 파일이 없으면 브라우저가 비슷하게 흉내만 냅니다.</div>
+      <div class="field">
+        <label>샘플 제목 문구</label>
+        <input type="text" id="pmSampleTitle" placeholder="예: 구독자 10만 돌파!" maxlength="100">
+      </div>
+      <div class="field">
+        <label>샘플 본문 문구</label>
+        <input type="text" id="pmSampleBody" placeholder="예: 지금 바로 확인해 보세요" maxlength="200">
+      </div>
+      <div class="field">
+        <label>설명</label>
+        <textarea id="pmDescription" rows="2" placeholder="이 조합에 대한 간단한 설명 (선택)" maxlength="300"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closePairingModal()">취소</button>
+      <button class="btn-save" onclick="savePairing()">저장</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- 공유 데이터 레이어 -->
@@ -780,6 +890,8 @@ let pendingFile = null;     // 업로드 대기 중인 파일
 let fmSelectedTags = new Set();
 let pendingDelete = null;   // {type:'font'|'category', id|name}
 let catEditingName = null;
+let PAIRINGS = [];
+let editingPairingId = null;  // 페어링 수정 중인 id
 
 /* ════════════════════════════════════════
    탭 전환
@@ -791,6 +903,7 @@ function switchTab(tab, btn){
   document.getElementById('tab-'+tab).classList.add('active');
   if(tab === 'notices') refreshNotices();
   if(tab === 'submissions') refreshSubmissions();
+  if(tab === 'pairings') refreshPairings();
 }
 
 /* ════════════════════════════════════════
@@ -815,6 +928,12 @@ async function refresh(){
     document.getElementById('statSubmissionPending').textContent = pendingCount;
   } catch(e) {
     console.error('제보 카운트 로딩 실패:', e);
+  }
+  try {
+    const pairings = await PairingStore.getAll();
+    document.getElementById('statPairingCount').textContent = pairings.length;
+  } catch(e) {
+    console.error('페어링 카운트 로딩 실패:', e);
   }
 }
 
@@ -1387,6 +1506,11 @@ async function doConfirm(){
     closeSubmissionModal();
     await refreshSubmissions();
     await refresh();
+  } else if(pendingDelete.type === 'pairing'){
+    await PairingStore.remove(pendingDelete.id);
+    showToast('페어링 조합을 삭제했어요');
+    closeConfirm();
+    await refreshPairings();
   }
 }
 
@@ -1679,6 +1803,180 @@ function askDeleteNotice(id){
   pendingDelete = {type:'notice', id};
   document.getElementById('confirmTitle').textContent = `'${n.title}' 공지사항을 삭제할까요?`;
   document.getElementById('confirmDesc').textContent = '삭제하면 메인 페이지 게시판에서도 사라집니다.';
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+/* ════════════════════════════════════════
+   페어링 관리
+════════════════════════════════════════ */
+async function refreshPairings(){
+  PAIRINGS = await PairingStore.getAll();
+  document.getElementById('statPairingCount').textContent = PAIRINGS.length;
+  await populatePairingThemeFilter();
+  renderPairingTable();
+}
+
+async function populatePairingThemeFilter(){
+  let themes = [];
+  try { themes = await PairingStore.getThemes(); }
+  catch(e){ themes = [...new Set(PAIRINGS.map(p=>p.theme))].sort(); }
+  const sel = document.getElementById('pairingThemeFilter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="all">전체 테마</option>' +
+    themes.map(t=>`<option value="${escapeHtml(t)}"${cur===t?' selected':''}>${escapeHtml(t)}</option>`).join('');
+}
+
+function renderPairingTable(){
+  const q = (document.getElementById('pairingSearch').value||'').trim().toLowerCase();
+  const theme = document.getElementById('pairingThemeFilter').value;
+  let list = [...PAIRINGS];
+  if(theme !== 'all') list = list.filter(p=>p.theme === theme);
+  if(q){
+    list = list.filter(p =>
+      p.theme.toLowerCase().includes(q) ||
+      (p.title_font && p.title_font.name.toLowerCase().includes(q)) ||
+      (p.body_font && p.body_font.name.toLowerCase().includes(q)) ||
+      (p.sample_title||'').toLowerCase().includes(q) ||
+      (p.sample_body||'').toLowerCase().includes(q)
+    );
+  }
+  list.sort((a,b)=> (a.sort_order - b.sort_order) || (a.id - b.id));
+
+  const tbody = document.getElementById('pairingTableBody');
+  const empty = document.getElementById('pairingEmpty');
+  if(!list.length){
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = list.map(p => `
+    <tr>
+      <td><span class="pill">${escapeHtml(p.theme)}</span></td>
+      <td><div class="cell-name">${escapeHtml(p.title_font ? p.title_font.name : '?')}</div></td>
+      <td><div class="cell-name">${escapeHtml(p.body_font ? p.body_font.name : '?')}</div></td>
+      <td style="font-size:12px;color:var(--text-secondary)">${p.title_weight} / ${p.body_weight}</td>
+      <td style="text-align:center;font-size:12px;color:var(--text-muted)">${p.sort_order}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn-icon" onclick="editPairing(${p.id})" aria-label="수정">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn-icon danger" onclick="askDeletePairing(${p.id})" aria-label="삭제">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+/* 제목/본문 폰트 select 옵션 채우기 — FONTS 배열 기준 */
+function populatePairingFontSelects(){
+  const opts = FONTS.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko'))
+    .map(f=>`<option value="${f.id}">${escapeHtml(f.name)}${f.hasFile?'':' (파일 없음)'}</option>`).join('');
+  document.getElementById('pmTitleFont').innerHTML = opts;
+  document.getElementById('pmBodyFont').innerHTML = opts;
+}
+
+async function openPairingModal(){
+  editingPairingId = null;
+  populatePairingFontSelects();
+  document.getElementById('pairingModalTitle').textContent = '새 조합 등록';
+  document.getElementById('pmTheme').value = '';
+  document.getElementById('pmTitleFont').selectedIndex = 0;
+  document.getElementById('pmBodyFont').selectedIndex = 0;
+  document.getElementById('pmTitleWeight').value = '700';
+  document.getElementById('pmBodyWeight').value = '400';
+  document.getElementById('pmSortOrder').value = '0';
+  document.getElementById('pmSampleTitle').value = '';
+  document.getElementById('pmSampleBody').value = '';
+  document.getElementById('pmDescription').value = '';
+  await populatePmThemeList();
+  document.getElementById('pairingModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function editPairing(id){
+  const p = PAIRINGS.find(x=>x.id===id);
+  if(!p) return;
+  editingPairingId = id;
+  populatePairingFontSelects();
+  document.getElementById('pairingModalTitle').textContent = '조합 수정';
+  document.getElementById('pmTheme').value = p.theme;
+  document.getElementById('pmTitleFont').value = p.title_font ? String(p.title_font.id) : '';
+  document.getElementById('pmBodyFont').value = p.body_font ? String(p.body_font.id) : '';
+  document.getElementById('pmTitleWeight').value = String(p.title_weight);
+  document.getElementById('pmBodyWeight').value = String(p.body_weight);
+  document.getElementById('pmSortOrder').value = String(p.sort_order);
+  document.getElementById('pmSampleTitle').value = p.sample_title || '';
+  document.getElementById('pmSampleBody').value = p.sample_body || '';
+  document.getElementById('pmDescription').value = p.description || '';
+  populatePmThemeList();
+  document.getElementById('pairingModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+async function populatePmThemeList(){
+  let themes = [];
+  try { themes = await PairingStore.getThemes(); }
+  catch(e){ themes = [...new Set(PAIRINGS.map(p=>p.theme))].sort(); }
+  document.getElementById('pmThemeList').innerHTML =
+    themes.map(t=>`<option value="${escapeHtml(t)}"></option>`).join('');
+}
+
+function closePairingModal(){
+  document.getElementById('pairingModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function savePairing(){
+  const theme = document.getElementById('pmTheme').value.trim();
+  const titleFontId = parseInt(document.getElementById('pmTitleFont').value, 10);
+  const bodyFontId = parseInt(document.getElementById('pmBodyFont').value, 10);
+  const titleWeight = parseInt(document.getElementById('pmTitleWeight').value, 10);
+  const bodyWeight = parseInt(document.getElementById('pmBodyWeight').value, 10);
+  const sortOrder = parseInt(document.getElementById('pmSortOrder').value, 10) || 0;
+  const sampleTitle = document.getElementById('pmSampleTitle').value.trim();
+  const sampleBody = document.getElementById('pmSampleBody').value.trim();
+  const description = document.getElementById('pmDescription').value.trim();
+
+  if(!theme){ showToast('테마를 입력해주세요'); return; }
+  if(!titleFontId || !bodyFontId){ showToast('제목/본문 폰트를 선택해주세요'); return; }
+
+  const payload = {
+    theme,
+    title_font_id: titleFontId,
+    body_font_id: bodyFontId,
+    title_weight: titleWeight,
+    body_weight: bodyWeight,
+    sort_order: sortOrder,
+    sample_title: sampleTitle,
+    sample_body: sampleBody,
+    description,
+  };
+
+  try {
+    if(editingPairingId){
+      await PairingStore.update(editingPairingId, payload);
+      showToast('조합을 수정했어요');
+    } else {
+      await PairingStore.add(payload);
+      showToast('조합을 등록했어요');
+    }
+    closePairingModal();
+    await refreshPairings();
+  } catch(e) {
+    showToast(e.message || '저장에 실패했어요');
+  }
+}
+
+function askDeletePairing(id){
+  const p = PAIRINGS.find(x=>x.id===id);
+  if(!p) return;
+  pendingDelete = {type:'pairing', id};
+  document.getElementById('confirmTitle').textContent = `'${p.theme}' 조합을 삭제할까요?`;
+  document.getElementById('confirmDesc').textContent = `${p.title_font?.name || '?'} + ${p.body_font?.name || '?'} 조합이 상세페이지에서 사라집니다.`;
   document.getElementById('confirmModal').classList.add('open');
 }
 
