@@ -29,6 +29,7 @@ def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
         url=font.url or "",
         stack=font.stack or "'Nanum Gothic',sans-serif",
         is_english=bool(font.is_english),
+        primary_weight=int(font.primary_weight or 400),
         has_file=bool(font.has_file),
         sort_order=font.sort_order,
         tags=[t.name for t in font.tags],
@@ -90,6 +91,7 @@ def create_font(
         url=payload.url or "",
         stack=payload.stack,
         is_english=payload.is_english,
+        primary_weight=payload.primary_weight or 400,
         meta=payload.meta or {},
         sort_order=max_order + 10,
     )
