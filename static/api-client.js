@@ -52,6 +52,7 @@ const FontStore = {
       stack: f.stack,
       tags: f.tags || [],
       isEnglish: f.is_english,
+      primaryWeight: f.primary_weight || 400,
       hasFile: f.has_file,
       hasPairing: !!f.has_pairing,
       sort_order: f.sort_order,
@@ -68,6 +69,7 @@ const FontStore = {
       url: payload.url || '',
       stack: payload.stack || "'Nanum Gothic',sans-serif",
       is_english: !!payload.isEnglish,
+      primary_weight: payload.primaryWeight || 400,
       tags: payload.tags || [],
       meta: payload.meta || {},
     };
@@ -83,6 +85,7 @@ const FontStore = {
     if ('url' in payload) body.url = payload.url;
     if ('stack' in payload) body.stack = payload.stack;
     if ('isEnglish' in payload) body.is_english = !!payload.isEnglish;
+    if ('primaryWeight' in payload) body.primary_weight = payload.primaryWeight;
     if ('tags' in payload) body.tags = payload.tags;
     if ('meta' in payload) body.meta = payload.meta;
     if ('sort_order' in payload) body.sort_order = payload.sort_order;
@@ -138,6 +141,7 @@ function _fromServer(f) {
     stack: f.stack,
     tags: f.tags || [],
     isEnglish: f.is_english,
+    primaryWeight: f.primary_weight || 400,
     hasFile: f.has_file,
     hasPairing: !!f.has_pairing,
     sort_order: f.sort_order,
@@ -286,6 +290,29 @@ const PairingStore = {
   },
   async remove(id) {
     await apiFetch(`/pairings/${id}`, {method: 'DELETE'});
+  },
+};
+
+/* ════════════════════════════════════════
+   FontWeightStore — 폰트별 추가 굵기 등록 (어드민)
+   대표 굵기(primaryWeight)는 FontStore.add/update의 primaryWeight로 관리하고,
+   여기서는 대표 파일과 별도인 "추가 굵기" 파일들만 다룬다.
+════════════════════════════════════════ */
+const FontWeightStore = {
+  /** 해당 폰트에 등록된 전체 굵기 목록 (대표 굵기 + 추가 굵기 + 레거시 매니페스트 병합 결과) */
+  async list(fontId) {
+    return await apiFetch(`/fonts/${fontId}/weights`);
+  },
+  /** weight: 100~900, label: 문자열(비우면 서버가 자동 라벨), file: woff2 File */
+  async add(fontId, weight, label, file) {
+    const fd = new FormData();
+    fd.append('weight', String(weight));
+    fd.append('label', label || '');
+    fd.append('file', file);
+    return await apiFetch(`/fonts/${fontId}/weights`, {method: 'POST', body: fd});
+  },
+  async remove(fontId, weight) {
+    await apiFetch(`/fonts/${fontId}/weights/${weight}`, {method: 'DELETE'});
   },
 };
 
