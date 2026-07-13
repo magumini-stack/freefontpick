@@ -199,30 +199,45 @@ def delete_pairing(
 # ═══════════════════════════════════════════════════════
 # 자동 페어링 생성 — 폰트 메타(무드/용도/업종/성격/굵기감/격식/문장길이)
 # + 카테고리 태그를 점수화해서 어울리는 상대 폰트를 찾아 3개 이상 추천한다.
+#
+# 테마·샘플 문구는 하드코딩하지 않고, 이미 DB에 등록된 페어링들에서
+# 실제 사용 중인 (테마 → 샘플 문구 목록)을 수집해서 후보마다 다르게 배정한다.
+# 그래야 19개 테마와 그 안의 다양한 문구가 골고루 노출된다.
 # ═══════════════════════════════════════════════════════
 
 _TITLE_USAGE = {"제목", "캐치프레이즈", "로고", "썸네일", "포스터"}
 _BODY_USAGE = {"본문", "정보전달", "출판", "UI"}
 
-_THEME_LABELS = {
-    "썸네일": "유튜브 썸네일", "제목": "포스터·배너", "포스터": "포스터·배너",
-    "캐치프레이즈": "캐치프레이즈", "로고": "로고·BI", "본문": "본문·장문 콘텐츠",
-    "정보전달": "본문·장문 콘텐츠", "출판": "출판·에디토리얼", "UI": "UI/UX",
-    "SNS카드": "SNS 카드뉴스", "영상자막": "영상 자막", "패키지": "패키지 디자인",
+# 폰트 메타의 usage/mood를 실제 테마(문자열)로 잇는 힌트.
+# 값은 "테마 이름에 들어갈 법한 키워드" — DB 테마명과 부분일치로 매칭한다.
+_USAGE_THEME_HINTS = {
+    "썸네일": ["썸네일"],
+    "제목": ["포스터", "슬로건", "제목", "배너"],
+    "포스터": ["포스터", "안내문", "배너"],
+    "캐치프레이즈": ["슬로건", "브랜딩", "로고"],
+    "로고": ["로고", "명함", "브랜딩", "브랜드"],
+    "본문": ["본문", "블로그", "매거진", "안내 본문"],
+    "정보전달": ["카드뉴스", "안내", "관공서", "포스터"],
+    "출판": ["매거진", "블로그", "본문"],
+    "UI": ["미니멀", "본문"],
+    "SNS카드": ["카드뉴스", "SNS", "릴스", "숏폼"],
+    "영상자막": ["자막", "브이로그", "릴스", "숏폼"],
+    "패키지": ["브랜딩", "감성"],
 }
 
-_TEMPLATES = {
-    "유튜브 썸네일": ("한 달 만에 확 달라졌어요", "전후 비교 영상 지금 공개합니다"),
-    "포스터·배너": ("가을 신상 컬렉션", "지금 만나보세요"),
-    "캐치프레이즈": ("당신의 이야기를 담다", "브랜드의 첫인상을 결정하는 한 줄"),
-    "로고·BI": ("브랜드 이름", "슬로건이 들어갈 자리입니다"),
-    "본문·장문 콘텐츠": ("읽기 편한 본문용 조합", "긴 글도 편안하게 읽히는 서체 조합이에요"),
-    "출판·에디토리얼": ("이야기의 시작", "한 페이지 한 페이지 정성을 담았습니다"),
-    "UI/UX": ("간편하게 시작하세요", "가입부터 결제까지 3분이면 충분해요"),
-    "SNS 카드뉴스": ("오늘의 꿀팁 공유", "저장하고 나중에 다시 확인하세요"),
-    "영상 자막": ("자막이 잘 보이나요?", "가독성 좋은 자막용 조합입니다"),
-    "패키지 디자인": ("정성껏 만들었습니다", "패키지에도 어울리는 조합이에요"),
-    "추천 조합": ("어울리는 조합을 찾았어요", "제목과 본문에 함께 써보세요"),
+# 무드 → 테마 키워드 (usage로 못 잡을 때 보조)
+_MOOD_THEME_HINTS = {
+    "감성적": ["감성", "캘리", "손글씨", "웨딩"],
+    "고급스러운": ["웨딩", "브랜딩", "미니멀"],
+    "부드러운": ["캘리", "감성", "키즈"],
+    "친근한": ["브이로그", "키즈", "반려동물"],
+    "장난스러운": ["키즈", "반려동물", "릴스"],
+    "임팩트": ["썸네일", "슬로건", "이벤트", "프로모션"],
+    "강인한": ["썸네일", "슬로건", "이벤트"],
+    "신뢰감": ["관공서", "시니어", "안내"],
+    "깔끔한": ["미니멀", "본문", "카드뉴스"],
+    "현대적": ["미니멀", "본문"],
+    "독특한": ["포인트", "손글씨"],
 }
 
 
@@ -269,14 +284,50 @@ def _cohesion(meta_a: dict, meta_b: dict) -> float:
     return score
 
 
-def _pick_theme(meta_a: dict, meta_b: dict) -> str:
-    usage_a = meta_a.get("usage") or []
-    usage_b = meta_b.get("usage") or []
-    overlap = [u for u in usage_a if u in usage_b]
-    for u in overlap + usage_a + usage_b:
-        if u in _THEME_LABELS:
-            return _THEME_LABELS[u]
-    return "추천 조합"
+def _collect_theme_samples(db: Session) -> dict:
+    """DB의 기존 페어링에서 (테마 → [(제목문구, 본문문구), ...]) 수집.
+
+    자동 생성 후보에 실제로 쓰인 다양한 문구를 배정하기 위한 소스.
+    비어있으면 최소한의 기본값 하나를 반환한다.
+    """
+    pool: dict = {}
+    rows = db.query(FontPairing).all()
+    for p in rows:
+        theme = (p.theme or "").strip()
+        if not theme:
+            continue
+        st = (p.sample_title or "").strip()
+        sb = (p.sample_body or "").strip()
+        if not st and not sb:
+            continue
+        pool.setdefault(theme, [])
+        if (st, sb) not in pool[theme]:
+            pool[theme].append((st, sb))
+    if not pool:
+        pool["추천 조합"] = [("어울리는 조합을 찾았어요", "제목과 본문에 함께 써보세요")]
+    return pool
+
+
+def _theme_candidates_for(meta_a: dict, meta_b: dict, available_themes: list) -> list:
+    """두 폰트의 usage/mood를 근거로, 실제 등록된 테마 중 어울리는 것들을
+    우선순위 순으로 반환한다. 하나도 못 맞추면 전체 테마를 반환(폴백)."""
+    hints = []
+    for u in (meta_a.get("usage") or []) + (meta_b.get("usage") or []):
+        hints += _USAGE_THEME_HINTS.get(u, [])
+    for mood in (meta_a.get("mood") or []) + (meta_b.get("mood") or []):
+        hints += _MOOD_THEME_HINTS.get(mood, [])
+
+    matched, seen = [], set()
+    for kw in hints:
+        for theme in available_themes:
+            if kw in theme and theme not in seen:
+                matched.append(theme)
+                seen.add(theme)
+    # 매칭된 것 뒤에 나머지 테마도 폴백으로 이어붙임
+    for theme in available_themes:
+        if theme not in seen:
+            matched.append(theme)
+    return matched
 
 
 def _pick_weight(font: Font, target: int) -> int:
@@ -288,23 +339,25 @@ def _pick_weight(font: Font, target: int) -> int:
     return min(weights, key=lambda w: abs(w - target))
 
 
-def _describe(title_font: Font, body_font: Font) -> str:
+def _describe(title_font: Font, body_font: Font, theme: str) -> str:
     t_summary = (title_font.meta or {}).get("summary") or f"{title_font.name}"
     return (
-        f"{t_summary}는 제목용으로 적합합니다. 여기에 {body_font.name}의 본문용 서체를 "
-        f"페어링하면 자연스럽게 읽히는 조합이 됩니다."
+        f"{theme}에 어울리는 조합이에요. {t_summary}가 제목을 잡고, "
+        f"{body_font.name}가 본문을 안정적으로 받쳐줍니다."
     )
 
 
 @router.get("/pairings/auto-generate")
 def auto_generate_pairings(
     font_id: int,
-    top_n: int = 5,
+    top_n: int = 6,
     db: Session = Depends(get_db),
 ) -> List[dict]:
     """anchor 폰트(font_id)를 기준으로, 전체 폰트 중 메타/태그 궁합이 좋은 상대를 찾아
     제목+본문 조합 후보를 점수순으로 반환한다 (저장은 하지 않음 — 미리보기 전용).
 
+    테마와 샘플 문구는 DB에 이미 등록된 페어링들에서 수집한 풀에서 뽑아,
+    후보마다 서로 다른 테마·문구가 배정되도록 한다(중복 최소화).
     최소 3개 이상을 목표로 하되, 후보 폰트가 3개 미만이면 있는 만큼만 반환한다.
     """
     anchor = db.query(Font).filter(Font.id == font_id).first()
@@ -314,16 +367,15 @@ def auto_generate_pairings(
     candidates = db.query(Font).filter(Font.id != font_id).all()
     anchor_meta = anchor.meta or {}
 
+    theme_pool = _collect_theme_samples(db)
+    available_themes = list(theme_pool.keys())
+
     scored = []
     for other in candidates:
         other_meta = other.meta or {}
         cohesion = _cohesion(anchor_meta, other_meta)
-
-        # anchor를 제목으로, other를 본문으로
         score_a_title = _title_fit(anchor_meta) + _body_fit(other_meta) + cohesion
         scored.append((score_a_title, anchor, other))
-
-        # anchor를 본문으로, other를 제목으로
         score_a_body = _title_fit(other_meta) + _body_fit(anchor_meta) + cohesion
         scored.append((score_a_body, other, anchor))
 
@@ -331,14 +383,36 @@ def auto_generate_pairings(
 
     results = []
     used_partners = set()
+    used_themes = set()      # 이미 배정한 테마 (다양성 확보)
+    used_samples = set()     # 이미 배정한 (제목,본문) 문구
+    theme_sample_idx = {}    # 테마별로 다음에 꺼낼 문구 인덱스
+
     for score, title_font, body_font in scored:
         partner = body_font.id if title_font.id == anchor.id else title_font.id
         if partner in used_partners:
             continue
-        used_partners.add(partner)
 
-        theme = _pick_theme(title_font.meta or {}, body_font.meta or {})
-        sample_title, sample_body = _TEMPLATES.get(theme, _TEMPLATES["추천 조합"])
+        theme_order = _theme_candidates_for(
+            title_font.meta or {}, body_font.meta or {}, available_themes,
+        )
+        # 아직 안 쓴 테마를 우선 배정 (다양성), 다 썼으면 순서대로
+        theme = next((t for t in theme_order if t not in used_themes), theme_order[0] if theme_order else "추천 조합")
+
+        samples = theme_pool.get(theme) or [("어울리는 조합을 찾았어요", "제목과 본문에 함께 써보세요")]
+        idx = theme_sample_idx.get(theme, 0)
+        sample_title, sample_body = samples[idx % len(samples)]
+        # 같은 문구가 이미 쓰였으면 다음 문구로 회피
+        tries = 0
+        while (sample_title, sample_body) in used_samples and tries < len(samples):
+            idx += 1
+            sample_title, sample_body = samples[idx % len(samples)]
+            tries += 1
+        theme_sample_idx[theme] = idx + 1
+
+        used_partners.add(partner)
+        used_themes.add(theme)
+        used_samples.add((sample_title, sample_body))
+
         results.append({
             "theme": theme,
             "title_font_id": title_font.id,
@@ -349,7 +423,7 @@ def auto_generate_pairings(
             "body_weight": _pick_weight(body_font, 400),
             "sample_title": sample_title,
             "sample_body": sample_body,
-            "description": _describe(title_font, body_font),
+            "description": _describe(title_font, body_font, theme),
             "score": round(score, 1),
         })
         if len(results) >= top_n:
