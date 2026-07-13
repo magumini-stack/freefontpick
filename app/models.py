@@ -29,6 +29,9 @@ class Font(Base):
     stack = Column(String(200), default="'Nanum Gothic',sans-serif")
     is_english = Column(Boolean, default=False)
     has_file = Column(Boolean, default=False)
+    # 대표 굵기 — 메인 페이지/갤러리 카드에 노출되는 기본 업로드 파일(has_file)의 실제 굵기값.
+    # 어드민에서 폰트 등록 시 지정. 100~900 (Thin~Black), 기본 400=Regular.
+    primary_weight = Column(Integer, nullable=False, default=400, server_default="400")
     sort_order = Column(Integer, nullable=False, default=0, index=True)
     # 추천 메타데이터 8개 차원 (JSON)
     meta = Column(JSON, default=dict)
@@ -39,10 +42,42 @@ class Font(Base):
 
     # 관계
     tags = relationship("Tag", secondary="font_tags", back_populates="fonts", lazy="joined")
+    extra_weights = relationship(
+        "FontWeight", back_populates="font",
+        cascade="all, delete-orphan", lazy="joined",
+        order_by="FontWeight.weight",
+    )
 
     __table_args__ = (
         Index("idx_fonts_sort", "sort_order"),
         Index("idx_fonts_likes", "like_count"),
+    )
+
+
+class FontWeight(Base):
+    """폰트별 추가 굵기 파일 (어드민에서 개별 업로드).
+
+    - 대표 굵기(fonts.primary_weight)와 별개로, 폰트 하나에 여러 굵기를
+      추가로 등록할 수 있다. 각 굵기는 자체 woff2 파일을 가진다.
+    - 실제 파일은 files.py의 weight_file_path()가 정하는 경로
+      (/app/user_data/fonts/font-{id:03d}-w{weight}.woff2)에 저장되고,
+      이 테이블은 메타데이터(굵기값·라벨)만 관리한다.
+    - 상세페이지 굵기별 보기 / 디자인 모달 굵기 박스는 모두
+      GET /api/fonts/{id}/weights 하나를 통해 이 테이블 + 기존 매니페스트
+      기반 굵기를 합쳐서 받는다.
+    """
+    __tablename__ = "font_weights"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    font_id = Column(Integer, ForeignKey("fonts.id", ondelete="CASCADE"), nullable=False)
+    weight = Column(Integer, nullable=False)
+    label = Column(String(30), nullable=False, default="")
+    created_at = Column(DateTime, server_default=func.now())
+
+    font = relationship("Font", back_populates="extra_weights")
+
+    __table_args__ = (
+        UniqueConstraint("font_id", "weight", name="uq_font_weight"),
+        Index("idx_font_weights_font", "font_id"),
     )
 
 
