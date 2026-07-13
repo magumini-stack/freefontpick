@@ -8,17 +8,28 @@
 
 업로드 시 폰트의 stack 앞에 FFP-{id} family를 자동으로 추가해서
 프론트엔드 미리보기에 즉시 적용되도록 한다.
+
+⚠️ 2026-07 추가: 어드민 굵기별 개별 등록 (FontWeight 테이블).
+  - 기존에는 굵기 세트를 매니페스트(manifest.json) 일괄 업로드로만 관리했음
+    (GitHub Desktop으로 zip push → 이름 매칭). 이번 개정으로 어드민 화면에서
+    폰트 하나씩 "대표 굵기" 지정 + "추가 굵기" 파일 업로드가 가능해짐.
+  - GET /api/fonts/{id}/weights 는 세 소스를 우선순위대로 병합해서 반환한다:
+    1) DB FontWeight (어드민 개별 업로드) — 가장 신뢰도 높음
+    2) 매니페스트 기반 WEIGHT_RESOLUTION (기존 대량 업로드 시스템)
+    3) 대표 파일(font.has_file) 자체를 font.primary_weight로 노출
+    같은 굵기값이 여러 소스에 있으면 우선순위가 높은 쪽이 이긴다.
 """
 import os
 import traceback
 from pathlib import Path
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models import Font
+from ..models import Font, FontWeight
 from ..auth import require_password_changed
-from ..schemas import FileUploadResponse
+from ..schemas import FileUploadResponse, FontWeightOut
 
 router = APIRouter(prefix="/api/fonts", tags=["files"])
 
@@ -30,6 +41,12 @@ FONTS_DIR.mkdir(parents=True, exist_ok=True)
 BUNDLED_FONTS_DIR = Path(__file__).resolve().parent.parent.parent / "static" / "fonts"
 # 저장소 루트 /fonts (시드 번들의 실제 위치일 수 있음)
 ROOT_FONTS_DIR = Path(__file__).resolve().parent.parent.parent / "fonts"
+
+# 굵기 라벨 기본값 (어드민에서 라벨을 비워두면 이걸로 채움)
+WEIGHT_LABELS = {
+    100: "Thin", 200: "ExtraLight", 300: "Light", 400: "Regular",
+    500: "Medium", 600: "SemiBold", 700: "Bold", 800: "ExtraBold", 900: "Black",
+}
 
 # ─── 폰트 파일 해석 (이름 기반) ───────────────────────────
 import json as _json2
@@ -225,6 +242,11 @@ def bundled_font_path(font_id: int) -> Path:
     return BUNDLED_FONTS_DIR / f"font-{font_id:03d}.woff2"
 
 
+def weight_file_path(font_id: int, weight: int) -> Path:
+    """어드민이 개별 등록한 굵기 파일 경로."""
+    return FONTS_DIR / f"font-{font_id:03d}-w{weight}.woff2"
+
+
 def _ffp_family(font_id: int) -> str:
     return f"FFP-{font_id:03d}"
 
@@ -237,6 +259,26 @@ def _ensure_stack_has_family(stack: str, font_id: int) -> str:
     if family in stack:
         return stack
     return f"{quoted},{stack}"
+
+
+def _validate_woff2(content: bytes):
+    """woff2 업로드 공통 검증. 실패 시 HTTPException 발생."""
+    if not content:
+        raise HTTPException(status_code=400, detail="파일이 비어 있어요")
+    if len(content) > MAX_UPLOAD_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"파일이 너무 큽니다 (최대 {MAX_UPLOAD_SIZE // 1024 // 1024}MB). "
+                   f"웹용 woff2는 보통 1~2MB 이내가 적정합니다. "
+                   f"서브셋(글립 수 축소)으로 용량을 줄여서 올려주세요.",
+        )
+    if content[:4] != WOFF2_MAGIC:
+        raise HTTPException(
+            status_code=400,
+            detail="올바른 WOFF2 파일이 아닙니다. "
+                   "확장자만 .woff2로 바꾼 파일은 사용할 수 없어요. "
+                   "실제 woff2 형식으로 변환한 파일을 올려주세요.",
+        )
 
 
 @router.post("/{font_id}/file", response_model=FileUploadResponse)
@@ -265,24 +307,7 @@ async def upload_font_file(
         traceback.print_exc()
         raise HTTPException(status_code=400, detail=f"파일을 읽을 수 없어요: {e}")
 
-    if not content:
-        raise HTTPException(status_code=400, detail="파일이 비어 있어요")
-
-    if len(content) > MAX_UPLOAD_SIZE:
-        raise HTTPException(
-            status_code=413,
-            detail=f"파일이 너무 큽니다 (최대 {MAX_UPLOAD_SIZE // 1024 // 1024}MB). "
-                   f"웹용 woff2는 보통 1~2MB 이내가 적정합니다. "
-                   f"서브셋(글립 수 축소)으로 용량을 줄여서 올려주세요.",
-        )
-
-    if content[:4] != WOFF2_MAGIC:
-        raise HTTPException(
-            status_code=400,
-            detail="올바른 WOFF2 파일이 아닙니다. "
-                   "확장자만 .woff2로 바꾼 파일은 사용할 수 없어요. "
-                   "실제 woff2 형식으로 변환한 파일을 올려주세요.",
-        )
+    _validate_woff2(content)
 
     out_path = font_path(font_id)
     try:
@@ -320,21 +345,161 @@ async def upload_font_file(
     )
 
 
-@router.get("/{font_id}/weights")
-def font_weights(font_id: int):
-    return [
-        {"weight": w["weight"], "label": w["label"]}
-        for w in WEIGHT_RESOLUTION.get(font_id, [])
-    ]
+def _merged_weights(font: Font) -> list:
+    """DB FontWeight + 매니페스트 WEIGHT_RESOLUTION + 대표 파일을 우선순위대로 병합.
+
+    우선순위: DB(FontWeight, 어드민 개별 등록) > 매니페스트(대량 업로드) > 대표 파일 1건.
+    같은 weight 값은 한 번만 노출한다.
+    """
+    out: dict = {}
+
+    # 1순위: 어드민이 개별 등록한 굵기 (DB)
+    for fw in sorted(font.extra_weights, key=lambda w: w.weight):
+        p = weight_file_path(font.id, fw.weight)
+        if p.exists():
+            out[fw.weight] = {
+                "weight": fw.weight,
+                "label": fw.label or WEIGHT_LABELS.get(fw.weight, str(fw.weight)),
+                "source": "extra",
+                "has_file": True,
+                "path": str(p),
+            }
+
+    # 2순위: 기존 매니페스트 기반 대량 업로드 시스템
+    for w in WEIGHT_RESOLUTION.get(font.id, []):
+        if w["weight"] not in out:
+            out[w["weight"]] = {
+                "weight": w["weight"],
+                "label": w.get("label") or WEIGHT_LABELS.get(w["weight"], str(w["weight"])),
+                "source": "legacy",
+                "has_file": True,
+                "path": w["path"],
+            }
+
+    # 3순위: 대표 파일 (primary_weight) — 등록된 굵기 목록에 없으면 추가
+    if font.has_file and font.primary_weight and font.primary_weight not in out:
+        p = font_path(font.id)
+        if p.exists():
+            out[font.primary_weight] = {
+                "weight": font.primary_weight,
+                "label": WEIGHT_LABELS.get(font.primary_weight, str(font.primary_weight)),
+                "source": "primary",
+                "has_file": True,
+                "path": str(p),
+            }
+
+    return sorted(out.values(), key=lambda w: w["weight"])
+
+
+@router.get("/{font_id}/weights", response_model=List[FontWeightOut])
+def font_weights(font_id: int, db: Session = Depends(get_db)):
+    font = db.query(Font).filter(Font.id == font_id).first()
+    if not font:
+        return []
+    return _merged_weights(font)
+
+
+@router.post("/{font_id}/weights", response_model=FontWeightOut, status_code=status.HTTP_201_CREATED)
+async def add_font_weight(
+    font_id: int,
+    weight: int = Form(...),
+    label: str = Form(""),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    _admin = Depends(require_password_changed),
+):
+    """어드민이 폰트에 굵기 하나를 개별 등록 (파일 업로드 포함).
+
+    이미 같은 굵기가 등록돼 있으면 파일/라벨을 덮어쓴다 (재업로드 = 교체).
+    """
+    font = db.query(Font).filter(Font.id == font_id).first()
+    if not font:
+        raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
+    if weight < 100 or weight > 900:
+        raise HTTPException(status_code=400, detail="굵기는 100~900 사이 값이어야 합니다")
+
+    filename = (file.filename or "").lower()
+    if not filename.endswith(".woff2"):
+        raise HTTPException(
+            status_code=400,
+            detail="WOFF2 파일만 업로드할 수 있습니다. ttf/otf는 먼저 woff2로 변환해주세요.",
+        )
+
+    try:
+        content = await file.read()
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=400, detail=f"파일을 읽을 수 없어요: {e}")
+
+    _validate_woff2(content)
+
+    out_path = weight_file_path(font_id, weight)
+    try:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_bytes(content)
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"파일 저장 실패 (디스크 권한 문제일 수 있어요): {type(e).__name__}: {e}",
+        )
+
+    row = db.query(FontWeight).filter(
+        FontWeight.font_id == font_id, FontWeight.weight == weight,
+    ).first()
+    final_label = label.strip() or WEIGHT_LABELS.get(weight, str(weight))
+    if row:
+        row.label = final_label
+    else:
+        row = FontWeight(font_id=font_id, weight=weight, label=final_label)
+        db.add(row)
+
+    # 종수 라벨(weights 컬럼) 자가 갱신
+    db.commit()
+    db.refresh(font)
+    font.weights = f"{len(_merged_weights(font))}종"
+    db.commit()
+
+    return FontWeightOut(weight=weight, label=final_label, source="extra", has_file=True)
+
+
+@router.delete("/{font_id}/weights/{weight}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_font_weight(
+    font_id: int,
+    weight: int,
+    db: Session = Depends(get_db),
+    _admin = Depends(require_password_changed),
+):
+    font = db.query(Font).filter(Font.id == font_id).first()
+    if not font:
+        raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
+    row = db.query(FontWeight).filter(
+        FontWeight.font_id == font_id, FontWeight.weight == weight,
+    ).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="등록된 굵기가 아닙니다")
+    p = weight_file_path(font_id, weight)
+    if p.exists():
+        p.unlink()
+    db.delete(row)
+    db.commit()
+    db.refresh(font)
+    font.weights = f"{len(_merged_weights(font))}종"
+    db.commit()
 
 
 @router.get("/{font_id}/file")
-def download_font_file(font_id: int, weight: int = 0):
+def download_font_file(font_id: int, weight: int = 0, db: Session = Depends(get_db)):
     _headers = {
         "Cache-Control": "public, max-age=31536000, immutable",
         "Access-Control-Allow-Origin": "*",
     }
     if weight:
+        # 1순위: 어드민이 개별 등록한 굵기 파일
+        wp = weight_file_path(font_id, weight)
+        if wp.exists():
+            return FileResponse(path=wp, media_type="font/woff2", headers=_headers)
+        # 2순위: 매니페스트 기반 굵기 파일
         for w in WEIGHT_RESOLUTION.get(font_id, []):
             if w["weight"] == weight and Path(w["path"]).exists():
                 return FileResponse(path=w["path"], media_type="font/woff2", headers=_headers)
