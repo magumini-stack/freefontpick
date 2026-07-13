@@ -21,8 +21,8 @@ router = APIRouter(prefix="/api", tags=["pairings"])
 
 
 def _font_brief(f: Font) -> dict:
-    from .files import WEIGHT_RESOLUTION
-    weights = WEIGHT_RESOLUTION.get(f.id, [])
+    from .files import _merged_weights
+    weights = _merged_weights(f)
     return {
         "id": f.id,
         "name": f.name,
