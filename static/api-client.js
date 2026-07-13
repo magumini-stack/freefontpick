@@ -291,6 +291,10 @@ const PairingStore = {
   async remove(id) {
     await apiFetch(`/pairings/${id}`, {method: 'DELETE'});
   },
+  /** 메타/태그 기반 자동 조합 추천 (미리보기 전용, 저장 안 함) */
+  async autoGenerate(fontId, topN) {
+    return await apiFetch(`/pairings/auto-generate?font_id=${fontId}&top_n=${topN || 6}`);
+  },
 };
 
 /* ════════════════════════════════════════
