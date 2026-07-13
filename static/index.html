@@ -446,7 +446,7 @@
     .tag.active{background:var(--accent);border-color:var(--accent);color:#fff}
 
     /* FILTER BAR */
-    .filter-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px}
+    .filter-bar{display:flex;align-items:center;justify-content:flex-end;margin-bottom:14px;gap:10px}
     .count-label{font-size:13px;color:var(--text-secondary)}
     .count-label strong{color:var(--text-primary);font-weight:800}
     .sort-select{font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;background:var(--bg-card);color:var(--text-secondary);outline:none;cursor:pointer;font-family:inherit;transition:border-color .15s}
@@ -915,7 +915,6 @@
   <div class="tags-bar" id="tagsBar" role="group" aria-label="폰트 카테고리 필터"></div>
 
   <div class="filter-bar">
-    <span class="count-label" id="countLabel">폰트 <strong>142</strong>종</span>
     <select class="sort-select" onchange="renderFonts()" aria-label="정렬 기준">
       <option value="curator">추천순</option>
       <option value="popular">인기순</option>
@@ -2641,11 +2640,13 @@ function renderFonts(){
   const isRecommendMode = list.length > 0 && list[0]._isRecommend === true;
   const countLabel = document.getElementById('countLabel');
 
-  if(isRecommendMode){
-    const total = (_lastRecommended || []).length;
-    countLabel.innerHTML = `<i class="ti ti-sparkles" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i> 추천 폰트 <strong>${list.length}</strong>개 <span style="color:var(--text-muted);font-size:12px">(총 ${total}개 후보 중)</span>`;
-  } else {
-    countLabel.innerHTML=`폰트 <strong>${list.length}</strong>종`;
+  if(countLabel){
+    if(isRecommendMode){
+      const total = (_lastRecommended || []).length;
+      countLabel.innerHTML = `<i class="ti ti-sparkles" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i> 추천 폰트 <strong>${list.length}</strong>개 <span style="color:var(--text-muted);font-size:12px">(총 ${total}개 후보 중)</span>`;
+    } else {
+      countLabel.innerHTML=`폰트 <strong>${list.length}</strong>종`;
+    }
   }
 
   if(!list.length){
