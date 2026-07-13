@@ -32,6 +32,7 @@ class FontBase(BaseModel):
     url: Optional[str] = ""
     stack: str = "'Nanum Gothic',sans-serif"
     is_english: bool = False
+    primary_weight: int = 400
 
 
 class FontCreate(FontBase):
@@ -46,6 +47,7 @@ class FontUpdate(BaseModel):
     url: Optional[str] = None
     stack: Optional[str] = None
     is_english: Optional[bool] = None
+    primary_weight: Optional[int] = None
     tags: Optional[List[str]] = None
     meta: Optional[Dict[str, Any]] = None
     sort_order: Optional[int] = None
@@ -178,3 +180,11 @@ class PairingUpdate(BaseModel):
     title_weight: Optional[int] = None
     body_weight: Optional[int] = None
     sort_order: Optional[int] = None
+
+
+# ─────────── FontWeight (어드민 굵기 등록) ───────────
+class FontWeightOut(BaseModel):
+    weight: int
+    label: str = ""
+    source: str = "extra"  # "primary" | "extra" | "legacy" (기존 매니페스트 기반)
+    has_file: bool = True
