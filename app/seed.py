@@ -31,6 +31,7 @@ def init_db():
     Base.metadata.create_all(bind=engine)
     _ensure_like_count_column()
     _ensure_pairing_weight_columns()
+    _ensure_primary_weight_column()
     db = SessionLocal()
     try:
         _seed_admin(db)
@@ -82,6 +83,24 @@ def _ensure_pairing_weight_columns():
             added.append("body_weight")
     if added:
         print(f"[migrate] font_pairings 컬럼 추가 완료: {added}")
+
+
+def _ensure_primary_weight_column():
+    """fonts 테이블에 primary_weight 컬럼이 없으면 추가.
+
+    어드민 굵기 등록 기능(대표 굵기 지정) 도입을 위해 필요.
+    기본값 400(Regular)으로 채워 기존 데이터 호환성 유지.
+    """
+    from sqlalchemy import text, inspect
+    inspector = inspect(engine)
+    if "fonts" not in inspector.get_table_names():
+        return  # create_all이 이번에 만들었음
+    columns = {col["name"] for col in inspector.get_columns("fonts")}
+    if "primary_weight" in columns:
+        return  # 이미 있음
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE fonts ADD COLUMN primary_weight INTEGER NOT NULL DEFAULT 400"))
+    print("[migrate] fonts.primary_weight 컬럼 추가 완료")
 
 
 def _seed_admin(db: Session):
