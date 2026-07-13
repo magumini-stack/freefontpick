@@ -350,6 +350,13 @@ def _merged_weights(font: Font) -> list:
 
     우선순위: DB(FontWeight, 어드민 개별 등록) > 매니페스트(대량 업로드) > 대표 파일 1건.
     같은 weight 값은 한 번만 노출한다.
+
+    ⚠️ 대표 파일(3순위) 추가 조건: 매니페스트(2순위)가 이미 이 폰트의 굵기 세트를
+    갖고 있으면 대표 파일은 그 세트 중 하나를 그대로 재사용해 만들어진 것일 수 있어
+    (예: 400에 가장 가까운 굵기 파일을 대표로 승격) 별도 항목으로 또 추가하면
+    실제로는 같은 굵기인데 두 줄로 겹쳐 보이는 문제가 생긴다. 그래서 매니페스트가
+    비어있는 폰트(어드민이 "추가 굵기 등록"만 쓰고 매니페스트는 없는 경우 등)에서만
+    대표 파일을 별도 항목으로 추가한다.
     """
     out: dict = {}
 
@@ -366,7 +373,8 @@ def _merged_weights(font: Font) -> list:
             }
 
     # 2순위: 기존 매니페스트 기반 대량 업로드 시스템
-    for w in WEIGHT_RESOLUTION.get(font.id, []):
+    legacy = WEIGHT_RESOLUTION.get(font.id, [])
+    for w in legacy:
         if w["weight"] not in out:
             out[w["weight"]] = {
                 "weight": w["weight"],
@@ -376,8 +384,8 @@ def _merged_weights(font: Font) -> list:
                 "path": w["path"],
             }
 
-    # 3순위: 대표 파일 (primary_weight) — 등록된 굵기 목록에 없으면 추가
-    if font.has_file and font.primary_weight and font.primary_weight not in out:
+    # 3순위: 대표 파일 (primary_weight) — 매니페스트가 없는 폰트에서만 별도 추가
+    if not legacy and font.has_file and font.primary_weight and font.primary_weight not in out:
         p = font_path(font.id)
         if p.exists():
             out[font.primary_weight] = {
