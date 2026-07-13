@@ -266,6 +266,30 @@ const NoticeStore = {
 };
 
 /* ════════════════════════════════════════
+   PairingStore — 폰트 페어링 CRUD (어드민)
+   기존 페어링 API(GET /api/pairings)는 공개용으로 이미 있었고,
+   여기서는 어드민 생성/수정/삭제 + 테마 목록만 추가.
+════════════════════════════════════════ */
+const PairingStore = {
+  async getAll() {
+    return await apiFetch('/pairings');
+  },
+  async getThemes() {
+    return await apiFetch('/pairings/themes');
+  },
+  /** payload: {theme, title_font_id, body_font_id, sample_title, sample_body, description, title_weight, body_weight, sort_order} */
+  async add(payload) {
+    return await apiFetch('/pairings', {method: 'POST', body: payload});
+  },
+  async update(id, payload) {
+    return await apiFetch(`/pairings/${id}`, {method: 'PATCH', body: payload});
+  },
+  async remove(id) {
+    await apiFetch(`/pairings/${id}`, {method: 'DELETE'});
+  },
+};
+
+/* ════════════════════════════════════════
    FontFileStore — 폰트 파일
    기존 인터페이스: saveFile, getFile, deleteFile, listIds
    백엔드 도입 후엔 파일이 서버에 저장됨. 클라이언트는 URL만 사용.
