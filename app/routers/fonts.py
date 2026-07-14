@@ -19,6 +19,17 @@ def _paired_font_ids(db: Session) -> set:
     return ids
 
 
+def _parse_webfont_weights(csv: str) -> List[int]:
+    if not csv:
+        return []
+    out = []
+    for part in csv.split(","):
+        part = part.strip()
+        if part.isdigit():
+            out.append(int(part))
+    return out
+
+
 def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
     return FontOut(
         has_pairing=font.id in paired_ids,
@@ -30,6 +41,9 @@ def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
         stack=font.stack or "'Nanum Gothic',sans-serif",
         is_english=bool(font.is_english),
         primary_weight=int(font.primary_weight or 400),
+        webfont_family=font.webfont_family or None,
+        webfont_css_url=font.webfont_css_url or None,
+        webfont_weights=_parse_webfont_weights(font.webfont_weights),
         has_file=bool(font.has_file),
         sort_order=font.sort_order,
         tags=[t.name for t in font.tags],
@@ -92,6 +106,9 @@ def create_font(
         stack=payload.stack,
         is_english=payload.is_english,
         primary_weight=payload.primary_weight or 400,
+        webfont_family=(payload.webfont_family or "").strip() or None,
+        webfont_css_url=(payload.webfont_css_url or "").strip() or None,
+        webfont_weights=",".join(str(w) for w in (payload.webfont_weights or [])) or None,
         meta=payload.meta or {},
         sort_order=max_order + 10,
     )
@@ -117,6 +134,15 @@ def update_font(
     if "tags" in data:
         tag_names = data.pop("tags")
         font.tags = _resolve_tags(db, tag_names)
+    if "webfont_weights" in data:
+        weights = data.pop("webfont_weights") or []
+        font.webfont_weights = ",".join(str(w) for w in weights) or None
+    if "webfont_family" in data:
+        v = (data.pop("webfont_family") or "").strip()
+        font.webfont_family = v or None
+    if "webfont_css_url" in data:
+        v = (data.pop("webfont_css_url") or "").strip()
+        font.webfont_css_url = v or None
     for k, v in data.items():
         setattr(font, k, v)
     db.commit()
