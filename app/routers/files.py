@@ -18,6 +18,12 @@
     2) 매니페스트 기반 WEIGHT_RESOLUTION (기존 대량 업로드 시스템)
     3) 대표 파일(font.has_file) 자체를 font.primary_weight로 노출
     같은 굵기값이 여러 소스에 있으면 우선순위가 높은 쪽이 이긴다.
+
+⚠️ 2026-07 추가: 웹폰트 CDN 소스 (Google Fonts 등).
+  - Font.webfont_family/webfont_css_url/webfont_weights가 채워져 있으면
+    파일 업로드 없이도 _merged_weights()에 "webfont" 소스로 노출된다.
+    실제 폰트 로딩은 프론트엔드가 webfont_css_url을 <link>로 로드하고
+    webfont_family를 font-family로 사용하는 방식이라, 이 굵기들은 로컬 파일이 없다.
 """
 import os
 import traceback
@@ -346,12 +352,12 @@ async def upload_font_file(
 
 
 def _merged_weights(font: Font) -> list:
-    """DB FontWeight + 매니페스트 WEIGHT_RESOLUTION + 대표 파일을 우선순위대로 병합.
+    """DB FontWeight + 웹폰트 CDN + 매니페스트 WEIGHT_RESOLUTION + 대표 파일을 우선순위대로 병합.
 
-    우선순위: DB(FontWeight, 어드민 개별 등록) > 매니페스트(대량 업로드) > 대표 파일 1건.
-    같은 weight 값은 한 번만 노출한다.
+    우선순위: DB(FontWeight, 어드민 개별 업로드) > 웹폰트 CDN(Google Fonts 등)
+    > 매니페스트(대량 업로드) > 대표 파일 1건. 같은 weight 값은 한 번만 노출한다.
 
-    ⚠️ 대표 파일(3순위) 추가 조건: 매니페스트(2순위)가 이미 이 폰트의 굵기 세트를
+    ⚠️ 대표 파일(4순위) 추가 조건: 매니페스트(3순위)가 이미 이 폰트의 굵기 세트를
     갖고 있으면 대표 파일은 그 세트 중 하나를 그대로 재사용해 만들어진 것일 수 있어
     (예: 400에 가장 가까운 굵기 파일을 대표로 승격) 별도 항목으로 또 추가하면
     실제로는 같은 굵기인데 두 줄로 겹쳐 보이는 문제가 생긴다. 그래서 매니페스트가
@@ -372,7 +378,23 @@ def _merged_weights(font: Font) -> list:
                 "path": str(p),
             }
 
-    # 2순위: 기존 매니페스트 기반 대량 업로드 시스템
+    # 2순위: 웹폰트 CDN 소스 (Google Fonts 등) — 파일 업로드 없이 등록된 굵기
+    if font.webfont_family and font.webfont_weights:
+        for part in font.webfont_weights.split(","):
+            part = part.strip()
+            if not part.isdigit():
+                continue
+            w = int(part)
+            if w not in out:
+                out[w] = {
+                    "weight": w,
+                    "label": WEIGHT_LABELS.get(w, str(w)),
+                    "source": "webfont",
+                    "has_file": True,
+                    "path": None,
+                }
+
+    # 3순위: 기존 매니페스트 기반 대량 업로드 시스템
     legacy = WEIGHT_RESOLUTION.get(font.id, [])
     for w in legacy:
         if w["weight"] not in out:
@@ -384,7 +406,7 @@ def _merged_weights(font: Font) -> list:
                 "path": w["path"],
             }
 
-    # 3순위: 대표 파일 (primary_weight) — 매니페스트가 없는 폰트에서만 별도 추가
+    # 4순위: 대표 파일 (primary_weight) — 매니페스트가 없는 폰트에서만 별도 추가
     if not legacy and font.has_file and font.primary_weight and font.primary_weight not in out:
         p = font_path(font.id)
         if p.exists():
