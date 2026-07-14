@@ -218,8 +218,9 @@ const TagStore = {
 };
 
 /* ════════════════════════════════════════
-   SubmissionStore — 폰트 찾아주세요 게시판
+   SubmissionStore — 폰트 찾기 게시판
    기존 인터페이스: getAll, getById, add(formData), update, remove, imageUrl(id)
+   추가: addAnswer(누구나), removeAnswer(관리자 전용)
 ════════════════════════════════════════ */
 const SubmissionStore = {
   async getAll() {
@@ -244,6 +245,17 @@ const SubmissionStore = {
   },
   imageUrl(id) {
     return `${API_BASE}/submissions/${id}/image`;
+  },
+  /** 답변 작성 — 로그인 불필요, 누구나 가능 */
+  async addAnswer(submissionId, nickname, content) {
+    const fd = new FormData();
+    fd.append('nickname', nickname || '익명');
+    fd.append('content', content || '');
+    return await apiFetch(`/submissions/${submissionId}/answers`, {method: 'POST', body: fd});
+  },
+  /** 답변 삭제 — 관리자 전용 */
+  async removeAnswer(answerId) {
+    await apiFetch(`/submissions/answers/${answerId}`, {method: 'DELETE'});
   },
 };
 
