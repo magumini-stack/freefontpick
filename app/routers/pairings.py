@@ -31,6 +31,8 @@ def _font_brief(f: Font) -> dict:
         "stack": f.stack or "'Nanum Gothic',sans-serif",
         "has_file": bool(f.has_file),
         "is_english": bool(f.is_english),
+        "webfont_family": f.webfont_family or None,
+        "webfont_css_url": f.webfont_css_url or None,
         "available_weights": [w["weight"] for w in weights],
     }
 
