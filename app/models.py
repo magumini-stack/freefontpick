@@ -37,6 +37,13 @@ class Font(Base):
     meta = Column(JSON, default=dict)
     # 전역 좋아요 카운트
     like_count = Column(Integer, nullable=False, default=0, server_default="0")
+    # ── 웹폰트 CDN 소스 (Google Fonts 등) — 파일 업로드 없이 등록 가능 ──
+    # webfont_family가 채워져 있으면 프론트엔드는 로컬 파일 대신
+    # webfont_css_url을 로드해서 webfont_family를 font-family로 사용한다.
+    # webfont_weights는 콤마로 구분된 굵기 목록 문자열(예: "300,400,700,900")로 저장.
+    webfont_family = Column(String(200), nullable=True)
+    webfont_css_url = Column(String(500), nullable=True)
+    webfont_weights = Column(String(100), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
