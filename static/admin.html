@@ -322,7 +322,7 @@
     <button class="tab-btn active" onclick="switchTab('fonts',this)">폰트 관리</button>
     <button class="tab-btn" onclick="switchTab('cats',this)">카테고리 관리</button>
     <button class="tab-btn" onclick="switchTab('notices',this)">공지사항 관리</button>
-    <button class="tab-btn" onclick="switchTab('submissions',this)">폰트 찾아주세요</button>
+    <button class="tab-btn" onclick="switchTab('submissions',this)">폰트 찾기</button>
     <button class="tab-btn" onclick="switchTab('pairings',this)">페어링 관리</button>
   </div>
 
@@ -387,22 +387,21 @@
     </div>
   </div>
 
-  <!-- SUBMISSIONS TAB (폰트 찾아주세요 게시판 관리) -->
+  <!-- SUBMISSIONS TAB (폰트 찾기 게시판 관리) -->
   <div class="tab-panel" id="tab-submissions">
     <div class="toolbar">
       <input type="text" id="submissionSearch" placeholder="설명 또는 닉네임 검색" oninput="renderSubmissionTable()">
       <select id="submissionStatusFilter" onchange="renderSubmissionTable()">
-        <option value="all">전체 상태</option>
-        <option value="pending">대기중</option>
-        <option value="reviewed">검토중</option>
-        <option value="added">답변완료</option>
+        <option value="all">전체</option>
+        <option value="answered">답변 있음</option>
+        <option value="pending">답변 대기중</option>
       </select>
     </div>
     <div class="table-wrap">
       <table>
         <thead><tr>
           <th style="width:50px"></th>
-          <th>설명</th><th>닉네임</th><th style="width:110px">상태</th><th style="width:110px">등록일</th><th style="text-align:right;width:100px">관리</th>
+          <th>설명</th><th>닉네임</th><th style="width:110px">답변</th><th style="width:110px">등록일</th><th style="text-align:right;width:100px">관리</th>
         </tr></thead>
         <tbody id="submissionTableBody"></tbody>
       </table>
@@ -686,7 +685,7 @@
 <div class="modal-overlay" id="submissionModal">
   <div class="modal" style="max-width:560px">
     <div class="modal-head">
-      <h3>질문 상세 · 답변</h3>
+      <h3>질문 상세 · 답변 관리</h3>
       <button class="modal-close" onclick="closeSubmissionModal()"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body" id="submissionModalBody">
@@ -694,9 +693,9 @@
     </div>
     <div class="modal-foot" style="justify-content:space-between">
       <button class="btn-cancel" id="submissionDeleteBtn" style="color:#C8281F;border-color:#F3C9C7" onclick="deleteSubmissionFromModal()">
-        <i class="ti ti-trash" aria-hidden="true"></i> 삭제
+        <i class="ti ti-trash" aria-hidden="true"></i> 질문 삭제
       </button>
-      <button class="btn-save" onclick="saveSubmissionChanges()">저장</button>
+      <button class="btn-cancel" onclick="closeSubmissionModal()">닫기</button>
     </div>
   </div>
 </div>
@@ -2303,11 +2302,10 @@ document.addEventListener('keydown',(e)=>{
 });
 
 /* ════════════════════════════════════════
-   폰트 찾아주세요 게시판 관리
+   폰트 찾기 게시판 관리
 ════════════════════════════════════════ */
 let SUBMISSIONS = [];
 let currentSubmissionId = null;
-const SUB_STATUS_LABEL = {pending:'대기중', reviewed:'검토중', added:'답변완료'};
 
 async function refreshSubmissions(){
   try {
@@ -2327,7 +2325,8 @@ function renderSubmissionTable(){
   if(q) list = list.filter(s =>
     (s.content || '').toLowerCase().includes(q) || s.nickname.toLowerCase().includes(q)
   );
-  if(statusFilter !== 'all') list = list.filter(s => s.status === statusFilter);
+  if(statusFilter === 'answered') list = list.filter(s => (s.answers || []).length > 0);
+  if(statusFilter === 'pending') list = list.filter(s => (s.answers || []).length === 0);
   // 최신순
   list.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
@@ -2345,11 +2344,15 @@ function renderSubmissionTable(){
       ? `<img src="${SubmissionStore.imageUrl(s.id)}" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:cover;display:block">`
       : `<div style="width:40px;height:40px;border-radius:8px;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;color:var(--text-muted)"><i class="ti ti-message-question" aria-hidden="true"></i></div>`;
     const descPreview = s.content ? escapeHtml(s.content).slice(0, 40) : '(설명 없음, 이미지만 첨부)';
+    const answerCount = (s.answers || []).length;
+    const answerBadge = answerCount > 0
+      ? `<span class="sub-status-badge added">답변 ${answerCount}개</span>`
+      : `<span class="sub-status-badge pending">대기중</span>`;
     return `<tr onclick="openSubmissionModal(${s.id})" style="cursor:pointer">
       <td>${thumb}</td>
       <td>${descPreview}</td>
       <td>${escapeHtml(s.nickname)}</td>
-      <td><span class="sub-status-badge ${s.status}">${SUB_STATUS_LABEL[s.status] || '대기중'}</span></td>
+      <td>${answerBadge}</td>
       <td><div class="notice-cell-date">${formatDate(s.created_at)}</div></td>
       <td style="text-align:right" onclick="event.stopPropagation()">
         <button class="btn-icon danger" onclick="askDeleteSubmission(${s.id})" aria-label="삭제">
@@ -2364,10 +2367,31 @@ function openSubmissionModal(id){
   const s = SUBMISSIONS.find(x => x.id === id);
   if(!s) return;
   currentSubmissionId = id;
+  renderSubmissionModalBody(s);
+  document.getElementById('submissionModal').classList.add('open');
+}
 
+function renderSubmissionModalBody(s){
   const imageHtml = s.image_path
     ? `<div class="field"><label>첨부 이미지</label><img src="${SubmissionStore.imageUrl(s.id)}" alt="첨부 이미지" style="width:100%;border-radius:12px;max-height:320px;object-fit:cover;display:block"></div>`
     : '';
+  const answers = s.answers || [];
+  const answersHtml = answers.length
+    ? answers.map(a => `
+        <div style="background:var(--bg-secondary);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;margin-bottom:8px">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:3px">
+              <span style="font-size:12.5px;font-weight:800">${escapeHtml(a.nickname)}</span>
+              <span style="font-size:11px;color:var(--text-muted)">${formatDate(a.created_at)}</span>
+            </div>
+            <div style="font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word">${escapeHtml(a.content)}</div>
+          </div>
+          <button class="btn-icon danger" onclick="deleteAnswerFromAdmin(${a.id})" aria-label="답변 삭제" title="답변 삭제">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      `).join('')
+    : `<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">아직 답변이 없어요</div>`;
 
   document.getElementById('submissionModalBody').innerHTML = `
     <div class="field">
@@ -2380,46 +2404,38 @@ function openSubmissionModal(id){
     </div>
     ${imageHtml}
     <div class="field">
-      <label>상태</label>
-      <select id="smStatus">
-        <option value="pending" ${s.status==='pending'?'selected':''}>대기중</option>
-        <option value="reviewed" ${s.status==='reviewed'?'selected':''}>검토중</option>
-        <option value="added" ${s.status==='added'?'selected':''}>답변완료</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>답변 (질문자에게 공개됩니다)</label>
-      <textarea id="smReply" rows="3" placeholder="예: OO고딕체로 보여요! 무료 배포 중이니 찾아보세요.">${escapeHtml(s.admin_reply || '')}</textarea>
+      <label>답변 (${answers.length}개) — 부적절한 답변은 개별 삭제할 수 있어요</label>
+      ${answersHtml}
     </div>
   `;
-  document.getElementById('submissionModal').classList.add('open');
 }
+
 function closeSubmissionModal(){
   document.getElementById('submissionModal').classList.remove('open');
   currentSubmissionId = null;
 }
-async function saveSubmissionChanges(){
-  if(!currentSubmissionId) return;
-  const status = document.getElementById('smStatus').value;
-  const admin_reply = document.getElementById('smReply').value.trim();
+
+async function deleteAnswerFromAdmin(answerId){
+  if(!confirm('이 답변을 삭제할까요?')) return;
   try {
-    await SubmissionStore.update(currentSubmissionId, {status, admin_reply});
-    showToast('변경사항을 저장했어요');
-    closeSubmissionModal();
+    await SubmissionStore.removeAnswer(answerId);
+    showToast('답변을 삭제했어요');
     await refreshSubmissions();
-    await refresh();
+    const s = SUBMISSIONS.find(x => x.id === currentSubmissionId);
+    if(s) renderSubmissionModalBody(s);
   } catch(e) {
-    console.error('상태 변경 실패:', e);
-    showToast('저장에 실패했어요: ' + (e.message || '알 수 없는 오류'));
+    console.error('답변 삭제 실패:', e);
+    showToast('삭제에 실패했어요: ' + (e.message || '알 수 없는 오류'));
   }
 }
+
 function askDeleteSubmission(id){
   const s = SUBMISSIONS.find(x => x.id === id);
   if(!s) return;
   pendingDelete = {type:'submission', id};
   const label = s.content ? s.content.slice(0, 20) : '이미지 질문';
   document.getElementById('confirmTitle').textContent = `'${label}' 질문을 삭제할까요?`;
-  document.getElementById('confirmDesc').textContent = '삭제하면 첨부 이미지도 함께 제거되고 되돌릴 수 없어요.';
+  document.getElementById('confirmDesc').textContent = '삭제하면 첨부 이미지와 모든 답변도 함께 제거되고 되돌릴 수 없어요.';
   document.getElementById('confirmModal').classList.add('open');
 }
 function deleteSubmissionFromModal(){

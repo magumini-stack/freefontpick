@@ -630,6 +630,24 @@
     .submit-detail-reply{background:var(--accent-light);border-radius:12px;padding:14px 16px;font-size:12.5px;color:var(--text-primary);line-height:1.6}
     .submit-detail-reply-label{font-size:11px;font-weight:800;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:5px}
 
+    /* 답변 목록 + 작성 폼 (누구나 답변 가능) */
+    .submit-answers{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border);padding-top:16px}
+    .submit-answers-empty{font-size:12.5px;color:var(--text-muted);text-align:center;padding:14px 0}
+    .submit-answer-item{background:var(--bg-secondary);border-radius:12px;padding:12px 14px}
+    .submit-answer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+    .submit-answer-nickname{font-size:12.5px;font-weight:800;color:var(--text-primary)}
+    .submit-answer-date{font-size:11px;color:var(--text-muted)}
+    .submit-answer-content{font-size:13px;line-height:1.6;color:var(--text-primary);white-space:pre-wrap;word-break:break-word}
+    .submit-answer-form{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border);padding-top:16px}
+    .submit-answer-form-title{font-size:12.5px;font-weight:800;color:var(--text-secondary);display:flex;align-items:center;gap:5px}
+    .submit-answer-form input[type=text],.submit-answer-form textarea{
+      border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;
+      font-family:inherit;color:var(--text-primary);background:var(--bg-card);resize:vertical;
+      transition:border-color .15s;
+    }
+    .submit-answer-form input[type=text]:focus,.submit-answer-form textarea:focus{outline:none;border-color:var(--accent)}
+    .submit-answer-form .btn-primary{align-self:flex-end}
+
     @media(max-width:640px){
       .submit-toolbar{flex-direction:row;align-items:center}
       .submit-form-body{padding:16px 18px;max-height:55vh}
@@ -788,7 +806,7 @@
       <a href="about.html">폰트픽 소개</a>
       <a href="#notice" id="noticeMenuLink">공지사항</a>
       <a href="faq.html">자주 묻는 질문</a>
-      <a href="/find-font" id="submitMenuLink" onclick="navFindFont(event)">폰트 찾아주세요</a>
+      <a href="/find-font" id="submitMenuLink" onclick="navFindFont(event)">폰트 찾기</a>
     </nav>
     <div class="header-right">
       <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer">
@@ -816,7 +834,7 @@
       <i class="ti ti-help-circle" aria-hidden="true"></i> 자주 묻는 질문
     </a>
     <a href="/find-font" id="mSubmitMenuLink" onclick="navFindFont(event);closeMobileNav()">
-      <i class="ti ti-bulb" aria-hidden="true"></i> 폰트 찾아주세요
+      <i class="ti ti-bulb" aria-hidden="true"></i> 폰트 찾기
     </a>
     <div class="mobile-nav-divider"></div>
     <a href="https://tdtd.io" target="_blank" rel="noopener noreferrer" onclick="closeMobileNav()">
@@ -961,8 +979,8 @@
 <div id="submitView" style="display:none">
   <section class="notice-hero">
     <div class="hero-eyebrow"><i class="ti ti-search" aria-hidden="true"></i> FIND</div>
-    <h1 class="hero-title">폰트 찾아주세요</h1>
-    <p class="notice-hero-sub">어디선가 본 폰트, 사진을 올려주시면 확인 후 알려드려요</p>
+    <h1 class="hero-title">폰트 찾기</h1>
+    <p class="notice-hero-sub">어디선가 본 폰트, 사진을 올려주시면 누구나 답변해드려요</p>
   </section>
 
   <main class="main">
@@ -982,8 +1000,8 @@
   <div class="license-modal submit-form-modal">
     <div class="license-head">
       <div class="license-head-eyebrow"><i class="ti ti-search" aria-hidden="true"></i> FIND</div>
-      <h2 id="submitFormTitle">폰트 찾아주세요</h2>
-      <p>이미지와 설명을 남겨주시면 확인 후 알려드려요</p>
+      <h2 id="submitFormTitle">폰트 찾기</h2>
+      <p>이미지와 설명을 남겨주시면 다른 사용자들이 답변해드려요</p>
       <button class="license-close" onclick="closeSubmitForm()" aria-label="닫기">
         <i class="ti ti-x" aria-hidden="true"></i>
       </button>
@@ -3432,12 +3450,15 @@ async function renderSubmitList(){
     const thumb = item.image_path
       ? `<img src="${SubmissionStore.imageUrl(item.id)}" alt="문의 첨부 이미지" loading="lazy">`
       : `<i class="ti ti-message-question" aria-hidden="true"></i>`;
-    const statusLabel = SUBMIT_STATUS_LABEL[item.status] || '대기중';
+    const answerCount = (item.answers || []).length;
+    const answerLabel = answerCount > 0
+      ? `<span class="submit-card-status added"><i class="ti ti-message-circle" aria-hidden="true"></i> 답변 ${answerCount}개</span>`
+      : `<span class="submit-card-status pending">답변 대기중</span>`;
     const desc = item.content ? escapeHtml(item.content) : '이미지를 확인해주세요';
     return `<article class="submit-card" onclick="openSubmitDetail(${item.id})" role="listitem">
       <div class="submit-card-thumb">${thumb}</div>
       <div class="submit-card-body">
-        <span class="submit-card-status ${item.status}">${statusLabel}</span>
+        ${answerLabel}
         <div class="submit-card-desc">${desc}</div>
         <div class="submit-card-meta">
           <span>${escapeHtml(item.nickname)}</span>
@@ -3517,6 +3538,8 @@ async function submitFontTip(){
 }
 
 /* 상세 모달 */
+let currentDetailSubmissionId = null;
+
 async function openSubmitDetail(id){
   const overlay = document.getElementById('submitDetailOverlay');
   const titleEl = document.getElementById('submitDetailTitle');
@@ -3524,6 +3547,7 @@ async function openSubmitDetail(id){
   const statusEl = document.getElementById('submitDetailStatus');
   const bodyEl = document.getElementById('submitDetailBody');
 
+  currentDetailSubmissionId = id;
   titleEl.textContent = '불러오는 중...';
   metaEl.textContent = '';
   bodyEl.innerHTML = '';
@@ -3532,33 +3556,89 @@ async function openSubmitDetail(id){
 
   try {
     const item = await SubmissionStore.getById(id);
-    titleEl.textContent = item.font_name;
+    titleEl.textContent = item.content ? item.content.slice(0, 40) : '이미지 질문';
     metaEl.textContent = `${item.nickname} · ${formatNoticeDate(item.created_at)}`;
-    statusEl.textContent = SUBMIT_STATUS_LABEL[item.status] || '대기중';
+    const answers = item.answers || [];
+    statusEl.innerHTML = answers.length
+      ? `<i class="ti ti-message-circle" aria-hidden="true"></i> 답변 ${answers.length}개`
+      : '답변 대기중';
 
     let html = '';
     if(item.image_path){
-      html += `<div class="submit-detail-image"><img src="${SubmissionStore.imageUrl(item.id)}" alt="${escapeHtml(item.font_name)} 첨부 이미지"></div>`;
+      html += `<div class="submit-detail-image"><img src="${SubmissionStore.imageUrl(item.id)}" alt="첨부 이미지"></div>`;
     }
     if(item.content){
       html += `<div class="submit-detail-content">${escapeHtml(item.content)}</div>`;
     }
-    if(item.link){
-      html += `<a class="submit-detail-link" href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer"><i class="ti ti-link" aria-hidden="true"></i> ${escapeHtml(item.link)}</a>`;
-    }
-    if(item.admin_reply){
-      html += `<div class="submit-detail-reply"><div class="submit-detail-reply-label"><i class="ti ti-message-circle" aria-hidden="true"></i> 운영자 답변</div>${escapeHtml(item.admin_reply)}</div>`;
-    }
-    bodyEl.innerHTML = html || '<p style="color:var(--text-muted);font-size:13px">추가 설명이 없어요.</p>';
+
+    html += `<div class="submit-answers" id="submitAnswers">${renderAnswersList(answers)}</div>`;
+
+    html += `
+      <div class="submit-answer-form">
+        <div class="submit-answer-form-title"><i class="ti ti-message-plus" aria-hidden="true"></i> 답변 남기기</div>
+        <input type="text" id="saNickname" placeholder="닉네임 (선택)" maxlength="50">
+        <textarea id="saContent" rows="3" placeholder="이 폰트가 뭔지 알고 계신가요? 알려주세요!" maxlength="1000"></textarea>
+        <button class="btn-primary" id="saSubmitBtn" onclick="submitAnswer(${item.id})">
+          <i class="ti ti-send" aria-hidden="true"></i> 답변 등록
+        </button>
+      </div>`;
+
+    bodyEl.innerHTML = html;
   } catch(e) {
     console.error('제보 상세 로딩 실패:', e);
     titleEl.textContent = '불러오지 못했어요';
     bodyEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px">잠시 후 다시 시도해주세요.</p>';
   }
 }
+
+function renderAnswersList(answers){
+  if(!answers || !answers.length){
+    return '<div class="submit-answers-empty">아직 답변이 없어요. 첫 번째로 답변해보세요!</div>';
+  }
+  return answers.map(a => `
+    <div class="submit-answer-item">
+      <div class="submit-answer-head">
+        <span class="submit-answer-nickname">${escapeHtml(a.nickname)}</span>
+        <span class="submit-answer-date">${formatNoticeDate(a.created_at)}</span>
+      </div>
+      <div class="submit-answer-content">${escapeHtml(a.content)}</div>
+    </div>
+  `).join('');
+}
+
+async function submitAnswer(submissionId){
+  const nickname = document.getElementById('saNickname').value.trim();
+  const content = document.getElementById('saContent').value.trim();
+  if(!content){
+    alert('답변 내용을 입력해주세요');
+    return;
+  }
+  const btn = document.getElementById('saSubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> 등록 중...';
+  try {
+    await SubmissionStore.addAnswer(submissionId, nickname, content);
+    document.getElementById('saContent').value = '';
+    if(typeof showToast === 'function') showToast('답변을 등록했어요. 감사합니다!');
+    await openSubmitDetail(submissionId);
+    await renderSubmitList();
+  } catch(e) {
+    console.error('답변 등록 실패:', e);
+    if(e.status === 429){
+      alert(e.message || '너무 빠르게 작성하셨어요. 잠시 후 다시 시도해주세요.');
+    } else {
+      alert('답변 등록에 실패했어요: ' + (e.message || '알 수 없는 오류'));
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-send" aria-hidden="true"></i> 답변 등록';
+  }
+}
+
 function closeSubmitDetail(){
   document.getElementById('submitDetailOverlay').classList.remove('open');
   document.body.style.overflow = '';
+  currentDetailSubmissionId = null;
 }
 document.getElementById('submitFormOverlay').addEventListener('click', function(e){
   if(e.target===this) closeSubmitForm();
