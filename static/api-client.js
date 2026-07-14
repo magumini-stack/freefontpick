@@ -53,6 +53,9 @@ const FontStore = {
       tags: f.tags || [],
       isEnglish: f.is_english,
       primaryWeight: f.primary_weight || 400,
+      webfontFamily: f.webfont_family || '',
+      webfontCssUrl: f.webfont_css_url || '',
+      webfontWeights: f.webfont_weights || [],
       hasFile: f.has_file,
       hasPairing: !!f.has_pairing,
       sort_order: f.sort_order,
@@ -70,6 +73,9 @@ const FontStore = {
       stack: payload.stack || "'Nanum Gothic',sans-serif",
       is_english: !!payload.isEnglish,
       primary_weight: payload.primaryWeight || 400,
+      webfont_family: payload.webfontFamily || null,
+      webfont_css_url: payload.webfontCssUrl || null,
+      webfont_weights: payload.webfontWeights || [],
       tags: payload.tags || [],
       meta: payload.meta || {},
     };
@@ -86,6 +92,9 @@ const FontStore = {
     if ('stack' in payload) body.stack = payload.stack;
     if ('isEnglish' in payload) body.is_english = !!payload.isEnglish;
     if ('primaryWeight' in payload) body.primary_weight = payload.primaryWeight;
+    if ('webfontFamily' in payload) body.webfont_family = payload.webfontFamily || null;
+    if ('webfontCssUrl' in payload) body.webfont_css_url = payload.webfontCssUrl || null;
+    if ('webfontWeights' in payload) body.webfont_weights = payload.webfontWeights || [];
     if ('tags' in payload) body.tags = payload.tags;
     if ('meta' in payload) body.meta = payload.meta;
     if ('sort_order' in payload) body.sort_order = payload.sort_order;
@@ -142,6 +151,9 @@ function _fromServer(f) {
     tags: f.tags || [],
     isEnglish: f.is_english,
     primaryWeight: f.primary_weight || 400,
+    webfontFamily: f.webfont_family || '',
+    webfontCssUrl: f.webfont_css_url || '',
+    webfontWeights: f.webfont_weights || [],
     hasFile: f.has_file,
     hasPairing: !!f.has_pairing,
     sort_order: f.sort_order,
