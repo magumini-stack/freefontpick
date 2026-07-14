@@ -32,6 +32,7 @@ def init_db():
     _ensure_like_count_column()
     _ensure_pairing_weight_columns()
     _ensure_primary_weight_column()
+    _ensure_webfont_columns()
     db = SessionLocal()
     try:
         _seed_admin(db)
@@ -101,6 +102,31 @@ def _ensure_primary_weight_column():
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE fonts ADD COLUMN primary_weight INTEGER NOT NULL DEFAULT 400"))
     print("[migrate] fonts.primary_weight 컬럼 추가 완료")
+
+
+def _ensure_webfont_columns():
+    """fonts 테이블에 webfont_family/webfont_css_url/webfont_weights 컬럼이 없으면 추가.
+
+    Google Fonts 등 CDN 웹폰트를 파일 업로드 없이 등록하는 기능을 위해 필요.
+    """
+    from sqlalchemy import text, inspect
+    inspector = inspect(engine)
+    if "fonts" not in inspector.get_table_names():
+        return  # create_all이 이번에 만들었음
+    columns = {col["name"] for col in inspector.get_columns("fonts")}
+    added = []
+    with engine.begin() as conn:
+        if "webfont_family" not in columns:
+            conn.execute(text("ALTER TABLE fonts ADD COLUMN webfont_family VARCHAR(200) NULL"))
+            added.append("webfont_family")
+        if "webfont_css_url" not in columns:
+            conn.execute(text("ALTER TABLE fonts ADD COLUMN webfont_css_url VARCHAR(500) NULL"))
+            added.append("webfont_css_url")
+        if "webfont_weights" not in columns:
+            conn.execute(text("ALTER TABLE fonts ADD COLUMN webfont_weights VARCHAR(100) NULL"))
+            added.append("webfont_weights")
+    if added:
+        print(f"[migrate] fonts 웹폰트 컬럼 추가 완료: {added}")
 
 
 def _seed_admin(db: Session):
