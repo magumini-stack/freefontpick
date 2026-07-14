@@ -132,7 +132,16 @@ class FileUploadResponse(BaseModel):
     message: str = ""
 
 
-# ─────────── FontSubmission (무료폰트 제보) ───────────
+# ─────────── SubmissionAnswer (폰트 찾기 답변 — 누구나 작성) ───────────
+class AnswerOut(BaseModel):
+    id: int
+    nickname: str
+    content: str
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ─────────── FontSubmission (폰트 찾기) ───────────
 class SubmissionOut(BaseModel):
     id: int
     nickname: str
@@ -142,13 +151,14 @@ class SubmissionOut(BaseModel):
     image_path: Optional[str] = None
     status: str
     admin_reply: str = ""
+    answers: List[AnswerOut] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
     model_config = ConfigDict(from_attributes=True)
 
 
 class SubmissionUpdate(BaseModel):
-    """관리자 전용 — 상태/답변 수정"""
+    """관리자 전용 — 상태/답변 수정 (하위호환용, 더 이상 UI에서 사용 안 함)"""
     status: Optional[str] = None
     admin_reply: Optional[str] = None
 
