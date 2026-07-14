@@ -115,10 +115,12 @@ class AdminUser(Base):
 
 
 class FontSubmission(Base):
-    """무료폰트 제보 게시판.
+    """무료폰트 제보 게시판 — '폰트 찾기'.
 
-    로그인 없이 누구나 작성 가능. 이미지 1장 첨부 가능.
-    관리자가 상태(대기/검토완료/추가완료)를 관리.
+    로그인 없이 누구나 질문 작성 가능. 이미지 1장 첨부 가능.
+    답변도 로그인 없이 누구나 작성 가능(SubmissionAnswer). 관리자는 삭제만 관리.
+    status/admin_reply 컬럼은 과거 "관리자 전용 답변" 방식의 잔재로, 하위 호환을 위해
+    컬럼은 유지하되 더 이상 UI에서 사용하지 않는다.
     """
     __tablename__ = "font_submissions"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -127,13 +129,38 @@ class FontSubmission(Base):
     content = Column(Text, nullable=False, default="")
     link = Column(String(500), default="")
     image_path = Column(String(300))  # 저장된 이미지 파일명 (상대경로)
-    status = Column(String(20), nullable=False, default="pending")  # pending/reviewed/added
-    admin_reply = Column(Text, default="")
+    status = Column(String(20), nullable=False, default="pending")  # 더 이상 사용 안 함 (하위호환)
+    admin_reply = Column(Text, default="")  # 더 이상 사용 안 함 (하위호환) — SubmissionAnswer로 대체
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
+    answers = relationship(
+        "SubmissionAnswer", back_populates="submission",
+        cascade="all, delete-orphan", lazy="joined",
+        order_by="SubmissionAnswer.created_at",
+    )
+
     __table_args__ = (
         Index("idx_submissions_created", "created_at"),
+    )
+
+
+class SubmissionAnswer(Base):
+    """'폰트 찾기' 질문에 달리는 답변 — 로그인 없이 누구나 작성 가능.
+
+    관리자는 부적절한 답변을 삭제만 할 수 있다 (수정 권한 없음).
+    """
+    __tablename__ = "submission_answers"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    submission_id = Column(Integer, ForeignKey("font_submissions.id", ondelete="CASCADE"), nullable=False)
+    nickname = Column(String(50), nullable=False, default="익명")
+    content = Column(Text, nullable=False, default="")
+    created_at = Column(DateTime, server_default=func.now())
+
+    submission = relationship("FontSubmission", back_populates="answers")
+
+    __table_args__ = (
+        Index("idx_submission_answers_submission", "submission_id"),
     )
 
 
