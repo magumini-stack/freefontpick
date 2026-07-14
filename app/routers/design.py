@@ -1,7 +1,7 @@
 """디자인 페이지 라우터 — SEO/애드센스용 폰트별 고유 URL
 
 - /design/{font_id}  → 폰트별 title/description/canonical/OG/JSON-LD가 주입된 index.html
-- /find-font        → 폰트 찾아주세요 게시판 (SEO용 title/description 변경)
+- /find-font        → 폰트 찾기 게시판 (SEO용 title/description 변경)
 
 두 라우트 모두 실제 콘텐츠는 SPA(index.html)가 클라이언트에서 렌더한다.
 서버는 <head> 메타데이터만 폰트별로 치환해서, 검색엔진이 개별 페이지로 색인하게 한다.
@@ -116,11 +116,11 @@ def design_page(font_id: int, db: Session = Depends(get_db)):
 
 @router.get("/find-font", response_class=HTMLResponse)
 def find_font_page():
-    """폰트 찾아주세요 게시판 고유 URL — SEO용 title/description 치환"""
+    """폰트 찾기 게시판 고유 URL — SEO용 title/description 치환"""
     html = _load_index()
-    title = "폰트 찾아주세요 - 이미지로 폰트 이름 찾기 | 폰트픽"
-    desc = ("찾고 싶은 폰트 이미지를 올리면 폰트 이름을 찾아드립니다. "
-            "로그인 없이 무료로 질문하세요.")
+    title = "폰트 찾기 - 이미지로 폰트 이름 찾기 | 폰트픽"
+    desc = ("찾고 싶은 폰트 이미지를 올리면 다른 사용자들이 폰트 이름을 답변해드려요. "
+            "로그인 없이 무료로 질문하고 답변할 수 있습니다.")
     url = f"{BASE_URL}/find-font"
 
     html = re.sub(r"<title>.*?</title>", f"<title>{title}</title>",
