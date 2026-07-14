@@ -545,8 +545,31 @@
         </div>
       </div>
 
+      <div class="field meta-section" id="fmWebfontSection">
+        <div class="meta-header">
+          <label>
+            <i class="ti ti-brand-google" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i>
+            웹폰트 CDN 연결 (선택) <span class="meta-sub">— Google Fonts 등에 있는 폰트는 파일 업로드 없이 이 방식으로 등록할 수 있어요</span>
+          </label>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px">
+          <div style="flex:1;min-width:180px">
+            <div class="meta-label">Google Fonts 폰트 이름</div>
+            <input type="text" id="fmWebfontName" placeholder="예: Poppins" oninput="onWebfontNameInput()">
+          </div>
+          <button type="button" class="btn-secondary" onclick="autoFillWebfontUrl()">CSS URL 자동 생성</button>
+        </div>
+        <div class="meta-label">CSS URL</div>
+        <input type="text" id="fmWebfontCssUrl" placeholder="https://fonts.googleapis.com/css2?family=...&display=swap" style="width:100%;height:38px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 10px;font-size:12.5px;background:var(--bg-card);color:var(--text-primary);font-family:inherit;margin-bottom:10px">
+        <div class="meta-label" style="margin-bottom:6px">사용 가능한 굵기</div>
+        <div id="fmWebfontWeights" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">
+          <!-- JS로 100~900 체크박스 렌더링 -->
+        </div>
+        <div class="field-hint">폰트 이름을 입력하고 "CSS URL 자동 생성"을 누르면 표준 Google Fonts 주소가 채워져요. 다른 CDN(예: 눈누·자체 호스팅)이면 URL을 직접 입력해도 돼요. 굵기는 실제 Google Fonts 페이지에서 제공하는 굵기만 체크해주세요 — 없는 굵기를 체크하면 브라우저가 비슷하게 흉내만 냅니다.</div>
+      </div>
+
       <div class="field">
-        <label>폰트 파일 업로드 (미리보기용, 대표 굵기)</label>
+        <label>폰트 파일 업로드 (미리보기용, 대표 굵기) <span class="meta-sub">— 위에서 웹폰트를 연결했다면 생략해도 돼요</span></label>
         <div class="drop-zone" id="fmDropZone" onclick="document.getElementById('fmFileInput').click()">
           <i class="ti ti-cloud-upload" aria-hidden="true"></i>
           <p>클릭하거나 파일을 끌어다 놓기</p>
@@ -1227,6 +1250,9 @@ function openFontModal(){
   document.getElementById('fmPreviewText').value = '';
   document.getElementById('fmFileInput').value = '';
   renderFmTags();
+  document.getElementById('fmWebfontName').value = '';
+  document.getElementById('fmWebfontCssUrl').value = '';
+  renderWebfontWeightCheckboxes([]);
   // 새 폰트: 카테고리 선택 전엔 빈 메타로 시작 (사용자가 카테고리 선택하면 자동 채워짐)
   fmMeta = inferMetaFromTags([]);  // 기본값으로 비어있는 메타
   fmMetaAuto = JSON.parse(JSON.stringify(fmMeta));
@@ -1254,6 +1280,9 @@ function editFont(id){
   document.getElementById('fmPreviewText').value = (f.meta && f.meta.preview_text) || '';
   document.getElementById('fmFileInput').value = '';
   renderFmTags();
+  document.getElementById('fmWebfontName').value = f.webfontFamily || '';
+  document.getElementById('fmWebfontCssUrl').value = f.webfontCssUrl || '';
+  renderWebfontWeightCheckboxes(f.webfontWeights || []);
   // 기존 메타가 있으면 그것 사용, 없으면 카테고리로부터 추론
   if(f.meta){
     fmMeta = JSON.parse(JSON.stringify(f.meta));
@@ -1274,6 +1303,48 @@ function editFont(id){
 function closeFontModal(){
   document.getElementById('fontModal').classList.remove('open');
   document.body.style.overflow='';
+}
+
+/* ════════════════════════════════════════
+   웹폰트 CDN 연결 (Google Fonts 등 — 파일 업로드 없이 등록)
+════════════════════════════════════════ */
+const WEBFONT_WEIGHT_OPTIONS = [
+  [100,'Thin'],[200,'ExtraLight'],[300,'Light'],[400,'Regular'],[500,'Medium'],
+  [600,'SemiBold'],[700,'Bold'],[800,'ExtraBold'],[900,'Black'],
+];
+
+function renderWebfontWeightCheckboxes(selected){
+  const sel = new Set(selected || []);
+  const wrap = document.getElementById('fmWebfontWeights');
+  wrap.innerHTML = WEBFONT_WEIGHT_OPTIONS.map(([w, label]) => `
+    <label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer">
+      <input type="checkbox" class="fm-webfont-weight" value="${w}" ${sel.has(w) ? 'checked' : ''} style="margin:0">
+      ${w} ${label}
+    </label>
+  `).join('');
+}
+
+function getCheckedWebfontWeights(){
+  return [...document.querySelectorAll('.fm-webfont-weight:checked')].map(el => parseInt(el.value, 10));
+}
+
+function onWebfontNameInput(){
+  // 이름 입력 중에는 별도 동작 없음 — "CSS URL 자동 생성" 버튼을 눌러야 채워짐
+}
+
+function autoFillWebfontUrl(){
+  const name = document.getElementById('fmWebfontName').value.trim();
+  if(!name){ showToast('Google Fonts 폰트 이름을 먼저 입력해주세요'); return; }
+  // 아직 하나도 안 골랐으면 기본으로 전체 굵기 체크 (실제 지원 안 하는 굵기는 이후 해제)
+  if(getCheckedWebfontWeights().length === 0){
+    renderWebfontWeightCheckboxes(WEBFONT_WEIGHT_OPTIONS.map(w => w[0]));
+  }
+  const weights = getCheckedWebfontWeights().sort((a,b)=>a-b);
+  const familyParam = name.replace(/\s+/g, '+');
+  const wghtParam = weights.length ? `:wght@${weights.join(';')}` : '';
+  const url = `https://fonts.googleapis.com/css2?family=${familyParam}${wghtParam}&display=swap`;
+  document.getElementById('fmWebfontCssUrl').value = url;
+  showToast('CSS URL을 채웠어요 — 실제 지원하는 굵기만 남기고 체크 해제해주세요');
 }
 
 /* ════════════════════════════════════════
@@ -1598,13 +1669,21 @@ async function saveFont(){
   // stack 기본값 추정 (업로드 파일이 있으면 메인 페이지에서 family 자동 prefix됨)
   const stack = "'Nanum Gothic',sans-serif";
 
+  // 웹폰트 CDN 연결 (선택)
+  const webfontFamily = document.getElementById('fmWebfontName').value.trim();
+  const webfontCssUrl = document.getElementById('fmWebfontCssUrl').value.trim();
+  const webfontWeights = getCheckedWebfontWeights();
+
   let saved;
   try {
     if(editingId){
       saved = await FontStore.update(editingId, {name,maker,weights,url,tags,meta,primaryWeight,
+        webfontFamily, webfontCssUrl, webfontWeights,
         hasFile: pendingFile ? true : undefined});
     } else {
-      saved = await FontStore.add({name,maker,weights,url,stack,tags,meta,primaryWeight, hasFile: !!pendingFile});
+      saved = await FontStore.add({name,maker,weights,url,stack,tags,meta,primaryWeight,
+        webfontFamily, webfontCssUrl, webfontWeights,
+        hasFile: !!pendingFile});
     }
   } catch (e) {
     console.error('폰트 저장 실패:', e);

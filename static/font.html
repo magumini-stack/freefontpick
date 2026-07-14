@@ -292,6 +292,29 @@
     }
     return wf || null;
   }
+
+  /* 어드민에서 등록한 DB 웹폰트(webfont_family/webfont_css_url/webfont_weights)를
+     하드코딩된 WEBFONT_MAP보다 우선 사용. Google Fonts 등을 파일 업로드 없이
+     연결할 수 있게 해주는 기능(2026-07 추가)의 프론트엔드 쪽. */
+  var WEIGHT_LABEL_KO = {100:'Thin',200:'ExtraLight',300:'Light',400:'Regular',500:'Medium',600:'SemiBold',700:'Bold',800:'ExtraBold',900:'Black'};
+  var _dbWebfontLoaded = {};
+  function resolveWebfont(f){
+    if (f && f.webfont_family){
+      if (f.webfont_css_url && !_dbWebfontLoaded[f.webfont_family]){
+        _dbWebfontLoaded[f.webfont_family] = true;
+        var l = document.createElement('link');
+        l.rel = 'stylesheet'; l.href = f.webfont_css_url;
+        document.head.appendChild(l);
+      }
+      var ws = (f.webfont_weights && f.webfont_weights.length) ? f.webfont_weights : [400];
+      return {
+        family: "'" + f.webfont_family + "'",
+        css: null,
+        weights: ws.map(function(w){ return [w, WEIGHT_LABEL_KO[w] || String(w)]; }),
+      };
+    }
+    return webfontOf(f ? f.name : '');
+  }
   var m = location.pathname.match(/\/font\/(\d+)/);
   var fid = m ? parseInt(m[1], 10) : null;
   if (!fid) { location.href = '/'; return; }
@@ -318,7 +341,7 @@
   var pairLoaded = {};
   function ensureFontForPair(f, weight){
     if (!f) return "'Nanum Gothic',sans-serif";
-    var wf = webfontOf(f.name);
+    var wf = resolveWebfont(f);
     if (wf){
       return wf.family + ',' + (f.stack || "'Nanum Gothic',sans-serif");
     }
@@ -348,6 +371,9 @@
   }
 
   function stackOf(f){
+    if (f && f.webfont_family){
+      return "'" + f.webfont_family + "'," + (f.stack || "'Nanum Gothic',sans-serif");
+    }
     var base = f.stack || "'Nanum Gothic',sans-serif";
     if (!f.has_file) return base;
     var fam = "FFP-" + String(f.id).padStart(3, '0');
@@ -454,8 +480,16 @@
         .then(function(ws){ FILE_WEIGHTS = ws || []; return f; });
     })
     .then(function(f){
-      if (FILE_WEIGHTS.length > 0) registerWeightFaces(f.id, FILE_WEIGHTS);
-      else ensureFont({ id: f.id, has_file: f.has_file });
+      if (f.webfont_family && f.webfont_css_url) {
+        // 웹폰트 CDN 소스 (Google Fonts 등) — 로컬 파일 @font-face 등록 불필요
+        var l = document.createElement('link');
+        l.rel = 'stylesheet'; l.href = f.webfont_css_url;
+        document.head.appendChild(l);
+      } else if (FILE_WEIGHTS.length > 0) {
+        registerWeightFaces(f.id, FILE_WEIGHTS);
+      } else {
+        ensureFont({ id: f.id, has_file: f.has_file });
+      }
       document.title = f.name + ' 무료폰트 다운로드 - 어울리는 폰트 조합까지 | 폰트픽';
       document.getElementById('crumbName').textContent = f.name;
       document.getElementById('fontName').textContent = f.name;
