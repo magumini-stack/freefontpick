@@ -242,6 +242,54 @@ _MOOD_THEME_HINTS = {
     "독특한": ["포인트", "손글씨"],
 }
 
+# 산업(industry) → 테마 키워드
+# 어드민에 이미 촘촘히 등록돼 있어서, usage/mood와 함께 반영하면 테마 분산 효과가 크다.
+_INDUSTRY_THEME_HINTS = {
+    "카페": ["감성", "브랜딩", "메뉴"],
+    "푸드": ["메뉴", "브랜딩", "감성"],
+    "뷰티": ["감성", "브랜딩", "웨딩"],
+    "패션": ["브랜딩", "감성", "미니멀"],
+    "키즈": ["키즈", "반려동물"],
+    "교육": ["카드뉴스", "안내", "관공서"],
+    "헬스케어": ["안내", "관공서", "본문"],
+    "IT": ["미니멀", "본문", "UI"],
+    "공공기관": ["관공서", "안내", "시니어"],
+    "이벤트": ["이벤트", "프로모션", "배너", "슬로건"],
+    "출판": ["매거진", "블로그", "본문"],
+}
+
+# 성격(personality) → 테마 키워드
+_PERSONALITY_THEME_HINTS = {
+    "중성적": ["본문", "미니멀"],
+    "남성적": ["슬로건", "썸네일", "이벤트"],
+    "여성적": ["웨딩", "감성", "브랜딩"],
+    "어린이": ["키즈", "반려동물"],
+    "전통적": ["관공서", "매거진", "웨딩"],
+    "현대적": ["미니멀", "본문", "UI"],
+    "복고적": ["감성", "브랜딩"],
+    "미래적": ["미니멀", "슬로건", "이벤트"],
+    "강한": ["슬로건", "썸네일", "이벤트", "포스터"],
+}
+
+# 격식(formality) → 테마 키워드
+_FORMALITY_THEME_HINTS = {
+    "매우 격식": ["관공서", "웨딩", "매거진"],
+    "격식": ["관공서", "본문", "안내"],
+    "중간": ["본문", "카드뉴스", "브랜딩"],
+    "캐주얼": ["브이로그", "SNS", "릴스"],
+    "매우 캐주얼": ["키즈", "릴스", "반려동물"],
+}
+
+# 영문 전용 카테고리 태그 — 이 태그가 붙은 폰트는 영문 폰트로 간주하고
+# 한글 폰트와의 자동 페어링에서 제외한다 (반대 방향도 마찬가지).
+_ENGLISH_ONLY_TAGS = {"디자인 영어", "디자이너 필수 영문"}
+
+
+def _is_english_only(font: "Font") -> bool:
+    """카테고리 태그로 이 폰트가 영문 전용인지 판별."""
+    tags = {t.name for t in (font.tags or [])}
+    return bool(tags & _ENGLISH_ONLY_TAGS)
+
 
 # 카테고리 태그가 제목/본문 어느 쪽에 더 잘 맞는지에 대한 힌트.
 # 메타(무드/용도 등)가 부실해도 어드민이 직접 고른 태그는 대체로 신뢰도가 높다.
@@ -374,13 +422,21 @@ def _collect_theme_samples(db: Session) -> dict:
 
 
 def _theme_candidates_for(meta_a: dict, meta_b: dict, available_themes: list) -> list:
-    """두 폰트의 usage/mood를 근거로, 실제 등록된 테마 중 어울리는 것들을
-    우선순위 순으로 반환한다. 하나도 못 맞추면 전체 테마를 반환(폴백)."""
+    """두 폰트의 usage/mood/industry/personality/formality를 근거로,
+    실제 등록된 테마 중 어울리는 것들을 우선순위 순으로 반환한다.
+    하나도 못 맞추면 전체 테마를 반환(폴백)."""
     hints = []
     for u in (meta_a.get("usage") or []) + (meta_b.get("usage") or []):
         hints += _USAGE_THEME_HINTS.get(u, [])
     for mood in (meta_a.get("mood") or []) + (meta_b.get("mood") or []):
         hints += _MOOD_THEME_HINTS.get(mood, [])
+    for ind in (meta_a.get("industry") or []) + (meta_b.get("industry") or []):
+        hints += _INDUSTRY_THEME_HINTS.get(ind, [])
+    for per in (meta_a.get("personality") or []) + (meta_b.get("personality") or []):
+        hints += _PERSONALITY_THEME_HINTS.get(per, [])
+    for f in (meta_a.get("formality"), meta_b.get("formality")):
+        if f:
+            hints += _FORMALITY_THEME_HINTS.get(f, [])
 
     matched, seen = [], set()
     for kw in hints:
@@ -438,7 +494,10 @@ def auto_generate_pairings(
     if not anchor:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
 
+    # 언어 필터: 한글 폰트끼리, 영문 폰트끼리만 페어링
+    anchor_is_english = _is_english_only(anchor)
     candidates = db.query(Font).filter(Font.id != font_id).all()
+    candidates = [c for c in candidates if _is_english_only(c) == anchor_is_english]
 
     theme_pool = _collect_theme_samples(db)
     available_themes = list(theme_pool.keys())
