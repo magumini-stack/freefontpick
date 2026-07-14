@@ -3,11 +3,11 @@
 - GET /api/pairings                 : 전체 페어링 (테마별 정렬) — 공개
 - GET /api/fonts/{font_id}/pairings : 특정 폰트가 포함된 페어링 — 공개
 - GET /api/pairings/themes          : 전체 테마 이름 목록 — 공개 (어드민 드롭다운용)
-- GET /api/pairings/auto-generate   : 메타 기반 자동 조합 추천 (미리보기, 저장 안 함) — 공개
 - POST /api/pairings                : 페어링 생성 — 관리자
 - PATCH /api/pairings/{id}          : 페어링 수정 — 관리자
 - DELETE /api/pairings/{id}         : 페어링 삭제 — 관리자
 """
+import random
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_
@@ -241,7 +241,46 @@ _MOOD_THEME_HINTS = {
 }
 
 
-def _title_fit(meta: dict) -> float:
+# 카테고리 태그가 제목/본문 어느 쪽에 더 잘 맞는지에 대한 힌트.
+# 메타(무드/용도 등)가 부실해도 어드민이 직접 고른 태그는 대체로 신뢰도가 높다.
+_TAG_TITLE_HINTS = {
+    "시선을 끄는 제목용", "유튜브 썸네일 추천", "로고디자인", "독특한",
+    "캘리그라피", "펜시", "귀여운", "꽉찬고딕",
+}
+_TAG_BODY_HINTS = {
+    "가독성 좋은 고딕", "정보전달 본문용", "UI/UX/Web", "부드러운 명조",
+    "부드러운 굴림", "또박또박 손글씨", "카드뉴스용",
+}
+
+# 태그로부터 대략적인 서체 모양(세리프/산세리프/손글씨/디스플레이)을 추정.
+# 같은 모양끼리는 톤이 자연스럽게 어울리고, display 계열은 제목에, serif/sans는
+# 본문 가독성에 강점이 있다는 일반적인 타이포그래피 관행을 반영한다.
+_SHAPE_TAG_MAP = {
+    "부드러운 명조": "serif",
+    "가독성 좋은 고딕": "sans", "꽉찬고딕": "sans", "부드러운 굴림": "sans", "UI/UX/Web": "sans",
+    "또박또박 손글씨": "script", "캘리그라피": "script", "펜시": "script", "귀여운": "script",
+    "시선을 끄는 제목용": "display", "유튜브 썸네일 추천": "display", "로고디자인": "display",
+}
+
+
+def _font_tags(font: Font) -> list:
+    return [t.name for t in (font.tags or [])]
+
+
+def _font_shape(tags: list) -> str:
+    counts: dict = {}
+    for t in tags:
+        shape = _SHAPE_TAG_MAP.get(t)
+        if shape:
+            counts[shape] = counts.get(shape, 0) + 1
+    if not counts:
+        return ""
+    return max(counts, key=counts.get)
+
+
+def _title_fit(font: Font) -> float:
+    meta = font.meta or {}
+    tags = _font_tags(font)
     usage = set(meta.get("usage") or [])
     score = 0.0
     if usage & _TITLE_USAGE:
@@ -252,10 +291,20 @@ def _title_fit(meta: dict) -> float:
         score += 2
     if usage & _BODY_USAGE:
         score -= 1
+    # A: 카테고리 태그 반영
+    score += 2.0 * len(set(tags) & _TAG_TITLE_HINTS)
+    # D: 모양 축 — display/script 계열은 제목에 강점
+    shape = _font_shape(tags)
+    if shape == "display":
+        score += 2
+    elif shape == "script":
+        score += 1
     return score
 
 
-def _body_fit(meta: dict) -> float:
+def _body_fit(font: Font) -> float:
+    meta = font.meta or {}
+    tags = _font_tags(font)
     usage = set(meta.get("usage") or [])
     score = 0.0
     if usage & _BODY_USAGE:
@@ -266,10 +315,17 @@ def _body_fit(meta: dict) -> float:
         score += 1
     if usage & {"제목", "로고", "썸네일"}:
         score -= 1
+    # A: 카테고리 태그 반영
+    score += 2.0 * len(set(tags) & _TAG_BODY_HINTS)
+    # D: 모양 축 — 세리프/산세리프 계열은 본문 가독성에 강점
+    shape = _font_shape(tags)
+    if shape in ("serif", "sans"):
+        score += 1.5
     return score
 
 
-def _cohesion(meta_a: dict, meta_b: dict) -> float:
+def _cohesion(font_a: Font, font_b: Font) -> float:
+    meta_a, meta_b = font_a.meta or {}, font_b.meta or {}
     score = 0.0
     for dim in ("mood", "usage", "industry"):
         a = set(meta_a.get(dim) or [])
@@ -281,6 +337,13 @@ def _cohesion(meta_a: dict, meta_b: dict) -> float:
             score += 2
         elif {fa, fb} == {"격식", "캐주얼"}:
             score -= 2
+    # A: 카테고리 태그 겹침도 궁합 점수에 반영 (메타가 비어있는 폰트도 구제)
+    tags_a, tags_b = set(_font_tags(font_a)), set(_font_tags(font_b))
+    score += 1.5 * len(tags_a & tags_b)
+    # D: 같은 모양 계열이면 톤이 자연스럽게 어울림
+    shape_a, shape_b = _font_shape(list(tags_a)), _font_shape(list(tags_b))
+    if shape_a and shape_a == shape_b:
+        score += 1
     return score
 
 
@@ -356,6 +419,15 @@ def auto_generate_pairings(
     """anchor 폰트(font_id)를 기준으로, 전체 폰트 중 메타/태그 궁합이 좋은 상대를 찾아
     제목+본문 조합 후보를 점수순으로 반환한다 (저장은 하지 않음 — 미리보기 전용).
 
+    - A: 카테고리 태그(어드민이 직접 고른 값)를 메타와 함께 매칭에 반영해
+      메타가 부실한 폰트도 정당하게 후보에 오르도록 한다.
+    - B: 이미 페어링에 많이 쓰인 "단골 폰트"는 노출 점수를 살짝 깎아
+      새 폰트가 골고루 추천되게 한다.
+    - C: 동점권에서는 매번 다른 조합이 나오도록 약한 무작위 지터를 더한다
+      (완전 무작위가 아니라 상위권 내에서만 순서가 흔들리는 정도).
+    - D: 태그로 추정한 서체 모양(세리프/산세리프/손글씨/디스플레이) 축을
+      제목/본문 적합도와 궁합 점수에 반영한다.
+
     테마와 샘플 문구는 DB에 이미 등록된 페어링들에서 수집한 풀에서 뽑아,
     후보마다 서로 다른 테마·문구가 배정되도록 한다(중복 최소화).
     최소 3개 이상을 목표로 하되, 후보 폰트가 3개 미만이면 있는 만큼만 반환한다.
@@ -365,18 +437,36 @@ def auto_generate_pairings(
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
 
     candidates = db.query(Font).filter(Font.id != font_id).all()
-    anchor_meta = anchor.meta or {}
 
     theme_pool = _collect_theme_samples(db)
     available_themes = list(theme_pool.keys())
 
+    # B: 폰트별 기존 페어링 등장 횟수 (단골 폰트 노출 억제용)
+    usage_counts: dict = {}
+    for (a, b) in db.query(FontPairing.title_font_id, FontPairing.body_font_id).all():
+        usage_counts[a] = usage_counts.get(a, 0) + 1
+        usage_counts[b] = usage_counts.get(b, 0) + 1
+
+    def _popularity_penalty(fid: int) -> float:
+        return min(usage_counts.get(fid, 0) * 0.6, 4.0)
+
+    JITTER = 1.2  # C: 동점권 다양성용 무작위 폭
+
     scored = []
     for other in candidates:
-        other_meta = other.meta or {}
-        cohesion = _cohesion(anchor_meta, other_meta)
-        score_a_title = _title_fit(anchor_meta) + _body_fit(other_meta) + cohesion
+        cohesion = _cohesion(anchor, other)
+        pen = _popularity_penalty(other.id)
+
+        score_a_title = (
+            _title_fit(anchor) + _body_fit(other) + cohesion
+            - pen + random.uniform(-JITTER, JITTER)
+        )
         scored.append((score_a_title, anchor, other))
-        score_a_body = _title_fit(other_meta) + _body_fit(anchor_meta) + cohesion
+
+        score_a_body = (
+            _title_fit(other) + _body_fit(anchor) + cohesion
+            - pen + random.uniform(-JITTER, JITTER)
+        )
         scored.append((score_a_body, other, anchor))
 
     scored.sort(key=lambda x: x[0], reverse=True)
