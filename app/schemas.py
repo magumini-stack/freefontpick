@@ -33,6 +33,10 @@ class FontBase(BaseModel):
     stack: str = "'Nanum Gothic',sans-serif"
     is_english: bool = False
     primary_weight: int = 400
+    # 웹폰트 CDN 소스 (Google Fonts 등) — 채워져 있으면 파일 업로드 없이 프론트가 이 값으로 로드
+    webfont_family: Optional[str] = None
+    webfont_css_url: Optional[str] = None
+    webfont_weights: List[int] = Field(default_factory=list)
 
 
 class FontCreate(FontBase):
@@ -48,6 +52,9 @@ class FontUpdate(BaseModel):
     stack: Optional[str] = None
     is_english: Optional[bool] = None
     primary_weight: Optional[int] = None
+    webfont_family: Optional[str] = None
+    webfont_css_url: Optional[str] = None
+    webfont_weights: Optional[List[int]] = None
     tags: Optional[List[str]] = None
     meta: Optional[Dict[str, Any]] = None
     sort_order: Optional[int] = None
@@ -196,5 +203,5 @@ class PairingUpdate(BaseModel):
 class FontWeightOut(BaseModel):
     weight: int
     label: str = ""
-    source: str = "extra"  # "primary" | "extra" | "legacy" (기존 매니페스트 기반)
+    source: str = "extra"  # "primary" | "extra" | "legacy" | "webfont"
     has_file: bool = True
