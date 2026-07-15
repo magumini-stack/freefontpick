@@ -542,6 +542,12 @@
               <input type="text" id="fmSummary" placeholder="예: 둥글고 다정한 인상의 본문 폰트" maxlength="80">
             </div>
           </div>
+          <div class="meta-col-row">
+            <div class="meta-summary-wrap">
+              <div class="meta-label">폰트 소개글 (상세페이지 태그 아래에 표시 · 비워두면 안 나옴)</div>
+              <textarea id="fmIntro" rows="3" maxlength="500" placeholder="예: 창원단감아삭체는 창원시 대표 특산물인 단감을 모티브로 만든 서체로, 둥글둥글한 형태가 특징입니다." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px;font-family:inherit;resize:vertical"></textarea>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1603,6 +1609,8 @@ function renderMetaSection(){
   }
   // summary
   document.getElementById('fmSummary').value = fmMeta.summary || '';
+  // intro (폰트 소개글)
+  document.getElementById('fmIntro').value = fmMeta.intro || '';
 }
 
 function toggleMetaChip(dim, val, el){
@@ -1624,8 +1632,10 @@ function setMetaSingle(dim, val, el){
 function resetMetaFromCategories(){
   const tags = [...fmSelectedTags];
   if(!tags.length){ showToast('먼저 카테고리를 선택해주세요'); return; }
+  const keepIntro = fmMeta && fmMeta.intro;
   fmMetaAuto = inferMetaFromTags(tags);
   fmMeta = JSON.parse(JSON.stringify(fmMetaAuto));
+  if(keepIntro) fmMeta.intro = keepIntro;
   // summary input 갱신 위해
   document.getElementById('fmSummary').value = fmMeta.summary;
   renderMetaSection();
@@ -1660,6 +1670,10 @@ async function saveFont(){
   const meta = fmMeta ? JSON.parse(JSON.stringify(fmMeta)) : inferMetaFromTags(tags);
   const summaryInput = document.getElementById('fmSummary').value.trim();
   if(summaryInput) meta.summary = summaryInput;
+  // 폰트 소개글 — 비워두면 키 자체를 지워서 상세페이지에 안 나오게 함
+  const introInput = document.getElementById('fmIntro').value.trim();
+  if(introInput) meta.intro = introInput;
+  else delete meta.intro;
 
   // 갤러리 미리보기 문구 반영 (비우면 자동 배정되도록 키 제거)
   const previewTextInput = document.getElementById('fmPreviewText').value.trim();

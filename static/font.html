@@ -61,6 +61,7 @@
   .tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
   .tag{font-size:12px;padding:5px 11px;border-radius:100px;background:var(--bg-secondary);color:var(--text-secondary)}
   .tag.hot{background:var(--accent-light);color:var(--accent);font-weight:700}
+  .font-intro{margin-top:14px;font-size:14.5px;line-height:1.7;color:var(--text-secondary);white-space:pre-line}
 
   .tryout{margin-top:18px}
   .tryout input{width:100%;font-family:inherit;font-size:16px;padding:14px 18px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:var(--bg-card);color:var(--text-primary)}
@@ -211,6 +212,7 @@
         <span class="foundry" id="fontMaker"></span>
       </div>
       <div class="tags" id="fontTags"></div>
+      <p class="font-intro hidden" id="fontIntro"></p>
     </div>
 
     <!-- ① 미리 써보기 -->
@@ -492,8 +494,18 @@
       }
       document.title = f.name + ' 무료폰트 다운로드 - 어울리는 폰트 조합까지 | 폰트픽';
       document.getElementById('crumbName').textContent = f.name;
-      document.getElementById('fontName').textContent = f.name;
+      var fontNameEl = document.getElementById('fontName');
+      fontNameEl.textContent = f.name;
+      fontNameEl.style.fontFamily = stackOf(f);
       document.getElementById('fontMaker').textContent = (f.maker || '') + ' 배포';
+      var introEl = document.getElementById('fontIntro');
+      var introText = (f.meta && f.meta.intro) ? String(f.meta.intro).trim() : '';
+      if (introText) {
+        introEl.textContent = introText;
+        introEl.classList.remove('hidden');
+      } else {
+        introEl.classList.add('hidden');
+      }
       var tags = ['<span class="tag hot">상업적 사용 가능</span>'];
       (f.tags || []).forEach(function(t){ tags.push('<span class="tag">' + esc(t) + '</span>'); });
       tags.push('<span class="tag">' + esc(f.weights || '1종') + '</span>');
