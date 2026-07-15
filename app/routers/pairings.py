@@ -37,7 +37,11 @@ def _font_brief(f: Font) -> dict:
     }
 
 
-def _to_out(p: FontPairing) -> dict:
+def _to_out(p: FontPairing):
+    # 참조하던 폰트가 삭제/재등록으로 사라진 orphan 페어링은 응답에서 제외.
+    # (없으면 /api/pairings가 500을 뱉어 어드민 전체가 로딩 실패했다.)
+    if p.title_font is None or p.body_font is None:
+        return None
     return {
         "id": p.id,
         "theme": p.theme,
@@ -59,7 +63,7 @@ def list_pairings(db: Session = Depends(get_db)) -> List[dict]:
         .order_by(FontPairing.sort_order, FontPairing.id)
         .all()
     )
-    return [_to_out(p) for p in rows]
+    return [d for d in (_to_out(p) for p in rows) if d]
 
 
 @router.get("/pairings/themes")
@@ -98,7 +102,7 @@ def font_pairings(font_id: int, db: Session = Depends(get_db)) -> List[dict]:
         return False
 
     rows.sort(key=lambda p: (0 if _is_weight_showcase(p) else 1, p.sort_order, p.id))
-    return [_to_out(p) for p in rows]
+    return [d for d in (_to_out(p) for p in rows) if d]
 
 
 @router.get("/debug/font-audit")
@@ -196,6 +200,28 @@ def delete_pairing(
         raise HTTPException(status_code=404, detail="페어링을 찾을 수 없습니다")
     db.delete(p)
     db.commit()
+
+
+@router.post("/pairings/purge-orphans")
+def purge_orphan_pairings(
+    db: Session = Depends(get_db),
+    _admin=Depends(require_password_changed),
+) -> dict:
+    """참조하던 폰트가 사라진(삭제/재등록으로 ID가 바뀐) orphan 페어링을 일괄 삭제.
+
+    폰트 삭제 시 페어링을 CASCADE로 정리하지 않는 스키마 특성상,
+    폰트를 삭제하면 그 폰트를 title/body로 쓰던 페어링이 orphan으로 남아
+    /api/pairings 응답 생성 시 500을 유발한다. 응답 단계에서는 조용히 걸러내지만,
+    DB에도 남아 있으면 어드민 카운트가 부풀고 관리가 어려우므로 이 엔드포인트로 정리한다.
+    """
+    all_pairings = db.query(FontPairing).all()
+    removed_ids = []
+    for p in all_pairings:
+        if p.title_font is None or p.body_font is None:
+            removed_ids.append(p.id)
+            db.delete(p)
+    db.commit()
+    return {"removed": len(removed_ids), "ids": removed_ids}
 
 
 # ═══════════════════════════════════════════════════════
