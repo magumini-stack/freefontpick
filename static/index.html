@@ -1472,19 +1472,37 @@ function handlePreviewBlur(el){
   }
 }
 
-function setTag(tag,el){
+function setTag(tag, el, pushHash){
+  if(pushHash === undefined) pushHash = true;
   currentTag=tag;
   document.querySelectorAll('.tag').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  // 카테고리 클릭 시: 검색창 클리어 + hash 초기화 (홈 상태)
+  if(el){
+    el.classList.add('active');
+  } else {
+    // route()에서 복원 호출한 경우 — 태그 이름으로 버튼을 찾아 활성화
+    const label = (tag === 'all') ? '전체' : tag;
+    const btn = [...document.querySelectorAll('.tag')].find(t => t.textContent === label);
+    if(btn) btn.classList.add('active');
+  }
+  // 카테고리 클릭 시: 검색창 클리어
   const input = document.getElementById('globalSearch');
   if(input && input.value){
     input.value = '';
   }
-  if(location.hash.startsWith('#search/')){
-    history.replaceState(null, '', location.pathname + location.search);
-  }
   renderFonts();
+
+  // 브라우저 히스토리에 카테고리 상태 push
+  // - 첫 카테고리 클릭: '#tag/xxx' push → 뒤로가기 시 전체(홈)로 복귀
+  // - 이후 다른 카테고리 클릭: 매번 push → 뒤로가기로 이전 카테고리 순회
+  // - '전체' 클릭: hash 비움 → 뒤로가기 시 이전 상태(검색/다른 태그)로 복귀
+  if(pushHash){
+    const newHash = (tag === 'all') ? '' : '#tag/' + encodeURIComponent(tag);
+    const currentHash = location.hash;
+    if(newHash !== currentHash){
+      const target = newHash || (location.pathname + location.search);
+      history.pushState({tag: tag}, '', target);
+    }
+  }
 }
 
 /* 검색창 입력: 디바운스 후 hash 동기화 (뒤로가기로 복귀 가능) */
@@ -3262,6 +3280,15 @@ async function route(){
     // hash로부터 검색어 복원
     const query = decodeURIComponent(hash.slice('#search/'.length));
     applySearch(query, /*pushHash*/ false);
+  } else if(hash.startsWith('#tag/')){
+    // 뒤로/앞으로가기로 카테고리 상태 복원
+    showHomeView();
+    noticeMenu.classList.remove('active');
+    submitMenu.classList.remove('active');
+    mNoticeMenu.classList.remove('active');
+    mSubmitMenu.classList.remove('active');
+    const tagName = decodeURIComponent(hash.slice('#tag/'.length));
+    setTag(tagName, null, /*pushHash*/ false);
   } else {
     showHomeView();
     noticeMenu.classList.remove('active');
