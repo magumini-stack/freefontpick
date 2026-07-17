@@ -1165,9 +1165,9 @@
         <div class="designer-subpanel" data-dsubpanel="arc">
           <div class="arc-panel">
             <div class="arc-slider-row">
-              <span class="arc-cap" aria-hidden="true">&#8746;</span>
-              <input type="range" id="dsArc" min="-100" max="100" value="0" step="1" aria-label="곡선 정도">
-              <span class="arc-cap" aria-hidden="true">&#8745;</span>
+              <span class="arc-cap" aria-hidden="true">&#8212;</span>
+              <input type="range" id="dsArc" min="0" max="100" value="0" step="1" aria-label="곡선 정도">
+              <span class="arc-cap" aria-hidden="true">&#9711;</span>
             </div>
             <div class="arc-meta">
               <span class="arc-val" id="dsArcVal">직선</span>
@@ -3934,7 +3934,7 @@ function dsSyncUI(){
     if(+arcEl.value !== dsState.arc) arcEl.value = dsState.arc;
     const vEl=document.getElementById('dsArcVal');
     if(vEl) vEl.textContent = dsState.arc===0 ? '직선'
-      : (dsState.arc>0 ? '위로 볼록 '+dsState.arc : '아래로 볼록 '+Math.abs(dsState.arc));
+      : (dsState.arc>=100 ? '완전한 원' : '곡률 '+dsState.arc+'%');
     /* 곡선 ON일 때 충돌 항목(밑줄/하이라이트) 비활성 */
     const on = dsState.arc!==0;
     if(ut){ ut.disabled=on; ut.style.opacity=on?.4:1; ut.style.pointerEvents=on?'none':''; }
@@ -4021,11 +4021,13 @@ function dsDraw(){
 
 /* ── 곡선(라운드) 렌더링 ──
    동심원(concentric) 방식: 모든 줄이 같은 중심점을 공유한다.
-   arc > 0 → 위로 볼록(∩, 중심이 아래) / arc < 0 → 아래로 볼록(∪, 중심이 위)  */
+   위로 볼록(∩) 단일 방향만 지원 — 한글은 U자(아래로 볼록) 방향에서
+   글자 모양 특성상 겹침이 심해 자연스럽지 않아 제외했다.
+   arc=100(%) 이면 가장 넓은 줄이 원 둘레를 정확히 한 바퀴(360°) 돈다. */
 function dsDrawArc(canvas, ctx, o){
   const {lines, lh, fontSpec, fontSize, eff, fillColor, fillGradient, outlineColor, outlineW} = o;
-  const arch = dsState.arc > 0;
-  const mag  = Math.abs(dsState.arc)/100;
+  const arch = true;
+  const mag  = dsState.arc/100;
   const sp   = dsState.spacing;
   const ascent = fontSize*0.88, descent = fontSize*0.28, pad = 34;
 
@@ -4041,12 +4043,12 @@ function dsDrawArc(canvas, ctx, o){
   const maxW = Math.max(...L.map(l=>l.total), 10);
   const n = lines.length;
 
-  /* 반지름: 슬라이더 100% = 가장 넓은 줄이 약 207° 를 돈다 */
-  const theta = mag * Math.PI * 1.15;
+  /* 반지름: 슬라이더 100% = 가장 넓은 줄이 360°(완전한 원)를 돈다 */
+  const theta = Math.max(mag * Math.PI * 2, 0.0001);
   let R1 = maxW / theta;
   const minInner = fontSize*0.9;
   /* 안쪽 줄의 반지름이 0 이하로 뒤집히지 않도록 보호 */
-  R1 = arch ? Math.max(R1, (n-1)*lh + minInner) : Math.max(R1, minInner);
+  R1 = Math.max(R1, (n-1)*lh + minInner);
 
   const cy = arch ? R1 : -R1;   /* 첫 줄 베이스라인을 y=0 에 두었을 때의 중심 y */
 
