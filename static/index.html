@@ -2754,9 +2754,9 @@ function renderFonts(){
       </div>
       <div class="font-tags-row">${pairPill}${tagPills}</div>
       <div class="font-actions">
-        <button class="btn-download" type="button" onclick="event.stopPropagation();goFontDetail(${f.id})" aria-label="${f.name} 상세 페이지로 이동" title="미리 써보기 · 어울리는 조합 · 다운로드">
+        <a class="btn-download" href="/font/${f.id}" onclick="event.stopPropagation();stashPreviewText(${f.id})" aria-label="${f.name} 상세 페이지로 이동" title="미리 써보기 · 어울리는 조합 · 다운로드">
           <i class="ti ti-arrow-right" aria-hidden="true"></i> 자세히 보기
-        </button>
+        </a>
         <button class="btn-like${liked?' liked':''}" id="like-${f.id}" onclick="toggleLike(${f.id})" aria-label="좋아요${liked?' (선택됨)':''}" aria-pressed="${liked}">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 22h2a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H2zM22 11.5a2 2 0 0 0-2-2h-5.5l1-4.8.03-.34a1.5 1.5 0 0 0-.43-1.06L14.34 2 8 8.5V20a2 2 0 0 0 2 2h7a2 2 0 0 0 2-1.5z" stroke-linejoin="round" stroke-linecap="round"/></svg>
           <span id="like-count-${f.id}">${count}</span>
@@ -2895,12 +2895,15 @@ function ensureFontLoaded(id){
 /* ── 폰트 상세페이지 이동 ──
    카드의 현재 미리보기 문구를 sessionStorage로 넘겨서
    상세페이지 '미리 써보기'에 그대로 이어지게 한다. */
-function goFontDetail(id){
+function stashPreviewText(id){
   try{
     const card = document.querySelector(`.font-card[data-font-id="${id}"] .font-preview-text`);
     const txt = card ? card.textContent.trim() : (typeof getPreviewText==='function' ? getPreviewText() : '');
     if(txt) sessionStorage.setItem('ffp_preview_text', txt);
   }catch(e){}
+}
+function goFontDetail(id){
+  stashPreviewText(id);
   location.href = '/font/' + id;
 }
 function cardNavigate(e, id){
