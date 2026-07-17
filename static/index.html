@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script>
+    (function(){
+      try{
+        var t = localStorage.getItem('ffp-theme');
+        if(t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+      }catch(e){}
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google-adsense-account" content="ca-pub-6258337579944977">
@@ -118,14 +126,54 @@
       --accent:#FF5C35;--accent-light:#FFF0EC;--accent-hover:#E84A25;
       --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
       --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
+      --status-allow-bg:#E8F7EE;--status-allow-fg:#1A8A3A;
+      --status-deny-bg:#FDECEC;--status-deny-fg:#C8281F;
+      --status-reviewed-bg:#FFF4E0;--status-reviewed-fg:#B8790A;
+      --status-added-bg:#E8F7EE;--status-added-fg:#1A8A3A;
+      --ofl-grad-a:#FFF5F5;--ofl-border:#FFD9D7;
+      color-scheme:light;
     }
-    @media(prefers-color-scheme:dark){:root{
+    :root[data-theme="dark"]{
       --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
       --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
       --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
       --accent:#FF6B47;--accent-light:#2A1A14;--accent-hover:#FF8060;
       --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
-    }}
+      --status-allow-bg:#0F2A18;--status-allow-fg:#5FCB85;
+      --status-deny-bg:#2A0F0E;--status-deny-fg:#FF7873;
+      --status-reviewed-bg:#2E2410;--status-reviewed-fg:#E0AC4D;
+      --status-added-bg:#0F2A18;--status-added-fg:#5FCB85;
+      --ofl-grad-a:#2A1614;--ofl-border:#3A1F1D;
+      color-scheme:dark;
+    }
+    @media(prefers-color-scheme:dark){
+      :root:not([data-theme="light"]):not([data-theme="dark"]){
+        --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+        --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+        --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+        --accent:#FF6B47;--accent-light:#2A1A14;--accent-hover:#FF8060;
+        --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+        --status-allow-bg:#0F2A18;--status-allow-fg:#5FCB85;
+        --status-deny-bg:#2A0F0E;--status-deny-fg:#FF7873;
+        --status-reviewed-bg:#2E2410;--status-reviewed-fg:#E0AC4D;
+        --status-added-bg:#0F2A18;--status-added-fg:#5FCB85;
+        --ofl-grad-a:#2A1614;--ofl-border:#3A1F1D;
+        color-scheme:dark;
+      }
+    }
+    /* 야간모드 토글 버튼 */
+    .theme-toggle{
+      width:36px;height:36px;border:none;background:transparent;color:var(--text-primary);
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      border-radius:8px;flex-shrink:0;
+    }
+    .theme-toggle:hover{background:var(--bg-secondary)}
+    .theme-toggle i{font-size:19px}
+    .theme-toggle .ti-sun{display:none}
+    :root[data-theme="dark"] .theme-toggle .ti-moon{display:none}
+    :root[data-theme="dark"] .theme-toggle .ti-sun{display:block}
+    .mobile-theme-row{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;border-radius:8px;font-size:14px;color:var(--text-primary);font-weight:600}
+    .mobile-theme-row:hover{background:var(--bg-secondary)}
     html{scroll-behavior:smooth}
     body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;line-height:1.6}
 
@@ -258,19 +306,12 @@
     .license-item-icon{width:32px;height:32px;border-radius:10px;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--accent);flex-shrink:0}
     .license-item-name{font-size:14px;font-weight:800;color:var(--text-primary);letter-spacing:-.2px}
     .license-status{font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap;letter-spacing:.3px}
-    .license-status.allow{background:#E8F7EE;color:#1A8A3A}
-    .license-status.deny{background:#FDECEC;color:#C8281F}
-    @media(prefers-color-scheme:dark){
-      .license-status.allow{background:#0F2A18;color:#5FCB85}
-      .license-status.deny{background:#2A0F0E;color:#FF7873}
-    }
+    .license-status.allow{background:var(--status-allow-bg);color:var(--status-allow-fg)}
+    .license-status.deny{background:var(--status-deny-bg);color:var(--status-deny-fg)}
     .license-item-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
-    .license-item.is-ofl{background:linear-gradient(135deg,#FFF5F5 0%,var(--bg-secondary) 100%);border-color:#FFD9D7}
-    .license-item.is-ofl .license-item-icon{color:#C8281F;background:#FDECEC}
-    .license-item.is-ofl .license-item-name{color:#C8281F}
-    @media(prefers-color-scheme:dark){
-      .license-item.is-ofl{background:linear-gradient(135deg,#2A1614 0%,var(--bg-secondary) 100%);border-color:#3A1F1D}
-    }
+    .license-item.is-ofl{background:linear-gradient(135deg,var(--ofl-grad-a) 0%,var(--bg-secondary) 100%);border-color:var(--ofl-border)}
+    .license-item.is-ofl .license-item-icon{color:var(--status-deny-fg);background:var(--status-deny-bg)}
+    .license-item.is-ofl .license-item-name{color:var(--status-deny-fg)}
     .license-foot{padding:16px 28px 24px;border-top:1px solid var(--border);background:var(--bg-secondary)}
     .license-foot p{font-size:11px;color:var(--text-muted);line-height:1.6;margin:0}
     .license-foot p+p{margin-top:4px}
@@ -326,7 +367,7 @@
     .hero-feature{display:flex;flex-direction:column;align-items:center;gap:10px;flex:0 0 auto}
     .hero-feature-badge{
       width:74px;height:74px;
-      background:#fff;
+      background:var(--bg-card);
       border-radius:20px;
       display:flex;align-items:center;justify-content:center;
       box-shadow:0 4px 14px rgba(255,92,53,.10), 0 1px 3px rgba(0,0,0,.04);
@@ -585,12 +626,8 @@
     .submit-card-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
     .submit-card-status{align-self:flex-start;font-size:10px;font-weight:800;padding:3px 9px;border-radius:10px;letter-spacing:.3px}
     .submit-card-status.pending{background:var(--bg-secondary);color:var(--text-muted)}
-    .submit-card-status.reviewed{background:#FFF4E0;color:#B8790A}
-    .submit-card-status.added{background:#E8F7EE;color:#1A8A3A}
-    @media(prefers-color-scheme:dark){
-      .submit-card-status.reviewed{background:#2E2410;color:#E0AC4D}
-      .submit-card-status.added{background:#0F2A18;color:#5FCB85}
-    }
+    .submit-card-status.reviewed{background:var(--status-reviewed-bg);color:var(--status-reviewed-fg)}
+    .submit-card-status.added{background:var(--status-added-bg);color:var(--status-added-fg)}
     .submit-card-name{font-size:14.5px;font-weight:800;color:var(--text-primary);letter-spacing:-.2px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
     .submit-card-desc{font-size:12.5px;color:var(--text-secondary);line-height:1.5;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:2.6em}
     .submit-card-meta{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px}
@@ -831,6 +868,10 @@
         <i class="ti ti-bell" aria-hidden="true"></i>
         <span>타닥타닥 구독</span>
       </a>
+      <button type="button" class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" aria-label="야간모드 전환">
+        <i class="ti ti-moon" aria-hidden="true"></i>
+        <i class="ti ti-sun" aria-hidden="true"></i>
+      </button>
       <button type="button" class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mobileNavPanel">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" aria-hidden="true">
           <line x1="4" y1="7" x2="20" y2="7"/>
@@ -854,6 +895,10 @@
     <a href="/find-font" id="mSubmitMenuLink" onclick="navFindFont(event);closeMobileNav()">
       <i class="ti ti-bulb" aria-hidden="true"></i> 폰트 찾기
     </a>
+    <div class="mobile-nav-divider"></div>
+    <button type="button" class="mobile-theme-row" id="mobileThemeToggleBtn" onclick="toggleTheme()" style="width:100%;border:none;background:transparent;font-family:inherit;cursor:pointer;">
+      <span style="display:flex;align-items:center;gap:8px"><i class="ti ti-moon" id="mThemeIconMoon" aria-hidden="true"></i><i class="ti ti-sun" id="mThemeIconSun" style="display:none" aria-hidden="true"></i> <span id="mThemeLabel">야간모드</span></span>
+    </button>
     <div class="mobile-nav-divider"></div>
     <a href="https://tdtd.io" target="_blank" rel="noopener noreferrer" onclick="closeMobileNav()">
       <i class="ti ti-bell" aria-hidden="true"></i> 타닥타닥 구독
@@ -3153,6 +3198,31 @@ function closeDownloadAd(){
 }
 
 /* ── 라이선스 모달 ── */
+/* ── 야간모드 토글 ── */
+function applyThemeIcons(){
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    || (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const mMoon = document.getElementById('mThemeIconMoon'), mSun = document.getElementById('mThemeIconSun'), mLabel = document.getElementById('mThemeLabel');
+  if(mMoon) mMoon.style.display = isDark ? 'none' : '';
+  if(mSun) mSun.style.display = isDark ? '' : 'none';
+  if(mLabel) mLabel.textContent = isDark ? '주간모드' : '야간모드';
+}
+function toggleTheme(){
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme')
+    || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  try{ localStorage.setItem('ffp-theme', next); }catch(e){}
+  applyThemeIcons();
+}
+applyThemeIcons();
+if(window.matchMedia){
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', ()=>{
+    if(!document.documentElement.hasAttribute('data-theme')) applyThemeIcons();
+  });
+}
+
 /* ── 모바일 햄버거 메뉴 ── */
 function toggleMobileNav(){
   const panel = document.getElementById('mobileNavPanel');
