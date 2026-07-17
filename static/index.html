@@ -744,7 +744,7 @@
     .designer-tab.active{color:var(--accent);border-color:var(--accent)}
     .designer-panel{display:none;flex-direction:column;gap:12px}
     .designer-panel.active{display:flex}
-    .designer-subtabs{display:flex;gap:6px}
+    .designer-subtabs{display:flex;gap:6px;flex-wrap:wrap}
     .designer-subtab{border:1.5px solid var(--border);background:var(--bg-card);font-family:inherit;font-size:11.5px;font-weight:700;color:var(--text-muted);padding:5px 12px;border-radius:20px;cursor:pointer}
     .designer-subtab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
     .designer-subpanel{display:none}
@@ -771,6 +771,16 @@
     .dalign{display:flex;gap:6px}
     .dalign button{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
     .dalign button.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    /* ── 라운드(곡선) 패널 ── */
+    .arc-panel{display:flex;flex-direction:column;gap:12px}
+    .arc-slider-row{display:flex;align-items:center;gap:10px}
+    .arc-slider-row .arc-cap{font-size:15px;color:var(--text-muted);line-height:1;flex-shrink:0;width:18px;text-align:center}
+    .arc-slider-row input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer}
+    .arc-meta{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .arc-val{font-size:12px;font-weight:700;color:var(--text-secondary);font-variant-numeric:tabular-nums}
+    .arc-reset{border:1.5px solid var(--border);background:var(--bg-card);font-family:inherit;font-size:11.5px;font-weight:700;color:var(--text-secondary);padding:5px 12px;border-radius:20px;cursor:pointer}
+    .arc-reset:hover{border-color:var(--accent);color:var(--accent)}
+    .arc-note{font-size:11px;color:var(--text-muted);line-height:1.5}
     .dhl{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;flex:1;max-width:280px}
     .dhl-dot{width:100%;aspect-ratio:1;border-radius:7px;border:2px solid var(--border);cursor:pointer}
     .dhl-dot.active{border-color:var(--text-primary)}
@@ -1147,10 +1157,32 @@
           <button class="designer-subtab active" data-dsub="effect">효과</button>
           <button class="designer-subtab" data-dsub="textcolor">글자색</button>
           <button class="designer-subtab" data-dsub="outline">외곽선</button>
+          <button class="designer-subtab" data-dsub="arc">라운드</button>
         </div>
         <div class="designer-subpanel active" data-dsubpanel="effect"><div class="fx-grid" id="dsFxGrid"></div></div>
         <div class="designer-subpanel" data-dsubpanel="textcolor"><div class="clr-grid" id="dsTextColorGrid"></div></div>
         <div class="designer-subpanel" data-dsubpanel="outline"><div class="clr-grid" id="dsOutlineGrid"></div></div>
+        <div class="designer-subpanel" data-dsubpanel="arc">
+          <div class="arc-panel">
+            <div class="arc-slider-row">
+              <span class="arc-cap" aria-hidden="true">&#8746;</span>
+              <input type="range" id="dsArc" min="-100" max="100" value="0" step="1" aria-label="곡선 정도">
+              <span class="arc-cap" aria-hidden="true">&#8745;</span>
+            </div>
+            <div class="arc-meta">
+              <span class="arc-val" id="dsArcVal">직선</span>
+              <button class="arc-reset" id="dsArcReset" type="button">직선으로</button>
+            </div>
+            <div class="designer-row"><label>정렬</label>
+              <div class="dalign" id="dsArcAlign">
+                <button data-dalign="left" aria-label="왼쪽 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="13" y2="12"/><line x1="4" y1="18" x2="17" y2="18"/></svg></button>
+                <button data-dalign="center" aria-label="가운데 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7.5" y1="12" x2="16.5" y2="12"/><line x1="5.5" y1="18" x2="18.5" y2="18"/></svg></button>
+                <button data-dalign="right" aria-label="오른쪽 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="11" y1="12" x2="20" y2="12"/><line x1="7" y1="18" x2="20" y2="18"/></svg></button>
+              </div>
+            </div>
+            <p class="arc-note">라운드를 켜면 밑줄과 하이라이트는 해제됩니다. 두 줄 이상이면 모든 줄이 같은 중심을 공유해서, 중심에 가까운 줄일수록 더 휘어요.</p>
+          </div>
+        </div>
       </div>
       <div class="designer-panel" data-dpanel="detail">
         <div class="designer-row"><label>굵게</label><button class="dtoggle" id="dsBold"></button></div>
@@ -3787,6 +3819,7 @@ let dsState = {
   font: null, effect: DS_EFFECTS[0], text: '안녕하세요',
   bold:false, underline:false, spacing:0, lineHeight:13, align:'left',
   highlight:null, textColorOverride:null, outlineOverride:undefined,
+  arc:0,
 };
 let dsPushedUrl = false;
 let dsBlob = null, dsFilename = '';
@@ -3861,15 +3894,26 @@ const dsCanvas = () => document.getElementById('dsCanvas');
       if (dsState.loadFamily){ try{ document.fonts.load(this.value + ' 78px ' + dsState.loadFamily).then(()=>dsDraw()); }catch(e){} }
       dsDraw();
     });
-    document.getElementById('dsBold').onclick=function(){ dsState.bold=!dsState.bold; this.classList.toggle('on'); dsDraw(); };
-  document.getElementById('dsUnderline').onclick=function(){ dsState.underline=!dsState.underline; this.classList.toggle('on'); dsDraw(); };
+    document.getElementById('dsBold').onclick=function(){ dsState.bold=!dsState.bold; dsSyncUI(); dsDraw(); };
+  document.getElementById('dsUnderline').onclick=function(){ if(dsState.arc!==0) return; dsState.underline=!dsState.underline; dsSyncUI(); dsDraw(); };
   document.getElementById('dsSpacing').addEventListener('input', e=>{ dsState.spacing=+e.target.value; dsDraw(); });
   document.getElementById('dsLineHeight').addEventListener('input', e=>{ dsState.lineHeight=+e.target.value; dsDraw(); });
   document.querySelectorAll('.dalign button').forEach(b=>{
-    b.onclick=()=>{ dsState.align=b.dataset.dalign;
-      document.querySelectorAll('.dalign button').forEach(x=>x.classList.remove('active'));
-      b.classList.add('active'); dsDraw(); };
+    b.onclick=()=>{ dsState.align=b.dataset.dalign; dsSyncUI(); dsDraw(); };
   });
+  /* ── 라운드(곡선) 컨트롤 ── */
+  document.getElementById('dsArc').addEventListener('input', e=>{
+    const prev = dsState.arc;
+    dsState.arc = +e.target.value;
+    /* 직선 → 곡선으로 처음 전환될 때만 충돌 항목 정리 */
+    if(prev===0 && dsState.arc!==0){
+      dsState.underline = false;
+      dsState.highlight = null;
+      dsState.align = 'center';
+    }
+    dsSyncUI(); dsDraw();
+  });
+  document.getElementById('dsArcReset').onclick=()=>{ dsState.arc=0; dsSyncUI(); dsDraw(); };
   document.getElementById('designerOverlay').addEventListener('click', function(e){ if(e.target===this) closeDesigner(); });
 })();
 
@@ -3879,6 +3923,24 @@ function dsSyncUI(){
   document.querySelectorAll('#dsTextColorGrid .clr-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===tv));
   document.querySelectorAll('#dsOutlineGrid .clr-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===dsState.outlineOverride));
   document.querySelectorAll('#dsHlRow .dhl-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===(dsState.highlight===null?'none':dsState.highlight)));
+  /* 정렬 — 디테일/라운드 두 그룹 동기화 */
+  document.querySelectorAll('.dalign button').forEach(b=>b.classList.toggle('active', b.dataset.dalign===dsState.align));
+  /* 굵게/밑줄 토글 */
+  const bt=document.getElementById('dsBold'); if(bt) bt.classList.toggle('on', !!dsState.bold);
+  const ut=document.getElementById('dsUnderline'); if(ut) ut.classList.toggle('on', !!dsState.underline);
+  /* 라운드 슬라이더 */
+  const arcEl=document.getElementById('dsArc');
+  if(arcEl){
+    if(+arcEl.value !== dsState.arc) arcEl.value = dsState.arc;
+    const vEl=document.getElementById('dsArcVal');
+    if(vEl) vEl.textContent = dsState.arc===0 ? '직선'
+      : (dsState.arc>0 ? '위로 볼록 '+dsState.arc : '아래로 볼록 '+Math.abs(dsState.arc));
+    /* 곡선 ON일 때 충돌 항목(밑줄/하이라이트) 비활성 */
+    const on = dsState.arc!==0;
+    if(ut){ ut.disabled=on; ut.style.opacity=on?.4:1; ut.style.pointerEvents=on?'none':''; }
+    const hlRow=document.getElementById('dsHlRow');
+    if(hlRow){ hlRow.style.opacity=on?.4:1; hlRow.style.pointerEvents=on?'none':''; }
+  }
 }
 
 /* ── WYSIWYG 렌더링: 캔버스 = 저장본 (콘텐츠 크기에 딱 맞게) ── */
@@ -3905,6 +3967,12 @@ function dsDraw(){
   try{ ctx.letterSpacing = dsState.spacing+'px'; }catch(e){}
   const lines = dsState.text.split('\n');
   const lh = fontSize*(dsState.lineHeight/10);
+
+  if(dsState.arc){
+    dsDrawArc(canvas, ctx, {lines, lh, fontSpec, fontSize, eff, fillColor, fillGradient, outlineColor, outlineW});
+    return;
+  }
+
   const widths = lines.map(l=>ctx.measureText(l).width);
   const maxW = Math.max(...widths, 10);
   const pad = 34, ascent = fontSize*0.88, descent = fontSize*0.28;
@@ -3948,6 +4016,116 @@ function dsDraw(){
       ctx.fillRect(x, y+fontSize*0.14, width, Math.max(4, fontSize*0.05));
     }
     y += lh;
+  });
+}
+
+/* ── 곡선(라운드) 렌더링 ──
+   동심원(concentric) 방식: 모든 줄이 같은 중심점을 공유한다.
+   arc > 0 → 위로 볼록(∩, 중심이 아래) / arc < 0 → 아래로 볼록(∪, 중심이 위)  */
+function dsDrawArc(canvas, ctx, o){
+  const {lines, lh, fontSpec, fontSize, eff, fillColor, fillGradient, outlineColor, outlineW} = o;
+  const arch = dsState.arc > 0;
+  const mag  = Math.abs(dsState.arc)/100;
+  const sp   = dsState.spacing;
+  const ascent = fontSize*0.88, descent = fontSize*0.28, pad = 34;
+
+  /* 글자 단위 폭 측정 — 곡선에서는 자간을 직접 계산하므로 letterSpacing은 끈다 */
+  ctx.font = fontSpec;
+  try{ ctx.letterSpacing = '0px'; }catch(e){}
+  const L = lines.map(line=>{
+    const chars = Array.from(line);
+    const w = chars.map(c=>ctx.measureText(c).width);
+    const total = w.reduce((s,x)=>s+x,0) + sp*Math.max(0, chars.length-1);
+    return {chars, w, total};
+  });
+  const maxW = Math.max(...L.map(l=>l.total), 10);
+  const n = lines.length;
+
+  /* 반지름: 슬라이더 100% = 가장 넓은 줄이 약 207° 를 돈다 */
+  const theta = mag * Math.PI * 1.15;
+  let R1 = maxW / theta;
+  const minInner = fontSize*0.9;
+  /* 안쪽 줄의 반지름이 0 이하로 뒤집히지 않도록 보호 */
+  R1 = arch ? Math.max(R1, (n-1)*lh + minInner) : Math.max(R1, minInner);
+
+  const cy = arch ? R1 : -R1;   /* 첫 줄 베이스라인을 y=0 에 두었을 때의 중심 y */
+
+  /* 각 글자의 배치(위치·회전)를 먼저 계산 → 경계 상자 산출 → 캔버스 크기 확정 */
+  const placed = [];
+  let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
+  L.forEach((ln, i)=>{
+    const Ri = arch ? R1 - i*lh : R1 + i*lh;
+    let s0;
+    if(dsState.align==='left')       s0 = -maxW/2;
+    else if(dsState.align==='right') s0 =  maxW/2 - ln.total;
+    else                             s0 = -ln.total/2;
+
+    let s = s0;
+    const items = [];
+    ln.chars.forEach((ch, j)=>{
+      const sc  = s + ln.w[j]/2;          /* 글자 중심의 호 길이 좌표 */
+      const phi = sc / Ri;
+      const tx  = Ri*Math.sin(phi);
+      const ty  = arch ? (cy - Ri*Math.cos(phi)) : (cy + Ri*Math.cos(phi));
+      const rot = arch ? phi : -phi;
+      items.push({ch, w:ln.w[j], tx, ty, rot});
+      /* 경계 상자: 글자 박스 네 모서리를 회전·이동시켜 누적 */
+      const hw = ln.w[j]/2, cos=Math.cos(rot), sin=Math.sin(rot);
+      [[-hw,-ascent],[hw,-ascent],[hw,descent],[-hw,descent]].forEach(([px,py])=>{
+        const X = tx + px*cos - py*sin, Y = ty + px*sin + py*cos;
+        if(X<minX)minX=X; if(X>maxX)maxX=X; if(Y<minY)minY=Y; if(Y>maxY)maxY=Y;
+      });
+      s += ln.w[j] + sp;
+    });
+    placed.push({items, Ri, s0, total:ln.total});
+  });
+  if(!isFinite(minX)){ minX=0;maxX=10;minY=0;maxY=10; }
+
+  /* 외곽선·그림자가 잘리지 않도록 여유 */
+  const extra = Math.max(outlineW||0, eff.shadow==='glow'?28:12);
+  const offX = -minX + pad + extra, offY = -minY + pad + extra;
+  canvas.width  = Math.ceil(maxX-minX + (pad+extra)*2);
+  canvas.height = Math.ceil(maxY-minY + (pad+extra)*2);
+
+  /* 캔버스 리사이즈로 컨텍스트가 초기화되므로 폰트 재설정 */
+  ctx.font = fontSpec; ctx.textBaseline='alphabetic'; ctx.textAlign='left';
+  try{ ctx.letterSpacing = '0px'; }catch(e){}
+
+  const shadowOf = ()=>{
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+    if(eff.shadow==='soft'){   ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=10; ctx.shadowOffsetY=6; }
+    if(eff.shadow==='strong'){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=4;  ctx.shadowOffsetY=10; }
+    if(eff.shadow==='gray'){   ctx.shadowColor='rgba(120,120,120,.5)'; ctx.shadowBlur=8; ctx.shadowOffsetY=4; }
+    if(eff.shadow==='glow'){   ctx.shadowColor=fillGradient?fillGradient[0]:fillColor; ctx.shadowBlur=28; }
+    if(eff.shadow==='blur'){   ctx.shadowColor='rgba(150,200,255,.6)'; ctx.shadowBlur=14; }
+  };
+
+  placed.forEach(ln=>{
+    /* 그라데이션은 줄 전체를 가로지르도록: 회전된 로컬 좌표계로 끝점을 역변환해 이어붙인다 */
+    const gx0 = offX + minX, gx1 = offX + maxX;
+    ln.items.forEach(it=>{
+      const X = offX + it.tx, Y = offY + it.ty;
+      ctx.save();
+      ctx.translate(X, Y);
+      ctx.rotate(it.rot);
+      let fill = fillColor;
+      if(fillGradient){
+        const cos=Math.cos(-it.rot), sin=Math.sin(-it.rot);
+        const inv = (gx, gy)=>({x:(gx-X)*cos-(gy-Y)*sin, y:(gx-X)*sin+(gy-Y)*cos});
+        const p0 = inv(gx0, Y), p1 = inv(gx1, Y);
+        const grad = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
+        fillGradient.forEach((c,k)=>grad.addColorStop(k/(fillGradient.length-1), c));
+        fill = grad;
+      }
+      shadowOf();
+      if(outlineColor && outlineW>0){
+        ctx.lineJoin='round'; ctx.strokeStyle=outlineColor; ctx.lineWidth=outlineW;
+        ctx.strokeText(it.ch, -it.w/2, 0);
+      }
+      ctx.fillStyle = fill;
+      ctx.fillText(it.ch, -it.w/2, 0);
+      ctx.restore();
+    });
   });
 }
 
@@ -4056,6 +4234,7 @@ async function openDesigner(fontId, viaUrl){
   dsState.effect = DS_EFFECTS[0];
   dsState.textColorOverride = null;
   dsState.outlineOverride = undefined;
+  dsState.arc = 0;
   document.getElementById('designerTitle').textContent = f.name + ' · 텍스트 디자인';
   document.getElementById('designerOverlay').classList.add('open');
   document.body.style.overflow='hidden';
