@@ -4,8 +4,6 @@
   "OO 배포" + 하단 "무료폰트 큐레이션-폰트픽" 을 합성한 PNG를 만든다.
 - 폰트명은 정사각형(630x630)으로 크롭됐을 때도 그 정사각형 너비의 90%를
   채우도록 폰트 크기를 이분탐색으로 계산한다 (소셜 공유 시 정사각형 썸네일 대비).
-- 배지+폰트명+배포처 블록은 하단 워터마크 영역을 제외한 카드 내부 기준으로
-  수직 중앙 정렬한다.
 - woff2는 Pillow가 직접 못 읽으므로 fontTools로 ttf로 디코딩해서 메모리에서 사용.
 - 생성 결과는 디스크에 캐싱하고, 폰트 파일/이름이 바뀌면 캐시가 자동 무효화되도록
   파일 mtime을 캐시 키에 포함한다.
@@ -38,6 +36,9 @@ ACCENT = "#FF5C35"
 # UI 텍스트(배지/배포처/워터마크)용 폰트 — 이미 번들된 Noto Sans CJK KR(시드 id=10)을 재사용.
 # 별도 시스템 폰트나 추가 에셋 없이도 배포 환경에서 항상 존재가 보장된다.
 _UI_FONT_ID = 10
+
+# 레이아웃/렌더링 로직이 바뀔 때마다 올려서 기존 캐시를 무효화한다.
+_CACHE_VERSION = 2
 
 
 def _resolve_font_file(font_id: int) -> Path | None:
@@ -193,7 +194,7 @@ def _generate(font: Font) -> bytes:
 def _cache_key(font: Font) -> str:
     font_file = _resolve_font_file(font.id)
     mtime = int(font_file.stat().st_mtime) if font_file else 0
-    return f"font-{font.id:03d}-{mtime}.png"
+    return f"font-{font.id:03d}-v{_CACHE_VERSION}-{mtime}.png"
 
 
 @router.get("/{font_id}/og-image.png")
