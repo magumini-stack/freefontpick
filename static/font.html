@@ -114,10 +114,6 @@
   .btn-subscribe:hover{background:var(--accent);color:#fff}
   .hamburger-btn{display:none;background:none;border:none;cursor:pointer;color:var(--text-primary);padding:6px}
 
-  .side-ad{display:none;position:fixed;top:120px;width:160px;min-height:600px;z-index:50}
-  .side-ad.left{left:calc(50% - 520px - 180px)}
-  .side-ad.right{right:calc(50% - 520px - 180px)}
-  @media (min-width:1500px){.side-ad{display:block}}
 
   .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
   .head{padding:32px 0 6px}
@@ -244,11 +240,11 @@
       <a href="/find-font">폰트 찾기</a>
     </nav>
     <div class="header-right">
-      <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer"><i class="ti ti-bell"></i><span>타닥타닥 구독</span></a>
       <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="야간모드 전환">
         <i class="ti ti-moon" aria-hidden="true"></i>
         <i class="ti ti-sun" aria-hidden="true"></i>
       </button>
+      <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer"><i class="ti ti-bell"></i><span>타닥타닥 구독</span></a>
       <button type="button" class="hamburger-btn" onclick="var n=document.getElementById('mnav');n.hidden=!n.hidden;n.classList.toggle('open')" aria-label="메뉴 열기">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="22" height="22"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
       </button>
@@ -265,16 +261,6 @@
     </button>
   </nav>
 </header>
-
-<!-- 좌우 세로 광고 (1500px 이상 화면에서만) -->
-<div class="side-ad left">
-  <ins class="adsbygoogle" style="display:inline-block;width:160px;height:600px"
-       data-ad-client="ca-pub-6258337579944977" data-ad-slot="4304276310"></ins>
-</div>
-<div class="side-ad right">
-  <ins class="adsbygoogle" style="display:inline-block;width:160px;height:600px"
-       data-ad-client="ca-pub-6258337579944977" data-ad-slot="3185233399"></ins>
-</div>
 
 <main class="wrap">
   <div class="loading" id="loading">폰트 정보를 불러오는 중…</div>
@@ -635,13 +621,6 @@
     .then(function(r){ return r && r.ok ? r.json() : []; })
     .then(renderPairings)
     .catch(function(){ location.href = '/'; });
-
-  // 좌우 광고 로드 (공간이 있을 때만)
-  if (window.matchMedia('(min-width:1500px)').matches) {
-    document.querySelectorAll('.side-ad ins').forEach(function(){
-      try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e){}
-    });
-  }
 })();
 </script>
 <div class="license-overlay" id="licenseOverlay" role="dialog" aria-modal="true" aria-labelledby="licenseTitle">
