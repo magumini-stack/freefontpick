@@ -4,6 +4,8 @@
   "OO 배포" + 하단 "무료폰트 큐레이션-폰트픽" 을 합성한 PNG를 만든다.
 - 폰트명은 정사각형(630x630)으로 크롭됐을 때도 그 정사각형 너비의 90%를
   채우도록 폰트 크기를 이분탐색으로 계산한다 (소셜 공유 시 정사각형 썸네일 대비).
+- 배지+폰트명+배포처 블록은 하단 워터마크 영역을 제외한 카드 내부 기준으로
+  수직 중앙 정렬한다.
 - woff2는 Pillow가 직접 못 읽으므로 fontTools로 ttf로 디코딩해서 메모리에서 사용.
 - 생성 결과는 디스크에 캐싱하고, 폰트 파일/이름이 바뀌면 캐시가 자동 무효화되도록
   파일 mtime을 캐시 키에 포함한다.
@@ -146,24 +148,39 @@ def _generate(font: Font) -> bytes:
             hi = mid
     name_size = max(int(lo), 10)
     name_font = load_name_font(name_size)
+    name_bbox = d.textbbox((0, 0), font_name_text, font=name_font)
+    name_h = name_bbox[3] - name_bbox[1]
 
     # 상단 배지
     badge_text = "무료폰트 · 상업적 사용 가능"
     bbox = d.textbbox((0, 0), badge_text, font=badge_font)
     bw, bh = bbox[2] - bbox[0], bbox[3] - bbox[1]
     badge_pad_x, badge_pad_y = 18, 10
-    by = pad + 55
+    badge_box_h = bh + badge_pad_y * 2
+
+    sub_text = f"{font.maker or ''} 배포"
+    sub_bbox = d.textbbox((0, 0), sub_text, font=sub_font)
+    sub_h = sub_bbox[3] - sub_bbox[1]
+
+    gap1, gap2 = 55, 40
+    block_h = badge_box_h + gap1 + name_h + gap2 + sub_h
+
+    # 하단 워터마크 영역을 제외한 카드 내부를 기준으로 배지+폰트명+배포처 블록을 수직 중앙 정렬
+    watermark_reserved = 90
+    usable_top, usable_bottom = pad, (H - pad) - watermark_reserved
+    by = usable_top + (usable_bottom - usable_top - block_h) / 2
+
     bx = cx - (bw + badge_pad_x * 2) / 2
-    d.rounded_rectangle([bx, by, bx + bw + badge_pad_x * 2, by + bh + badge_pad_y * 2], radius=100, fill="#FFF0EC")
+    d.rounded_rectangle([bx, by, bx + bw + badge_pad_x * 2, by + badge_box_h], radius=100, fill="#FFF0EC")
     d.text((bx + badge_pad_x, by + badge_pad_y - 4), badge_text, font=badge_font, fill=ACCENT)
 
     # 폰트명 (실제 폰트로 렌더링)
-    name_y = by + bh + badge_pad_y * 2 + 55
-    name_h = center_text(name_y, font_name_text, name_font, TEXT_COLOR)
+    name_y = by + badge_box_h + gap1
+    center_text(name_y, font_name_text, name_font, TEXT_COLOR)
 
     # 배포처
-    sub_y = name_y + name_h + 40
-    center_text(sub_y, f"{font.maker or ''} 배포", sub_font, MUTED)
+    sub_y = name_y + name_h + gap2
+    center_text(sub_y, sub_text, sub_font, MUTED)
 
     # 하단 워터마크
     center_text(H - pad - 60, "무료폰트 큐레이션-폰트픽", sub_font, ACCENT)
