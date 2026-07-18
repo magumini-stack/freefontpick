@@ -182,9 +182,14 @@
   .g-set{font-size:clamp(22px,3.4vw,30px);letter-spacing:2px;line-height:1.5;color:var(--text-primary)}
 
   /* ── CURATOR ── */
-  .curator{background:var(--bg-secondary);border-left:3px solid var(--accent);padding:24px 26px;border-radius:0 3px 3px 0}
+  .curator{background:var(--bg-secondary);border-left:3px solid var(--accent);padding:24px 26px;border-radius:0 3px 3px 0;display:flex;align-items:center;gap:28px;justify-content:space-between}
   .curator .c-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:12px}
   .curator p{font-size:15.5px;line-height:1.85;color:var(--text-primary);max-width:42em;margin:0;word-break:keep-all;overflow-wrap:break-word}
+  .curator-stamp{flex-shrink:0;width:104px;height:104px;border-radius:50%;border:2px solid var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-9deg);color:var(--accent)}
+  .curator-stamp .cs-check{font-size:26px;line-height:1;margin-bottom:4px}
+  .curator-stamp .cs-pick{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:2px}
+  .curator-stamp .cs-sub{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--text-muted);margin-top:2px}
+  .curator-text{min-width:0}
   .curator .sign{font-family:var(--mono);font-size:12px;color:var(--text-muted);margin-top:14px}
 
   /* ── APP PROMO ── */
@@ -247,6 +252,7 @@
     nav{display:none}
     .hamburger-btn{display:flex}
     .title-block{grid-template-columns:1fr;gap:22px}
+    .curator-stamp{display:none}
     .title-actions{min-width:0}
     .lic-grid,.pairs{grid-template-columns:1fr}
     .rel-grid{grid-template-columns:repeat(2,1fr)}
@@ -342,9 +348,16 @@
     <section class="blk hidden" id="introSec">
       <div class="lbl">큐레이터 코멘트</div>
       <div class="curator">
-        <div class="c-lbl">✎ 왜 골랐나요</div>
-        <p id="fontIntro"></p>
-        <div class="sign">— 폰트픽 큐레이션팀</div>
+        <div class="curator-text">
+          <div class="c-lbl">✎ 왜 골랐나요</div>
+          <p id="fontIntro"></p>
+          <div class="sign">— 폰트픽 큐레이션팀</div>
+        </div>
+        <div class="curator-stamp" aria-hidden="true">
+          <span class="cs-check">✓</span>
+          <span class="cs-pick">PICK</span>
+          <span class="cs-sub">FONTPICK</span>
+        </div>
       </div>
     </section>
 
