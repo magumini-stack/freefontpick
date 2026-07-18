@@ -55,7 +55,7 @@
     }
     .theme-toggle{width:36px;height:36px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}
     .theme-toggle:hover{background:var(--bg-secondary)}
-    .theme-toggle i{font-size:19px}
+    .theme-toggle i,.theme-toggle svg{font-size:19px}
     .theme-toggle .ti-sun{display:none}
     :root[data-theme="dark"] .theme-toggle .ti-moon{display:none}
     :root[data-theme="dark"] .theme-toggle .ti-sun{display:block}
@@ -284,8 +284,8 @@
     <span class="admin-badge"><i class="ti ti-shield-lock" aria-hidden="true" style="font-size:12px"></i> ADMIN</span>
     <div class="header-right">
       <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="야간모드 전환">
-        <i class="ti ti-moon" aria-hidden="true"></i>
-        <i class="ti ti-sun" aria-hidden="true"></i>
+        <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
+        <svg class="ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg>
       </button>
       <a class="header-link" href="index.html" target="_blank" rel="noopener"><i class="ti ti-external-link" aria-hidden="true"></i> 사이트 보기</a>
       <button class="btn-logout" onclick="showChangePasswordModal(false)" style="background:transparent;border:1px solid var(--border);color:var(--text-secondary)"><i class="ti ti-key" aria-hidden="true"></i> 비밀번호 변경</button>
@@ -477,7 +477,7 @@
   <div class="modal">
     <div class="modal-head">
       <h3 id="fontModalTitle">새 폰트 등록</h3>
-      <button class="modal-close" onclick="closeFontModal()"><i class="ti ti-x"></i></button>
+      <button class="modal-close" onclick="closeFontModal()"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="modal-body">
       <div class="field">
@@ -683,7 +683,7 @@
   <div class="modal" style="max-width:420px">
     <div class="modal-head">
       <h3>카테고리 이름 수정</h3>
-      <button class="modal-close" onclick="closeCatEdit()"><i class="ti ti-x"></i></button>
+      <button class="modal-close" onclick="closeCatEdit()"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="modal-body">
       <div class="field">
@@ -704,7 +704,7 @@
   <div class="modal" style="max-width:640px">
     <div class="modal-head">
       <h3 id="noticeModalTitle">새 공지사항 작성</h3>
-      <button class="modal-close" onclick="closeNoticeModal()"><i class="ti ti-x"></i></button>
+      <button class="modal-close" onclick="closeNoticeModal()"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="modal-body">
       <div class="field">
@@ -744,7 +744,7 @@
   <div class="modal" style="max-width:560px">
     <div class="modal-head">
       <h3>질문 상세 · 답변 관리</h3>
-      <button class="modal-close" onclick="closeSubmissionModal()"><i class="ti ti-x"></i></button>
+      <button class="modal-close" onclick="closeSubmissionModal()"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="modal-body" id="submissionModalBody">
       <!-- JS로 렌더링 -->
@@ -763,7 +763,7 @@
   <div class="modal" style="max-width:600px">
     <div class="modal-head">
       <h3 id="pairingModalTitle">새 조합 등록</h3>
-      <button class="modal-close" onclick="closePairingModal()"><i class="ti ti-x"></i></button>
+      <button class="modal-close" onclick="closePairingModal()"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="modal-body">
       <div class="field">
@@ -842,7 +842,7 @@
   <div class="modal" style="max-width:640px">
     <div class="modal-head">
       <h3>페어링 자동 생성</h3>
-      <button class="modal-close" onclick="closeAutoGenModal()"><i class="ti ti-x"></i></button>
+      <button class="modal-close" onclick="closeAutoGenModal()"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="modal-body">
       <div class="field" style="display:flex;gap:10px;align-items:flex-end">
@@ -1490,7 +1490,7 @@ function renderFmFilePreview(infoText){
       <i class="ti ti-file-type-ttf" aria-hidden="true"></i>
       <span class="name">${escapeHtml(pendingFile.name)}</span>
       <span style="font-size:11px;color:var(--text-muted)">${(pendingFile.size/1024).toFixed(0)}KB</span>
-      <button onclick="clearFmFile()" aria-label="파일 제거"><i class="ti ti-x"></i></button>
+      <button onclick="clearFmFile()" aria-label="파일 제거"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>`;
   } else if(infoText){
     box.innerHTML = `<div class="selected-file" style="background:var(--bg-secondary);color:var(--text-secondary)">

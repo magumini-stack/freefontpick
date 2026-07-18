@@ -56,7 +56,7 @@
     }
     .theme-toggle{width:36px;height:36px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}
     .theme-toggle:hover{background:var(--bg-secondary)}
-    .theme-toggle i{font-size:19px}
+    .theme-toggle i,.theme-toggle svg{font-size:19px}
     .theme-toggle .ti-sun{display:none}
     :root[data-theme="dark"] .theme-toggle .ti-moon{display:none}
     :root[data-theme="dark"] .theme-toggle .ti-sun{display:block}
@@ -120,8 +120,8 @@
     </a>
     <div class="header-right">
       <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="야간모드 전환">
-        <i class="ti ti-moon" aria-hidden="true"></i>
-        <i class="ti ti-sun" aria-hidden="true"></i>
+        <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
+        <svg class="ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg>
       </button>
       <a class="btn-back" href="index.html">
         <i class="ti ti-arrow-left" aria-hidden="true"></i>

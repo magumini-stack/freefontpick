@@ -168,7 +168,7 @@
       border-radius:8px;flex-shrink:0;
     }
     .theme-toggle:hover{background:var(--bg-secondary)}
-    .theme-toggle i{font-size:19px}
+    .theme-toggle i,.theme-toggle svg{font-size:19px}
     .theme-toggle .ti-sun{display:none}
     :root[data-theme="dark"] .theme-toggle .ti-moon{display:none}
     :root[data-theme="dark"] .theme-toggle .ti-sun{display:block}
@@ -865,8 +865,8 @@
     </nav>
     <div class="header-right">
       <button type="button" class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" aria-label="야간모드 전환">
-        <i class="ti ti-moon" aria-hidden="true"></i>
-        <i class="ti ti-sun" aria-hidden="true"></i>
+        <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
+        <svg class="ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg>
       </button>
       <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer">
         <i class="ti ti-bell" aria-hidden="true"></i>
@@ -897,7 +897,7 @@
     </a>
     <div class="mobile-nav-divider"></div>
     <button type="button" class="mobile-theme-row" id="mobileThemeToggleBtn" onclick="toggleTheme()" style="width:100%;border:none;background:transparent;font-family:inherit;cursor:pointer;">
-      <span style="display:flex;align-items:center;gap:8px"><i class="ti ti-moon" id="mThemeIconMoon" aria-hidden="true"></i><i class="ti ti-sun" id="mThemeIconSun" style="display:none" aria-hidden="true"></i> <span id="mThemeLabel">야간모드</span></span>
+      <span style="display:flex;align-items:center;gap:8px"><svg class="ti-moon" id="mThemeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg><svg class="ti-sun" id="mThemeIconSun" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg> <span id="mThemeLabel">야간모드</span></span>
     </button>
     <div class="mobile-nav-divider"></div>
     <a href="https://tdtd.io" target="_blank" rel="noopener noreferrer" onclick="closeMobileNav()">
@@ -1065,7 +1065,7 @@
       <h2 id="submitFormTitle">폰트 찾기</h2>
       <p>이미지와 설명을 남겨주시면 다른 사용자들이 답변해드려요</p>
       <button class="license-close" onclick="closeSubmitForm()" aria-label="닫기">
-        <i class="ti ti-x" aria-hidden="true"></i>
+        <svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="submit-form-body">
@@ -1083,7 +1083,7 @@
         <div class="sf-image-preview" id="sfImagePreview" style="display:none">
           <img id="sfImagePreviewImg" alt="첨부 이미지 미리보기">
           <button type="button" class="sf-image-remove" onclick="clearSfImage()" aria-label="이미지 제거">
-            <i class="ti ti-x" aria-hidden="true"></i>
+            <svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
         </div>
       </div>
@@ -1108,7 +1108,7 @@
       <h2 id="submitDetailTitle"></h2>
       <p id="submitDetailMeta"></p>
       <button class="license-close" onclick="closeSubmitDetail()" aria-label="닫기">
-        <i class="ti ti-x" aria-hidden="true"></i>
+        <svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="submit-detail-body" id="submitDetailBody"></div>
@@ -1180,7 +1180,7 @@
   <div class="designer-sheet">
     <div class="designer-head">
       <strong id="designerTitle">텍스트 디자인</strong>
-      <button class="designer-close" onclick="closeDesigner()" aria-label="닫기"><i class="ti ti-x" aria-hidden="true"></i></button>
+      <button class="designer-close" onclick="closeDesigner()" aria-label="닫기"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="designer-body">
       <textarea id="dsText" maxlength="80" rows="2" placeholder="문구를 입력하세요">안녕하세요</textarea>
@@ -1285,7 +1285,7 @@
       <h2 id="licenseTitle">라이선스 요약표</h2>
       <p>큐레이션된 폰트의 일반적인 사용 범위 안내</p>
       <button class="license-close" onclick="closeLicense()" aria-label="닫기">
-        <i class="ti ti-x" aria-hidden="true"></i>
+        <svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
 
