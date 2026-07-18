@@ -106,137 +106,177 @@
   a{color:inherit;text-decoration:none}
   button{font-family:inherit}
 
-  .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
-  .header-inner{max-width:1240px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
-  .logo img{height:32px;width:auto;display:block}
-  .header nav{display:flex;gap:2px}
-  .header nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:var(--radius-sm)}
-  .header nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
-  .header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
-  .btn-subscribe{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:0 14px;height:36px;border-radius:20px;border:1px solid var(--accent);color:var(--accent);background:transparent;transition:all .15s}
-  .btn-subscribe:hover{background:var(--accent);color:#fff}
-  .hamburger-btn{display:none;background:none;border:none;cursor:pointer;color:var(--text-primary);padding:6px}
+  
+  :root{--mono:ui-monospace,'SFMono-Regular',Menlo,'Consolas',monospace;}
+  body{-webkit-font-smoothing:antialiased}
+  .mono{font-family:var(--mono)}
 
+  /* ── HEADER ── */
+  .header{background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
+  .header-inner{max-width:1120px;margin:0 auto;padding:0 22px;height:60px;display:flex;align-items:center;gap:16px}
+  .logo{flex-shrink:0;display:flex;align-items:center}
+  .logo img{height:26px;width:auto;display:block}
+  nav{display:flex;gap:2px;margin-left:8px}
+  nav a{font-size:13.5px;color:var(--text-secondary);padding:8px 12px;font-weight:500;border-radius:6px}
+  nav a:hover{color:var(--text-primary)}
+  .header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .btn-subscribe{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.2px;padding:7px 13px;border:1px solid var(--text-primary);color:var(--text-primary);border-radius:2px;white-space:nowrap}
+  .btn-subscribe:hover{background:var(--text-primary);color:var(--bg)}
+  .btn-subscribe i{font-size:13px}
+  .hamburger-btn{display:none;width:38px;height:38px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;align-items:center;justify-content:center;border-radius:6px}
+  .hamburger-btn:hover{background:var(--bg-secondary)}
+  .mobile-nav{display:none;flex-direction:column;gap:2px;padding:8px 22px 14px;border-bottom:1px solid var(--border);background:var(--bg)}
+  .mobile-nav.open{display:flex}
+  .mobile-nav a,.mobile-nav button{font-size:14px;color:var(--text-primary);padding:11px 4px;font-weight:500}
 
-  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
-  .head{padding:32px 0 6px}
-  .crumb{font-size:13px;color:var(--text-muted);margin-bottom:12px}
-  .crumb a:hover{color:var(--text-primary)}
-  .crumb b{color:var(--accent);font-weight:500}
-  .title-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px}
-  h1{font-size:30px;font-weight:800;letter-spacing:-0.5px}
-  .foundry{font-size:14px;color:var(--text-secondary)}
-  .tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
-  .tag{font-size:12px;padding:5px 11px;border-radius:100px;background:var(--bg-secondary);color:var(--text-secondary)}
-  .tag.hot{background:var(--accent-light);color:var(--accent);font-weight:700}
-  .font-intro{margin-top:14px;font-size:14.5px;line-height:1.7;color:var(--text-secondary);white-space:pre-line}
-
-  .tryout{margin-top:18px}
-  .tryout input{width:100%;font-family:inherit;font-size:16px;padding:14px 18px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:var(--bg-card);color:var(--text-primary)}
-  .tryout input:focus{outline:none;border-color:var(--accent)}
-  .tryout .note{font-size:12.5px;color:var(--text-muted);margin-top:6px;padding-left:2px}
-
-  .sec{margin-top:42px}
-  .sec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
-  .sec-head::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);align-self:center}
-  h2{font-size:20px;font-weight:800;letter-spacing:-0.3px}
-  .sec-head .count{font-size:14px;color:var(--accent);font-weight:700}
-  .sec-sub{font-size:14px;color:var(--text-secondary);margin:-6px 0 16px}
-
-  .weights{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-card)}
-  .w-row{display:grid;grid-template-columns:140px 1fr;align-items:center;gap:20px;padding:20px 26px;border-bottom:1px solid var(--border)}
-  .w-row:last-child{border-bottom:none}
-  .w-label{font-size:13px}
-  .w-label b{display:block;font-weight:700}
-  .w-label span{color:var(--text-muted);font-size:12px}
-  .w-sample{font-size:30px;line-height:1.45;word-break:keep-all;overflow-wrap:anywhere}
-
-  .license{display:grid;grid-template-columns:1fr auto;gap:22px;align-items:center;margin-top:42px;padding:22px 26px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card)}
-  .lic-title{font-size:15px;font-weight:700;margin-bottom:4px}
-  .lic-title i{color:#1C9E5A;margin-right:4px}
-  .lic-note{font-size:13px;color:var(--text-secondary);line-height:1.6}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 24px;border-radius:var(--radius-md);font-size:14px;font-weight:700;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:background .15s;white-space:nowrap}
-  .btn:hover{background:var(--accent-hover)}
-  .lic-btns{display:flex;gap:10px;flex-wrap:wrap}
-  .btn-outline{background:transparent;border:1.5px solid var(--accent);color:var(--accent)}
-  .btn-outline:hover{background:var(--accent-light)}
-
-  .pairs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-  .pair-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:var(--shadow-card);display:block}
-  .pair-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover)}
-  .pair-stage{padding:24px 22px 20px;min-height:160px;border-bottom:1px solid var(--border)}
-  .pair-title{font-size:23px;line-height:1.3;margin-bottom:9px;word-break:keep-all}
-  .pair-body{font-size:13.5px;line-height:1.7;color:var(--text-secondary);word-break:keep-all}
-  .pair-meta{padding:12px 18px 15px}
-  .pair-theme{display:inline-block;font-size:11.5px;font-weight:700;color:var(--accent);background:var(--accent-light);padding:4px 10px;border-radius:100px;margin-bottom:8px}
-  .pair-fonts{font-size:12.5px;line-height:1.5;color:var(--text-secondary)}
-  .pair-fonts b{font-weight:700;color:var(--text-primary)}
-  .pair-fonts .plus{color:var(--text-muted);margin:0 5px}
-  .pair-desc{font-size:12px;color:var(--text-muted);margin-top:5px;line-height:1.5}
-
-  .cta{margin:50px 0 90px;border-radius:var(--radius-lg);background:#1A1A1A;color:#fff;padding:38px 36px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden}
-  .cta::after{content:"Aa";position:absolute;right:-8px;bottom:-40px;font-weight:900;font-size:170px;color:rgba(255,92,53,.18);pointer-events:none}
-  .cta h3{font-size:21px;font-weight:800;margin-bottom:6px}
-  .cta p{font-size:14px;color:rgba(255,255,255,.6)}
-  .cta .btn{position:relative;z-index:1;padding:15px 26px;font-size:15px}
-
-  .loading{padding:80px 0;text-align:center;color:var(--text-muted);font-size:14px}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+  .loading{padding:120px 0;text-align:center;color:var(--text-muted);font-family:var(--mono);font-size:13px}
   .hidden{display:none!important}
+  .lbl{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+  .lbl::before{content:"";width:22px;height:1px;background:var(--text-secondary)}
 
-  @media (max-width:768px){
-    .header nav{display:none}
-    .hamburger-btn{display:flex;align-items:center;justify-content:center}
-    .btn-subscribe{display:none}
-    .pairs{grid-template-columns:1fr}
-    .license{grid-template-columns:1fr}
-    .license .btn{width:100%}
-    h1{font-size:25px}
-    .w-row{grid-template-columns:1fr;gap:6px;padding:16px 20px}
-    .w-sample{font-size:24px}
+  section.blk{padding:42px 0;border-bottom:1px solid var(--border)}
+
+  /* ── TITLE ── */
+  .crumb{padding:22px 0 0;font-family:var(--mono);font-size:12px;color:var(--text-muted);letter-spacing:.3px}
+  .crumb a:hover{color:var(--accent)}
+  .crumb b{color:var(--text-secondary);font-weight:500}
+  .title-block{padding:24px 0 38px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:34px;align-items:end}
+  .title-row{min-width:0}
+  .foundry{font-family:var(--mono);font-size:12px;color:var(--text-muted);letter-spacing:.3px;margin-bottom:14px;display:block}
+  #fontName{font-weight:800;font-size:clamp(40px,7.5vw,78px);line-height:1.02;letter-spacing:-1px;word-break:keep-all}
+  .tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:20px}
+  .tag{font-family:var(--mono);font-size:11.5px;letter-spacing:.2px;padding:5px 11px;border:1px solid var(--border);border-radius:2px;color:var(--text-secondary)}
+  .tag.hot{color:var(--accent);border-color:var(--accent)}
+  .title-actions{display:flex;flex-direction:column;gap:10px;min-width:210px}
+  .btn-dl{background:var(--accent);color:#fff;font-size:15px;font-weight:700;padding:14px 20px;border-radius:3px;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer}
+  .btn-dl:hover{background:var(--accent-hover)}
+  .btn-design{background:none;color:var(--text-primary);font-size:14px;font-weight:600;padding:13px 20px;border-radius:3px;border:1px solid var(--border-hover);text-align:center;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+  .btn-design:hover{border-color:var(--text-primary)}
+
+  /* ── TRYOUT + WEIGHTS ── */
+  .tryout{margin-bottom:6px}
+  #tryInput{width:100%;border:none;border-bottom:2px solid var(--text-primary);background:none;font-family:inherit;font-size:17px;color:var(--text-primary);padding:10px 2px;outline:none}
+  #tryInput::placeholder{color:var(--text-muted)}
+  .tryout .note{font-family:var(--mono);font-size:11px;color:var(--text-muted);margin-top:8px;letter-spacing:.2px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px}
+  .sec-head h2{font-size:20px;font-weight:800;letter-spacing:-.4px}
+  .sec-head .count{font-family:var(--mono);font-size:12px;color:var(--text-muted)}
+  .weights{display:flex;flex-direction:column}
+  .w-row{display:flex;align-items:baseline;gap:22px;padding:20px 0;border-top:1px solid var(--border)}
+  .w-row:first-child{border-top:none;padding-top:4px}
+  .w-label{width:130px;flex-shrink:0}
+  .w-label b{display:block;font-size:13px;font-weight:700;color:var(--text-primary)}
+  .w-label span{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+  .w-sample{flex:1;min-width:0;font-size:clamp(26px,4.4vw,40px);line-height:1.25;letter-spacing:-.3px;color:var(--text-primary);word-break:break-word}
+
+  /* ── USAGE ── */
+  .u-cap{font-family:var(--mono);font-size:11px;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
+  .u-h1{font-size:clamp(28px,5vw,44px);font-weight:800;line-height:1.25;letter-spacing:-.6px}
+  .u-h2{font-size:clamp(19px,3vw,26px);font-weight:700;line-height:1.35}
+  .u-body{font-size:17px;font-weight:400;line-height:1.9;color:var(--text-primary);max-width:40em}
+
+  /* ── GLYPHS ── */
+  .glyphs{display:flex;flex-direction:column;gap:18px}
+  .g-cap{font-family:var(--mono);font-size:11px;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px}
+  .g-set{font-size:clamp(22px,3.4vw,30px);letter-spacing:2px;line-height:1.5;color:var(--text-primary)}
+
+  /* ── CURATOR ── */
+  .curator{background:var(--bg-secondary);border-left:3px solid var(--accent);padding:24px 26px;border-radius:0 3px 3px 0}
+  .curator .c-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:12px}
+  .curator p{font-size:15.5px;line-height:1.85;color:var(--text-primary);max-width:42em;margin:0}
+  .curator .sign{font-family:var(--mono);font-size:12px;color:var(--text-muted);margin-top:14px}
+
+  /* ── APP PROMO ── */
+  .app-promo-banner{display:flex;align-items:center;gap:15px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:16px 18px;margin:0 0 0;transition:border-color .15s}
+  .app-promo-banner:hover{border-color:var(--border-hover)}
+  .app-promo-banner img{width:44px;height:44px;border-radius:10px;flex-shrink:0}
+  .app-promo-text{display:flex;flex-direction:column;flex:1;min-width:0}
+  .app-promo-title{font-size:14px;font-weight:700;color:var(--text-primary)}
+  .app-promo-sub{font-size:12.5px;color:var(--text-secondary);margin-top:2px}
+  .app-promo-cta{flex-shrink:0;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);white-space:nowrap}
+
+  /* ── LICENSE inline ── */
+  .lic-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+  .lic-title{font-size:20px;font-weight:800;letter-spacing:-.4px;display:flex;align-items:center;gap:8px}
+  .lic-title i{color:var(--accent)}
+  .btn-outline{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text-secondary);border:1px solid var(--border);border-radius:2px;padding:8px 13px;background:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .btn-outline:hover{border-color:var(--text-primary);color:var(--text-primary)}
+  .lic-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 40px}
+  .lic-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary)}
+  .lic-item.no{color:var(--text-muted)}
+  .lic-item .ck{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+  .lic-item .ck.y{background:var(--accent-light);color:var(--accent)}
+  .lic-item .ck.n{background:var(--bg-secondary);color:var(--text-muted)}
+  .lic-note{font-family:var(--mono);font-size:11.5px;color:var(--text-muted);margin-top:18px;line-height:1.8}
+
+  /* ── PAIRING ── */
+  .sec-sub{font-size:13.5px;color:var(--text-muted);margin-top:-8px;margin-bottom:22px}
+  .pairs{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .pair-card{border:1px solid var(--border);border-radius:3px;padding:26px 24px;transition:.18s;display:block}
+  .pair-card:hover{border-color:var(--border-hover);transform:translateY(-3px);box-shadow:var(--shadow-hover);background:var(--bg-card)}
+  .pair-stage{margin-bottom:16px}
+  .pair-title{font-size:28px;line-height:1.3;letter-spacing:-.4px;color:var(--text-primary)}
+  .pair-body{font-size:15px;line-height:1.7;color:var(--text-secondary);margin-top:4px}
+  .pair-meta{border-top:1px solid var(--border);padding-top:14px}
+  .pair-theme{font-family:var(--mono);font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .pair-fonts{font-family:var(--mono);font-size:11.5px;color:var(--text-muted);margin-top:8px}
+  .pair-fonts b{color:var(--text-secondary);font-weight:600}
+  .pair-fonts .plus{margin:0 6px;color:var(--text-muted)}
+  .pair-desc{font-size:13px;color:var(--text-secondary);margin-top:8px;line-height:1.6}
+
+  /* ── RELATED ── */
+  .rel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .rel-card{border:1px solid var(--border);border-radius:3px;padding:24px 20px;transition:.18s;min-height:130px;display:flex;flex-direction:column;justify-content:space-between}
+  .rel-card:hover{border-color:var(--border-hover);transform:translateY(-3px);background:var(--bg-card)}
+  .rel-spec{font-size:27px;line-height:1.3;letter-spacing:-.3px;color:var(--text-primary);word-break:keep-all}
+  .rel-foot{border-top:1px solid var(--border);padding-top:12px;margin-top:16px}
+  .rel-name{font-size:13px;font-weight:700;color:var(--text-primary)}
+  .rel-tag{font-family:var(--mono);font-size:10.5px;color:var(--text-muted);margin-top:2px}
+
+  /* ── CTA ── */
+  .cta{background:var(--text-primary);color:var(--bg);border-radius:4px;padding:36px 34px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;margin:42px 0 70px}
+  .cta h3{font-size:21px;font-weight:800;letter-spacing:-.4px;margin-bottom:8px}
+  .cta p{font-size:14px;color:var(--bg);opacity:.7;max-width:34em}
+  .cta .btn{background:var(--accent);color:#fff;font-size:15px;font-weight:700;padding:14px 26px;border-radius:3px;white-space:nowrap}
+  .cta .btn:hover{background:var(--accent-hover)}
+
+  /* ── LICENSE MODAL ── */
+  .license-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+  .license-overlay.open{display:flex}
+  .license-modal{background:var(--bg-card);border-radius:6px;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .license-head{padding:24px 26px 18px;border-bottom:1px solid var(--border);position:relative}
+  .license-head-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--accent);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .license-head h2{font-size:20px;font-weight:800;letter-spacing:-.4px}
+  .license-head p{font-size:13px;color:var(--text-secondary);margin-top:4px}
+  .license-close{position:absolute;top:20px;right:20px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .license-close:hover{border-color:var(--text-primary);color:var(--text-primary)}
+  .license-body{padding:20px 26px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .license-item{background:var(--bg-secondary);border-radius:4px;padding:15px}
+  .license-item-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .license-item-cat{display:flex;align-items:center;gap:9px}
+  .license-item-icon{width:30px;height:30px;border-radius:8px;background:var(--bg-card);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:15px;flex-shrink:0}
+  .license-item-name{font-size:14px;font-weight:700}
+  .license-status{font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 9px;border-radius:2px}
+  .license-status.allow{background:var(--status-allow-bg);color:var(--status-allow-fg)}
+  .license-status.deny{background:var(--status-deny-bg);color:var(--status-deny-fg)}
+  .license-item-desc{font-size:12px;color:var(--text-secondary);line-height:1.6;margin:0}
+  .license-item.is-ofl{background:var(--ofl-grad-a);border:1px solid var(--ofl-border)}
+  .license-foot{padding:16px 26px 24px;border-top:1px solid var(--border)}
+  .license-foot p{font-size:11.5px;color:var(--text-muted);line-height:1.7;margin:0 0 6px}
+
+  @media(max-width:820px){
+    nav{display:none}
+    .hamburger-btn{display:flex}
+    .title-block{grid-template-columns:1fr;gap:22px}
+    .title-actions{min-width:0}
+    .lic-grid,.pairs{grid-template-columns:1fr}
+    .rel-grid{grid-template-columns:repeat(2,1fr)}
+    .w-label{width:96px}
+    .cta{flex-direction:column;align-items:flex-start}
+    .license-body{grid-template-columns:1fr}
+    .license-item.is-ofl{grid-column:auto}
   }
-  .mobile-nav{display:none;background:var(--bg-card);border-bottom:1px solid var(--border)}
-  .mobile-nav[hidden]{display:none!important}
-  .mobile-nav.open{display:block}
-  .mobile-nav a{display:block;padding:13px 24px;font-size:14px;border-top:1px solid var(--border)}
-
-  /* ── 라이선스 요약표 모달 (메인과 동일) ── */
-  .license-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;backdrop-filter:blur(4px)}
-.license-overlay.open{display:flex;animation:fadeIn .2s ease}
-.license-modal{background:var(--bg-card);border-radius:20px;max-width:680px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideUp .25s ease}
-.license-head{padding:28px 28px 20px;background:linear-gradient(135deg,var(--accent-light) 0%,var(--bg-card) 100%);border-bottom:1px solid var(--border);position:relative}
-.license-head-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--accent);background:var(--bg-card);padding:4px 10px;border-radius:20px;margin-bottom:10px;border:1px solid var(--accent-light);letter-spacing:.5px}
-.license-head h2{font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-.5px;margin-bottom:4px}
-.license-head p{font-size:13px;color:var(--text-secondary);line-height:1.5}
-.license-close{position:absolute;top:20px;right:20px;width:34px;height:34px;border-radius:50%;border:none;background:var(--bg-card);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.license-close:hover{background:var(--accent);color:#fff;transform:rotate(90deg)}
-.license-body{padding:24px 28px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.license-item{background:var(--bg-secondary);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;border:1px solid transparent;transition:border-color .15s}
-.license-item:hover{border-color:var(--border-hover)}
-.license-item-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.license-item-cat{display:flex;align-items:center;gap:8px}
-.license-item-icon{width:32px;height:32px;border-radius:10px;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--accent);flex-shrink:0}
-.license-item-name{font-size:14px;font-weight:800;color:var(--text-primary);letter-spacing:-.2px}
-.license-status{font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap;letter-spacing:.3px}
-.license-status.allow{background:var(--status-allow-bg);color:var(--status-allow-fg)}
-.license-status.deny{background:var(--status-deny-bg);color:var(--status-deny-fg)}
-.license-item-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
-.license-item.is-ofl{background:linear-gradient(135deg,var(--ofl-grad-a) 0%,var(--bg-secondary) 100%);border-color:var(--ofl-border)}
-.license-item.is-ofl .license-item-icon{color:var(--status-deny-fg);background:var(--status-deny-bg)}
-.license-item.is-ofl .license-item-name{color:var(--status-deny-fg)}
-.license-foot{padding:16px 28px 24px;border-top:1px solid var(--border);background:var(--bg-secondary)}
-.license-foot p{font-size:11px;color:var(--text-muted);line-height:1.6;margin:0}
-.license-foot p+p{margin-top:4px}
-.license-foot strong{color:var(--text-secondary);font-weight:700}
-.license-head{padding:24px 24px 18px}
-.license-head h2{font-size:19px}
-.app-promo-banner{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:var(--bg-secondary);border:1px solid var(--border);text-decoration:none;color:inherit;transition:transform .12s ease,border-color .12s ease;margin-top:42px}
-.app-promo-banner:active{transform:scale(.98)}
-.app-promo-banner:hover{border-color:var(--accent)}
-.app-promo-banner img{width:44px;height:44px;border-radius:11px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-.app-promo-banner .app-promo-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.app-promo-banner .app-promo-title{font-size:12.5px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.app-promo-banner .app-promo-sub{font-size:10.5px;color:var(--text-muted)}
-.app-promo-banner .app-promo-cta{flex-shrink:0;font-size:11.5px;font-weight:800;color:#fff;background:var(--accent);padding:7px 12px;border-radius:9px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -277,59 +317,106 @@
   <div class="loading" id="loading">폰트 정보를 불러오는 중…</div>
 
   <div id="content" class="hidden">
-    <div class="head">
-      <div class="crumb"><a href="/">홈</a> · <b id="crumbName"></b></div>
+    <div class="crumb"><a href="/">홈</a> · <b id="crumbName"></b></div>
+
+    <div class="title-block">
       <div class="title-row">
-        <h1 id="fontName"></h1>
         <span class="foundry" id="fontMaker"></span>
+        <h1 id="fontName"></h1>
+        <div class="tags" id="fontTags"></div>
       </div>
-      <div class="tags" id="fontTags"></div>
-      <p class="font-intro hidden" id="fontIntro"></p>
+      <div class="title-actions">
+        <button class="btn-dl" id="downloadBtn">⬇ 무료 다운로드</button>
+        <a class="btn-design" id="designBtnTop" href="#">이 폰트로 텍스트 디자인</a>
+      </div>
     </div>
 
-    <!-- ① 미리 써보기 -->
-    <div class="tryout">
-      <input type="text" id="tryInput" placeholder="원하는 문구를 입력해 보세요" maxlength="60">
-      <div class="note">입력한 문구가 아래 미리보기에 바로 적용됩니다.</div>
-    </div>
-
-    <!-- ② 미리보기 (폰트 파일 단위 — 굵기별 파일 추가 시 행이 늘어남) -->
-    <section class="sec">
-      <div class="sec-head"><h2 id="previewHeading">미리보기</h2><span class="count" id="weightsLabel"></span></div>
+    <!-- ① 직접 입력 + ② 굵기별 보기 -->
+    <section class="blk">
+      <div class="tryout">
+        <input type="text" id="tryInput" placeholder="원하는 문구를 입력해 보세요" maxlength="60">
+        <div class="note">입력한 문구가 아래 미리보기에 바로 적용됩니다.</div>
+      </div>
+      <div class="sec-head" style="margin-top:30px"><h2 id="previewHeading">미리보기</h2><span class="count" id="weightsLabel"></span></div>
       <div class="weights" id="weightRows"></div>
     </section>
 
+    <!-- ③ 실제 사용 예시 -->
+    <section class="blk">
+      <div class="lbl">실제 사용 예시</div>
+      <div class="u-cap">Headline</div>
+      <div class="u-h1 uses-font" style="font-weight:800">봄이 오면, 오래된 것들이 새로워진다</div>
+      <div class="u-cap" style="margin-top:28px">Subhead</div>
+      <div class="u-h2 uses-font" style="font-weight:700">좋은 폰트는 문장의 온도를 바꾼다</div>
+      <div class="u-cap" style="margin-top:28px">Body</div>
+      <p class="u-body uses-font" style="font-weight:400">글꼴은 단순한 장식이 아니라 목소리입니다. 같은 문장도 어떤 폰트로 담느냐에 따라 다정하게, 단단하게, 혹은 우아하게 들립니다. 화면과 인쇄물 모두에서 안정적으로 읽히는지 직접 확인해 보세요.</p>
+    </section>
+
+    <!-- ④ 글자 견본 -->
+    <section class="blk">
+      <div class="lbl">글자 견본</div>
+      <div class="glyphs">
+        <div><div class="g-cap">한글</div><div class="g-set uses-font">가 나 다 라 마 바 사 아 자 차 카 타 파 하</div></div>
+        <div><div class="g-cap">영문</div><div class="g-set uses-font">A B C D E F G a b c d e f g</div></div>
+        <div><div class="g-cap">숫자 · 기호</div><div class="g-set uses-font">0 1 2 3 4 5 6 7 8 9 . , ! ? ₩ @ #</div></div>
+      </div>
+    </section>
+
+    <!-- ⑤ 큐레이터 코멘트 -->
+    <section class="blk hidden" id="introSec">
+      <div class="lbl">큐레이터 코멘트</div>
+      <div class="curator">
+        <div class="c-lbl">✎ 왜 골랐나요</div>
+        <p id="fontIntro"></p>
+        <div class="sign">— 폰트픽 큐레이션팀</div>
+      </div>
+    </section>
+
     <!-- 앱 프로모 배너 -->
-    <a class="app-promo-banner" href="https://tosto.re/ktext" target="_blank" rel="noopener">
+    <section class="blk"><a class="app-promo-banner" href="https://tosto.re/ktext" target="_blank" rel="noopener">
       <img src="data:image/png;base64,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" alt="한글로 사진에 글쓰기 앱 아이콘">
       <div class="app-promo-text">
         <span class="app-promo-title">한글로 사진에 글쓰기 앱</span>
         <span class="app-promo-sub">사진 위에 예쁜 한글 폰트로 바로 써보세요</span>
       </div>
       <span class="app-promo-cta">무료 받기</span>
-    </a>
+    </a></section>
 
-    <!-- ③ 라이선스 + 다운로드 -->
-    <section class="license">
-      <div class="lic-title" style="margin-bottom:0"><i class="ti ti-circle-check"></i>상업적 사용 가능 무료폰트</div>
-      <div class="lic-btns">
-        <button type="button" class="btn btn-outline" onclick="openLicense()"><i class="ti ti-license"></i> 라이선스 보기</button>
-        <button class="btn" id="downloadBtn"><i class="ti ti-download"></i> 무료 다운로드</button>
+    <!-- ⑥ 라이선스 -->
+    <section class="blk">
+      <div class="lic-head">
+        <div class="lic-title"><i class="ti ti-circle-check"></i> 상업적 사용 가능</div>
+        <button type="button" class="btn-outline" onclick="openLicense()"><i class="ti ti-license"></i> 라이선스 전체 보기</button>
       </div>
+      <div class="lic-grid">
+        <div class="lic-item"><span class="ck y">✓</span> 인쇄물 (포스터·브로슈어)</div>
+        <div class="lic-item"><span class="ck y">✓</span> 웹사이트·앱 임베딩</div>
+        <div class="lic-item"><span class="ck y">✓</span> 영상·유튜브 자막</div>
+        <div class="lic-item"><span class="ck y">✓</span> BI/CI·로고 제작</div>
+        <div class="lic-item"><span class="ck y">✓</span> 판매용 상품 패키지</div>
+        <div class="lic-item no"><span class="ck n">✕</span> 폰트 파일 자체 수정·재배포</div>
+      </div>
+      <p class="lic-note">※ 사용범위는 참고용입니다. 정확한 범위는 이용 전 폰트 저작권자에게 확인하세요.</p>
     </section>
 
-    <!-- ④ 페어링 -->
-    <section class="sec hidden" id="pairingSec">
+    <!-- ⑦ 페어링 -->
+    <section class="blk hidden" id="pairingSec">
       <div class="sec-head"><h2>이 폰트와 어울리는 조합</h2></div>
       <p class="sec-sub" id="pairingSub"></p>
       <div class="pairs" id="pairGrid"></div>
     </section>
 
-    <!-- ⑤ 디자인 CTA -->
+    <!-- ⑧ 같은 계열 폰트 -->
+    <section class="blk hidden" id="relatedSec">
+      <div class="lbl">같은 계열 폰트</div>
+      <div class="rel-grid" id="relatedGrid"></div>
+    </section>
+
+    <!-- ⑨ 디자인 CTA -->
     <section class="cta">
       <div>
-        <h3>이 폰트로 바로 디자인해 보세요</h3>
-        <p>30가지 텍스트 효과를 입혀 투명배경 PNG로 저장할 수 있어요.</p>
+        <h3>다운로드 없이, 바로 텍스트 디자인</h3>
+        <p>이 폰트로 문구를 입력하고 색·외곽선·그림자 효과를 얹어 투명 PNG로 저장하세요. 설치 없이 브라우저에서 바로.</p>
       </div>
       <a class="btn" id="designBtn" href="#">텍스트 디자인 열기 →</a>
     </section>
@@ -494,6 +581,37 @@
   }
   function esc(s){ var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
+  function fetchRelated(f){
+    fetch('/api/fonts').then(function(r){ return r.ok ? r.json() : []; }).then(function(all){
+      var mine = f.tags || [];
+      if (!mine.length) return;
+      var scored = (all || []).filter(function(x){ return x.id !== f.id; }).map(function(x){
+        var shared = (x.tags || []).filter(function(t){ return mine.indexOf(t) >= 0; }).length;
+        return { f: x, s: shared };
+      }).filter(function(o){ return o.s > 0; });
+      scored.sort(function(a,b){ return (b.s - a.s) || ((b.f.like_count||0) - (a.f.like_count||0)); });
+      renderRelated(scored.slice(0, 8).map(function(o){ return o.f; }));
+    }).catch(function(){});
+  }
+  function loadRelatedFace(rf){
+    if (rf.webfont_css_url){ var l = document.createElement('link'); l.rel='stylesheet'; l.href=rf.webfont_css_url; document.head.appendChild(l); return; }
+    if (rf.has_file){ ensureFont({ id: rf.id, has_file: true }); }
+  }
+  function renderRelated(list){
+    if (!list || !list.length) return;
+    var sec = document.getElementById('relatedSec'), grid = document.getElementById('relatedGrid');
+    grid.innerHTML = list.map(function(rf){
+      loadRelatedFace(rf);
+      var stk = stackOf(rf);
+      var tag = (rf.tags && rf.tags[0]) ? rf.tags[0] : '무료폰트';
+      return '<a class="rel-card" href="/font/' + rf.id + '">' +
+        '<div class="rel-spec" style="font-family:' + stk + '">' + esc(rf.name) + '</div>' +
+        '<div class="rel-foot"><div class="rel-name">' + esc(rf.name) + '</div>' +
+        '<div class="rel-tag">' + esc(tag) + ' · ' + esc(rf.weights || '1종') + '</div></div></a>';
+    }).join('');
+    sec.classList.remove('hidden');
+  }
+
   // 메인페이지에서 넘어온 미리보기 문구 (sessionStorage)
   var carried = '';
   try { carried = sessionStorage.getItem('ffp_preview_text') || ''; } catch(e){}
@@ -611,11 +729,12 @@
       document.getElementById('fontMaker').textContent = (f.maker || '') + ' 배포';
       var introEl = document.getElementById('fontIntro');
       var introText = (f.meta && f.meta.intro) ? String(f.meta.intro).trim() : '';
+      var introSec = document.getElementById('introSec');
       if (introText) {
         introEl.textContent = introText;
-        introEl.classList.remove('hidden');
+        introSec.classList.remove('hidden');
       } else {
-        introEl.classList.add('hidden');
+        introSec.classList.add('hidden');
       }
       var tags = ['<span class="tag hot">상업적 사용 가능</span>'];
       (f.tags || []).forEach(function(t){ tags.push('<span class="tag">' + esc(t) + '</span>'); });
@@ -636,6 +755,9 @@
 
       document.getElementById('loading').classList.add('hidden');
       document.getElementById('content').classList.remove('hidden');
+      try { var _stk = stackOf(f); document.querySelectorAll('.uses-font').forEach(function(el){ el.style.fontFamily = _stk; }); } catch(e){}
+      var _dtop = document.getElementById('designBtnTop'); if (_dtop) _dtop.setAttribute('href', '/design/' + f.id);
+      fetchRelated(f);
 
       return fetch('/api/fonts/' + fid + '/pairings');
     })
