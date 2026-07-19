@@ -85,6 +85,12 @@ def _design_page_meta(font: Font) -> dict:
      index.html이 아닌 font.html을 서빙한다. font.html은 상세페이지 콘텐츠를
      보여주면서 모달을 자동으로 연다. 그래서 og_image는 상세페이지와 동일한
      og-image.png를 재사용하되, title/description은 '텍스트 디자인' 의도에 맞춘다.)
+
+    (2026-07 SEO 수정: /design/{id}는 /font/{id}와 실제로 렌더되는 콘텐츠가
+     거의 동일(모달 자동오픈 여부만 다름)해서, 구글이 두 URL을 중복 콘텐츠로
+     판단해 /design/만 색인하고 /font/는 전부 "크롤링됨-색인생성안됨"으로
+     빠뜨렸다. canonical(및 og:url)을 /font/{id}로 통일해서 색인을 상세페이지
+     하나로 합친다. /design/{id} URL 자체는 그대로 동작하며 접속/공유 가능.)
     """
     name = font.name
     maker = font.maker or ""
@@ -99,7 +105,8 @@ def _design_page_meta(font: Font) -> dict:
     keywords = ", ".join(
         [name, f"{name} 다운로드", "텍스트 디자인", "글자 꾸미기"] + tags[:4]
     )
-    url = f"{BASE_URL}/design/{font.id}"
+    # canonical/og:url은 상세페이지(/font/{id})로 통일 (중복 색인 방지)
+    url = f"{BASE_URL}/font/{font.id}"
     og_image = f"{BASE_URL}/api/fonts/{font.id}/og-image.png"
     return {
         "title": title, "desc": desc, "keywords": keywords,
