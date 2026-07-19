@@ -122,7 +122,7 @@
   nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:6px;text-decoration:none;transition:all .15s;white-space:nowrap}
   nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
   .search-wrap{position:relative;flex-shrink:0;margin-left:auto}
-  .search-wrap i{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text-muted);pointer-events:none}
+  .search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text-muted);pointer-events:none;display:block}
   .search-wrap input{width:280px;height:34px;border:1px solid var(--border);border-radius:18px;padding:0 14px 0 34px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s,width .2s}
   .search-wrap input::placeholder{color:var(--text-muted)}
   .search-wrap input:focus{border-color:var(--accent);width:320px}
@@ -135,7 +135,7 @@
   .mobile-nav.open{display:flex}
   .mobile-nav a,.mobile-nav button{font-size:14px;color:var(--text-primary);padding:11px 4px;font-weight:500}
 
-  .wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+  .wrap{max-width:940px;margin:0 auto;padding:0 22px}
   .loading{padding:120px 0;text-align:center;color:var(--text-muted);font-family:var(--mono);font-size:13px}
   .hidden{display:none!important}
   .lbl{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;display:flex;align-items:center;gap:10px}
@@ -284,7 +284,7 @@
       <a href="/find-font">폰트 찾기</a>
     </nav>
     <div class="search-wrap" id="searchWrap">
-      <i class="ti ti-search" aria-hidden="true"></i>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><line x1="21" y1="21" x2="15.5" y2="15.5"/></svg>
       <input type="text" id="globalSearch" placeholder="폰트명 또는 분위기/용도로 추천" aria-label="폰트 검색 및 추천" onkeydown="if(event.key==='Enter') goSearch(this.value)">
     </div>
     <div class="header-right">

@@ -194,7 +194,7 @@
     .btn-subscribe:hover{border-color:var(--text-primary);color:var(--text-primary);background:transparent}
     .btn-subscribe i{font-size:13px}
     .search-wrap{position:relative;flex-shrink:0}
-    .search-wrap i{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text-muted);pointer-events:none}
+    .search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text-muted);pointer-events:none;display:block}
     .search-wrap input{width:280px;height:34px;border:1px solid var(--border);border-radius:18px;padding:0 14px 0 34px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s,width .2s}
     .search-wrap input::placeholder{color:var(--text-muted)}
     .search-wrap input:focus{border-color:var(--accent);width:320px}
@@ -536,9 +536,10 @@
     .ad-slot.row-1{grid-column:1;grid-row:1}
     .ad-slot.row-3{grid-column:1;grid-row:3}
     .font-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:12px;align-items:center}
-  .font-actions .btn-download{flex:1}
-    .btn-download{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:700;line-height:1;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--accent);color:var(--accent);background:transparent;cursor:pointer;transition:all .15s;font-family:inherit;text-decoration:none;white-space:nowrap}
-    .btn-download:hover{background:var(--accent);color:#fff}
+  .font-actions .btn-download{width:100%}
+    .btn-download{display:inline-flex;align-items:center;justify-content:flex-start;gap:5px;font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:11px;font-weight:600;line-height:1;color:var(--text-secondary);background:none;border:none;padding:0;cursor:pointer;transition:color .15s;text-decoration:none;white-space:nowrap}
+    .font-card:hover .btn-download{color:var(--accent)}
+    .btn-download i{font-size:12px}
 
     /* NO RESULTS */
     .no-results{grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-muted)}
@@ -829,7 +830,7 @@
       <a href="/find-font" id="submitMenuLink" onclick="navFindFont(event)">폰트 찾기</a>
     </nav>
     <div class="search-wrap" id="searchWrap">
-      <i class="ti ti-search" aria-hidden="true"></i>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><line x1="21" y1="21" x2="15.5" y2="15.5"/></svg>
       <input type="text" id="globalSearch" placeholder="폰트명 또는 분위기/용도로 추천" aria-label="폰트 검색 및 추천" oninput="filterFonts()">
     </div>
     <div class="header-right">
