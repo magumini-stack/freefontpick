@@ -182,18 +182,16 @@
     .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:200}
     body{padding-top:60px}
     .header-inner{max-width:1240px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
-    .header-inner .search-wrap{margin-left:auto}
-    .logo{display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;font-family:'Noto Sans KR',-apple-system,sans-serif;font-weight:900;font-size:20px;letter-spacing:-.5px;color:var(--text-primary)}
+        .logo{display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;font-family:'Noto Sans KR',-apple-system,sans-serif;font-weight:900;font-size:20px;letter-spacing:-.5px;color:var(--text-primary)}
     .logo .logo-dot{width:7px;height:7px;background:var(--accent);border-radius:1px;display:inline-block;margin-bottom:2px}
     nav{display:flex;gap:2px}
     nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:6px;text-decoration:none;transition:all .15s;white-space:nowrap}
     nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
     nav a.active{color:var(--accent);background:var(--accent-light);font-weight:700}
     .header-right{display:flex;align-items:center;gap:8px}
-    .btn-subscribe{display:inline-flex;align-items:center;gap:6px;font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;font-weight:500;letter-spacing:.2px;padding:8px 13px;border:1px solid var(--border);color:var(--text-secondary);border-radius:2px;background:transparent;text-decoration:none;transition:all .15s;white-space:nowrap}
-    .btn-subscribe:hover{border-color:var(--text-primary);color:var(--text-primary);background:transparent}
-    .btn-subscribe i{font-size:13px}
-    .search-wrap{position:relative;flex-shrink:0}
+    .btn-subscribe{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;font-weight:500;letter-spacing:.2px;padding:8px 13px;border:1px solid var(--border);color:var(--text-secondary);border-radius:2px;white-space:nowrap;transition:all .15s;text-decoration:none;display:inline-block}
+    .btn-subscribe:hover{border-color:var(--text-primary);color:var(--text-primary)}
+    .search-wrap{position:relative;flex-shrink:0;margin-left:auto}
     .search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text-muted);pointer-events:none;display:block}
     .search-wrap input{width:280px;height:34px;border:1px solid var(--border);border-radius:18px;padding:0 14px 0 34px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s,width .2s}
     .search-wrap input::placeholder{color:var(--text-muted)}
@@ -370,9 +368,9 @@
     .picks-title{font-size:18px;font-weight:800;color:var(--text-primary);letter-spacing:-.3px;display:flex;align-items:center;gap:10px}
     .picks-badge{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10.5px;font-weight:700;letter-spacing:.6px;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:2px 7px}
     .picks-desc{font-size:12.5px;color:var(--text-muted);margin-top:6px;margin-bottom:18px}
-    .picks-list{display:flex;flex-direction:column}
-    .pick-row{display:flex;align-items:center;gap:18px;padding:14px 4px;border-top:1px solid var(--border);cursor:pointer;transition:padding-left .18s;text-decoration:none;color:inherit;min-width:0}
-    .pick-row:first-child{border-top:none}
+    .picks-list{display:grid;grid-template-columns:repeat(2,1fr);gap:0 32px}
+    .pick-row{display:flex;align-items:center;gap:16px;padding:16px 4px;border-top:1px solid var(--border);cursor:pointer;transition:padding-left .18s;text-decoration:none;color:inherit;min-width:0}
+    .pick-row:nth-child(-n+2){border-top:none}
     .pick-row:hover{padding-left:10px}
     .pick-rank{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;color:var(--text-muted);width:22px;flex-shrink:0;font-weight:500}
     .pick-row:first-child .pick-rank{color:var(--accent);font-weight:700}
@@ -381,6 +379,11 @@
     .pick-meta{flex-shrink:0;text-align:right;min-width:100px}
     .pick-name{font-size:12.5px;font-weight:700;color:var(--text-primary)}
     .pick-tag{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10px;color:var(--text-muted);margin-top:1px}
+    @media(max-width:700px){
+      .picks-list{grid-template-columns:1fr}
+      .pick-row:nth-child(-n+2){border-top:1px solid var(--border)}
+      .pick-row:first-child{border-top:none}
+    }
     @media(max-width:480px){
       .pick-meta{display:none}
       .pick-specimen{font-size:17px}
@@ -838,10 +841,7 @@
         <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
         <svg class="ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg>
       </button>
-      <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer">
-        <i class="ti ti-bell" aria-hidden="true"></i>
-        <span>타닥타닥 구독</span>
-      </a>
+      <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer">타닥타닥 구독</a>
       <button type="button" class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mobileNavPanel">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" aria-hidden="true">
           <line x1="4" y1="7" x2="20" y2="7"/>
@@ -2931,7 +2931,7 @@ function renderCuratorPicks(){
   const list = document.getElementById('picksList');
   if(!section || !list) return;
 
-  const picks = FONTS.filter(f => f.isPick);
+  const picks = FONTS.filter(f => f.isPick).slice(0, 6);
 
   if(!picks.length){
     section.style.display = 'none';

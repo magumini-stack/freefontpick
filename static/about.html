@@ -30,7 +30,7 @@
   <meta property="og:locale" content="ko_KR">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/tabler-icons.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
   <style>
@@ -84,8 +84,8 @@
     .search-wrap input::placeholder{color:var(--text-muted)}
     .search-wrap input:focus{border-color:var(--accent);width:320px}
     .header-right{display:flex;align-items:center;gap:8px}
-    .btn-back{display:inline-flex;align-items:center;gap:6px;font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;font-weight:500;letter-spacing:.2px;padding:8px 13px;border-radius:2px;border:1px solid var(--border);color:var(--text-secondary);background:transparent;text-decoration:none;transition:all .15s}
-    .btn-back:hover{border-color:var(--text-primary);color:var(--text-primary)}
+    .btn-subscribe{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;font-weight:500;letter-spacing:.2px;padding:8px 13px;border:1px solid var(--border);color:var(--text-secondary);border-radius:2px;white-space:nowrap;transition:all .15s;text-decoration:none;display:inline-block}
+    .btn-subscribe:hover{border-color:var(--text-primary);color:var(--text-primary)}
     @media(max-width:768px){
       nav{display:none}
       .search-wrap{margin-left:12px;flex:1}
@@ -166,10 +166,7 @@
         <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
         <svg class="ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg>
       </button>
-      <a class="btn-back" href="index.html">
-        <i class="ti ti-arrow-left" aria-hidden="true"></i>
-        <span>홈으로</span>
-      </a>
+      <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer">타닥타닥 구독</a>
     </div>
   </div>
 </header>
