@@ -34,6 +34,7 @@
 
 <!-- 아래 메타는 서버(/font/{id} 라우트)에서 폰트별로 치환됨 -->
 <title>{{FFP_TITLE}}</title>
+<link rel="stylesheet" href="/header.css">
 <meta name="description" content="{{FFP_DESC}}">
 <meta name="keywords" content="{{FFP_KEYWORDS}}">
 <link rel="canonical" href="{{FFP_CANONICAL}}">
@@ -95,12 +96,6 @@
       color-scheme:dark;
     }
   }
-  .theme-toggle{width:36px;height:36px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}
-  .theme-toggle:hover{background:var(--bg-secondary)}
-  .theme-toggle i,.theme-toggle svg{font-size:19px}
-  .theme-toggle .ti-sun{display:none}
-  :root[data-theme="dark"] .theme-toggle .ti-moon{display:none}
-  :root[data-theme="dark"] .theme-toggle .ti-sun{display:block}
   *{margin:0;padding:0;box-sizing:border-box}
   html{overflow-x:hidden}
   body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);line-height:1.6;overflow-x:hidden;overflow-wrap:break-word;word-break:keep-all}
@@ -111,29 +106,6 @@
   :root{--mono:ui-monospace,'SFMono-Regular',Menlo,'Consolas',monospace;}
   body{-webkit-font-smoothing:antialiased}
   .mono{font-family:var(--mono)}
-
-  /* ── HEADER ── */
-  .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:200}
-  body{padding-top:60px}
-  .header-inner{max-width:1240px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
-  .logo{display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;font-family:'Noto Sans KR',-apple-system,sans-serif;font-weight:900;font-size:20px;letter-spacing:-.5px;color:var(--text-primary)}
-  .logo .logo-dot{width:7px;height:7px;background:var(--accent);border-radius:1px;display:inline-block;margin-bottom:2px}
-  nav{display:flex;gap:2px}
-  nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:6px;text-decoration:none;transition:all .15s;white-space:nowrap}
-  nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
-  .search-wrap{position:relative;flex-shrink:0;margin-left:auto}
-  .search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text-muted);pointer-events:none;display:block}
-  .search-wrap input{width:280px;height:34px;border:1px solid var(--border);border-radius:18px;padding:0 14px 0 34px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s,width .2s}
-  .search-wrap input::placeholder{color:var(--text-muted)}
-  .search-wrap input:focus{border-color:var(--accent);width:320px}
-  .header-right{display:flex;align-items:center;gap:8px}
-  .btn-subscribe{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;font-weight:500;letter-spacing:.2px;padding:8px 13px;border:1px solid var(--border);color:var(--text-secondary);border-radius:2px;white-space:nowrap;transition:all .15s;text-decoration:none;display:inline-block}
-  .btn-subscribe:hover{border-color:var(--text-primary);color:var(--text-primary)}
-  .hamburger-btn{display:none;width:38px;height:38px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;align-items:center;justify-content:center;border-radius:6px}
-  .hamburger-btn:hover{background:var(--bg-secondary)}
-  .mobile-nav{display:none;flex-direction:column;gap:2px;padding:8px 22px 14px;border-bottom:1px solid var(--border);background:var(--bg)}
-  .mobile-nav.open{display:flex}
-  .mobile-nav a,.mobile-nav button{font-size:14px;color:var(--text-primary);padding:11px 4px;font-weight:500}
 
   .wrap{max-width:940px;margin:0 auto;padding:0 22px}
   .loading{padding:120px 0;text-align:center;color:var(--text-muted);font-family:var(--mono);font-size:13px}
@@ -274,41 +246,7 @@
 </head>
 <body>
 
-<header class="header">
-  <div class="header-inner">
-    <a href="/" class="logo" aria-label="폰트픽 홈으로">폰트픽<span class="logo-dot"></span></a>
-    <nav>
-      <a href="/about.html">폰트픽 소개</a>
-      <a href="/#notice">공지사항</a>
-      <a href="/faq.html">자주 묻는 질문</a>
-      <a href="/find-font">폰트 찾기</a>
-    </nav>
-    <div class="search-wrap" id="searchWrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><line x1="21" y1="21" x2="15.5" y2="15.5"/></svg>
-      <input type="text" id="globalSearch" placeholder="폰트명 또는 분위기/용도로 추천" aria-label="폰트 검색 및 추천" onkeydown="if(event.key==='Enter') goSearch(this.value)">
-    </div>
-    <div class="header-right">
-      <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="야간모드 전환">
-        <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
-        <svg class="ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg>
-      </button>
-      <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer">타닥타닥 구독</a>
-      <button type="button" class="hamburger-btn" onclick="var n=document.getElementById('mnav');n.hidden=!n.hidden;n.classList.toggle('open')" aria-label="메뉴 열기">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="22" height="22"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
-      </button>
-    </div>
-  </div>
-  <nav class="mobile-nav" id="mnav" hidden>
-    <a href="/about.html">폰트픽 소개</a>
-    <a href="/#notice">공지사항</a>
-    <a href="/faq.html">자주 묻는 질문</a>
-    <a href="/find-font">폰트 찾기</a>
-    <a href="https://tdtd.io" target="_blank" rel="noopener noreferrer">타닥타닥 구독</a>
-    <button type="button" onclick="toggleTheme()" style="width:100%;text-align:left;border:none;background:transparent;font-family:inherit;font-size:inherit;color:inherit;padding:inherit;cursor:pointer">
-      <svg class="ti-moon" id="mThemeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg><svg class="ti-sun" id="mThemeIconSun" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg> <span id="mThemeLabel">야간모드</span>
-    </button>
-  </nav>
-</header>
+<!--FFP_HEADER-->
 
 <main class="wrap">
   <div class="loading" id="loading">폰트 정보를 불러오는 중…</div>
@@ -451,6 +389,10 @@
     if(!q) return;
     location.href = '/#search/' + encodeURIComponent(q);
   };
+  // 공유 헤더의 "폰트 찾기" 링크가 호출하는 함수 — 이 페이지는 SPA가 아니므로 기본 이동만 허용
+  window.navFindFont = window.navFindFont || function(){};
+  var _gsEl = document.getElementById('globalSearch');
+  if(_gsEl) _gsEl.addEventListener('keydown', function(e){ if(e.key === 'Enter') window.goSearch(e.target.value); });
   applyThemeIcons();
   if(window.matchMedia){
     var mq = window.matchMedia('(prefers-color-scheme: dark)');

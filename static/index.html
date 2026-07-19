@@ -14,6 +14,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google-adsense-account" content="ca-pub-6258337579944977">
   <title>폰트픽-무료폰트 큐레이션 및 텍스트 디자인</title>
+  <link rel="stylesheet" href="/header.css">
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18302402783"></script>
@@ -162,96 +163,8 @@
         color-scheme:dark;
       }
     }
-    /* 야간모드 토글 버튼 */
-    .theme-toggle{
-      width:36px;height:36px;border:none;background:transparent;color:var(--text-primary);
-      cursor:pointer;display:flex;align-items:center;justify-content:center;
-      border-radius:8px;flex-shrink:0;
-    }
-    .theme-toggle:hover{background:var(--bg-secondary)}
-    .theme-toggle i,.theme-toggle svg{font-size:19px}
-    .theme-toggle .ti-sun{display:none}
-    :root[data-theme="dark"] .theme-toggle .ti-moon{display:none}
-    :root[data-theme="dark"] .theme-toggle .ti-sun{display:block}
-    .mobile-theme-row{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;border-radius:8px;font-size:14px;color:var(--text-primary);font-weight:600}
-    .mobile-theme-row:hover{background:var(--bg-secondary)}
     html{scroll-behavior:smooth}
     body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;line-height:1.6}
-
-    /* HEADER */
-    .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:200}
-    body{padding-top:60px}
-    .header-inner{max-width:1240px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
-        .logo{display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;font-family:'Noto Sans KR',-apple-system,sans-serif;font-weight:900;font-size:20px;letter-spacing:-.5px;color:var(--text-primary)}
-    .logo .logo-dot{width:7px;height:7px;background:var(--accent);border-radius:1px;display:inline-block;margin-bottom:2px}
-    nav{display:flex;gap:2px}
-    nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:6px;text-decoration:none;transition:all .15s;white-space:nowrap}
-    nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
-    nav a.active{color:var(--accent);background:var(--accent-light);font-weight:700}
-    .header-right{display:flex;align-items:center;gap:8px}
-    .btn-subscribe{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;font-weight:500;letter-spacing:.2px;padding:8px 13px;border:1px solid var(--border);color:var(--text-secondary);border-radius:2px;white-space:nowrap;transition:all .15s;text-decoration:none;display:inline-block}
-    .btn-subscribe:hover{border-color:var(--text-primary);color:var(--text-primary)}
-    .search-wrap{position:relative;flex-shrink:0;margin-left:auto}
-    .search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text-muted);pointer-events:none;display:block}
-    .search-wrap input{width:280px;height:34px;border:1px solid var(--border);border-radius:18px;padding:0 14px 0 34px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s,width .2s}
-    .search-wrap input::placeholder{color:var(--text-muted)}
-    .search-wrap input:focus{border-color:var(--accent);width:320px}
-
-    /* 모바일 햄버거 메뉴 */
-    .hamburger-btn{
-      display:none;
-      width:36px;height:36px;
-      border:none;background:transparent;color:var(--text-primary);
-      cursor:pointer;
-      align-items:center;justify-content:center;
-      border-radius:8px;
-      flex-shrink:0;
-    }
-    .hamburger-btn:hover{background:var(--bg-secondary)}
-    .hamburger-btn i{font-size:22px}
-    .mobile-nav-panel{
-      display:none;
-      position:fixed;
-      top:60px; right:0;
-      width:min(280px,80vw);
-      height:calc(100vh - 60px);
-      background:var(--bg-card);
-      border-left:1px solid var(--border);
-      box-shadow:-8px 0 24px rgba(0,0,0,.08);
-      z-index:199;
-      padding:14px;
-      transform:translateX(100%);
-      transition:transform .22s ease;
-      overflow-y:auto;
-    }
-    .mobile-nav-panel.open{display:block}
-    .mobile-nav-panel.animate-in{transform:translateX(0)}
-    .mobile-nav-panel a,.mobile-nav-panel button{
-      display:flex;align-items:center;gap:10px;
-      width:100%;
-      padding:13px 14px;
-      font-size:14.5px;font-weight:700;
-      color:var(--text-primary);
-      text-decoration:none;
-      border:none;background:transparent;
-      border-radius:10px;
-      text-align:left;
-      cursor:pointer;
-      font-family:inherit;
-      margin-bottom:2px;
-    }
-    .mobile-nav-panel a:hover,.mobile-nav-panel button:hover{background:var(--bg-secondary)}
-    .mobile-nav-panel a.active{color:var(--accent);background:var(--accent-light)}
-    .mobile-nav-panel i{font-size:17px;color:var(--text-muted);flex-shrink:0}
-    .mobile-nav-panel a.active i{color:var(--accent)}
-    .mobile-nav-divider{height:1px;background:var(--border);margin:8px 4px}
-    .mobile-nav-backdrop{
-      display:none;
-      position:fixed;inset:0;top:60px;
-      background:rgba(0,0,0,.35);
-      z-index:198;
-    }
-    .mobile-nav-backdrop.open{display:block}
 
     /* HERO */
     .hero{max-width:1240px;margin:0 auto;padding:40px 24px 26px}
@@ -462,7 +375,7 @@
     .preset-chip.active{border-color:var(--accent);color:var(--accent);font-weight:700}
 
     /* TAGS */
-    .tags-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+    .tags-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;scroll-margin-top:76px}
     .tag{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;padding:6px 12px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500}
     .tag:hover{border-color:var(--text-primary);color:var(--text-primary)}
     .tag.active{color:var(--accent);border-color:var(--accent);font-weight:700;background:none}
@@ -821,60 +734,7 @@
 <body>
 
 <!-- HEADER -->
-<header class="header">
-  <div class="header-inner">
-    <a href="#" class="logo" onclick="goHome();return false;" aria-label="폰트픽 홈으로">
-      폰트픽<span class="logo-dot"></span>
-    </a>
-    <nav>
-      <a href="/about.html">폰트픽 소개</a>
-      <a href="#notice" id="noticeMenuLink">공지사항</a>
-      <a href="/faq.html">자주 묻는 질문</a>
-      <a href="/find-font" id="submitMenuLink" onclick="navFindFont(event)">폰트 찾기</a>
-    </nav>
-    <div class="search-wrap" id="searchWrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><line x1="21" y1="21" x2="15.5" y2="15.5"/></svg>
-      <input type="text" id="globalSearch" placeholder="폰트명 또는 분위기/용도로 추천" aria-label="폰트 검색 및 추천" oninput="filterFonts()">
-    </div>
-    <div class="header-right">
-      <button type="button" class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" aria-label="야간모드 전환">
-        <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
-        <svg class="ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg>
-      </button>
-      <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer">타닥타닥 구독</a>
-      <button type="button" class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mobileNavPanel">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" aria-hidden="true">
-          <line x1="4" y1="7" x2="20" y2="7"/>
-          <line x1="4" y1="12" x2="20" y2="12"/>
-          <line x1="4" y1="17" x2="20" y2="17"/>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="mobile-nav-backdrop" id="mobileNavBackdrop" onclick="closeMobileNav()"></div>
-  <nav class="mobile-nav-panel" id="mobileNavPanel" aria-label="모바일 메뉴">
-    <a href="/about.html">
-      <i class="ti ti-info-circle" aria-hidden="true"></i> 폰트픽 소개
-    </a>
-    <a href="#notice" id="mNoticeMenuLink" onclick="closeMobileNav()">
-      <i class="ti ti-speakerphone" aria-hidden="true"></i> 공지사항
-    </a>
-    <a href="/faq.html">
-      <i class="ti ti-help-circle" aria-hidden="true"></i> 자주 묻는 질문
-    </a>
-    <a href="/find-font" id="mSubmitMenuLink" onclick="navFindFont(event);closeMobileNav()">
-      <i class="ti ti-bulb" aria-hidden="true"></i> 폰트 찾기
-    </a>
-    <div class="mobile-nav-divider"></div>
-    <button type="button" class="mobile-theme-row" id="mobileThemeToggleBtn" onclick="toggleTheme()" style="width:100%;border:none;background:transparent;font-family:inherit;cursor:pointer;">
-      <span style="display:flex;align-items:center;gap:8px"><svg class="ti-moon" id="mThemeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg><svg class="ti-sun" id="mThemeIconSun" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg> <span id="mThemeLabel">야간모드</span></span>
-    </button>
-    <div class="mobile-nav-divider"></div>
-    <a href="https://tdtd.io" target="_blank" rel="noopener noreferrer" onclick="closeMobileNav()">
-      <i class="ti ti-bell" aria-hidden="true"></i> 타닥타닥 구독
-    </a>
-  </nav>
-</header>
+<!--FFP_HEADER-->
 
 <!-- ━━━━ HOME VIEW (폰트 갤러리) ━━━━ -->
 <div id="homeView">
@@ -3084,32 +2944,10 @@ function toggleHeroPicks(){
   if(saved === '1') setHeroPicksCollapsed(true);
 })();
 
-/* ── 모바일 햄버거 메뉴 ── */
-function toggleMobileNav(){
-  const panel = document.getElementById('mobileNavPanel');
-  if(panel.classList.contains('open')) closeMobileNav();
-  else openMobileNav();
-}
-function openMobileNav(){
-  const panel = document.getElementById('mobileNavPanel');
-  const backdrop = document.getElementById('mobileNavBackdrop');
-  const btn = document.getElementById('hamburgerBtn');
-  panel.classList.add('open');
-  backdrop.classList.add('open');
-  btn.setAttribute('aria-expanded', 'true');
-  document.body.style.overflow = 'hidden';
-  // 트랜지션 적용을 위해 다음 프레임에 클래스 추가
-  requestAnimationFrame(() => panel.classList.add('animate-in'));
-}
+/* ── 모바일 햄버거 메뉴 (헤더는 서버가 주입, #mnav는 공유 헤더 구조) ── */
 function closeMobileNav(){
-  const panel = document.getElementById('mobileNavPanel');
-  const backdrop = document.getElementById('mobileNavBackdrop');
-  const btn = document.getElementById('hamburgerBtn');
-  panel.classList.remove('animate-in');
-  backdrop.classList.remove('open');
-  btn.setAttribute('aria-expanded', 'false');
-  document.body.style.overflow = '';
-  setTimeout(() => panel.classList.remove('open'), 220);
+  const n = document.getElementById('mnav');
+  if(n){ n.hidden = true; n.classList.remove('open'); }
 }
 
 function openLicense(){
@@ -3133,7 +2971,7 @@ document.addEventListener('keydown',function(e){
     else if(document.getElementById('submitFormOverlay').classList.contains('open')) closeSubmitForm();
     else if(document.getElementById('submitDetailOverlay').classList.contains('open')) closeSubmitDetail();
     else if(document.getElementById('dladOverlay').classList.contains('open')) closeDownloadAd();
-    else if(document.getElementById('mobileNavPanel').classList.contains('open')) closeMobileNav();
+    else if(document.getElementById('mnav') && !document.getElementById('mnav').hidden) closeMobileNav();
   }
 });
 
@@ -3155,6 +2993,18 @@ async function renderTagsBar(){
 async function registerUploadedFonts(){
   return;
 }
+
+document.getElementById('ffpLogoLink')?.addEventListener('click', function(e){
+  e.preventDefault();
+  goHome();
+});
+document.getElementById('globalSearch')?.addEventListener('input', filterFonts);
+document.getElementById('globalSearch')?.addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    document.getElementById('tagsBar')?.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+});
 
 async function init(){
   FONTS = await FontStore.getAll();
@@ -3250,6 +3100,7 @@ async function route(){
     // hash로부터 검색어 복원
     const query = decodeURIComponent(hash.slice('#search/'.length));
     applySearch(query, /*pushHash*/ false);
+    document.getElementById('tagsBar')?.scrollIntoView({behavior:'smooth', block:'start'});
   } else if(hash.startsWith('#tag/')){
     // 뒤로/앞으로가기로 카테고리 상태 복원
     showHomeView();
