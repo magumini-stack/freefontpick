@@ -6,6 +6,7 @@
       try{
         var t = localStorage.getItem('ffp-theme');
         if(t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+        if(localStorage.getItem('ffp-hero-collapsed') === '1') document.documentElement.setAttribute('data-hero-collapsed', '1');
       }catch(e){}
     })();
   </script>
@@ -178,15 +179,17 @@
     body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;line-height:1.6}
 
     /* HEADER */
-    .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
+    .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:200}
+    body{padding-top:60px}
     .header-inner{max-width:1240px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
-    .logo{display:flex;align-items:center;text-decoration:none;white-space:nowrap}
-    .logo img{height:32px;width:auto;display:block}
+    .header-inner .search-wrap{margin-left:auto}
+    .logo{display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;font-family:'Noto Sans KR',-apple-system,sans-serif;font-weight:900;font-size:20px;letter-spacing:-.5px;color:var(--text-primary)}
+    .logo .logo-dot{width:7px;height:7px;background:var(--accent);border-radius:1px;display:inline-block;margin-bottom:2px}
     nav{display:flex;gap:2px}
     nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:var(--radius-sm);text-decoration:none;transition:all .15s;white-space:nowrap}
     nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
     nav a.active{color:var(--accent);background:var(--accent-light);font-weight:700}
-    .header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+    .header-right{display:flex;align-items:center;gap:8px}
     .btn-subscribe{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:0 14px;height:36px;border-radius:20px;border:1px solid var(--accent);color:var(--accent);background:transparent;text-decoration:none;transition:all .15s;font-family:inherit;white-space:nowrap}
     .btn-subscribe:hover{background:var(--accent);color:#fff}
     .btn-subscribe i{font-size:14px}
@@ -253,11 +256,10 @@
     .mobile-nav-backdrop.open{display:block}
 
     /* HERO */
-    .hero{max-width:1240px;margin:0 auto;padding:44px 24px 28px;text-align:center}
-    .hero-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);background:var(--accent-light);padding:5px 12px;border-radius:20px;margin-bottom:14px;font-weight:700}
-    .hero-title{font-size:30px;font-weight:800;color:var(--text-primary);line-height:1.3;letter-spacing:-.8px;margin-bottom:8px}
-    .hero-title em{font-style:normal;color:var(--accent)}
-    .hero-sub{font-size:14px;color:var(--text-secondary);display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+    .hero{max-width:1240px;margin:0 auto;padding:40px 24px 26px}
+    .hero-kicker{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:13px;color:var(--accent);font-weight:700;margin-bottom:14px}
+    .hero-title{font-size:clamp(20px,3vw,32px);font-weight:800;color:var(--text-primary);line-height:1.3;letter-spacing:-.8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hero-rule{border-top:1px solid var(--border);margin-top:26px}
 
     /* LICENSE BUTTON */
     .btn-license{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
@@ -362,66 +364,42 @@
       .faq-q{padding:13px 14px;font-size:13.5px}
     }
 
-    /* HERO FEATURES — 3-피처 배지 카드 */
-    .hero-features{display:flex;justify-content:center;align-items:flex-start;gap:36px;margin-top:28px;flex-wrap:nowrap}
-    .hero-feature{display:flex;flex-direction:column;align-items:center;gap:10px;flex:0 0 auto}
-    .hero-feature-badge{
-      width:74px;height:74px;
-      background:var(--bg-card);
-      border-radius:20px;
-      display:flex;align-items:center;justify-content:center;
-      box-shadow:0 4px 14px rgba(255,92,53,.10), 0 1px 3px rgba(0,0,0,.04);
-      transition:transform .18s,box-shadow .18s;
-    }
-    .hero-feature-badge i, .hero-feature-badge svg{
-      display:block;
-      margin:auto;
-      font-size:26px;
-      width:26px;
-      height:26px;
-      color:var(--accent);
-    }
-    .hero-feature:hover .hero-feature-badge{
-      transform:translateY(-2px);
-      box-shadow:0 8px 20px rgba(255,92,53,.15), 0 2px 4px rgba(0,0,0,.05);
-    }
-    .hero-feature-label{
-      font-size:14px;
-      font-weight:700;
-      color:var(--text-primary);
-      letter-spacing:-.3px;
-      text-align:center;
-      white-space:nowrap;
+    /* CURATOR PICKS */
+    .picks-section{max-width:1240px;margin:0 auto;padding:0 24px 32px}
+    .picks-head{margin-bottom:6px}
+    .picks-title{font-size:18px;font-weight:800;color:var(--text-primary);letter-spacing:-.3px;display:flex;align-items:center;gap:10px}
+    .picks-badge{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10.5px;font-weight:700;letter-spacing:.6px;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:2px 7px}
+    .picks-desc{font-size:12.5px;color:var(--text-muted);margin-top:6px;margin-bottom:18px}
+    .picks-list{display:flex;flex-direction:column}
+    .pick-row{display:flex;align-items:center;gap:18px;padding:14px 4px;border-top:1px solid var(--border);cursor:pointer;transition:padding-left .18s;text-decoration:none;color:inherit;min-width:0}
+    .pick-row:first-child{border-top:none}
+    .pick-row:hover{padding-left:10px}
+    .pick-rank{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;color:var(--text-muted);width:22px;flex-shrink:0;font-weight:500}
+    .pick-row:first-child .pick-rank{color:var(--accent);font-weight:700}
+    .pick-mark{width:14px;flex-shrink:0;color:var(--accent);font-weight:800;font-size:13px;text-align:center}
+    .pick-specimen{flex:1;font-size:clamp(17px,2.6vw,22px);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px;min-width:0;color:var(--text-primary)}
+    .pick-meta{flex-shrink:0;text-align:right;min-width:100px}
+    .pick-name{font-size:12.5px;font-weight:700;color:var(--text-primary)}
+    .pick-tag{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10px;color:var(--text-muted);margin-top:1px}
+    @media(max-width:480px){
+      .pick-meta{display:none}
+      .pick-specimen{font-size:17px}
     }
 
-    /* TOP RANKING */
-    .top-section{max-width:1240px;margin:0 auto;padding:0 24px 8px}
-    .top-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px}
-    .top-section-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:var(--text-primary);letter-spacing:-.3px}
-    .top-section-title .badge{font-size:10px;font-weight:800;letter-spacing:.5px;color:#fff;background:var(--accent);padding:3px 9px;border-radius:20px}
-    .top-section-title small{font-size:12px;font-weight:400;color:var(--text-muted);margin-left:4px}
-    .top-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
-    .top-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s;text-align:left;font-family:inherit;color:var(--text-primary);text-decoration:none}
-    .top-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow-hover)}
-    .top-rank{flex-shrink:0;width:24px;height:24px;border-radius:6px;background:var(--bg-secondary);color:var(--text-muted);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
-    .top-card.gold .top-rank{background:linear-gradient(135deg,#FFD66E,#FFA928);color:#fff}
-    .top-card.silver .top-rank{background:linear-gradient(135deg,#D8DEE5,#9BA5AE);color:#fff}
-    .top-card.bronze .top-rank{background:linear-gradient(135deg,#D9A66B,#A06D30);color:#fff}
-    .top-info{flex:1;min-width:0}
-    .top-name{font-size:13px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px}
-    .top-meta{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:5px;margin-top:1px}
-    .top-meta svg{width:11px;height:11px;stroke:var(--accent);fill:none;stroke-width:2.2;flex-shrink:0}
-    .top-meta .like-num{color:var(--accent);font-weight:700}
-    .top-empty{font-size:13px;color:var(--text-muted);padding:24px;text-align:center;background:var(--bg-card);border:1px dashed var(--border);border-radius:var(--radius-md)}
-    @media(max-width:480px){
-      .top-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
-    }
+    /* HERO+PICKS 접기 토글 */
+    #heroPicksWrap{overflow:hidden;max-height:2000px;transition:max-height .32s ease,opacity .28s ease;opacity:1}
+    #heroPicksWrap.collapsed{max-height:0;opacity:0;pointer-events:none}
+    html[data-hero-collapsed="1"] #heroPicksWrap{max-height:0;opacity:0;transition:none}
+    .collapse-toggle{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;max-width:1240px;margin:0 auto;padding:9px 24px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;color:var(--text-muted);font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:11.5px;letter-spacing:.3px;transition:color .15s}
+    .collapse-toggle:hover{color:var(--accent)}
+    .collapse-toggle .ct-icon{width:15px;height:15px;transition:transform .25s}
+    .collapse-toggle.is-collapsed .ct-icon{transform:rotate(180deg)}
 
     /* MAIN */
     .main{max-width:1240px;margin:0 auto;padding:0 24px 80px}
 
     /* PREVIEW BAR */
-    .preview-bar{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:13px 18px;margin-bottom:0;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-card)}
+    .preview-bar{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:13px 18px;margin-bottom:0;display:flex;align-items:center;gap:12px}
     .preview-bar-wrap{margin-bottom:18px}
     .preview-label{font-size:12px;color:var(--text-muted);white-space:nowrap;display:flex;align-items:center;gap:4px}
     .preview-input{flex:1;border:none;outline:none;font-size:15px;background:transparent;color:var(--text-primary);font-family:inherit;min-width:0}
@@ -457,9 +435,8 @@
       background:var(--bg-card);
       border:1px solid var(--border);
       border-top:none;
-      border-radius:0 0 var(--radius-md) var(--radius-md);
+      border-radius:0 0 8px 8px;
       padding:12px 18px 14px;
-      box-shadow:var(--shadow-card);
       flex-wrap:wrap;
       gap:8px;
     }
@@ -494,8 +471,11 @@
     .sort-select:focus{border-color:var(--accent)}
 
     /* GRID */
-    .font-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px;grid-auto-flow:dense}
-    .font-card{cursor:pointer;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 18px 14px;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;position:relative;display:flex;flex-direction:column;box-shadow:var(--shadow-card);animation:fadeUp .25s ease both}
+    .font-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;grid-auto-flow:dense}
+    .font-card{cursor:pointer;background:var(--bg-card);border:1px solid var(--border);border-radius:3px;padding:20px 18px 16px;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;position:relative;display:flex;flex-direction:column;min-width:0;animation:fadeUp .25s ease both}
+    @media(max-width:980px){ .font-grid{grid-template-columns:repeat(3,1fr)} }
+    @media(max-width:720px){ .font-grid{grid-template-columns:repeat(2,1fr)} }
+    @media(max-width:460px){ .font-grid{grid-template-columns:1fr} }
 
     /* 추천 카드 스타일 */
     .font-card.is-recommend{border-color:var(--accent);border-width:1.5px;padding-top:14px}
@@ -505,7 +485,7 @@
     .recommend-more-btn:hover{background:var(--accent);color:#fff;border-style:solid}
     .recommend-more-btn i{font-size:15px}
     .recommend-more-btn small{font-weight:400;opacity:.8;font-size:11px}
-    .font-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+    .font-card:hover{border-color:var(--border-hover);transform:translateY(-3px);box-shadow:var(--shadow-hover)}
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
     /* 앱 광고 카드 — 갤러리 첫 번째 칸 */
@@ -534,20 +514,20 @@
       border-radius:6px;
       pointer-events:none;
     }
-    .font-preview{min-height:66px;display:flex;align-items:center;margin-bottom:14px}
-    .font-preview-text{color:var(--text-primary);line-height:1.3;word-break:keep-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;cursor:text;outline:none;border-radius:4px;transition:background-color .15s}
+    .font-preview{min-height:64px;display:flex;align-items:center;margin-bottom:14px}
+    .font-preview-text{color:var(--text-primary);line-height:1.32;word-break:keep-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;cursor:text;outline:none;border-radius:4px;transition:background-color .15s}
     .font-preview-text:hover{background:var(--bg-secondary)}
     .font-preview-text:focus{background:var(--bg-secondary);-webkit-line-clamp:unset;display:block;overflow:visible}
     .font-preview-text.is-custom{background:linear-gradient(to right, transparent 0, transparent calc(100% - 36px), var(--accent-light) calc(100% - 36px), var(--accent-light) 100%);position:relative}
     .font-preview-text.is-custom::after{content:'✎';position:absolute;top:2px;right:6px;font-size:11px;color:var(--accent);font-weight:700;pointer-events:none}
     .card-divider{height:1px;background:var(--border);margin-bottom:12px}
-    .font-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
-    .font-name{font-size:14px;font-weight:800;color:var(--text-primary);margin-bottom:3px;letter-spacing:-.2px}
-    .font-maker{font-size:12px;color:var(--text-secondary)}
-    .font-weights{font-size:11px;color:var(--accent);background:var(--accent-light);padding:3px 8px;border-radius:10px;white-space:nowrap;font-weight:700;flex-shrink:0}
-    .font-tags-row{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
-    .font-tag-pill{font-size:10px;padding:2px 7px;border-radius:8px;background:var(--bg-secondary);color:var(--text-muted);font-weight:700}
-  .font-tag-pill.pair{background:var(--accent-light);color:var(--accent);font-weight:700}
+    .font-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;min-width:0}
+    .font-name{font-size:13.5px;font-weight:700;color:var(--text-primary);margin-bottom:2px;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .font-maker{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .font-weights{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10.5px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+    .font-tags-row{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
+    .font-tag-pill{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10px;padding:2px 7px;border-radius:2px;border:1px solid var(--border);color:var(--text-muted);font-weight:500}
+    .font-tag-pill.pair{border-color:var(--accent);color:var(--accent);font-weight:600}
 
     /* AD SLOTS (애드센스) */
     .ad-slot{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);height:280px !important;max-height:280px;display:flex;align-items:center;justify-content:center;overflow:hidden;animation:fadeUp .25s ease both;align-self:start}
@@ -556,15 +536,8 @@
     .ad-slot.row-3{grid-column:1;grid-row:3}
     .font-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:12px;align-items:center}
   .font-actions .btn-download{flex:1}
-  .font-actions .btn-like{margin-left:auto}
-    .font-actions .like-btn{margin-left:auto}
     .btn-download{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:700;line-height:1;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--accent);color:var(--accent);background:transparent;cursor:pointer;transition:all .15s;font-family:inherit;text-decoration:none;white-space:nowrap}
     .btn-download:hover{background:var(--accent);color:#fff}
-    .btn-like{display:flex;align-items:center;justify-content:center;gap:5px;height:34px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;cursor:pointer;transition:all .15s;color:var(--text-secondary);font-size:13px;font-weight:700;flex-shrink:0;font-family:inherit}
-    .btn-like svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
-    .btn-like:hover{border-color:var(--accent);color:var(--accent)}
-    .btn-like.liked{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
-    .btn-like.liked svg{fill:var(--accent-light)}
 
     /* NO RESULTS */
     .no-results{grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-muted)}
@@ -728,28 +701,19 @@
       nav{display:none}
       .hamburger-btn{display:flex}
       .btn-subscribe{display:none}
-      .hero{padding:28px 16px 20px}.hero-title{font-size:24px}
+      .header-inner .search-wrap{margin-left:12px;flex:1}
+      .header-inner .search-wrap input{width:100%}
+      .header-inner .search-wrap input:focus{width:100%}
+      .hero{padding:28px 16px 20px}.hero-title{font-size:22px;white-space:normal}
+      .picks-section{padding:0 16px 28px}
       .main{padding:0 16px 60px}
       .preview-bar{flex-wrap:wrap}
       .preview-bar .preview-divider{display:none}
-      .search-wrap{flex:1 1 100%}
-      .search-wrap input{width:100%}.search-wrap input:focus{width:100%}
       .size-wrap input[type=range]{width:70px}
       .preview-presets{padding:12px 14px 14px}
       .preset-chip{font-size:12.5px;padding:7px 12px}
       .preview-toggle{padding:7px;border-radius:50%}
       .preview-toggle-text{display:none}
-      .hero-features{gap:14px;margin-top:22px}
-      .hero-feature{gap:8px}
-      .hero-feature-badge{width:56px;height:56px;border-radius:16px}
-      .hero-feature-badge i, .hero-feature-badge svg{font-size:22px;width:22px;height:22px}
-      .hero-feature-label{font-size:11.5px;letter-spacing:-.4px}
-    }
-    @media(max-width:360px){
-      .hero-features{gap:8px}
-      .hero-feature-badge{width:50px;height:50px;border-radius:14px}
-      .hero-feature-badge i, .hero-feature-badge svg{font-size:20px;width:20px;height:20px}
-      .hero-feature-label{font-size:10.5px}
     }
     @media(prefers-reduced-motion:reduce){.font-card{animation:none}*{transition:none!important}}
 
@@ -854,8 +818,8 @@
 <!-- HEADER -->
 <header class="header">
   <div class="header-inner">
-    <a href="#" class="logo" onclick="goHome();return false;" aria-label="FreeFontPick 홈으로">
-      <img src="/logo.png" alt="FreeFontPick">
+    <a href="#" class="logo" onclick="goHome();return false;" aria-label="폰트픽 홈으로">
+      폰트픽<span class="logo-dot"></span>
     </a>
     <nav>
       <a href="/about.html">폰트픽 소개</a>
@@ -863,6 +827,10 @@
       <a href="/faq.html">자주 묻는 질문</a>
       <a href="/find-font" id="submitMenuLink" onclick="navFindFont(event)">폰트 찾기</a>
     </nav>
+    <div class="search-wrap" id="searchWrap">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <input type="text" id="globalSearch" placeholder="폰트명 또는 분위기/용도로 추천" aria-label="폰트 검색 및 추천" oninput="filterFonts()">
+    </div>
     <div class="header-right">
       <button type="button" class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" aria-label="야간모드 전환">
         <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
@@ -909,65 +877,35 @@
 <!-- ━━━━ HOME VIEW (폰트 갤러리) ━━━━ -->
 <div id="homeView">
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-eyebrow"><i class="ti ti-sparkles" aria-hidden="true"></i> 상업용 무료폰트 큐레이션 &amp; 텍스트 디자인</div>
-  <h1 class="hero-title">폰트픽, 디자인 전문가가 <em>딱 맞는 폰트</em> 골라드려요!</h1>
-  <p class="hero-sub">
-    추천 무료폰트를 다운로드하거나, 전문가 수준의 텍스트 효과를 직접 만들어 보세요
-  </p>
-  <div class="hero-features" role="list" aria-label="폰트픽 주요 기능">
-    <div class="hero-feature" role="listitem">
-      <div class="hero-feature-badge">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="10" cy="10" r="7"/>
-          <line x1="21" y1="21" x2="15" y2="15"/>
-        </svg>
-      </div>
-      <div class="hero-feature-label">쉽고 빠른 검색</div>
-    </div>
-    <div class="hero-feature" role="listitem">
-      <div class="hero-feature-badge">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-      </div>
-      <div class="hero-feature-label">간편한 다운로드</div>
-    </div>
-    <div class="hero-feature" role="listitem">
-      <div class="hero-feature-badge">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
-        </svg>
-      </div>
-      <div class="hero-feature-label">원터치 디자인</div>
-    </div>
-  </div>
-</section>
+<div id="heroPicksWrap">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-kicker">무료폰트 큐레이션 &amp; 텍스트 디자인</div>
+    <h1 class="hero-title">디자인 전문가가 딱 맞는 폰트 골라드려요!</h1>
+    <div class="hero-rule"></div>
+  </section>
 
-<!-- TOP RANKING -->
-<section class="top-section" id="topSection" aria-labelledby="topSectionTitle">
-  <div class="top-section-head">
-    <div class="top-section-title" id="topSectionTitle">
-      <span class="badge">TOP 10</span>
-      인기 폰트 순위
-      <small>좋아요 많은 폰트 TOP 10</small>
+  <!-- CURATOR PICKS -->
+  <section class="picks-section" id="picksSection" aria-labelledby="picksSectionTitle" style="display:none">
+    <div class="picks-head">
+      <div class="picks-title" id="picksSectionTitle">
+        큐레이터 픽<span class="picks-badge">EDITOR'S CHOICE</span>
+      </div>
+      <p class="picks-desc">폰트픽 큐레이션팀이 직접 고른 무료폰트예요.</p>
     </div>
-  </div>
-  <div class="top-grid" id="topGrid"></div>
-</section>
+    <div class="picks-list" id="picksList"></div>
+  </section>
+</div>
+
+<button type="button" class="collapse-toggle" id="collapseToggleBtn" onclick="toggleHeroPicks()" aria-expanded="true" aria-controls="heroPicksWrap">
+  <svg class="ct-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
+  <span class="ct-label">접기</span>
+</button>
 
 <!-- MAIN -->
 <main class="main">
   <div class="preview-bar-wrap">
     <div class="preview-bar">
-      <div class="search-wrap" id="searchWrap">
-        <i class="ti ti-search" aria-hidden="true"></i>
-        <input type="text" id="globalSearch" placeholder="폰트명 또는 분위기/용도로 추천 (예: 따뜻한 카페)" aria-label="폰트 검색 및 추천" oninput="filterFonts()">
-      </div>
-      <div class="preview-divider"></div>
       <span class="preview-label"><i class="ti ti-eye" style="font-size:14px" aria-hidden="true"></i> 미리보기</span>
       <input class="preview-input" id="previewText" type="text" value="" placeholder="미리보기 문구 입력" aria-label="폰트 미리보기 문구" oninput="updatePreviews(); clearPresetActive()">
       <button type="button" class="preview-toggle" id="previewToggleBtn" onclick="togglePreviewPresets()" aria-expanded="false" aria-controls="previewPresets" aria-label="미리보기 문구 선택 펼치기">
@@ -997,7 +935,7 @@
   <div class="filter-bar">
     <select class="sort-select" onchange="renderFonts()" aria-label="정렬 기준">
       <option value="curator">추천순</option>
-      <option value="popular">인기순</option>
+      <option value="latest">최신순</option>
       <option value="name">이름순</option>
     </select>
   </div>
@@ -1380,27 +1318,6 @@
 <script>
 let FONTS=[];
 let currentTag='all';
-/* ── 좋아요 저장 (localStorage 영구 저장) ── */
-const LIKE_KEYS = { liked: 'tadak_liked_v1', counts: 'tadak_like_counts_v1' };
-function loadLikes(){
-  try {
-    const likedRaw = localStorage.getItem(LIKE_KEYS.liked);
-    const countsRaw = localStorage.getItem(LIKE_KEYS.counts);
-    return {
-      liked: new Set(likedRaw ? JSON.parse(likedRaw) : []),
-      counts: countsRaw ? JSON.parse(countsRaw) : {}
-    };
-  } catch(e) { return { liked: new Set(), counts: {} }; }
-}
-function saveLikes(){
-  try {
-    localStorage.setItem(LIKE_KEYS.liked, JSON.stringify([...likedSet]));
-    localStorage.setItem(LIKE_KEYS.counts, JSON.stringify(likeCounts));
-  } catch(e){}
-}
-const _likeState = loadLikes();
-const likedSet = _likeState.liked;
-const likeCounts = _likeState.counts;
 let currentFontSize=26;
 
 function getPreviewText(){
@@ -1657,7 +1574,7 @@ function getFilteredFonts(){
     }
   }
 
-  if(sort==='popular') list.sort((a,b)=>(likeCounts[b.id]||0)-(likeCounts[a.id]||0));
+  if(sort==='latest') list.sort((a,b)=>b.id-a.id);
   else if(sort==='name') list.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
   // 'curator' (기본값): FONTS 배열의 저장 순서 그대로 유지 — 관리자가 정한 순서
   return list;
@@ -2747,12 +2664,9 @@ function recommendFonts(query, candidates){
     return { font: f, score: r.score, matches: r.matches };
   }).filter(x => x.score > 0);
 
-  // 점수 내림차순 정렬 (동률 시 좋아요 수 → id)
+  // 점수 내림차순 정렬 (동률 시 id)
   scored.sort((a,b) => {
     if(b.score !== a.score) return b.score - a.score;
-    const la = likeCounts[a.font.id] || 0;
-    const lb = likeCounts[b.font.id] || 0;
-    if(lb !== la) return lb - la;
     return a.font.id - b.font.id;
   });
 
@@ -2807,8 +2721,6 @@ function renderFonts(){
     const tagPills=f.tags.map(t=>`<span class="font-tag-pill">${t}</span>`).join('');
       const pairPill = f.hasPairing ? `<span class="font-tag-pill pair" title="어울리는 폰트 조합이 준비되어 있어요">조합추천</span>` : '';
     const downloadUrl=f.url||('https://noonnu.cc/index?keyword='+encodeURIComponent(f.name));
-    const liked=likedSet.has(f.id);
-    const count=likeCounts[f.id]||0;
     const previewTxt = getPreviewTextFor(f);
     // 추천 모드일 때 매칭 태그를 카드 상단에 작은 배지로 표시
     const matchBadge = (isRecommendMode && f._matches && f._matches.length)
@@ -2833,10 +2745,6 @@ function renderFonts(){
         <a class="btn-download" href="/font/${f.id}" onclick="event.stopPropagation();stashPreviewText(${f.id})" aria-label="${f.name} 상세 페이지로 이동" title="미리 써보기 · 어울리는 조합 · 다운로드">
           <i class="ti ti-arrow-right" aria-hidden="true"></i> 자세히 보기
         </a>
-        <button class="btn-like${liked?' liked':''}" id="like-${f.id}" onclick="toggleLike(${f.id})" aria-label="좋아요${liked?' (선택됨)':''}" aria-pressed="${liked}">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 22h2a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H2zM22 11.5a2 2 0 0 0-2-2h-5.5l1-4.8.03-.34a1.5 1.5 0 0 0-.43-1.06L14.34 2 8 8.5V20a2 2 0 0 0 2 2h7a2 2 0 0 0 2-1.5z" stroke-linejoin="round" stroke-linecap="round"/></svg>
-          <span id="like-count-${f.id}">${count}</span>
-        </button>
       </div>
     </article>`;
   }).join('');
@@ -3016,108 +2924,36 @@ function observeFontCards(scope){
 }
 
 /* ── 인기 TOP 10 ── */
-function renderTopRanking(){
-  const grid = document.getElementById('topGrid');
-  if(!grid) return;
+function renderCuratorPicks(){
+  const section = document.getElementById('picksSection');
+  const list = document.getElementById('picksList');
+  if(!section || !list) return;
 
-  // 좋아요 1개 이상인 폰트만 + 좋아요 수 기준 내림차순, 최대 10개
-  const ranked = FONTS
-    .filter(f => (likeCounts[f.id] || 0) > 0)
-    .map(f => ({ ...f, _likes: likeCounts[f.id] || 0 }))
-    .sort((a, b) => b._likes - a._likes || a.id - b.id)
-    .slice(0, 10);
+  const picks = FONTS.filter(f => f.isPick);
 
-  if(!ranked.length){
-    grid.innerHTML = `<div class="top-empty" style="grid-column:1/-1">
-      아직 좋아요를 받은 폰트가 없어요 — 좋아하는 폰트에 <span style="color:var(--accent);font-weight:700">엄지척</span>을 눌러주세요!
-    </div>`;
+  if(!picks.length){
+    section.style.display = 'none';
     return;
   }
+  section.style.display = '';
 
-  grid.innerHTML = ranked.map((f, i) => {
-    const rank = i + 1;
-    const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+  list.innerHTML = picks.map((f, i) => {
+    const rank = String(i + 1).padStart(2, '0');
+    const specimen = getPreviewTextFor(f);
     return `
-      <button class="top-card ${rankClass}" data-font-id="${f.id}" onclick="searchByFontName('${f.name.replace(/'/g, "\\'")}')" aria-label="${f.name} 검색">
-        <div class="top-rank">${rank}</div>
-        <div class="top-info">
-          <div class="top-name" style="font-family:${getEffectiveStack(f)}">${f.name}</div>
-          <div class="top-meta">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 22h2a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H2zM22 11.5a2 2 0 0 0-2-2h-5.5l1-4.8.03-.34a1.5 1.5 0 0 0-.43-1.06L14.34 2 8 8.5V20a2 2 0 0 0 2 2h7a2 2 0 0 0 2-1.5z" stroke-linejoin="round" stroke-linecap="round"/></svg>
-            <span class="like-num">${f._likes}</span>
-            <span style="color:var(--text-muted)">· ${f.maker}</span>
-          </div>
+      <a class="pick-row" href="/font/${f.id}" onclick="stashPreviewText(${f.id})">
+        <span class="pick-rank">${rank}</span>
+        <span class="pick-mark">${i === 0 ? '✓' : ''}</span>
+        <span class="pick-specimen" style="font-family:${getEffectiveStack(f)}">${specimen}</span>
+        <div class="pick-meta">
+          <div class="pick-name">${f.name}</div>
+          <div class="pick-tag">${f.weights || '1종'}</div>
         </div>
-      </button>`;
+      </a>`;
   }).join('');
-  observeFontCards(grid);
+  observeFontCards(list);
 }
 
-/* TOP 카드 클릭 → 검색창에 폰트명 입력 + 카테고리 '전체'로 리셋 + 갤러리로 스크롤 */
-function searchByFontName(name){
-  // applySearch가 카테고리 리셋 + 검색창 입력 + 렌더링 + hash 푸시까지 처리
-  applySearch(name, /*pushHash*/ true);
-
-  // 갤러리로 부드럽게 스크롤
-  const grid = document.getElementById('fontGrid');
-  if(grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-async function toggleLike(id){
-  const wasLiked = likedSet.has(id);
-  const prevCount = likeCounts[id] || 0;
-
-  // 옵티미스틱 UI: 서버 응답 기다리지 않고 즉시 반영
-  if(wasLiked){
-    likedSet.delete(id);
-    likeCounts[id] = Math.max(prevCount - 1, 0);
-  } else {
-    likedSet.add(id);
-    likeCounts[id] = prevCount + 1;
-  }
-  saveLikes();
-  _updateLikeUI(id);
-
-  // 서버 호출 — 진짜 카운트는 서버가 관리
-  try {
-    const result = wasLiked
-      ? await LikeAPI.remove(id)
-      : await LikeAPI.add(id);
-    // 서버에서 받은 진짜 카운트로 갱신
-    likeCounts[id] = result.like_count;
-    saveLikes();
-    _updateLikeUI(id);
-    renderTopRanking();
-  } catch (err) {
-    // 실패 → 롤백
-    if(wasLiked){
-      likedSet.add(id);
-    } else {
-      likedSet.delete(id);
-    }
-    likeCounts[id] = prevCount;
-    saveLikes();
-    _updateLikeUI(id);
-    if(err.status === 429){
-      // rate limit - 조용히 무시 (사용자가 너무 빠르게 클릭한 경우)
-      console.debug('Like rate limited');
-    } else {
-      console.warn('Failed to toggle like:', err);
-    }
-  }
-}
-
-function _updateLikeUI(id){
-  const btn = document.getElementById('like-'+id);
-  const countEl = document.getElementById('like-count-'+id);
-  if(btn){
-    const nowLiked = likedSet.has(id);
-    btn.classList.toggle('liked', nowLiked);
-    btn.setAttribute('aria-pressed', String(nowLiked));
-    btn.setAttribute('aria-label', '좋아요' + (nowLiked ? ' (선택됨)' : ''));
-  }
-  if(countEl) countEl.textContent = likeCounts[id] || 0;
-}
 
 window.addEventListener('scroll',()=>document.getElementById('scrollTopBtn').classList.toggle('visible',window.scrollY>400),{passive:true});
 
@@ -3222,6 +3058,30 @@ if(window.matchMedia){
   });
 }
 
+/* ── 히어로+큐레이터 픽 접기 토글 (상태는 localStorage에 저장) ── */
+const HERO_COLLAPSE_KEY = 'ffp-hero-collapsed';
+function setHeroPicksCollapsed(collapsed){
+  const wrap = document.getElementById('heroPicksWrap');
+  const btn = document.getElementById('collapseToggleBtn');
+  if(!wrap || !btn) return;
+  wrap.classList.toggle('collapsed', collapsed);
+  btn.classList.toggle('is-collapsed', collapsed);
+  btn.setAttribute('aria-expanded', String(!collapsed));
+  const label = btn.querySelector('.ct-label');
+  if(label) label.textContent = collapsed ? '펼치기' : '접기';
+}
+function toggleHeroPicks(){
+  const wrap = document.getElementById('heroPicksWrap');
+  const next = !wrap.classList.contains('collapsed');
+  setHeroPicksCollapsed(next);
+  try{ localStorage.setItem(HERO_COLLAPSE_KEY, next ? '1' : '0'); }catch(e){}
+}
+(function(){
+  let saved = null;
+  try{ saved = localStorage.getItem(HERO_COLLAPSE_KEY); }catch(e){}
+  if(saved === '1') setHeroPicksCollapsed(true);
+})();
+
 /* ── 모바일 햄버거 메뉴 ── */
 function toggleMobileNav(){
   const panel = document.getElementById('mobileNavPanel');
@@ -3294,24 +3154,13 @@ async function registerUploadedFonts(){
   return;
 }
 
-/* 서버에서 받은 like_count로 localStorage의 카운트 동기화 */
-function syncServerLikeCounts(){
-  for(const f of FONTS){
-    if(typeof f.like_count === 'number'){
-      likeCounts[f.id] = f.like_count;
-    }
-  }
-  saveLikes();
-}
-
 async function init(){
   FONTS = await FontStore.getAll();
-  syncServerLikeCounts();
   const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
   await renderTagsBar();
   await registerUploadedFonts();
   renderFonts();
-  renderTopRanking();
+  renderCuratorPicks();
 
   // 라우팅 처리 (해시 기반)
   await route();
@@ -3325,12 +3174,11 @@ async function init(){
   // 관리자 페이지에서 변경된 내용이 실시간으로 반영되도록 구독
   onDataChanged(async () => {
     FONTS = await FontStore.getAll();
-    syncServerLikeCounts();
     const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
     await renderTagsBar();
     await registerUploadedFonts();
     renderFonts();
-    renderTopRanking();
+    renderCuratorPicks();
     // 공지사항 화면이 활성화돼있다면 같이 갱신
     if(location.hash.startsWith('#notice')) await route();
   });

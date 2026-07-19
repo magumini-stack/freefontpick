@@ -69,13 +69,29 @@
     body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;line-height:1.7}
 
     /* HEADER */
-    .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
-    .header-inner{max-width:960px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
-    .logo{display:flex;align-items:center;text-decoration:none}
-    .logo img{height:32px;width:auto;display:block}
-    .header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+    .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:200}
+    body{padding-top:60px}
+    .header-inner{max-width:1240px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
+    .logo{display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;font-family:'Noto Sans KR',-apple-system,sans-serif;font-weight:900;font-size:20px;letter-spacing:-.5px;color:var(--text-primary)}
+    .logo .logo-dot{width:7px;height:7px;background:var(--accent);border-radius:1px;display:inline-block;margin-bottom:2px}
+    nav{display:flex;gap:2px}
+    nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:8px;text-decoration:none;transition:all .15s;white-space:nowrap}
+    nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
+    nav a.active{color:var(--accent);background:var(--accent-light);font-weight:700}
+    .search-wrap{position:relative;flex-shrink:0;margin-left:auto}
+    .search-wrap i{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text-muted);pointer-events:none}
+    .search-wrap input{width:260px;height:34px;border:1px solid var(--border);border-radius:18px;padding:0 14px 0 34px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s,width .2s}
+    .search-wrap input::placeholder{color:var(--text-muted)}
+    .search-wrap input:focus{border-color:var(--accent);width:300px}
+    .header-right{display:flex;align-items:center;gap:8px}
     .btn-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:0 14px;height:36px;border-radius:20px;border:1px solid var(--border);color:var(--text-secondary);background:transparent;text-decoration:none;transition:all .15s}
     .btn-back:hover{border-color:var(--accent);color:var(--accent)}
+    @media(max-width:768px){
+      nav{display:none}
+      .search-wrap{margin-left:12px;flex:1}
+      .search-wrap input{width:100%}
+      .search-wrap input:focus{width:100%}
+    }
 
     /* HERO */
     .hero{max-width:960px;margin:0 auto;padding:48px 24px 24px;text-align:center}
@@ -141,8 +157,18 @@
 <header class="header">
   <div class="header-inner">
     <a href="index.html" class="logo" aria-label="폰트픽 홈으로">
-      <img src="logo.png" alt="폰트픽">
+      폰트픽<span class="logo-dot"></span>
     </a>
+    <nav>
+      <a href="about.html">폰트픽 소개</a>
+      <a href="index.html#notice">공지사항</a>
+      <a href="faq.html" class="active">자주 묻는 질문</a>
+      <a href="find-font">폰트 찾기</a>
+    </nav>
+    <div class="search-wrap" id="searchWrap">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <input type="text" id="globalSearch" placeholder="폰트명 또는 분위기/용도로 추천" aria-label="폰트 검색 및 추천" onkeydown="if(event.key==='Enter') goSearch(this.value)">
+    </div>
     <div class="header-right">
       <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="야간모드 전환">
         <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
@@ -314,6 +340,11 @@ function toggleFaqItem(btnEl){
     var next = current === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', next);
     try{ localStorage.setItem('ffp-theme', next); }catch(e){}
+  };
+  window.goSearch = function(q){
+    q = (q||'').trim();
+    if(!q) return;
+    location.href = 'index.html#search/' + encodeURIComponent(q);
   };
 })();
 </script>
