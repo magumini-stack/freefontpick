@@ -4046,7 +4046,9 @@ function dsDrawWave(canvas, ctx, o){
         const X = tx + px*cos - py*sin, Y = ty + px*sin + py*cos;
         if(X<minX)minX=X; if(X>maxX)maxX=X; if(Y<minY)minY=Y; if(Y>maxY)maxY=Y;
       });
-      s += ln.w[j] + sp;
+      /* U자(골) 구간은 인접 글자가 서로를 향해 회전해 겹쳐 보이므로, 골에 가까울수록 다음 글자와의 자간을 넓혀 보정 */
+      const valleyBoost = Math.max(0, -Math.sin(sc*freq)) * amp * 0.85;
+      s += ln.w[j] + sp + valleyBoost;
     });
     placed.push({items});
   });
