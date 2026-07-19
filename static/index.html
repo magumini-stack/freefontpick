@@ -186,18 +186,18 @@
     .logo{display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;font-family:'Noto Sans KR',-apple-system,sans-serif;font-weight:900;font-size:20px;letter-spacing:-.5px;color:var(--text-primary)}
     .logo .logo-dot{width:7px;height:7px;background:var(--accent);border-radius:1px;display:inline-block;margin-bottom:2px}
     nav{display:flex;gap:2px}
-    nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:var(--radius-sm);text-decoration:none;transition:all .15s;white-space:nowrap}
+    nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:6px;text-decoration:none;transition:all .15s;white-space:nowrap}
     nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
     nav a.active{color:var(--accent);background:var(--accent-light);font-weight:700}
     .header-right{display:flex;align-items:center;gap:8px}
-    .btn-subscribe{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:0 14px;height:36px;border-radius:20px;border:1px solid var(--accent);color:var(--accent);background:transparent;text-decoration:none;transition:all .15s;font-family:inherit;white-space:nowrap}
-    .btn-subscribe:hover{background:var(--accent);color:#fff}
-    .btn-subscribe i{font-size:14px}
+    .btn-subscribe{display:inline-flex;align-items:center;gap:6px;font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;font-weight:500;letter-spacing:.2px;padding:8px 13px;border:1px solid var(--border);color:var(--text-secondary);border-radius:2px;background:transparent;text-decoration:none;transition:all .15s;white-space:nowrap}
+    .btn-subscribe:hover{border-color:var(--text-primary);color:var(--text-primary);background:transparent}
+    .btn-subscribe i{font-size:13px}
     .search-wrap{position:relative;flex-shrink:0}
     .search-wrap i{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text-muted);pointer-events:none}
-    .search-wrap input{width:300px;height:34px;border:1px solid var(--border);border-radius:18px;padding:0 14px 0 34px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s,width .2s}
+    .search-wrap input{width:280px;height:34px;border:1px solid var(--border);border-radius:18px;padding:0 14px 0 34px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s,width .2s}
     .search-wrap input::placeholder{color:var(--text-muted)}
-    .search-wrap input:focus{border-color:var(--accent);width:360px}
+    .search-wrap input:focus{border-color:var(--accent);width:320px}
 
     /* 모바일 햄버거 메뉴 */
     .hamburger-btn{
@@ -412,20 +412,20 @@
     .preview-toggle{
       flex-shrink:0;
       display:flex;align-items:center;gap:5px;
-      padding:6px 12px 6px 13px;
-      border:1.5px solid var(--accent);
-      background:var(--accent-light);
+      padding:6px 12px;
+      border:1px solid var(--accent);
+      background:none;
       color:var(--accent);
       cursor:pointer;
-      border-radius:20px;
-      font-size:12.5px;
-      font-weight:800;
-      font-family:inherit;
-      transition:background-color .15s,color .15s,transform .2s,box-shadow .15s;
+      border-radius:2px;
+      font-size:12px;
+      font-weight:600;
+      font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+      transition:background-color .15s,color .15s;
       white-space:nowrap;
     }
-    .preview-toggle:hover{background:var(--accent);color:#fff;box-shadow:0 3px 10px rgba(255,92,53,.28)}
-    .preview-toggle.open{background:var(--accent);color:#fff}
+    .preview-toggle:hover{background:var(--accent-light)}
+    .preview-toggle.open{background:var(--accent-light)}
     .preview-toggle.open svg{transform:rotate(180deg)}
     .preview-toggle svg{transition:transform .2s;display:block;flex-shrink:0}
     .preview-toggle-text{display:inline-block}
@@ -443,25 +443,26 @@
     .preview-presets.open{display:flex}
     .preset-chip{
       border:1px solid var(--border);
-      background:var(--bg-secondary);
+      background:none;
       color:var(--text-secondary);
-      font-size:13px;
-      font-weight:600;
-      padding:7px 14px;
-      border-radius:20px;
+      font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+      font-size:11.5px;
+      font-weight:500;
+      padding:6px 12px;
+      border-radius:2px;
       cursor:pointer;
       white-space:nowrap;
-      transition:border-color .15s,color .15s,background-color .15s;
+      transition:border-color .15s,color .15s;
       flex-shrink:0;
     }
-    .preset-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
-    .preset-chip.active{border-color:var(--accent);color:#fff;background:var(--accent)}
+    .preset-chip:hover{border-color:var(--text-primary);color:var(--text-primary)}
+    .preset-chip.active{border-color:var(--accent);color:var(--accent);font-weight:700}
 
     /* TAGS */
-    .tags-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px}
-    .tag{font-size:12px;padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-family:inherit;font-weight:700}
-    .tag:hover{border-color:var(--accent);color:var(--accent)}
-    .tag.active{background:var(--accent);border-color:var(--accent);color:#fff}
+    .tags-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+    .tag{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;padding:6px 12px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500}
+    .tag:hover{border-color:var(--text-primary);color:var(--text-primary)}
+    .tag.active{color:var(--accent);border-color:var(--accent);font-weight:700;background:none}
 
     /* FILTER BAR */
     .filter-bar{display:flex;align-items:center;justify-content:flex-end;margin-bottom:14px;gap:10px}
@@ -2941,7 +2942,7 @@ function renderCuratorPicks(){
     const rank = String(i + 1).padStart(2, '0');
     const specimen = getPreviewTextFor(f);
     return `
-      <a class="pick-row" href="/font/${f.id}" onclick="stashPreviewText(${f.id})">
+      <a class="pick-row" href="/font/${f.id}" data-font-id="${f.id}" onclick="stashPreviewText(${f.id})">
         <span class="pick-rank">${rank}</span>
         <span class="pick-mark">${i === 0 ? '✓' : ''}</span>
         <span class="pick-specimen" style="font-family:${getEffectiveStack(f)}">${specimen}</span>
