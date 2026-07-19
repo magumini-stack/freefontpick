@@ -4254,18 +4254,20 @@ window.addEventListener('popstate', ()=>{
   }
 });
 
-/* 뒤로/앞으로가기 캐시(bfcache)로 이 페이지가 복원될 때, 디자인 모달·저장
-   오버레이가 잠긴 상태로 스냅샷째 복원되어 스크롤·클릭이 굳는 현상이 있다.
-   스크롤 잠금만 푸는 것으로는 부족한 경우가 있어, 캐시 복원 시엔 페이지를 새로
-   불러와(정상 진입과 동일) 확실히 초기화한다. /design/{id}로 복원된 경우엔
-   새로 불러온 뒤 handleDesignRoute가 다시 정상적으로 모달을 연다.
-   (reload로 인한 새 진입은 persisted=false 이므로 무한 새로고침 위험 없음) */
+/* 뒤로/앞으로가기 캐시(bfcache)로 이 페이지가 복원될 때, 디자인 모달·저장 오버레이가
+   잠긴 상태로 스냅샷째 복원되어 스크롤·클릭이 굳는 현상이 있었다. 전체 새로고침은
+   폰트를 다시 받느라 느리므로, 굳음을 만드는 열린 오버레이를 모두 걷어내고 스크롤
+   잠금·위치 고정을 해제한다. /design/{id}로 복원된 경우엔 깨끗이 정리한 뒤 모달을
+   다시 정상적으로 열어 이전 편집 화면을 복구한다. (새로고침 없이 캐시 복원 이점 유지) */
 window.addEventListener('pageshow', function(e){
-  if(e.persisted){
-    document.body.style.overflow='';
-    document.documentElement.style.overflow='';
-    location.reload();
-  }
+  if(!e.persisted) return;
+  document.querySelectorAll('.designer-overlay,.dsave-overlay').forEach(function(o){ o.classList.remove('open'); });
+  document.body.style.overflow='';
+  document.documentElement.style.overflow='';
+  document.body.style.position='';
+  var m = location.pathname.match(/^\/design\/(\d+)/);
+  if(m){ openDesigner(parseInt(m[1],10), true); }
+  else { dsPushedUrl = false; }
 });
 
 /* /design/{id} 직접 접속 처리 (init 완료 후 호출됨) */

@@ -750,17 +750,16 @@
     .catch(function(){ location.href = '/'; });
 })();
 
-/* 뒤로/앞으로가기 캐시(bfcache)로 이 상세페이지가 복원될 때,
-   직전 디자인 페이지에서 잠긴 상태(스크롤 잠금·굳음)가 스냅샷째 복원되는 문제가 있다.
-   스크롤 잠금만 푸는 걸로는 굳음이 안 풀리는 경우가 있어, 캐시 복원 시엔
-   아예 페이지를 새로 불러와(정상 진입과 동일 상태) 확실히 초기화한다.
-   (reload로 인한 새 진입은 persisted=false 이므로 무한 새로고침 위험 없음) */
+/* 뒤로/앞으로가기 캐시(bfcache)로 이 상세페이지가 복원될 때, 직전 디자인 페이지에서
+   잠긴 상태가 스냅샷째 복원되어 스크롤·클릭이 굳는 문제가 있었다. 전체 새로고침은
+   폰트를 다시 받느라 느리므로, 굳음을 만드는 잔존 레이어만 걷어내고 스크롤 잠금(및
+   혹시 모를 위치 고정)을 해제해 캐시 복원의 빠른 이점은 유지한다. */
 window.addEventListener('pageshow', function(e){
-  if(e.persisted){
-    document.body.style.overflow='';
-    document.documentElement.style.overflow='';
-    location.reload();
-  }
+  if(!e.persisted) return;
+  document.querySelectorAll('[class*="overlay"]').forEach(function(o){ o.classList.remove('open'); });
+  document.body.style.overflow='';
+  document.documentElement.style.overflow='';
+  document.body.style.position='';
 });
 </script>
 </body>
