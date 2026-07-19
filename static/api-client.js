@@ -52,6 +52,7 @@ const FontStore = {
       stack: f.stack,
       tags: f.tags || [],
       isEnglish: f.is_english,
+      isPick: !!f.is_pick,
       primaryWeight: f.primary_weight || 400,
       webfontFamily: f.webfont_family || '',
       webfontCssUrl: f.webfont_css_url || '',
@@ -72,6 +73,7 @@ const FontStore = {
       url: payload.url || '',
       stack: payload.stack || "'Nanum Gothic',sans-serif",
       is_english: !!payload.isEnglish,
+      is_pick: !!payload.isPick,
       primary_weight: payload.primaryWeight || 400,
       webfont_family: payload.webfontFamily || null,
       webfont_css_url: payload.webfontCssUrl || null,
@@ -91,6 +93,7 @@ const FontStore = {
     if ('url' in payload) body.url = payload.url;
     if ('stack' in payload) body.stack = payload.stack;
     if ('isEnglish' in payload) body.is_english = !!payload.isEnglish;
+    if ('isPick' in payload) body.is_pick = !!payload.isPick;
     if ('primaryWeight' in payload) body.primary_weight = payload.primaryWeight;
     if ('webfontFamily' in payload) body.webfont_family = payload.webfontFamily || null;
     if ('webfontCssUrl' in payload) body.webfont_css_url = payload.webfontCssUrl || null;
@@ -150,6 +153,7 @@ function _fromServer(f) {
     stack: f.stack,
     tags: f.tags || [],
     isEnglish: f.is_english,
+    isPick: !!f.is_pick,
     primaryWeight: f.primary_weight || 400,
     webfontFamily: f.webfont_family || '',
     webfontCssUrl: f.webfont_css_url || '',
