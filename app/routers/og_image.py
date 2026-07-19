@@ -5,6 +5,10 @@
 - 폰트명은 정사각형(630x630)으로 크롭됐을 때도 그 정사각형 너비의 90%를
   채우도록 폰트 크기를 이분탐색으로 계산한다 (소셜 공유 시 정사각형 썸네일 대비).
 - woff2는 Pillow가 직접 못 읽으므로 fontTools로 ttf로 디코딩해서 메모리에서 사용.
+  이때 폰트 전체(수천~1만+ 글리프의 CJK 폰트도 흔함)를 통째로 파싱/재저장하면
+  메모리·CPU 부담이 커서 컨테이너가 죽는(502) 경우가 있었다 — 실제로 필요한 건
+  폰트명에 쓰인 글자 몇 개뿐이므로, fontTools.subset으로 그 글자들만 추려낸
+  경량 폰트로 축소한 뒤 렌더링한다.
 - 생성 결과는 디스크에 캐싱하고, 폰트 파일/이름이 바뀌면 캐시가 자동 무효화되도록
   파일 mtime을 캐시 키에 포함한다.
 """
@@ -38,7 +42,7 @@ ACCENT = "#FF5C35"
 _UI_FONT_ID = 10
 
 # 레이아웃/렌더링 로직이 바뀔 때마다 올려서 기존 캐시를 무효화한다.
-_CACHE_VERSION = 3
+_CACHE_VERSION = 4
 
 
 def _resolve_font_file(font_id: int) -> Path | None:
@@ -55,7 +59,11 @@ def _resolve_font_file(font_id: int) -> Path | None:
 
 
 def _woff2_to_fontobject(path: Path):
-    """woff2/ttf/otf 파일을 Pillow가 읽을 수 있는 in-memory 폰트 바이트로 변환."""
+    """woff2/ttf/otf 파일을 Pillow가 읽을 수 있는 in-memory 폰트 바이트로 변환.
+
+    UI 폰트(배포처/로고마크 — 항상 같은 번들 폰트 하나만 씀)용 경량 경로.
+    글자 수가 적고 매 요청 재사용되는 성격이라 서브셋 없이 그대로 변환한다.
+    """
     from fontTools.ttLib import TTFont
 
     with open(path, "rb") as f:
@@ -67,6 +75,45 @@ def _woff2_to_fontobject(path: Path):
         tt.save(buf)
     else:
         buf.write(path.read_bytes())
+    buf.seek(0)
+    return buf
+
+
+def _subset_font_to_fontobject(path: Path, text: str):
+    """폰트 파일에서 text에 쓰인 글자에 필요한 글리프만 추려서 변환.
+
+    사용자가 업로드하는 폰트는 글리프 수천~1만+ 개짜리 CJK 폰트인 경우가 흔한데,
+    og:image에는 폰트명 몇 글자만 실제 폰트로 렌더링하면 되므로 그 글자들만
+    남기고 나머지는 버린다. 폰트 전체를 통째로 파싱/재저장할 때보다 메모리·CPU
+    사용량이 훨씬 작아서, 큰 폰트에서 서버가 죽는(502) 문제를 막아준다.
+    """
+    from fontTools.ttLib import TTFont
+    from fontTools import subset
+
+    tt = TTFont(str(path), fontNumber=0, lazy=True)
+    tt.flavor = None
+
+    options = subset.Options()
+    options.desubroutinize = False
+    options.hinting = False
+    options.notdef_glyph = True
+    options.notdef_outline = False
+    options.recalc_bounds = False
+    options.recalc_timestamp = False
+    options.layout_features = []
+    options.legacy_kern = False
+    options.ignore_missing_glyphs = True
+    options.ignore_missing_unicodes = True
+    options.name_IDs = []
+    options.drop_tables += ["GSUB", "GPOS", "GDEF", "kern", "DSIG"]
+
+    subsetter = subset.Subsetter(options=options)
+    # notdef + 공백 + 실제로 그릴 글자들만 남긴다
+    subsetter.populate(text=(text or "") + " ")
+    subsetter.subset(tt)
+
+    buf = io.BytesIO()
+    tt.save(buf)
     buf.seek(0)
     return buf
 
@@ -85,8 +132,9 @@ def _generate(font: Font) -> bytes:
     ui_reg_bytes = None
     if ui_font_file:
         try:
+            # 같은 파일을 두 번 디코딩할 필요 없이 한 번 변환해 재사용
             ui_bold_bytes = _woff2_to_fontobject(ui_font_file)
-            ui_reg_bytes = _woff2_to_fontobject(ui_font_file)
+            ui_reg_bytes = io.BytesIO(ui_bold_bytes.getvalue())
         except Exception:
             ui_bold_bytes = None
             ui_reg_bytes = None
@@ -131,16 +179,17 @@ def _generate(font: Font) -> bytes:
         d.rounded_rectangle([dot_x0, dot_y0, dot_x0 + dot, dot_y0 + dot], radius=2, fill=ACCENT)
         return th
 
+    font_name_text = font.name
+
     # 폰트명 렌더링용 실제 폰트 로드 (실패 시 UI 폰트로 폴백)
+    # 폰트명에 쓰인 글자만 서브셋해서 큰 CJK 폰트에서도 가볍게 처리한다.
     font_file = _resolve_font_file(font.id)
     name_font_bytes = None
     if font_file:
         try:
-            name_font_bytes = _woff2_to_fontobject(font_file)
+            name_font_bytes = _subset_font_to_fontobject(font_file, font_name_text)
         except Exception:
             name_font_bytes = None
-
-    font_name_text = font.name
 
     def load_name_font(size):
         if name_font_bytes is not None:
