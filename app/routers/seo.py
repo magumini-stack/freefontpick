@@ -28,19 +28,16 @@ def sitemap(db: Session = Depends(get_db)):
         {"loc": f"{SITE_URL}/faq.html", "priority": "0.5", "changefreq": "monthly"},
         {"loc": f"{SITE_URL}/policy.html", "priority": "0.3", "changefreq": "yearly"},
     ]
-    # 폰트별 디자인 페이지 (핵심 SEO 자산)
+    # 폰트별 상세페이지 (핵심 SEO 자산)
+    # 2026-07: /design/{id}는 /font/{id}의 canonical 페이지이므로 sitemap에서 제외.
+    # canonical이 아닌 URL을 sitemap에 올리면 구글에게 엇갈린 신호를 줘서
+    # 중복 색인 판단을 더 헷갈리게 만든다 (/font/ 색인 누락의 원인 중 하나였음).
     try:
         fonts = db.query(Font.id).all()
         for (fid,) in fonts:
-            # 폰트 상세페이지 (미리 써보기/페어링/다운로드)
             pages.append({
                 "loc": f"{SITE_URL}/font/{fid}",
                 "priority": "0.9",
-                "changefreq": "monthly",
-            })
-            pages.append({
-                "loc": f"{SITE_URL}/design/{fid}",
-                "priority": "0.8",
                 "changefreq": "monthly",
             })
     except Exception:
