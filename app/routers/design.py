@@ -1,11 +1,14 @@
 """디자인 페이지 라우터 — SEO/애드센스용 폰트별 고유 URL
 
-- /design/{font_id}  → 폰트별 title/description/canonical/OG/JSON-LD가 주입된 index.html
+- /design/{font_id}  → 폰트별 title/description/canonical/OG/JSON-LD가 주입된 font.html
+                        (2026-07 이관: 텍스트 디자인 모달을 font.html로 옮기면서, 이 경로도
+                         index.html이 아닌 font.html을 서빙한다. 클라이언트에서 경로가
+                         /design/인 것을 감지해 상세페이지 위에 모달을 자동으로 연다.)
 - /font/{font_id}    → 폰트별 title/description/canonical/OG(폰트별 og-image)/JSON-LD가
                         주입된 font.html (2026-07 추가: 상세페이지 SEO 강화)
 - /find-font        → 폰트 찾기 게시판 (SEO용 title/description 변경)
 
-세 라우트 모두 실제 콘텐츠는 SPA(index.html/font.html)가 클라이언트에서 렌더한다.
+실제 콘텐츠는 SPA(index.html/font.html)가 클라이언트에서 렌더한다.
 서버는 <head> 메타데이터만 폰트별로 치환해서, 검색엔진이 개별 페이지로 색인하게 한다.
 """
 import json as _json
@@ -73,8 +76,16 @@ def _inject_crawlable_font_links(html: str, db: Session) -> str:
     return html.replace("</body>", block + "\n</body>", 1)
 
 
-def _replace_meta_for_font(html: str, font: Font) -> str:
-    """폰트별 head 메타데이터 치환"""
+
+
+def _design_page_meta(font: Font) -> dict:
+    """디자인하기 페이지(/design/{id})용 title/description/keywords/url/og_image 생성
+
+    (2026-07 이관: 텍스트 디자인 모달이 font.html로 옮겨가면서, /design/{id}도
+     index.html이 아닌 font.html을 서빙한다. font.html은 상세페이지 콘텐츠를
+     보여주면서 모달을 자동으로 연다. 그래서 og_image는 상세페이지와 동일한
+     og-image.png를 재사용하되, title/description은 '텍스트 디자인' 의도에 맞춘다.)
+    """
     name = font.name
     maker = font.maker or ""
     tags = [t.name for t in font.tags] if font.tags else []
@@ -85,62 +96,53 @@ def _replace_meta_for_font(html: str, font: Font) -> str:
         f"외곽선, 그라데이션, 그림자, 네온 등 30여 가지 효과를 적용하고 "
         f"투명배경 PNG로 무료 저장할 수 있습니다."
     )
-    url = f"{BASE_URL}/design/{font.id}"
-
-    # <title>
-    html = re.sub(r"<title>.*?</title>", f"<title>{title}</title>",
-                  html, count=1, flags=re.S)
-    # description
-    html = re.sub(r'(<meta name="description" content=")[^"]*(")',
-                  rf"\g<1>{desc}\g<2>", html, count=1)
-    # keywords 확장
-    kw_extra = ", ".join(
+    keywords = ", ".join(
         [name, f"{name} 다운로드", "텍스트 디자인", "글자 꾸미기"] + tags[:4]
     )
-    html = re.sub(r'(<meta name="keywords" content=")([^"]*)(")',
-                  rf"\g<1>\g<2>, {kw_extra}\g<3>", html, count=1)
-    # canonical
-    html = re.sub(r'(<link rel="canonical" href=")[^"]*(")',
-                  rf"\g<1>{url}\g<2>", html, count=1)
-    # OG
-    html = re.sub(r'(<meta property="og:title" content=")[^"]*(")',
-                  rf"\g<1>{title}\g<2>", html, count=1)
-    html = re.sub(r'(<meta property="og:description" content=")[^"]*(")',
-                  rf"\g<1>{desc}\g<2>", html, count=1)
-    html = re.sub(r'(<meta property="og:url" content=")[^"]*(")',
-                  rf"\g<1>{url}\g<2>", html, count=1)
+    url = f"{BASE_URL}/design/{font.id}"
+    og_image = f"{BASE_URL}/api/fonts/{font.id}/og-image.png"
+    return {
+        "title": title, "desc": desc, "keywords": keywords,
+        "url": url, "og_image": og_image, "name": name, "maker": maker, "tags": tags,
+    }
 
-    # JSON-LD 구조화 데이터 (프론트에서 동적으로 넣는 것과 별개로,
-    # JS 실행 안 하는 크롤러를 위해 서버에서도 심어둠)
+
+def _replace_meta_for_design(html: str, font: Font) -> str:
+    """font.html의 {{FFP_*}} 마커를 '디자인하기' 페이지용 값으로 치환"""
+    m = _design_page_meta(font)
+
     json_ld = _json.dumps({
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": f"{name} 텍스트 디자인 만들기",
-        "description": desc,
-        "url": url,
+        "name": m["title"],
+        "description": m["desc"],
+        "url": m["url"],
         "inLanguage": "ko",
         "isPartOf": {"@type": "WebSite", "name": "폰트픽", "url": BASE_URL},
+        "primaryImageOfPage": {"@type": "ImageObject", "url": m["og_image"], "width": 1200, "height": 630},
         "mainEntity": {
             "@type": "CreativeWork",
-            "name": name,
-            "creator": {"@type": "Organization", "name": maker},
-            "keywords": ", ".join(tags),
+            "name": m["name"],
+            "creator": {"@type": "Organization", "name": m["maker"]},
+            "keywords": ", ".join(m["tags"]),
         },
     }, ensure_ascii=False)
-    html = html.replace(
-        "</head>",
-        f'<script type="application/ld+json" id="serverJsonLd">{json_ld}</script>\n</head>',
-        1,
-    )
+    json_ld_tag = f'<script type="application/ld+json" id="serverJsonLd">{json_ld}</script>'
 
-    # 크롤러용 noscript 콘텐츠 — 중복/얇은 콘텐츠 방지의 핵심
+    html = html.replace("{{FFP_TITLE}}", m["title"])
+    html = html.replace("{{FFP_DESC}}", m["desc"])
+    html = html.replace("{{FFP_KEYWORDS}}", m["keywords"])
+    html = html.replace("{{FFP_CANONICAL}}", m["url"])
+    html = html.replace("{{FFP_OG_IMAGE}}", m["og_image"])
+    html = html.replace("{{FFP_JSONLD}}", json_ld_tag)
+
     seo_block = (
-        f'<noscript><section><h1>{name} 텍스트 디자인</h1>'
-        f"<p>{name}은(는) {maker}에서 제공하는 무료 폰트입니다. "
-        f"폰트픽 텍스트 디자인 도구에서 {name} 폰트에 30여 가지 스타일 효과("
+        f'<noscript><section><h1>{m["name"]} 텍스트 디자인</h1>'
+        f"<p>{m['name']}은(는) {m['maker']}에서 제공하는 무료 폰트입니다. "
+        f"폰트픽 텍스트 디자인 도구에서 {m['name']} 폰트에 30여 가지 스타일 효과("
         f"외곽선, 그림자, 네온, 그라데이션 등)를 적용하고, 글자색·자간·줄간격을 "
         f"조절해 투명배경 PNG 이미지로 저장할 수 있습니다. "
-        f'관련 태그: {", ".join(tags) if tags else "무료폰트"}</p>'
+        f'관련 태그: {", ".join(m["tags"]) if m["tags"] else "무료폰트"}</p>'
         f'</section></noscript>'
     )
     html = html.replace("</body>", seo_block + "\n</body>", 1)
@@ -149,14 +151,18 @@ def _replace_meta_for_font(html: str, font: Font) -> str:
 
 @router.get("/design/{font_id}", response_class=HTMLResponse)
 def design_page(font_id: int, db: Session = Depends(get_db)):
+    """디자인하기 고유 URL — font.html(상세페이지)을 서빙하고, 클라이언트에서
+    경로가 /design/인 것을 감지해 텍스트 디자인 모달을 자동으로 연다.
+    (2026-07 이관: 예전엔 index.html + 모달이었으나, 모달을 font.html로 옮기면서
+     페이지 이동 없이 상세페이지 위에서 바로 모달이 뜨도록 통합했다.)"""
     font = db.query(Font).filter(Font.id == font_id).first()
     if font is None:
         # 폰트 없으면 홈으로 리다이렉트 (soft 404 방지: index를 그냥 주면
         # 검색엔진이 실제 없는 폰트 URL을 계속 재방문할 수 있어 302로 홈 유도)
         return RedirectResponse(url="/", status_code=302)
-    html = _load_index()
-    html = inject_header(html, "home")
-    return HTMLResponse(_replace_meta_for_font(html, font))
+    html = _load_font_page()
+    html = inject_header(html, "")
+    return HTMLResponse(_replace_meta_for_design(html, font))
 
 
 def _font_detail_meta(font: Font) -> dict:
