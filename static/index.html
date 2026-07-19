@@ -4017,9 +4017,10 @@ function dsDrawWave(canvas, ctx, o){
   });
   const maxW = Math.max(...L.map(l=>l.total), 10);
 
-  const amp = mag * fontSize * 0.55;    /* 진폭: 100% = 글자 높이의 절반 정도 */
-  const wavelength = fontSize * 3.4;    /* 파장 고정: 대략 글자 3~4개마다 한 번 출렁 */
+  const amp = mag * fontSize * 0.34;    /* 진폭 상한을 낮춰 급격한 출렁임 방지 */
+  const wavelength = fontSize * 5.2;    /* 파장을 넓혀 글자당 회전각 변화를 완만하게 */
   const freq = (2*Math.PI) / wavelength;
+  const MAX_ROT = 26 * Math.PI / 180;   /* 글자별 회전각 상한 — 한글은 각진 정사각 형태라 과도한 회전 시 겹치고 들쭉날쭉해 보임 */
 
   const placed = [];
   let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
@@ -4037,7 +4038,8 @@ function dsDrawWave(canvas, ctx, o){
       const tx = sc;
       const ty = baseY - amp*Math.sin(sc*freq);
       const slope = amp*freq*Math.cos(sc*freq);
-      const rot = -Math.atan(slope);    /* 그 지점의 기울기만큼 회전 */
+      let rot = -Math.atan(slope);      /* 그 지점의 기울기만큼 회전 */
+      if(rot > MAX_ROT) rot = MAX_ROT; else if(rot < -MAX_ROT) rot = -MAX_ROT;
       items.push({ch, w:ln.w[j], tx, ty, rot});
       const hw = ln.w[j]/2, cos=Math.cos(rot), sin=Math.sin(rot);
       [[-hw,-ascent],[hw,-ascent],[hw,descent],[-hw,descent]].forEach(([px,py])=>{
