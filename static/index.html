@@ -641,78 +641,92 @@
     .btn-design:hover{filter:brightness(1.08)}
     .designer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
     .designer-overlay.open{display:flex;animation:fadeIn .2s ease}
-    .designer-sheet{background:var(--bg-card);width:100%;max-width:480px;max-height:92vh;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .22s ease}
-    .designer-head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+    .designer-sheet{background:var(--bg-card);width:100%;max-width:960px;height:min(88vh,700px);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .22s ease}
+    .designer-head{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
     .designer-head strong{font-size:14.5px;color:var(--text-primary)}
-    .designer-close{border:none;background:var(--bg-secondary);color:var(--text-primary);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer}
-    .designer-body{padding:14px 16px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:13px}
-    .designer-body textarea{width:100%;resize:none;border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:14px;line-height:1.5;min-height:50px;background:var(--bg-card);color:var(--text-primary)}
-    .designer-body textarea:focus{outline:none;border-color:var(--accent)}
-    .designer-preview-label{display:flex;align-items:baseline;gap:8px}
-    .designer-preview-label span{font-size:12px;font-weight:800;color:var(--text-primary)}
-    .designer-preview-label em{font-size:10.5px;font-style:normal;color:var(--text-muted)}
-    .designer-preview{border-radius:14px;overflow:hidden;border:1px solid var(--border);flex-shrink:0;padding:10px;display:flex;align-items:center;justify-content:center;min-height:80px;max-height:210px;
+    .designer-close{border:none;background:var(--bg-secondary);color:var(--text-primary);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;flex-shrink:0}
+    /* 문구 입력: 모달 전체 폭, 엔터 시 자동 확장 */
+    .designer-text-row{padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:8px}
+    .designer-text-row textarea{width:100%;resize:none;overflow-y:hidden;border:1.5px solid var(--border);border-radius:12px;padding:11px 13px;font-family:inherit;font-size:14px;line-height:1.5;min-height:46px;max-height:160px;background:var(--bg-card);color:var(--text-primary)}
+    .designer-text-row textarea:focus{outline:none;border-color:var(--accent)}
+    /* 본문: 좌(미리보기 고정) / 우(컨트롤 스크롤) 2단 */
+    .designer-main{flex:1;display:grid;grid-template-columns:320px 1fr;overflow:hidden;min-height:0}
+    .designer-preview-pane{background:var(--bg-secondary);padding:22px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;border-right:1px solid var(--border)}
+    .designer-preview{border-radius:16px;overflow:hidden;border:1px solid var(--border);flex:1;padding:18px;display:flex;align-items:center;justify-content:center;min-height:200px;
       background:
-        linear-gradient(45deg,var(--bg-secondary) 25%,transparent 25%) -10px 0/20px 20px,
-        linear-gradient(-45deg,var(--bg-secondary) 25%,transparent 25%) -10px 0/20px 20px,
-        linear-gradient(45deg,transparent 75%,var(--bg-secondary) 75%) -10px 0/20px 20px,
-        linear-gradient(-45deg,transparent 75%,var(--bg-secondary) 75%) -10px 0/20px 20px;}
-    .designer-preview canvas{max-width:100%;max-height:190px;display:block}
-    .designer-tabs{display:flex;gap:6px;border-bottom:1px solid var(--border)}
-    .designer-tab{border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--text-muted);padding:7px 4px 9px;cursor:pointer;border-bottom:2px solid transparent}
+        linear-gradient(45deg,var(--bg-card) 25%,transparent 25%) -10px 0/20px 20px,
+        linear-gradient(-45deg,var(--bg-card) 25%,transparent 25%) -10px 0/20px 20px,
+        linear-gradient(45deg,transparent 75%,var(--bg-card) 75%) -10px 0/20px 20px,
+        linear-gradient(-45deg,transparent 75%,var(--bg-card) 75%) -10px 0/20px 20px;}
+    .designer-preview canvas{max-width:100%;max-height:100%;display:block}
+    .designer-preview-caption{font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5}
+    .designer-controls-pane{display:flex;flex-direction:column;min-height:0}
+    .designer-tabs{display:flex;gap:2px;padding:0 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+    .designer-tab{border:none;background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--text-muted);padding:13px 10px;cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1px}
     .designer-tab.active{color:var(--accent);border-color:var(--accent)}
-    .designer-panel{display:none;flex-direction:column;gap:12px}
+    .designer-controls-scroll{flex:1;overflow-y:auto;padding:18px 20px 4px;display:flex;flex-direction:column}
+    .designer-panel{display:none;flex-direction:column;gap:22px}
     .designer-panel.active{display:flex}
-    .designer-subtabs{display:flex;gap:6px;flex-wrap:wrap}
-    .designer-subtab{border:1.5px solid var(--border);background:var(--bg-card);font-family:inherit;font-size:11.5px;font-weight:700;color:var(--text-muted);padding:5px 12px;border-radius:20px;cursor:pointer}
-    .designer-subtab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
-    .designer-subpanel{display:none}
-    .designer-subpanel.active{display:block}
-    .fx-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px 6px}
+    .designer-section{display:flex;flex-direction:column;gap:10px}
+    .designer-section-head{display:flex;align-items:baseline;justify-content:space-between}
+    .designer-section-head h4{margin:0;font-size:12.5px;font-weight:800;color:var(--text-primary)}
+    .designer-divider{border:none;border-top:1px solid var(--border);margin:0}
+    .fx-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px 7px}
     .fx-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
-    .fx-chip{width:100%;height:34px;border-radius:8px;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff}
-    .fx-item.active .fx-chip{border-color:var(--text-primary)}
+    .fx-chip{width:100%;height:38px;border-radius:9px;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;transition:box-shadow .15s,transform .1s}
+    .fx-item:hover .fx-chip{transform:translateY(-1px);box-shadow:var(--shadow-hover)}
+    .fx-item.active .fx-chip{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}
     .fx-item span{display:block;width:100%;text-align:center;font-size:9px;font-weight:700;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
-    .fx-item.active span{color:var(--text-primary)}
+    .fx-item.active span{color:var(--accent)}
     .fx-chip.none-chip{background:var(--bg-card);border:2px dashed var(--border);color:var(--text-muted)}
-    .clr-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:7px}
-    .clr-dot{aspect-ratio:1;border-radius:8px;cursor:pointer;border:2px solid rgba(0,0,0,.08);position:relative}
-    .clr-dot.active{border-color:var(--text-primary)}
-    .clr-dot.none-dot{background:var(--bg-card);border:2px solid var(--border)}
+    .clr-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:8px}
+    .clr-dot{aspect-ratio:1;border-radius:50%;cursor:pointer;border:1.5px solid var(--border);position:relative;transition:transform .1s,box-shadow .15s}
+    .clr-dot:hover{transform:scale(1.08)}
+    .clr-dot.active{border-color:transparent;box-shadow:0 0 0 3px var(--accent-light),0 0 0 4.5px var(--accent)}
+    .clr-dot.none-dot{background:var(--bg-card);border:1.5px solid var(--border)}
     .clr-dot.none-dot::after{content:'';position:absolute;left:10%;top:47%;width:80%;height:2px;background:#EF4444;transform:rotate(-45deg);border-radius:2px}
     .designer-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .designer-row label{font-size:12.5px;font-weight:700;color:var(--text-primary)}
     .designer-row input[type=range]{width:140px;accent-color:var(--accent)}
-    .dtoggle{width:40px;height:24px;border-radius:20px;background:var(--border);position:relative;cursor:pointer;border:none;flex-shrink:0}
+    .slider-card{background:var(--bg-secondary);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+    .slider-top{display:flex;align-items:center;justify-content:space-between}
+    .slider-top label{font-size:12.5px;font-weight:700;color:var(--text-primary)}
+    .slider-val{font-size:11px;font-weight:800;color:var(--accent);background:var(--accent-light);padding:2px 8px;border-radius:20px;font-variant-numeric:tabular-nums}
+    .slider-card input[type=range]{width:100%;accent-color:var(--accent)}
+    .dtoggle{width:42px;height:24px;border-radius:20px;background:var(--border-hover);position:relative;cursor:pointer;border:none;flex-shrink:0;transition:background .15s}
     .dtoggle.on{background:var(--accent)}
-    .dtoggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s ease}
-    .dtoggle.on::after{left:19px}
-    .dalign{display:flex;gap:6px}
-    .dalign button{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
-    .dalign button.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .dtoggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s ease;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+    .dtoggle.on::after{left:21px}
+    .dalign{display:flex;gap:6px;background:var(--bg-secondary);padding:4px;border-radius:11px;width:fit-content}
+    .dalign button{width:32px;height:30px;border-radius:8px;border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+    .dalign button.active{background:var(--bg-card);color:var(--accent);box-shadow:var(--shadow-card)}
     /* ── 라운드(곡선) 패널 ── */
-    .arc-panel{display:flex;flex-direction:column;gap:12px}
+    .arc-panel{display:flex;flex-direction:column;gap:18px}
+    .arc-mode-toggle{display:flex;gap:6px}
+    .arc-mode-btn{flex:1;border:1.5px solid var(--border);background:var(--bg-card);font-family:inherit;font-size:12.5px;font-weight:700;color:var(--text-secondary);padding:10px;border-radius:11px;cursor:pointer}
+    .arc-mode-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
     .arc-slider-row{display:flex;align-items:center;gap:10px}
     .arc-slider-row .arc-cap{font-size:15px;color:var(--text-muted);line-height:1;flex-shrink:0;width:18px;text-align:center}
     .arc-slider-row input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer}
-    .arc-meta{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .arc-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:-8px}
     .arc-val{font-size:12px;font-weight:700;color:var(--text-secondary);font-variant-numeric:tabular-nums}
     .arc-reset{border:1.5px solid var(--border);background:var(--bg-card);font-family:inherit;font-size:11.5px;font-weight:700;color:var(--text-secondary);padding:5px 12px;border-radius:20px;cursor:pointer}
     .arc-reset:hover{border-color:var(--accent);color:var(--accent)}
-    .arc-note{font-size:11px;color:var(--text-muted);line-height:1.5}
+    .arc-note{font-size:11px;color:var(--text-muted);line-height:1.6;background:var(--bg-secondary);border-radius:8px;padding:10px 12px;margin:0}
     .dhl{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;flex:1;max-width:280px}
     .dhl-dot{width:100%;aspect-ratio:1;border-radius:7px;border:2px solid var(--border);cursor:pointer}
     .dhl-dot.active{border-color:var(--text-primary)}
+    .designer-footer{padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:10px}
     .designer-adslot{border:1.5px dashed var(--border);border-radius:12px;padding:12px;text-align:center;font-size:11px;color:var(--text-muted);background:var(--bg-secondary);line-height:1.5}
     .app-promo-banner{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:var(--bg-secondary);border:1px solid var(--border);text-decoration:none;color:inherit;transition:transform .12s ease,border-color .12s ease}
     .app-promo-banner:active{transform:scale(.98)}
     .app-promo-banner:hover{border-color:var(--accent)}
-    .app-promo-banner img{width:44px;height:44px;border-radius:11px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+    .app-promo-banner img{width:40px;height:40px;border-radius:10px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.15)}
     .app-promo-banner .app-promo-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
     .app-promo-banner .app-promo-title{font-size:12.5px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .app-promo-banner .app-promo-sub{font-size:10.5px;color:var(--text-muted)}
     .app-promo-banner .app-promo-cta{flex-shrink:0;font-size:11.5px;font-weight:800;color:#fff;background:var(--accent);padding:7px 12px;border-radius:9px;white-space:nowrap}
-    .designer-save{width:100%;border:none;background:linear-gradient(135deg,var(--accent),#E8431F);color:#fff;font-weight:800;font-size:15px;padding:13px;border-radius:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+    .designer-save{width:100%;border:none;background:linear-gradient(135deg,var(--accent),#E8431F);color:#fff;font-weight:800;font-size:15px;padding:14px;border-radius:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
     .designer-save:active{transform:scale(.99)}
     /* 광고 인터스티셜 */
     .dsave-overlay{display:none;position:fixed;inset:0;background:rgba(10,8,7,.85);z-index:650;align-items:center;justify-content:center;padding:20px}
@@ -725,9 +739,20 @@
     .dsave-btn:disabled{opacity:.4;cursor:not-allowed}
     .dsave-btn.primary{background:var(--accent);color:#fff}
     .dsave-sub{margin-top:8px;width:100%;border:none;background:none;color:var(--text-muted);font-size:11.5px;text-decoration:underline;cursor:pointer;padding:4px;font-family:inherit}
-    @media(max-width:640px){
+    @media(max-width:760px){
       .designer-overlay{align-items:flex-end;padding:0}
-      .designer-sheet{max-width:100%;border-radius:20px 20px 0 0;max-height:90vh}
+      .designer-sheet{max-width:100%;border-radius:20px 20px 0 0;height:92vh}
+      .designer-text-row{padding:12px 16px}
+      .designer-main{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+      .designer-preview-pane{border-right:none;border-bottom:1px solid var(--border);padding:12px 16px;gap:6px}
+      .designer-preview{min-height:120px;padding:10px}
+      .designer-preview canvas{max-height:110px}
+      .designer-preview-caption{display:none}
+      .designer-tabs{padding:0 16px}
+      .designer-controls-scroll{padding:14px 16px 4px}
+      .designer-footer{padding:12px 16px}
+      .fx-grid{grid-template-columns:repeat(5,1fr)}
+      .clr-grid{grid-template-columns:repeat(7,1fr)}
     }
   </style>
 </head>
@@ -982,79 +1007,125 @@
       <strong id="designerTitle">텍스트 디자인</strong>
       <button class="designer-close" onclick="closeDesigner()" aria-label="닫기"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
-    <div class="designer-body">
-      <textarea id="dsText" maxlength="80" rows="2" placeholder="문구를 입력하세요">안녕하세요</textarea>
-        <div id="dsWeightRow" style="display:none;align-items:center;gap:8px;margin-top:8px">
-          <span style="font-size:12.5px;font-weight:700;color:var(--text-secondary);white-space:nowrap">굵기</span>
-          <select id="dsWeight" style="flex:1;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text-primary)"></select>
-        </div>
-      <div class="designer-preview-label">
-        <span>미리보기</span><em>보이는 그대로 저장 · 배경 투명 PNG</em>
+
+    <div class="designer-text-row">
+      <textarea id="dsText" maxlength="80" rows="1" placeholder="문구를 입력하세요">안녕하세요</textarea>
+      <div id="dsWeightRow" style="display:none;align-items:center;gap:8px">
+        <span style="font-size:12.5px;font-weight:700;color:var(--text-secondary);white-space:nowrap">굵기</span>
+        <select id="dsWeight" style="flex:1;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text-primary)"></select>
       </div>
-      <div class="designer-preview"><canvas id="dsCanvas" width="300" height="120"></canvas></div>
-      <div class="designer-tabs">
-        <button class="designer-tab active" data-dtab="style">스타일</button>
-        <button class="designer-tab" data-dtab="detail">디테일</button>
+    </div>
+
+    <div class="designer-main">
+      <div class="designer-preview-pane">
+        <div class="designer-preview"><canvas id="dsCanvas" width="300" height="120"></canvas></div>
+        <p class="designer-preview-caption">보이는 그대로 저장돼요 · 배경 투명 PNG</p>
       </div>
-      <div class="designer-panel active" data-dpanel="style">
-        <div class="designer-subtabs">
-          <button class="designer-subtab active" data-dsub="effect">효과</button>
-          <button class="designer-subtab" data-dsub="textcolor">글자색</button>
-          <button class="designer-subtab" data-dsub="outline">외곽선</button>
-          <button class="designer-subtab" data-dsub="arc">라운드</button>
+
+      <div class="designer-controls-pane">
+        <div class="designer-tabs">
+          <button class="designer-tab active" data-dtab="style">스타일</button>
+          <button class="designer-tab" data-dtab="arc">라운드</button>
+          <button class="designer-tab" data-dtab="detail">디테일</button>
         </div>
-        <div class="designer-subpanel active" data-dsubpanel="effect"><div class="fx-grid" id="dsFxGrid"></div></div>
-        <div class="designer-subpanel" data-dsubpanel="textcolor"><div class="clr-grid" id="dsTextColorGrid"></div></div>
-        <div class="designer-subpanel" data-dsubpanel="outline"><div class="clr-grid" id="dsOutlineGrid"></div></div>
-        <div class="designer-subpanel" data-dsubpanel="arc">
-          <div class="arc-panel">
-            <div class="arc-slider-row">
-              <span class="arc-cap" aria-hidden="true">&#8212;</span>
-              <input type="range" id="dsArc" min="0" max="100" value="0" step="1" aria-label="곡선 정도">
-              <span class="arc-cap" aria-hidden="true">&#9711;</span>
+
+        <div class="designer-controls-scroll">
+          <div class="designer-panel active" data-dpanel="style">
+            <div class="designer-section">
+              <div class="designer-section-head"><h4>효과</h4></div>
+              <div class="fx-grid" id="dsFxGrid"></div>
             </div>
-            <div class="arc-meta">
-              <span class="arc-val" id="dsArcVal">직선</span>
-              <button class="arc-reset" id="dsArcReset" type="button">직선으로</button>
+            <hr class="designer-divider">
+            <div class="designer-section">
+              <div class="designer-section-head"><h4>글자색</h4></div>
+              <div class="clr-grid" id="dsTextColorGrid"></div>
             </div>
-            <div class="designer-row"><label>정렬</label>
-              <div class="dalign" id="dsArcAlign">
-                <button data-dalign="left" aria-label="왼쪽 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="13" y2="12"/><line x1="4" y1="18" x2="17" y2="18"/></svg></button>
-                <button data-dalign="center" aria-label="가운데 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7.5" y1="12" x2="16.5" y2="12"/><line x1="5.5" y1="18" x2="18.5" y2="18"/></svg></button>
-                <button data-dalign="right" aria-label="오른쪽 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="11" y1="12" x2="20" y2="12"/><line x1="7" y1="18" x2="20" y2="18"/></svg></button>
+            <div class="designer-section">
+              <div class="designer-section-head"><h4>외곽선</h4></div>
+              <div class="clr-grid" id="dsOutlineGrid"></div>
+            </div>
+          </div>
+
+          <div class="designer-panel" data-dpanel="arc">
+            <div class="arc-panel">
+              <div class="designer-section">
+                <div class="designer-section-head"><h4>모양</h4></div>
+                <div class="arc-mode-toggle" id="dsArcMode">
+                  <button class="arc-mode-btn active" data-arcmode="circle" type="button">원형</button>
+                  <button class="arc-mode-btn" data-arcmode="wave" type="button">물결</button>
+                </div>
+              </div>
+              <div>
+                <div class="arc-slider-row">
+                  <span class="arc-cap" aria-hidden="true">&#8212;</span>
+                  <input type="range" id="dsArc" min="0" max="100" value="0" step="1" aria-label="곡선 정도">
+                  <span class="arc-cap" aria-hidden="true">&#9711;</span>
+                </div>
+                <div class="arc-meta">
+                  <span class="arc-val" id="dsArcVal">직선</span>
+                  <button class="arc-reset" id="dsArcReset" type="button">직선으로</button>
+                </div>
+              </div>
+              <div class="designer-section">
+                <div class="designer-section-head"><h4>정렬</h4></div>
+                <div class="dalign" id="dsArcAlign">
+                  <button data-dalign="left" aria-label="왼쪽 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="13" y2="12"/><line x1="4" y1="18" x2="17" y2="18"/></svg></button>
+                  <button data-dalign="center" aria-label="가운데 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7.5" y1="12" x2="16.5" y2="12"/><line x1="5.5" y1="18" x2="18.5" y2="18"/></svg></button>
+                  <button data-dalign="right" aria-label="오른쪽 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="11" y1="12" x2="20" y2="12"/><line x1="7" y1="18" x2="20" y2="18"/></svg></button>
+                </div>
+              </div>
+              <p class="arc-note" id="dsArcNote">라운드를 켜면 밑줄과 하이라이트는 해제됩니다. 두 줄 이상이면 모든 줄이 같은 중심을 공유해서, 중심에 가까운 줄일수록 더 휘어요.</p>
+            </div>
+          </div>
+
+          <div class="designer-panel" data-dpanel="detail">
+            <div class="designer-section">
+              <div class="designer-row"><label>굵게</label><button class="dtoggle" id="dsBold"></button></div>
+              <div class="designer-row"><label>밑줄</label><button class="dtoggle" id="dsUnderline"></button></div>
+            </div>
+            <hr class="designer-divider">
+            <div class="designer-section">
+              <div class="slider-card">
+                <div class="slider-top"><label>자간</label><span class="slider-val" id="dsSpacingVal">0</span></div>
+                <input type="range" id="dsSpacing" min="-4" max="12" value="0">
+              </div>
+              <div class="slider-card">
+                <div class="slider-top"><label>줄간격</label><span class="slider-val" id="dsLineHeightVal">1.3</span></div>
+                <input type="range" id="dsLineHeight" min="10" max="22" value="13">
               </div>
             </div>
-            <p class="arc-note">라운드를 켜면 밑줄과 하이라이트는 해제됩니다. 두 줄 이상이면 모든 줄이 같은 중심을 공유해서, 중심에 가까운 줄일수록 더 휘어요.</p>
+            <hr class="designer-divider">
+            <div class="designer-section">
+              <div class="designer-section-head"><h4>정렬</h4></div>
+              <div class="dalign">
+                <button data-dalign="left" class="active" aria-label="왼쪽 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="13" y2="12"/><line x1="4" y1="18" x2="17" y2="18"/></svg></button>
+                <button data-dalign="center" aria-label="가운데 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7.5" y1="12" x2="16.5" y2="12"/><line x1="5.5" y1="18" x2="18.5" y2="18"/></svg></button>
+                <button data-dalign="right" aria-label="오른쪽 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="11" y1="12" x2="20" y2="12"/><line x1="7" y1="18" x2="20" y2="18"/></svg></button>
+              </div>
+            </div>
+            <div class="designer-section">
+              <div class="designer-section-head"><h4>하이라이트</h4></div>
+              <div class="dhl" id="dsHlRow"></div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="designer-panel" data-dpanel="detail">
-        <div class="designer-row"><label>굵게</label><button class="dtoggle" id="dsBold"></button></div>
-        <div class="designer-row"><label>밑줄</label><button class="dtoggle" id="dsUnderline"></button></div>
-        <div class="designer-row"><label>자간</label><input type="range" id="dsSpacing" min="-4" max="12" value="0"></div>
-        <div class="designer-row"><label>줄간격</label><input type="range" id="dsLineHeight" min="10" max="22" value="13"></div>
-        <div class="designer-row"><label>정렬</label>
-          <div class="dalign">
-            <button data-dalign="left" class="active" aria-label="왼쪽 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="13" y2="12"/><line x1="4" y1="18" x2="17" y2="18"/></svg></button>
-            <button data-dalign="center" aria-label="가운데 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7.5" y1="12" x2="16.5" y2="12"/><line x1="5.5" y1="18" x2="18.5" y2="18"/></svg></button>
-            <button data-dalign="right" aria-label="오른쪽 정렬"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="11" y1="12" x2="20" y2="12"/><line x1="7" y1="18" x2="20" y2="18"/></svg></button>
+
+        <div class="designer-footer">
+          <div class="designer-adslot" id="designerAdSlot" style="display:none">
+            <!-- AdSense 승인 후 이 자리에 배너 ins 태그 삽입 -->
+            광고 영역
           </div>
+          <a class="app-promo-banner" href="https://tosto.re/ktext" target="_blank" rel="noopener">
+            <img src="data:image/png;base64,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" alt="한글로 사진에 글쓰기 앱 아이콘">
+            <div class="app-promo-text">
+              <span class="app-promo-title">한글로 사진에 글쓰기 앱</span>
+              <span class="app-promo-sub">사진 위에 예쁜 한글 폰트로 바로 써보세요</span>
+            </div>
+            <span class="app-promo-cta">무료 받기</span>
+          </a>
+          <button class="designer-save" onclick="startDesignerSave()"><i class="ti ti-download" aria-hidden="true"></i> PNG로 저장</button>
         </div>
-        <div class="designer-row" style="align-items:flex-start"><label style="padding-top:4px">하이라이트</label><div class="dhl" id="dsHlRow"></div></div>
       </div>
-      <div class="designer-adslot" id="designerAdSlot" style="display:none">
-        <!-- AdSense 승인 후 이 자리에 배너 ins 태그 삽입 -->
-        광고 영역
-      </div>
-      <a class="app-promo-banner" href="https://tosto.re/ktext" target="_blank" rel="noopener">
-        <img src="data:image/png;base64,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" alt="한글로 사진에 글쓰기 앱 아이콘">
-        <div class="app-promo-text">
-          <span class="app-promo-title">한글로 사진에 글쓰기 앱</span>
-          <span class="app-promo-sub">사진 위에 예쁜 한글 폰트로 바로 써보세요</span>
-        </div>
-        <span class="app-promo-cta">무료 받기</span>
-      </a>
-      <button class="designer-save" onclick="startDesignerSave()"><i class="ti ti-download" aria-hidden="true"></i> PNG로 저장</button>
     </div>
   </div>
 </div>
@@ -3589,12 +3660,20 @@ let dsState = {
   font: null, effect: DS_EFFECTS[0], text: '안녕하세요',
   bold:false, underline:false, spacing:0, lineHeight:13, align:'left',
   highlight:null, textColorOverride:null, outlineOverride:undefined,
-  arc:0,
+  arc:0, arcMode:'circle',
 };
 let dsPushedUrl = false;
 let dsBlob = null, dsFilename = '';
 
 const dsCanvas = () => document.getElementById('dsCanvas');
+
+/* 문구 입력창: 한 줄로 시작, 엔터/줄바꿈 시 내용에 맞춰 자동으로 늘어남 (최대 160px, 그 이상은 내부 스크롤) */
+function dsAutosizeText(){
+  const t = document.getElementById('dsText');
+  if(!t) return;
+  t.style.height = 'auto';
+  t.style.height = Math.min(t.scrollHeight, 160) + 'px';
+}
 
 /* ── 팔레트 렌더 (1회) ── */
 (function buildDesignerPalettes(){
@@ -3649,16 +3728,8 @@ const dsCanvas = () => document.getElementById('dsCanvas');
       document.querySelector(`.designer-panel[data-dpanel="${t.dataset.dtab}"]`).classList.add('active');
     };
   });
-  document.querySelectorAll('.designer-subtab').forEach(t=>{
-    t.onclick=()=>{
-      document.querySelectorAll('.designer-subtab').forEach(x=>x.classList.remove('active'));
-      document.querySelectorAll('.designer-subpanel').forEach(x=>x.classList.remove('active'));
-      t.classList.add('active');
-      document.querySelector(`.designer-subpanel[data-dsubpanel="${t.dataset.dsub}"]`).classList.add('active');
-    };
-  });
   /* 디테일 컨트롤 */
-  document.getElementById('dsText').addEventListener('input', e=>{ dsState.text=e.target.value||' '; dsDraw(); });
+  document.getElementById('dsText').addEventListener('input', e=>{ dsState.text=e.target.value||' '; dsAutosizeText(); dsDraw(); });
   document.getElementById('dsWeight').addEventListener('change', function(){
       dsState.weight = parseInt(this.value, 10);
       if (dsState.loadFamily){ try{ document.fonts.load(this.value + ' 78px ' + dsState.loadFamily).then(()=>dsDraw()); }catch(e){} }
@@ -3666,12 +3737,19 @@ const dsCanvas = () => document.getElementById('dsCanvas');
     });
     document.getElementById('dsBold').onclick=function(){ dsState.bold=!dsState.bold; dsSyncUI(); dsDraw(); };
   document.getElementById('dsUnderline').onclick=function(){ if(dsState.arc!==0) return; dsState.underline=!dsState.underline; dsSyncUI(); dsDraw(); };
-  document.getElementById('dsSpacing').addEventListener('input', e=>{ dsState.spacing=+e.target.value; dsDraw(); });
-  document.getElementById('dsLineHeight').addEventListener('input', e=>{ dsState.lineHeight=+e.target.value; dsDraw(); });
+  document.getElementById('dsSpacing').addEventListener('input', e=>{ dsState.spacing=+e.target.value; document.getElementById('dsSpacingVal').textContent=e.target.value; dsDraw(); });
+  document.getElementById('dsLineHeight').addEventListener('input', e=>{ dsState.lineHeight=+e.target.value; document.getElementById('dsLineHeightVal').textContent=(e.target.value/10).toFixed(1); dsDraw(); });
   document.querySelectorAll('.dalign button').forEach(b=>{
     b.onclick=()=>{ dsState.align=b.dataset.dalign; dsSyncUI(); dsDraw(); };
   });
   /* ── 라운드(곡선) 컨트롤 ── */
+  document.querySelectorAll('.arc-mode-btn').forEach(b=>{
+    b.onclick=()=>{
+      dsState.arcMode = b.dataset.arcmode;
+      document.querySelectorAll('.arc-mode-btn').forEach(x=>x.classList.toggle('active', x===b));
+      dsSyncUI(); dsDraw();
+    };
+  });
   document.getElementById('dsArc').addEventListener('input', e=>{
     const prev = dsState.arc;
     dsState.arc = +e.target.value;
@@ -3698,13 +3776,30 @@ function dsSyncUI(){
   /* 굵게/밑줄 토글 */
   const bt=document.getElementById('dsBold'); if(bt) bt.classList.toggle('on', !!dsState.bold);
   const ut=document.getElementById('dsUnderline'); if(ut) ut.classList.toggle('on', !!dsState.underline);
+  /* 자간/줄간격 배지 */
+  const spEl=document.getElementById('dsSpacing'), spVal=document.getElementById('dsSpacingVal');
+  if(spEl && spVal){ spEl.value=dsState.spacing; spVal.textContent=dsState.spacing; }
+  const lhEl=document.getElementById('dsLineHeight'), lhVal=document.getElementById('dsLineHeightVal');
+  if(lhEl && lhVal){ lhEl.value=dsState.lineHeight; lhVal.textContent=(dsState.lineHeight/10).toFixed(1); }
   /* 라운드 슬라이더 */
   const arcEl=document.getElementById('dsArc');
   if(arcEl){
     if(+arcEl.value !== dsState.arc) arcEl.value = dsState.arc;
     const vEl=document.getElementById('dsArcVal');
-    if(vEl) vEl.textContent = dsState.arc===0 ? '직선'
-      : (dsState.arc>=100 ? '완전한 원' : '곡률 '+dsState.arc+'%');
+    if(vEl){
+      if(dsState.arcMode==='wave'){
+        vEl.textContent = dsState.arc===0 ? '직선' : '진폭 '+dsState.arc+'%';
+      } else {
+        vEl.textContent = dsState.arc===0 ? '직선'
+          : (dsState.arc>=100 ? '완전한 원' : '곡률 '+dsState.arc+'%');
+      }
+    }
+    const noteEl=document.getElementById('dsArcNote');
+    if(noteEl){
+      noteEl.textContent = dsState.arcMode==='wave'
+        ? '물결을 켜면 밑줄과 하이라이트는 해제됩니다. 주기는 자동으로 고정되고, 슬라이더로 진폭(높낮이)만 조절해요.'
+        : '라운드를 켜면 밑줄과 하이라이트는 해제됩니다. 두 줄 이상이면 모든 줄이 같은 중심을 공유해서, 중심에 가까운 줄일수록 더 휘어요.';
+    }
     /* 곡선 ON일 때 충돌 항목(밑줄/하이라이트) 비활성 */
     const on = dsState.arc!==0;
     if(ut){ ut.disabled=on; ut.style.opacity=on?.4:1; ut.style.pointerEvents=on?'none':''; }
@@ -3739,7 +3834,9 @@ function dsDraw(){
   const lh = fontSize*(dsState.lineHeight/10);
 
   if(dsState.arc){
-    dsDrawArc(canvas, ctx, {lines, lh, fontSpec, fontSize, eff, fillColor, fillGradient, outlineColor, outlineW});
+    const arcOpts = {lines, lh, fontSpec, fontSize, eff, fillColor, fillGradient, outlineColor, outlineW};
+    if(dsState.arcMode==='wave') dsDrawWave(canvas, ctx, arcOpts);
+    else dsDrawArc(canvas, ctx, arcOpts);
     return;
   }
 
@@ -3901,6 +3998,103 @@ function dsDrawArc(canvas, ctx, o){
   });
 }
 
+/* ── 물결 렌더링 ──
+   sin 곡선을 따라 글자를 하나씩 배치하고, 그 지점의 기울기만큼 살짝 회전시킨다.
+   주기(파장)는 글자 크기에 비례해 고정, 슬라이더는 진폭(높낮이)만 조절한다. */
+function dsDrawWave(canvas, ctx, o){
+  const {lines, lh, fontSpec, fontSize, eff, fillColor, fillGradient, outlineColor, outlineW} = o;
+  const mag = dsState.arc/100;
+  const sp  = dsState.spacing;
+  const ascent = fontSize*0.88, descent = fontSize*0.28, pad = 34;
+
+  ctx.font = fontSpec;
+  try{ ctx.letterSpacing = '0px'; }catch(e){}
+  const L = lines.map(line=>{
+    const chars = Array.from(line);
+    const w = chars.map(c=>ctx.measureText(c).width);
+    const total = w.reduce((s,x)=>s+x,0) + sp*Math.max(0, chars.length-1);
+    return {chars, w, total};
+  });
+  const maxW = Math.max(...L.map(l=>l.total), 10);
+
+  const amp = mag * fontSize * 0.55;    /* 진폭: 100% = 글자 높이의 절반 정도 */
+  const wavelength = fontSize * 3.4;    /* 파장 고정: 대략 글자 3~4개마다 한 번 출렁 */
+  const freq = (2*Math.PI) / wavelength;
+
+  const placed = [];
+  let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
+  L.forEach((ln, i)=>{
+    const baseY = i*lh;
+    let s0;
+    if(dsState.align==='left')       s0 = -maxW/2;
+    else if(dsState.align==='right') s0 =  maxW/2 - ln.total;
+    else                             s0 = -ln.total/2;
+
+    let s = s0;
+    const items = [];
+    ln.chars.forEach((ch, j)=>{
+      const sc = s + ln.w[j]/2;         /* 글자 중심의 가로 좌표 */
+      const tx = sc;
+      const ty = baseY - amp*Math.sin(sc*freq);
+      const slope = amp*freq*Math.cos(sc*freq);
+      const rot = -Math.atan(slope);    /* 그 지점의 기울기만큼 회전 */
+      items.push({ch, w:ln.w[j], tx, ty, rot});
+      const hw = ln.w[j]/2, cos=Math.cos(rot), sin=Math.sin(rot);
+      [[-hw,-ascent],[hw,-ascent],[hw,descent],[-hw,descent]].forEach(([px,py])=>{
+        const X = tx + px*cos - py*sin, Y = ty + px*sin + py*cos;
+        if(X<minX)minX=X; if(X>maxX)maxX=X; if(Y<minY)minY=Y; if(Y>maxY)maxY=Y;
+      });
+      s += ln.w[j] + sp;
+    });
+    placed.push({items});
+  });
+  if(!isFinite(minX)){ minX=0;maxX=10;minY=0;maxY=10; }
+
+  const extra = Math.max(outlineW||0, eff.shadow==='glow'?28:12);
+  const offX = -minX + pad + extra, offY = -minY + pad + extra;
+  canvas.width  = Math.ceil(maxX-minX + (pad+extra)*2);
+  canvas.height = Math.ceil(maxY-minY + (pad+extra)*2);
+
+  ctx.font = fontSpec; ctx.textBaseline='alphabetic'; ctx.textAlign='left';
+  try{ ctx.letterSpacing = '0px'; }catch(e){}
+
+  const shadowOf = ()=>{
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+    if(eff.shadow==='soft'){   ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=10; ctx.shadowOffsetY=6; }
+    if(eff.shadow==='strong'){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=4;  ctx.shadowOffsetY=10; }
+    if(eff.shadow==='gray'){   ctx.shadowColor='rgba(120,120,120,.5)'; ctx.shadowBlur=8; ctx.shadowOffsetY=4; }
+    if(eff.shadow==='glow'){   ctx.shadowColor=fillGradient?fillGradient[0]:fillColor; ctx.shadowBlur=28; }
+    if(eff.shadow==='blur'){   ctx.shadowColor='rgba(150,200,255,.6)'; ctx.shadowBlur=14; }
+  };
+
+  placed.forEach(ln=>{
+    const gx0 = offX + minX, gx1 = offX + maxX;
+    ln.items.forEach(it=>{
+      const X = offX + it.tx, Y = offY + it.ty;
+      ctx.save();
+      ctx.translate(X, Y);
+      ctx.rotate(it.rot);
+      let fill = fillColor;
+      if(fillGradient){
+        const cos=Math.cos(-it.rot), sin=Math.sin(-it.rot);
+        const inv = (gx, gy)=>({x:(gx-X)*cos-(gy-Y)*sin, y:(gx-X)*sin+(gy-Y)*cos});
+        const p0 = inv(gx0, Y), p1 = inv(gx1, Y);
+        const grad = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
+        fillGradient.forEach((c,k)=>grad.addColorStop(k/(fillGradient.length-1), c));
+        fill = grad;
+      }
+      shadowOf();
+      if(outlineColor && outlineW>0){
+        ctx.lineJoin='round'; ctx.strokeStyle=outlineColor; ctx.lineWidth=outlineW;
+        ctx.strokeText(it.ch, -it.w/2, 0);
+      }
+      ctx.fillStyle = fill;
+      ctx.fillText(it.ch, -it.w/2, 0);
+      ctx.restore();
+    });
+  });
+}
+
 /* ── 디자인 페이지 JSON-LD 구조화 데이터 (검색엔진용) ── */
 function setDesignJsonLd(f){
   removeDesignJsonLd();
@@ -4007,10 +4201,13 @@ async function openDesigner(fontId, viaUrl){
   dsState.textColorOverride = null;
   dsState.outlineOverride = undefined;
   dsState.arc = 0;
+  dsState.arcMode = 'circle';
+  document.querySelectorAll('.arc-mode-btn').forEach(b=>b.classList.toggle('active', b.dataset.arcmode==='circle'));
   document.getElementById('designerTitle').textContent = f.name + ' · 텍스트 디자인';
   document.getElementById('designerOverlay').classList.add('open');
   document.body.style.overflow='hidden';
   dsSyncUI();
+  dsAutosizeText();
   setDesignJsonLd(f); /* 폰트별 구조화 데이터 주입 */
 
   /* 고유 URL 부여: 갤러리에서 열면 pushState, /design/ 직접 접속이면 유지 */
