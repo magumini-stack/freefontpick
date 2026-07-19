@@ -1,7 +1,7 @@
 """폰트별 og:image(1200x630) 자동 생성.
 
-- 배지("무료폰트 · 상업적 사용 가능") + 폰트명(실제 폰트 파일로 렌더링) +
-  "OO 배포" + 하단 "무료폰트 큐레이션-폰트픽" 을 합성한 PNG를 만든다.
+- 폰트명(실제 폰트 파일로 렌더링) + "OO 배포" + 하단 "폰트픽" 로고 마크를
+  합성한 PNG를 만든다.
 - 폰트명은 정사각형(630x630)으로 크롭됐을 때도 그 정사각형 너비의 90%를
   채우도록 폰트 크기를 이분탐색으로 계산한다 (소셜 공유 시 정사각형 썸네일 대비).
 - woff2는 Pillow가 직접 못 읽으므로 fontTools로 ttf로 디코딩해서 메모리에서 사용.
@@ -33,12 +33,12 @@ TEXT_COLOR = "#1A1A1A"
 MUTED = "#6B6B6B"
 ACCENT = "#FF5C35"
 
-# UI 텍스트(배지/배포처/워터마크)용 폰트 — 이미 번들된 Noto Sans CJK KR(시드 id=10)을 재사용.
+# UI 텍스트(배포처/로고마크)용 폰트 — 이미 번들된 Noto Sans CJK KR(시드 id=10)을 재사용.
 # 별도 시스템 폰트나 추가 에셋 없이도 배포 환경에서 항상 존재가 보장된다.
 _UI_FONT_ID = 10
 
 # 레이아웃/렌더링 로직이 바뀔 때마다 올려서 기존 캐시를 무효화한다.
-_CACHE_VERSION = 2
+_CACHE_VERSION = 3
 
 
 def _resolve_font_file(font_id: int) -> Path | None:
@@ -102,7 +102,6 @@ def _generate(font: Font) -> bytes:
         return ImageFont.load_default()
 
     sub_font = _ui_font(26, ui_reg_bytes)
-    badge_font = _ui_font(22, ui_bold_bytes)
 
     cx = W // 2
 
@@ -110,6 +109,26 @@ def _generate(font: Font) -> bytes:
         bbox = d.textbbox((0, 0), text, font=font)
         tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
         d.text((cx - tw / 2, y), text, font=font, fill=fill)
+        return th
+
+    def center_logo_mark(y):
+        """사이트 좌상단 로고("폰트픽" + 포인트 사각 점)와 동일한 스타일의 하단 워터마크."""
+        text = "폰트픽"
+        logo_size = 32
+        logo_font = _ui_font(logo_size, ui_bold_bytes)
+        bbox = d.textbbox((0, 0), text, font=logo_font)
+        tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+
+        dot = round(logo_size * 0.35)
+        gap = round(logo_size * 0.28)
+        total_w = tw + gap + dot
+
+        start_x = cx - total_w / 2
+        d.text((start_x, y), text, font=logo_font, fill=TEXT_COLOR)
+
+        dot_x0 = start_x + tw + gap
+        dot_y0 = y + th - dot - round(logo_size * 0.06)
+        d.rounded_rectangle([dot_x0, dot_y0, dot_x0 + dot, dot_y0 + dot], radius=2, fill=ACCENT)
         return th
 
     # 폰트명 렌더링용 실제 폰트 로드 (실패 시 UI 폰트로 폴백)
@@ -152,39 +171,28 @@ def _generate(font: Font) -> bytes:
     name_bbox = d.textbbox((0, 0), font_name_text, font=name_font)
     name_h = name_bbox[3] - name_bbox[1]
 
-    # 상단 배지
-    badge_text = "무료폰트 · 상업적 사용 가능"
-    bbox = d.textbbox((0, 0), badge_text, font=badge_font)
-    bw, bh = bbox[2] - bbox[0], bbox[3] - bbox[1]
-    badge_pad_x, badge_pad_y = 18, 10
-    badge_box_h = bh + badge_pad_y * 2
-
     sub_text = f"{font.maker or ''} 배포"
     sub_bbox = d.textbbox((0, 0), sub_text, font=sub_font)
     sub_h = sub_bbox[3] - sub_bbox[1]
 
-    gap1, gap2 = 55, 40
-    block_h = badge_box_h + gap1 + name_h + gap2 + sub_h
+    gap2 = 40
+    block_h = name_h + gap2 + sub_h
 
-    # 하단 워터마크 영역을 제외한 카드 내부를 기준으로 배지+폰트명+배포처 블록을 수직 중앙 정렬
+    # 하단 로고 마크 영역을 제외한 카드 내부를 기준으로 폰트명+배포처 블록을 수직 중앙 정렬
     watermark_reserved = 90
     usable_top, usable_bottom = pad, (H - pad) - watermark_reserved
     by = usable_top + (usable_bottom - usable_top - block_h) / 2
 
-    bx = cx - (bw + badge_pad_x * 2) / 2
-    d.rounded_rectangle([bx, by, bx + bw + badge_pad_x * 2, by + badge_box_h], radius=100, fill="#FFF0EC")
-    d.text((bx + badge_pad_x, by + badge_pad_y - 4), badge_text, font=badge_font, fill=ACCENT)
-
     # 폰트명 (실제 폰트로 렌더링)
-    name_y = by + badge_box_h + gap1
+    name_y = by
     center_text(name_y, font_name_text, name_font, TEXT_COLOR)
 
     # 배포처
     sub_y = name_y + name_h + gap2
     center_text(sub_y, sub_text, sub_font, MUTED)
 
-    # 하단 워터마크
-    center_text(H - pad - 60, "무료폰트 큐레이션-폰트픽", sub_font, ACCENT)
+    # 하단 로고 마크 (사이트 좌상단 로고와 동일 스타일)
+    center_logo_mark(H - pad - 62)
 
     out = io.BytesIO()
     img.save(out, format="PNG", optimize=True)
