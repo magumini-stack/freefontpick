@@ -257,6 +257,125 @@
     .lic-grid{grid-template-columns:1fr}
     .rel-grid{grid-template-columns:1fr}
   }
+
+/* ══ 텍스트 디자인 모달 (index.html에서 이관) ══ */
+    .designer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+    .designer-overlay.open{display:flex;animation:fadeIn .2s ease}
+    .designer-sheet{background:var(--bg-card);width:100%;max-width:960px;height:min(88vh,700px);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .22s ease}
+    .designer-head{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+    .designer-head strong{font-size:14.5px;color:var(--text-primary)}
+    .designer-close{border:none;background:var(--bg-secondary);color:var(--text-primary);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;flex-shrink:0}
+    /* 문구 입력: 모달 전체 폭, 엔터 시 자동 확장 */
+    .designer-text-row{padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:8px}
+    .designer-text-row textarea{width:100%;resize:none;overflow-y:hidden;border:1.5px solid var(--border);border-radius:12px;padding:11px 13px;font-family:inherit;font-size:14px;line-height:1.5;min-height:46px;max-height:160px;background:var(--bg-card);color:var(--text-primary)}
+    .designer-text-row textarea:focus{outline:none;border-color:var(--accent)}
+    /* 본문: 좌(미리보기 고정) / 우(컨트롤 스크롤) 2단 */
+    .designer-main{flex:1;display:grid;grid-template-columns:320px 1fr;overflow:hidden;min-height:0}
+    .designer-preview-pane{background:var(--bg-secondary);padding:22px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;border-right:1px solid var(--border)}
+    .designer-preview{border-radius:16px;overflow:hidden;border:1px solid var(--border);flex:1;padding:18px;display:flex;align-items:center;justify-content:center;min-height:200px;
+      background:
+        linear-gradient(45deg,var(--bg-card) 25%,transparent 25%) -10px 0/20px 20px,
+        linear-gradient(-45deg,var(--bg-card) 25%,transparent 25%) -10px 0/20px 20px,
+        linear-gradient(45deg,transparent 75%,var(--bg-card) 75%) -10px 0/20px 20px,
+        linear-gradient(-45deg,transparent 75%,var(--bg-card) 75%) -10px 0/20px 20px;}
+    .designer-preview canvas{max-width:100%;max-height:100%;display:block}
+    .designer-preview-caption{font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5}
+    .designer-controls-pane{display:flex;flex-direction:column;min-height:0}
+    .designer-tabs{display:flex;gap:2px;padding:0 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+    .designer-tab{border:none;background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--text-muted);padding:13px 10px;cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1px}
+    .designer-tab.active{color:var(--accent);border-color:var(--accent)}
+    .designer-controls-scroll{flex:1;overflow-y:auto;padding:18px 20px 4px;display:flex;flex-direction:column}
+    .designer-panel{display:none;flex-direction:column;gap:22px}
+    .designer-panel.active{display:flex}
+    .designer-section{display:flex;flex-direction:column;gap:10px}
+    .designer-section-head{display:flex;align-items:baseline;justify-content:space-between}
+    .designer-section-head h4{margin:0;font-size:12.5px;font-weight:800;color:var(--text-primary)}
+    .designer-divider{border:none;border-top:1px solid var(--border);margin:0}
+    .fx-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px 7px}
+    .fx-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+    .fx-chip{width:100%;height:38px;border-radius:9px;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;transition:box-shadow .15s,transform .1s}
+    .fx-item:hover .fx-chip{transform:translateY(-1px);box-shadow:var(--shadow-hover)}
+    .fx-item.active .fx-chip{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}
+    .fx-item span{display:block;width:100%;text-align:center;font-size:9px;font-weight:700;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+    .fx-item.active span{color:var(--accent)}
+    .fx-chip.none-chip{background:var(--bg-card);border:2px dashed var(--border);color:var(--text-muted)}
+    .clr-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:8px}
+    .clr-dot{aspect-ratio:1;border-radius:50%;cursor:pointer;border:1.5px solid var(--border);position:relative;transition:transform .1s,box-shadow .15s}
+    .clr-dot:hover{transform:scale(1.08)}
+    .clr-dot.active{border-color:transparent;box-shadow:0 0 0 3px var(--accent-light),0 0 0 4.5px var(--accent)}
+    .clr-dot.none-dot{background:var(--bg-card);border:1.5px solid var(--border)}
+    .clr-dot.none-dot::after{content:'';position:absolute;left:10%;top:47%;width:80%;height:2px;background:#EF4444;transform:rotate(-45deg);border-radius:2px}
+    .designer-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .designer-row label{font-size:12.5px;font-weight:700;color:var(--text-primary)}
+    .designer-row input[type=range]{width:140px;accent-color:var(--accent)}
+    .slider-card{background:var(--bg-secondary);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+    .slider-top{display:flex;align-items:center;justify-content:space-between}
+    .slider-top label{font-size:12.5px;font-weight:700;color:var(--text-primary)}
+    .slider-val{font-size:11px;font-weight:800;color:var(--accent);background:var(--accent-light);padding:2px 8px;border-radius:20px;font-variant-numeric:tabular-nums}
+    .slider-card input[type=range]{width:100%;accent-color:var(--accent)}
+    .dtoggle{width:42px;height:24px;border-radius:20px;background:var(--border-hover);position:relative;cursor:pointer;border:none;flex-shrink:0;transition:background .15s}
+    .dtoggle.on{background:var(--accent)}
+    .dtoggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s ease;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+    .dtoggle.on::after{left:21px}
+    .dalign{display:flex;gap:6px;background:var(--bg-secondary);padding:4px;border-radius:11px;width:fit-content}
+    .dalign button{width:32px;height:30px;border-radius:8px;border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+    .dalign button.active{background:var(--bg-card);color:var(--accent);box-shadow:var(--shadow-card)}
+    /* ── 라운드(곡선) 패널 ── */
+    .arc-panel{display:flex;flex-direction:column;gap:18px}
+    .arc-mode-toggle{display:flex;gap:6px}
+    .arc-mode-btn{flex:1;border:1.5px solid var(--border);background:var(--bg-card);font-family:inherit;font-size:12.5px;font-weight:700;color:var(--text-secondary);padding:10px;border-radius:11px;cursor:pointer}
+    .arc-mode-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .arc-slider-row{display:flex;align-items:center;gap:10px}
+    .arc-slider-row .arc-cap{font-size:15px;color:var(--text-muted);line-height:1;flex-shrink:0;width:18px;text-align:center}
+    .arc-slider-row input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer}
+    .arc-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:-8px}
+    .arc-val{font-size:12px;font-weight:700;color:var(--text-secondary);font-variant-numeric:tabular-nums}
+    .arc-reset{border:1.5px solid var(--border);background:var(--bg-card);font-family:inherit;font-size:11.5px;font-weight:700;color:var(--text-secondary);padding:5px 12px;border-radius:20px;cursor:pointer}
+    .arc-reset:hover{border-color:var(--accent);color:var(--accent)}
+    .arc-note{font-size:11px;color:var(--text-muted);line-height:1.6;background:var(--bg-secondary);border-radius:8px;padding:10px 12px;margin:0}
+    .dhl{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;flex:1;max-width:280px}
+    .dhl-dot{width:100%;aspect-ratio:1;border-radius:7px;border:2px solid var(--border);cursor:pointer}
+    .dhl-dot.active{border-color:var(--text-primary)}
+    .designer-footer{padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+    .designer-adslot{border:1.5px dashed var(--border);border-radius:12px;padding:12px;text-align:center;font-size:11px;color:var(--text-muted);background:var(--bg-secondary);line-height:1.5}
+    .app-promo-banner{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:var(--bg-secondary);border:1px solid var(--border);text-decoration:none;color:inherit;transition:transform .12s ease,border-color .12s ease}
+    .app-promo-banner:active{transform:scale(.98)}
+    .app-promo-banner:hover{border-color:var(--accent)}
+    .app-promo-banner img{width:40px;height:40px;border-radius:10px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+    .app-promo-banner .app-promo-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+    .app-promo-banner .app-promo-title{font-size:12.5px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .app-promo-banner .app-promo-sub{font-size:10.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .app-promo-banner .app-promo-cta{flex-shrink:0;font-size:11.5px;font-weight:800;color:#fff;background:var(--accent);padding:7px 12px;border-radius:9px;white-space:nowrap}
+    .designer-save{width:100%;border:none;background:linear-gradient(135deg,var(--accent),#E8431F);color:#fff;font-weight:800;font-size:15px;padding:14px;border-radius:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+    .designer-save:active{transform:scale(.99)}
+    /* 광고 인터스티셜 */
+    .dsave-overlay{display:none;position:fixed;inset:0;background:rgba(10,8,7,.85);z-index:650;align-items:center;justify-content:center;padding:20px}
+    .dsave-overlay.open{display:flex}
+    .dsave-card{background:var(--bg-card);border-radius:18px;max-width:340px;width:100%;overflow:hidden;text-align:center}
+    .dsave-visual{height:200px;background:linear-gradient(135deg,#FFD8CC,#FFB199,var(--accent));display:flex;align-items:center;justify-content:center;color:#7A2E1A;font-weight:900;font-size:15px;flex-direction:column;gap:6px}
+    .dsave-info{padding:16px}
+    .dsave-info p{margin:0 0 13px;font-size:12.5px;color:var(--text-secondary);line-height:1.55}
+    .dsave-btn{border:none;background:var(--text-primary);color:var(--bg-card);font-weight:700;font-size:13px;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:inherit;width:100%}
+    .dsave-btn:disabled{opacity:.4;cursor:not-allowed}
+    .dsave-btn.primary{background:var(--accent);color:#fff}
+    .dsave-sub{margin-top:8px;width:100%;border:none;background:none;color:var(--text-muted);font-size:11.5px;text-decoration:underline;cursor:pointer;padding:4px;font-family:inherit}
+    @media(max-width:760px){
+      .designer-overlay{align-items:flex-end;padding:0}
+      .designer-sheet{max-width:100%;border-radius:20px 20px 0 0;height:92vh}
+      .designer-text-row{padding:12px 16px}
+      .designer-main{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+      .designer-preview-pane{border-right:none;border-bottom:1px solid var(--border);padding:12px 16px;gap:6px}
+      .designer-preview{min-height:120px;padding:10px}
+      .designer-preview canvas{max-height:110px}
+      .designer-preview-caption{display:none}
+      .designer-tabs{padding:0 16px}
+      .designer-controls-scroll{padding:14px 16px 4px}
+      .designer-footer{padding:12px 16px}
+      .fx-grid{grid-template-columns:repeat(5,1fr)}
+      .clr-grid{grid-template-columns:repeat(7,1fr)}
+    }
+  </style>
+
 </style>
 </head>
 <body>
@@ -725,6 +844,7 @@
         window.open(dl, '_blank', 'noopener');
       });
       document.getElementById('designBtn').setAttribute('href', '/design/' + f.id);
+      document.getElementById('designBtn').onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); };
 
       document.getElementById('loading').classList.add('hidden');
       document.getElementById('content').classList.remove('hidden');
@@ -740,7 +860,7 @@
         var _glyphKo = document.getElementById('glyphKo');
         if (_glyphKo && f.is_english) _glyphKo.classList.add('hidden');
       } catch(e){}
-      var _dtop = document.getElementById('designBtnTop'); if (_dtop) _dtop.setAttribute('href', '/design/' + f.id);
+      var _dtop = document.getElementById('designBtnTop'); if (_dtop){ _dtop.setAttribute('href', '/design/' + f.id); _dtop.onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); }; }
       fetchRelated(f);
 
       return fetch('/api/fonts/' + fid + '/pairings');
@@ -761,6 +881,953 @@ window.addEventListener('pageshow', function(e){
   document.documentElement.style.overflow='';
   document.body.style.position='';
 });
+</script>
+
+<!-- ══ 텍스트 디자인 모달 (index.html에서 이관) ══ -->
+<!-- TEXT DESIGNER MODAL -->
+<div class="designer-overlay" id="designerOverlay" role="dialog" aria-modal="true" aria-labelledby="designerTitle">
+  <div class="designer-sheet">
+    <div class="designer-head">
+      <strong id="designerTitle">텍스트 디자인</strong>
+      <button class="designer-close" onclick="closeDesigner()" aria-label="닫기"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+
+    <div class="designer-text-row">
+      <textarea id="dsText" maxlength="80" rows="1" placeholder="문구를 입력하세요">안녕하세요</textarea>
+      <div id="dsWeightRow" style="display:none;align-items:center;gap:8px">
+        <span style="font-size:12.5px;font-weight:700;color:var(--text-secondary);white-space:nowrap">굵기</span>
+        <select id="dsWeight" style="flex:1;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--text-primary)"></select>
+      </div>
+    </div>
+
+    <div class="designer-main">
+      <div class="designer-preview-pane">
+        <div class="designer-preview"><canvas id="dsCanvas" width="300" height="120"></canvas></div>
+        <p class="designer-preview-caption">보이는 그대로 저장돼요 · 배경 투명 PNG</p>
+      </div>
+
+      <div class="designer-controls-pane">
+        <div class="designer-tabs">
+          <button class="designer-tab active" data-dtab="style">스타일</button>
+          <button class="designer-tab" data-dtab="arc">라운드</button>
+          <button class="designer-tab" data-dtab="detail">디테일</button>
+        </div>
+
+        <div class="designer-controls-scroll">
+          <div class="designer-panel active" data-dpanel="style">
+            <div class="designer-section">
+              <div class="designer-section-head"><h4>효과</h4></div>
+              <div class="fx-grid" id="dsFxGrid"></div>
+            </div>
+            <hr class="designer-divider">
+            <div class="designer-section">
+              <div class="designer-section-head"><h4>글자색</h4></div>
+              <div class="clr-grid" id="dsTextColorGrid"></div>
+            </div>
+            <div class="designer-section">
+              <div class="designer-section-head"><h4>외곽선</h4></div>
+              <div class="clr-grid" id="dsOutlineGrid"></div>
+            </div>
+          </div>
+
+          <div class="designer-panel" data-dpanel="arc">
+            <div class="arc-panel">
+              <div class="designer-section">
+                <div class="designer-section-head"><h4>모양</h4></div>
+                <div class="arc-mode-toggle" id="dsArcMode">
+                  <button class="arc-mode-btn active" data-arcmode="circle" type="button">원형</button>
+                  <button class="arc-mode-btn" data-arcmode="wave" type="button">물결</button>
+                </div>
+              </div>
+              <div>
+                <div class="arc-slider-row">
+                  <span class="arc-cap" aria-hidden="true">&#8212;</span>
+                  <input type="range" id="dsArc" min="0" max="100" value="0" step="1" aria-label="곡선 정도">
+                  <span class="arc-cap" aria-hidden="true">&#9711;</span>
+                </div>
+                <div class="arc-meta">
+                  <span class="arc-val" id="dsArcVal">직선</span>
+                  <button class="arc-reset" id="dsArcReset" type="button">직선으로</button>
+                </div>
+              </div>
+              <div class="designer-section">
+                <div class="designer-section-head"><h4>정렬</h4></div>
+                <div class="dalign" id="dsArcAlign">
+                  <button data-dalign="left" aria-label="왼쪽 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="13" y2="12"/><line x1="4" y1="18" x2="17" y2="18"/></svg></button>
+                  <button data-dalign="center" aria-label="가운데 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7.5" y1="12" x2="16.5" y2="12"/><line x1="5.5" y1="18" x2="18.5" y2="18"/></svg></button>
+                  <button data-dalign="right" aria-label="오른쪽 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="11" y1="12" x2="20" y2="12"/><line x1="7" y1="18" x2="20" y2="18"/></svg></button>
+                </div>
+              </div>
+              <p class="arc-note" id="dsArcNote">라운드를 켜면 밑줄과 하이라이트는 해제됩니다. 두 줄 이상이면 모든 줄이 같은 중심을 공유해서, 중심에 가까운 줄일수록 더 휘어요.</p>
+            </div>
+          </div>
+
+          <div class="designer-panel" data-dpanel="detail">
+            <div class="designer-section">
+              <div class="designer-row"><label>굵게</label><button class="dtoggle" id="dsBold"></button></div>
+              <div class="designer-row"><label>밑줄</label><button class="dtoggle" id="dsUnderline"></button></div>
+            </div>
+            <hr class="designer-divider">
+            <div class="designer-section">
+              <div class="slider-card">
+                <div class="slider-top"><label>자간</label><span class="slider-val" id="dsSpacingVal">0</span></div>
+                <input type="range" id="dsSpacing" min="-4" max="12" value="0">
+              </div>
+              <div class="slider-card">
+                <div class="slider-top"><label>줄간격</label><span class="slider-val" id="dsLineHeightVal">1.3</span></div>
+                <input type="range" id="dsLineHeight" min="10" max="22" value="13">
+              </div>
+            </div>
+            <hr class="designer-divider">
+            <div class="designer-section">
+              <div class="designer-section-head"><h4>정렬</h4></div>
+              <div class="dalign">
+                <button data-dalign="left" class="active" aria-label="왼쪽 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="13" y2="12"/><line x1="4" y1="18" x2="17" y2="18"/></svg></button>
+                <button data-dalign="center" aria-label="가운데 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7.5" y1="12" x2="16.5" y2="12"/><line x1="5.5" y1="18" x2="18.5" y2="18"/></svg></button>
+                <button data-dalign="right" aria-label="오른쪽 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="11" y1="12" x2="20" y2="12"/><line x1="7" y1="18" x2="20" y2="18"/></svg></button>
+              </div>
+            </div>
+            <div class="designer-section">
+              <div class="designer-section-head"><h4>하이라이트</h4></div>
+              <div class="dhl" id="dsHlRow"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="designer-footer">
+          <div class="designer-adslot" id="designerAdSlot" style="display:none">
+            <!-- AdSense 승인 후 이 자리에 배너 ins 태그 삽입 -->
+            광고 영역
+          </div>
+          <a class="app-promo-banner" href="https://tosto.re/ktext" target="_blank" rel="noopener">
+            <img src="data:image/png;base64,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" alt="한글로 사진에 글쓰기 앱 아이콘">
+            <div class="app-promo-text">
+              <span class="app-promo-title">한글로 사진에 글쓰기 앱</span>
+              <span class="app-promo-sub">사진 위에 바로 써보세요</span>
+            </div>
+            <span class="app-promo-cta">무료 받기</span>
+          </a>
+          <button class="designer-save" onclick="startDesignerSave()"><i class="ti ti-download" aria-hidden="true"></i> PNG로 저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DESIGNER SAVE INTERSTITIAL -->
+<div class="dsave-overlay" id="dsaveOverlay">
+  <div class="dsave-card">
+    <div class="dsave-visual" id="dsaveVisual">
+      <div id="dsaveLabel">&#9654; 광고 재생 중</div>
+      <div id="dsaveCountdown" style="font-size:26px">3</div>
+    </div>
+    <div style="display:none;padding:16px 16px 0" id="dsaveImgWrap">
+      <img id="dsaveImg" alt="저장할 텍스트 디자인 이미지" style="width:100%;border-radius:12px;display:block;background:repeating-conic-gradient(var(--bg-secondary) 0% 25%, transparent 0% 50%) 50% / 20px 20px">
+    </div>
+    <div class="dsave-info">
+      <p id="dsaveHint">잠시 후 저장할 수 있어요.</p>
+      <button class="dsave-btn" id="dsaveActionBtn" disabled>잠시만요 (3)</button>
+      <button class="dsave-sub" onclick="document.getElementById('dsaveOverlay').classList.remove('open')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* 간단 토스트 (저장/다운로드 알림용) */
+function showToast(msg){
+  let el = document.getElementById('ffpToast');
+  if(!el){
+    el = document.createElement('div');
+    el.id='ffpToast';
+    el.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--text-primary,#111);color:var(--bg-card,#fff);padding:11px 20px;border-radius:30px;font-size:13px;font-weight:700;z-index:700;opacity:0;transition:opacity .25s;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.15)';
+    document.body.appendChild(el);
+  }
+  el.textContent=msg;
+  requestAnimationFrame(()=>{ el.style.opacity='1'; });
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>{ el.style.opacity='0'; }, 2400);
+}
+    const DS_W9 = [[100,'Thin'],[200,'ExtraLight'],[300,'Light'],[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold'],[900,'Black']];
+    const DS_WEIGHT_LABELS = {100:'Thin',200:'ExtraLight',300:'Light',400:'Regular',500:'Medium',600:'SemiBold',700:'Bold',800:'ExtraBold',900:'Black'};
+    const WEBFONT_MAP = {
+      'notosanscjkkr': {css:'', family:"'Noto Sans KR'", weights:DS_W9},
+      '노토산스':      {css:'', family:"'Noto Sans KR'", weights:DS_W9},
+      '나눔고딕': {css:'', family:"'Nanum Gothic'", weights:[[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
+      '나눔명조': {css:'', family:"'Nanum Myeongjo'", weights:[[400,'Regular'],[700,'Bold']]},
+      '프리텐다드': {css:'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css', family:"'Pretendard Variable'", weights:DS_W9},
+      '수트': {css:'https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css', family:"'SUIT Variable'", weights:DS_W9},
+      '마루부리': {css:'https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css', family:"'MaruBuri'", weights:[[300,'Light'],[400,'Regular'],[600,'SemiBold'],[700,'Bold']]},
+      '나눔스퀘어': {css:'https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@master/nanumsquare.css', family:"'NanumSquare'", weights:[[300,'Light'],[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
+      'montserrat': {css:'https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap', family:"'Montserrat'", weights:DS_W9},
+      'opensans': {css:'https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap', family:"'Open Sans'", weights:[[300,'Light'],[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold']]},
+      'roboto': {css:'https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap', family:"'Roboto'", weights:[[100,'Thin'],[300,'Light'],[400,'Regular'],[500,'Medium'],[700,'Bold'],[900,'Black']]},
+      'raleway': {css:'https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap', family:"'Raleway'", weights:DS_W9},
+      'petrona': {css:'https://fonts.googleapis.com/css2?family=Petrona:wght@100..900&display=swap', family:"'Petrona'", weights:DS_W9},
+      'playfairdisplay': {css:'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&display=swap', family:"'Playfair Display'", weights:[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold'],[900,'Black']]},
+      'librebodoni': {css:'https://fonts.googleapis.com/css2?family=Libre+Bodoni:wght@400..700&display=swap', family:"'Libre Bodoni'", weights:[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold']]},
+      'dancingscript': {css:'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap', family:"'Dancing Script'", weights:[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold']]},
+      'cinzeldecorative': {css:'https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&display=swap', family:"'Cinzel Decorative'", weights:[[400,'Regular'],[700,'Bold'],[900,'Black']]},
+      'bonanova': {css:'https://fonts.googleapis.com/css2?family=Bona+Nova:wght@400;700&display=swap', family:"'Bona Nova'", weights:[[400,'Regular'],[700,'Bold']]},
+    };
+    const _dsWeightStyle = document.createElement('style');
+    document.head.appendChild(_dsWeightStyle);
+    const _dsWeightDone = {};
+    function dsRegisterWeightFaces(id, list){
+      if (_dsWeightDone[id]) return;
+      _dsWeightDone[id] = true;
+      const fam = 'FFP-' + String(id).padStart(3,'0');
+      list.forEach(w=>{
+        _dsWeightStyle.appendChild(document.createTextNode(
+          `@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file?weight=${w.weight}') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`
+        ));
+      });
+    }
+    function webfontOf(name){
+      const key = (name||'').replace(/\s+/g,'').toLowerCase();
+      const wf = WEBFONT_MAP[key];
+      if (wf && wf.css && !wf._loaded){
+        wf._loaded = true;
+        const l = document.createElement('link');
+        l.rel = 'stylesheet'; l.href = wf.css;
+        document.head.appendChild(l);
+      }
+      return wf || null;
+    }
+    const _fontLoaded = new Set();          // 이미 @font-face 등록된 폰트 id
+const _fontStyleEl = (() => {           // 모든 @font-face 규칙을 담을 단일 <style>
+  const el = document.createElement('style');
+  el.id = 'ffp-dynamic-fonts';
+  document.head.appendChild(el);
+  return el;
+})();
+
+const _webfontLoaded = new Set();  // 로드된 웹폰트 CSS URL
+
+function ensureFontLoaded(id){
+  if(_fontLoaded.has(id)) return;
+  _fontLoaded.add(id);
+  const f = FONTS.find(x => x.id === id);
+  if(f && f.webfontFamily){
+    // 웹폰트 CDN 소스 (Google Fonts 등) — 로컬 파일 @font-face 불필요
+    if(f.webfontCssUrl && !_webfontLoaded.has(f.webfontCssUrl)){
+      _webfontLoaded.add(f.webfontCssUrl);
+      const l = document.createElement('link');
+      l.rel = 'stylesheet'; l.href = f.webfontCssUrl;
+      document.head.appendChild(l);
+    }
+    return;
+  }
+  const family = `FFP-${String(id).padStart(3,'0')}`;
+  const url = `/api/fonts/${id}/file`;
+  // @font-face 규칙을 누적 추가
+  _fontStyleEl.appendChild(document.createTextNode(
+    `@font-face{font-family:'${family}';src:url('${url}') format('woff2');font-display:swap;font-weight:normal;font-style:normal}`
+  ));
+}
+function getEffectiveStack(f){
+  if(!f) return "'Nanum Gothic',sans-serif";
+  if(f.webfontFamily) return `'${f.webfontFamily}',` + (f.stack || "'Nanum Gothic',sans-serif");
+  const baseStack = f.stack || "'Nanum Gothic',sans-serif";
+  if(!f.hasFile) return baseStack;
+  const family = `FFP-${String(f.id).padStart(3,'0')}`;
+  if(baseStack.includes(family)) return baseStack;
+  return `'${family}',${baseStack}`;
+}
+
+/* ── font.html 연동: 상세페이지의 FONT(snake_case)를 모달이 기대하는 형태로 변환 ── */
+let FONTS = [];
+function dsAdaptFont(f){
+  if(!f) return null;
+  return {
+    id: f.id, name: f.name, stack: f.stack,
+    hasFile: !!f.has_file,
+    webfontFamily: f.webfont_family || null,
+    webfontCssUrl: f.webfont_css_url || null,
+    webfontWeights: f.webfont_weights || null,
+    isEnglish: !!f.is_english,
+    weights: f.weights || null,
+  };
+}
+/* 상세페이지 '디자인하기' 버튼에서 호출: 현재 폰트로 모달 오픈 (페이지 이동 없음) */
+function dsOpenFor(f){
+  if(!f) return;
+  FONTS = [dsAdaptFont(f)];
+  openDesigner(f.id);
+}
+const DS_EFFECTS = [
+  {id:'none', name:'없음', color:'#111111', outline:null, outlineW:0, shadow:'none'},
+  /* ── 클래식 ── */
+  {id:'classic-white', name:'화이트', color:'#FFFFFF', outline:'#000000', outlineW:6, shadow:'soft'},
+  {id:'classic-black', name:'블랙', color:'#000000', outline:'#FFFFFF', outlineW:6, shadow:'gray'},
+  {id:'soft-shadow', name:'소프트', color:'#FFFFFF', outline:null, outlineW:0, shadow:'strong'},
+  {id:'bold-outline', name:'굵은외곽선', color:'#FFFFFF', outline:'#000000', outlineW:12, shadow:'none'},
+  {id:'double-line', name:'더블라인', color:'#111111', outline:'#FFFFFF', outlineW:10, shadow:'soft'},
+  /* ── 컬러 ── */
+  {id:'golden', name:'골드', color:'#FFD700', outline:'#7A5C00', outlineW:5, shadow:'soft'},
+  {id:'silver', name:'실버', color:'#E5E7EB', outline:'#6B7280', outlineW:5, shadow:'soft'},
+  {id:'sky-blue', name:'스카이', color:'#7DD3FC', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'rose-pink', name:'로즈핑크', color:'#EC4899', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'mint', name:'민트', color:'#5EEAD4', outline:'#0F766E', outlineW:5, shadow:'soft'},
+  {id:'lavender', name:'라벤더', color:'#C4B5FD', outline:'#6D28D9', outlineW:5, shadow:'soft'},
+  {id:'lemon', name:'레몬', color:'#FDE047', outline:'#A16207', outlineW:5, shadow:'none'},
+  {id:'cherry', name:'체리', color:'#DC2626', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'forest', name:'포레스트', color:'#16A34A', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
+  {id:'midnight', name:'미드나잇', color:'#1E3A8A', outline:'#93C5FD', outlineW:5, shadow:'gray'},
+  /* ── 네온 ── */
+  {id:'neon-blue', name:'네온블루', color:'#06B6D4', outline:'#1D4ED8', outlineW:4, shadow:'glow'},
+  {id:'neon-pink', name:'네온핑크', color:'#FF1493', outline:'#7C3AED', outlineW:4, shadow:'glow'},
+  {id:'neon-green', name:'네온그린', color:'#4ADE80', outline:'#15803D', outlineW:4, shadow:'glow'},
+  {id:'neon-purple', name:'네온퍼플', color:'#A855F7', outline:'#6D28D9', outlineW:4, shadow:'glow'},
+  {id:'neon-orange', name:'네온오렌지', color:'#FB923C', outline:'#C2410C', outlineW:4, shadow:'glow'},
+  /* ── 무드 ── */
+  {id:'frost', name:'프로스트', color:'#BBE6FF', outline:'#FFFFFF', outlineW:4, shadow:'blur'},
+  {id:'comic', name:'코믹', color:'#FBBF24', outline:'#000000', outlineW:12, shadow:'none'},
+  {id:'retro', name:'레트로', color:'#F59E0B', outline:'#78350F', outlineW:8, shadow:'gray'},
+  {id:'vintage', name:'빈티지', color:'#D4A574', outline:'#5C3D1E', outlineW:5, shadow:'gray'},
+  {id:'candy', name:'캔디', color:'#F9A8D4', outline:'#DB2777', outlineW:6, shadow:'none'},
+  /* ── 그라데이션 ── */
+  {id:'sunset', name:'선셋', color:'#F97316', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#F97316','#EC4899']},
+  {id:'ocean', name:'오션', color:'#06B6D4', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#06B6D4','#3B82F6','#7C3AED']},
+  {id:'rainbow', name:'레인보우', color:'#EF4444', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#EF4444','#F97316','#FBBF24','#10B981','#06B6D4','#7C3AED','#EC4899']},
+  {id:'gold-grad', name:'골드빔', color:'#FCD34D', outline:'#92400E', outlineW:5, shadow:'soft', gradient:['#FEF3C7','#FCD34D','#D97706']},
+  {id:'purple-magenta', name:'퍼플마젠타', color:'#A855F7', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#A855F7','#EC4899']},
+  {id:'fire', name:'파이어', color:'#EF4444', outline:'#7F1D1D', outlineW:5, shadow:'glow', gradient:['#FBBF24','#F97316','#DC2626']},
+];
+const DS_TEXT_COLORS = ['#111111','#374151','#6B7280','#9CA3AF','#FFFFFF','#EC4899','#F472B6','#EF4444','#B91C1C','#F97316','#C2410C','#FBBF24','#D97706','#CA8A04','#84CC16','#10B981','#047857','#14B8A6','#06B6D4','#60A5FA','#3B82F6','#1D4ED8','#1E3A8A','#A78BFA','#7C3AED','#5B21B6','#D4A574','#92400E','#FF7F50','#7F1D1D'];
+const DS_TEXT_GRADIENTS = [
+  {name:'sunset', colors:['#F97316','#EC4899']},
+  {name:'ocean', colors:['#06B6D4','#3B82F6','#7C3AED']},
+  {name:'rainbow', colors:['#EF4444','#F97316','#FBBF24','#10B981','#06B6D4','#7C3AED','#EC4899']},
+  {name:'gold', colors:['#FEF3C7','#FCD34D','#D97706']},
+  {name:'purpleMagenta', colors:['#A855F7','#EC4899']},
+];
+const DS_OUTLINE_COLORS = ['none','#000000','#374151','#6B7280','#9CA3AF','#FFFFFF','#EC4899','#EF4444','#F97316','#FBBF24','#84CC16','#10B981','#14B8A6','#06B6D4','#3B82F6','#1D4ED8','#7C3AED','#92400E'];
+const DS_HL_COLORS = [
+  null,      '#FDE047','#FFE58A','#FCD34D','#FDBA74','#FCA5A5','#FFB3C1','#F9A8D4','#E9D5FF','#C4B5FD',
+  '#FFFFFF','#D1D5DB','#000000','#EF4444','#F97316','#FACC15','#22C55E','#06B6D4','#2563EB','#7C3AED',
+];
+
+let dsState = {
+  font: null, effect: DS_EFFECTS[0], text: '안녕하세요',
+  bold:false, underline:false, spacing:0, lineHeight:13, align:'left',
+  highlight:null, textColorOverride:null, outlineOverride:undefined,
+  arc:0, arcMode:'circle',
+};
+let dsBlob = null, dsFilename = '';
+
+const dsCanvas = () => document.getElementById('dsCanvas');
+
+/* 문구 입력창: 한 줄로 시작, 엔터/줄바꿈 시 내용에 맞춰 자동으로 늘어남 (최대 160px, 그 이상은 내부 스크롤) */
+function dsAutosizeText(){
+  const t = document.getElementById('dsText');
+  if(!t) return;
+  t.style.height = 'auto';
+  t.style.height = Math.min(t.scrollHeight, 160) + 'px';
+}
+
+/* ── 팔레트 렌더 (1회) ── */
+(function buildDesignerPalettes(){
+  const fx = document.getElementById('dsFxGrid');
+  DS_EFFECTS.forEach(e=>{
+    const el=document.createElement('div');
+    el.className='fx-item'; el.dataset.id=e.id;
+    const chipStyle = e.id==='none' ? '' :
+      `background:${e.gradient?`linear-gradient(135deg,${e.gradient.join(',')})`:e.color};` +
+      (['#FFFFFF','#FBBF24','#FFD700','#BBE6FF','#7DD3FC','#FDE047','#E5E7EB','#5EEAD4','#C4B5FD','#FCD34D','#F9A8D4'].includes(e.color)?'color:rgba(0,0,0,.55);':'');
+    el.innerHTML=`<div class="fx-chip${e.id==='none'?' none-chip':''}" style="${chipStyle}">Aa</div><span>${e.name}</span>`;
+    el.onclick=()=>{ dsState.effect=e; dsState.textColorOverride=null; dsState.outlineOverride=undefined; dsSyncUI(); dsDraw(); };
+    fx.appendChild(el);
+  });
+  const tc = document.getElementById('dsTextColorGrid');
+  DS_TEXT_COLORS.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='clr-dot'; el.dataset.val=c; el.style.background=c;
+    el.onclick=()=>{ dsState.textColorOverride=c; dsSyncUI(); dsDraw(); };
+    tc.appendChild(el);
+  });
+  DS_TEXT_GRADIENTS.forEach(g=>{
+    const el=document.createElement('div');
+    el.className='clr-dot'; el.dataset.val='grad:'+g.name;
+    el.style.background=`linear-gradient(135deg,${g.colors.join(',')})`;
+    el.onclick=()=>{ dsState.textColorOverride={gradient:g.colors,name:g.name}; dsSyncUI(); dsDraw(); };
+    tc.appendChild(el);
+  });
+  const oc = document.getElementById('dsOutlineGrid');
+  DS_OUTLINE_COLORS.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='clr-dot'+(c==='none'?' none-dot':''); el.dataset.val=c;
+    if(c!=='none') el.style.background=c;
+    el.onclick=()=>{ dsState.outlineOverride=c; dsSyncUI(); dsDraw(); };
+    oc.appendChild(el);
+  });
+  const hl = document.getElementById('dsHlRow');
+  DS_HL_COLORS.forEach((c,i)=>{
+    const el=document.createElement('div');
+    el.className='dhl-dot'+(i===0?' active':'');
+    el.dataset.val = c===null ? 'none' : c;
+    el.style.background = c || 'repeating-linear-gradient(45deg,var(--bg-card),var(--bg-card) 4px,var(--border) 4px,var(--border) 8px)';
+    el.onclick=()=>{ dsState.highlight=c; dsSyncUI(); dsDraw(); };
+    hl.appendChild(el);
+  });
+  /* 탭/서브탭 */
+  document.querySelectorAll('.designer-tab').forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll('.designer-tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.designer-panel').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      document.querySelector(`.designer-panel[data-dpanel="${t.dataset.dtab}"]`).classList.add('active');
+    };
+  });
+  /* 디테일 컨트롤 */
+  document.getElementById('dsText').addEventListener('input', e=>{ dsState.text=e.target.value||' '; dsAutosizeText(); dsDraw(); });
+  document.getElementById('dsWeight').addEventListener('change', function(){
+      dsState.weight = parseInt(this.value, 10);
+      if (dsState.loadFamily){ try{ document.fonts.load(this.value + ' 78px ' + dsState.loadFamily).then(()=>dsDraw()); }catch(e){} }
+      dsDraw();
+    });
+    document.getElementById('dsBold').onclick=function(){ dsState.bold=!dsState.bold; dsSyncUI(); dsDraw(); };
+  document.getElementById('dsUnderline').onclick=function(){ if(dsState.arc!==0) return; dsState.underline=!dsState.underline; dsSyncUI(); dsDraw(); };
+  document.getElementById('dsSpacing').addEventListener('input', e=>{ dsState.spacing=+e.target.value; document.getElementById('dsSpacingVal').textContent=e.target.value; dsDraw(); });
+  document.getElementById('dsLineHeight').addEventListener('input', e=>{ dsState.lineHeight=+e.target.value; document.getElementById('dsLineHeightVal').textContent=(e.target.value/10).toFixed(1); dsDraw(); });
+  document.querySelectorAll('.dalign button').forEach(b=>{
+    b.onclick=()=>{ dsState.align=b.dataset.dalign; dsSyncUI(); dsDraw(); };
+  });
+  /* ── 라운드(곡선) 컨트롤 ── */
+  document.querySelectorAll('.arc-mode-btn').forEach(b=>{
+    b.onclick=()=>{
+      dsState.arcMode = b.dataset.arcmode;
+      document.querySelectorAll('.arc-mode-btn').forEach(x=>x.classList.toggle('active', x===b));
+      dsSyncUI(); dsDraw();
+    };
+  });
+  document.getElementById('dsArc').addEventListener('input', e=>{
+    const prev = dsState.arc;
+    dsState.arc = +e.target.value;
+    /* 직선 → 곡선으로 처음 전환될 때만 충돌 항목 정리 */
+    if(prev===0 && dsState.arc!==0){
+      dsState.underline = false;
+      dsState.highlight = null;
+      dsState.align = 'center';
+    }
+    dsSyncUI(); dsDraw();
+  });
+  document.getElementById('dsArcReset').onclick=()=>{ dsState.arc=0; dsSyncUI(); dsDraw(); };
+  document.getElementById('designerOverlay').addEventListener('click', function(e){ if(e.target===this) closeDesigner(); });
+})();
+
+function dsSyncUI(){
+  document.querySelectorAll('#dsFxGrid .fx-item').forEach(s=>s.classList.toggle('active', s.dataset.id===dsState.effect.id));
+  const tv = (dsState.textColorOverride && dsState.textColorOverride.gradient) ? 'grad:'+dsState.textColorOverride.name : dsState.textColorOverride;
+  document.querySelectorAll('#dsTextColorGrid .clr-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===tv));
+  document.querySelectorAll('#dsOutlineGrid .clr-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===dsState.outlineOverride));
+  document.querySelectorAll('#dsHlRow .dhl-dot').forEach(d=>d.classList.toggle('active', d.dataset.val===(dsState.highlight===null?'none':dsState.highlight)));
+  /* 정렬 — 디테일/라운드 두 그룹 동기화 */
+  document.querySelectorAll('.dalign button').forEach(b=>b.classList.toggle('active', b.dataset.dalign===dsState.align));
+  /* 굵게/밑줄 토글 */
+  const bt=document.getElementById('dsBold'); if(bt) bt.classList.toggle('on', !!dsState.bold);
+  const ut=document.getElementById('dsUnderline'); if(ut) ut.classList.toggle('on', !!dsState.underline);
+  /* 자간/줄간격 배지 */
+  const spEl=document.getElementById('dsSpacing'), spVal=document.getElementById('dsSpacingVal');
+  if(spEl && spVal){ spEl.value=dsState.spacing; spVal.textContent=dsState.spacing; }
+  const lhEl=document.getElementById('dsLineHeight'), lhVal=document.getElementById('dsLineHeightVal');
+  if(lhEl && lhVal){ lhEl.value=dsState.lineHeight; lhVal.textContent=(dsState.lineHeight/10).toFixed(1); }
+  /* 라운드 슬라이더 */
+  const arcEl=document.getElementById('dsArc');
+  if(arcEl){
+    if(+arcEl.value !== dsState.arc) arcEl.value = dsState.arc;
+    const vEl=document.getElementById('dsArcVal');
+    if(vEl){
+      if(dsState.arcMode==='wave'){
+        vEl.textContent = dsState.arc===0 ? '직선' : '진폭 '+dsState.arc+'%';
+      } else {
+        vEl.textContent = dsState.arc===0 ? '직선'
+          : (dsState.arc>=100 ? '완전한 원' : '곡률 '+dsState.arc+'%');
+      }
+    }
+    const noteEl=document.getElementById('dsArcNote');
+    if(noteEl){
+      noteEl.textContent = dsState.arcMode==='wave'
+        ? '물결을 켜면 밑줄과 하이라이트는 해제됩니다. 주기는 자동으로 고정되고, 슬라이더로 진폭(높낮이)만 조절해요.'
+        : '라운드를 켜면 밑줄과 하이라이트는 해제됩니다. 두 줄 이상이면 모든 줄이 같은 중심을 공유해서, 중심에 가까운 줄일수록 더 휘어요.';
+    }
+    /* 곡선 ON일 때 충돌 항목(밑줄/하이라이트) 비활성 */
+    const on = dsState.arc!==0;
+    if(ut){ ut.disabled=on; ut.style.opacity=on?.4:1; ut.style.pointerEvents=on?'none':''; }
+    const hlRow=document.getElementById('dsHlRow');
+    if(hlRow){ hlRow.style.opacity=on?.4:1; hlRow.style.pointerEvents=on?'none':''; }
+  }
+}
+
+/* ── WYSIWYG 렌더링: 캔버스 = 저장본 (콘텐츠 크기에 딱 맞게) ── */
+function dsDraw(){
+  const canvas = dsCanvas();
+  const ctx = canvas.getContext('2d');
+  const f = dsState.font;
+  if(!f) return;
+  const eff = dsState.effect;
+  const ov = dsState.textColorOverride;
+  const fillGradient = (ov && ov.gradient) ? ov.gradient : (ov ? null : eff.gradient);
+  const fillColor = (ov && !ov.gradient) ? ov : eff.color;
+  let outlineColor = eff.outline, outlineW = eff.outlineW;
+  if(dsState.outlineOverride !== undefined){
+    if(dsState.outlineOverride === 'none'){ outlineColor=null; outlineW=0; }
+    else { outlineColor=dsState.outlineOverride; if(outlineW<=0) outlineW=6; }
+  }
+  const fontSize = 78;
+  const weight = dsState.weight ? String(dsState.weight) : (dsState.bold ? '700':'400'); /* 400 기본: 단일 웨이트 장식/손글씨 폰트의 가짜 굵기(faux bold) 뭉개짐 방지 */
+  const famStack = dsState.webFamily ? (dsState.webFamily + ',' + getEffectiveStack(f)) : getEffectiveStack(f);
+    const fontSpec = `${weight} ${fontSize}px ${famStack}`;
+
+  ctx.font = fontSpec;
+  try{ ctx.letterSpacing = dsState.spacing+'px'; }catch(e){}
+  const lines = dsState.text.split('\n');
+  const lh = fontSize*(dsState.lineHeight/10);
+
+  if(dsState.arc){
+    const arcOpts = {lines, lh, fontSpec, fontSize, eff, fillColor, fillGradient, outlineColor, outlineW};
+    if(dsState.arcMode==='wave') dsDrawWave(canvas, ctx, arcOpts);
+    else dsDrawArc(canvas, ctx, arcOpts);
+    return;
+  }
+
+  const widths = lines.map(l=>ctx.measureText(l).width);
+  const maxW = Math.max(...widths, 10);
+  const pad = 34, ascent = fontSize*0.88, descent = fontSize*0.28;
+  canvas.width = Math.ceil(maxW+pad*2);
+  canvas.height = Math.ceil(ascent+descent+lh*(lines.length-1)+pad*2);
+  ctx.font = fontSpec; ctx.textBaseline='alphabetic';
+  try{ ctx.letterSpacing = dsState.spacing+'px'; }catch(e){}
+
+  let y = pad + ascent;
+  lines.forEach((line, idx)=>{
+    const width = widths[idx];
+    let x;
+    if(dsState.align==='left') x = pad;
+    else if(dsState.align==='right') x = pad+maxW-width;
+    else x = pad+(maxW-width)/2;
+
+    if(dsState.highlight && line.trim()!==''){
+      ctx.fillStyle = dsState.highlight;
+      ctx.fillRect(x-8, y-fontSize*0.82, width+16, fontSize*1.05);
+    }
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+    if(eff.shadow==='soft'){ ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=10; ctx.shadowOffsetY=6; }
+    if(eff.shadow==='strong'){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=4; ctx.shadowOffsetY=10; }
+    if(eff.shadow==='gray'){ ctx.shadowColor='rgba(120,120,120,.5)'; ctx.shadowBlur=8; ctx.shadowOffsetY=4; }
+    if(eff.shadow==='glow'){ ctx.shadowColor=fillGradient?fillGradient[0]:fillColor; ctx.shadowBlur=28; }
+    if(eff.shadow==='blur'){ ctx.shadowColor='rgba(150,200,255,.6)'; ctx.shadowBlur=14; }
+    if(outlineColor && outlineW>0){
+      ctx.lineJoin='round'; ctx.strokeStyle=outlineColor; ctx.lineWidth=outlineW;
+      ctx.strokeText(line, x, y);
+    }
+    if(fillGradient){
+      const grad = ctx.createLinearGradient(x,0,x+width,0);
+      fillGradient.forEach((c,i)=>grad.addColorStop(i/(fillGradient.length-1), c));
+      ctx.fillStyle = grad;
+    } else ctx.fillStyle = fillColor;
+    ctx.shadowColor = eff.shadow!=='none' ? ctx.shadowColor : 'transparent';
+    ctx.fillText(line, x, y);
+    ctx.shadowColor='transparent';
+    if(dsState.underline){
+      ctx.fillStyle = fillGradient ? fillGradient[0] : fillColor;
+      ctx.fillRect(x, y+fontSize*0.14, width, Math.max(4, fontSize*0.05));
+    }
+    y += lh;
+  });
+}
+
+/* ── 곡선(라운드) 렌더링 ──
+   동심원(concentric) 방식: 모든 줄이 같은 중심점을 공유한다.
+   위로 볼록(∩) 단일 방향만 지원 — 한글은 U자(아래로 볼록) 방향에서
+   글자 모양 특성상 겹침이 심해 자연스럽지 않아 제외했다.
+   arc=100(%) 이면 가장 넓은 줄이 원 둘레를 정확히 한 바퀴(360°) 돈다. */
+function dsDrawArc(canvas, ctx, o){
+  const {lines, lh, fontSpec, fontSize, eff, fillColor, fillGradient, outlineColor, outlineW} = o;
+  const arch = true;
+  const mag  = dsState.arc/100;
+  const sp   = dsState.spacing;
+  const ascent = fontSize*0.88, descent = fontSize*0.28, pad = 34;
+
+  /* 글자 단위 폭 측정 — 곡선에서는 자간을 직접 계산하므로 letterSpacing은 끈다 */
+  ctx.font = fontSpec;
+  try{ ctx.letterSpacing = '0px'; }catch(e){}
+  const L = lines.map(line=>{
+    const chars = Array.from(line);
+    const w = chars.map(c=>ctx.measureText(c).width);
+    const total = w.reduce((s,x)=>s+x,0) + sp*Math.max(0, chars.length-1);
+    return {chars, w, total};
+  });
+  const maxW = Math.max(...L.map(l=>l.total), 10);
+  const n = lines.length;
+
+  /* 반지름: 슬라이더 100% = 가장 넓은 줄이 360°(완전한 원)를 돈다 */
+  const theta = Math.max(mag * Math.PI * 2, 0.0001);
+  let R1 = maxW / theta;
+  const minInner = fontSize*0.9;
+  /* 안쪽 줄의 반지름이 0 이하로 뒤집히지 않도록 보호 */
+  R1 = Math.max(R1, (n-1)*lh + minInner);
+
+  const cy = arch ? R1 : -R1;   /* 첫 줄 베이스라인을 y=0 에 두었을 때의 중심 y */
+
+  /* 각 글자의 배치(위치·회전)를 먼저 계산 → 경계 상자 산출 → 캔버스 크기 확정 */
+  const placed = [];
+  let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
+  L.forEach((ln, i)=>{
+    const Ri = arch ? R1 - i*lh : R1 + i*lh;
+    let s0;
+    if(dsState.align==='left')       s0 = -maxW/2;
+    else if(dsState.align==='right') s0 =  maxW/2 - ln.total;
+    else                             s0 = -ln.total/2;
+
+    let s = s0;
+    const items = [];
+    ln.chars.forEach((ch, j)=>{
+      const sc  = s + ln.w[j]/2;          /* 글자 중심의 호 길이 좌표 */
+      const phi = sc / Ri;
+      const tx  = Ri*Math.sin(phi);
+      const ty  = arch ? (cy - Ri*Math.cos(phi)) : (cy + Ri*Math.cos(phi));
+      const rot = arch ? phi : -phi;
+      items.push({ch, w:ln.w[j], tx, ty, rot});
+      /* 경계 상자: 글자 박스 네 모서리를 회전·이동시켜 누적 */
+      const hw = ln.w[j]/2, cos=Math.cos(rot), sin=Math.sin(rot);
+      [[-hw,-ascent],[hw,-ascent],[hw,descent],[-hw,descent]].forEach(([px,py])=>{
+        const X = tx + px*cos - py*sin, Y = ty + px*sin + py*cos;
+        if(X<minX)minX=X; if(X>maxX)maxX=X; if(Y<minY)minY=Y; if(Y>maxY)maxY=Y;
+      });
+      s += ln.w[j] + sp;
+    });
+    placed.push({items, Ri, s0, total:ln.total});
+  });
+  if(!isFinite(minX)){ minX=0;maxX=10;minY=0;maxY=10; }
+
+  /* 외곽선·그림자가 잘리지 않도록 여유 */
+  const extra = Math.max(outlineW||0, eff.shadow==='glow'?28:12);
+  const offX = -minX + pad + extra, offY = -minY + pad + extra;
+  canvas.width  = Math.ceil(maxX-minX + (pad+extra)*2);
+  canvas.height = Math.ceil(maxY-minY + (pad+extra)*2);
+
+  /* 캔버스 리사이즈로 컨텍스트가 초기화되므로 폰트 재설정 */
+  ctx.font = fontSpec; ctx.textBaseline='alphabetic'; ctx.textAlign='left';
+  try{ ctx.letterSpacing = '0px'; }catch(e){}
+
+  const shadowOf = ()=>{
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+    if(eff.shadow==='soft'){   ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=10; ctx.shadowOffsetY=6; }
+    if(eff.shadow==='strong'){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=4;  ctx.shadowOffsetY=10; }
+    if(eff.shadow==='gray'){   ctx.shadowColor='rgba(120,120,120,.5)'; ctx.shadowBlur=8; ctx.shadowOffsetY=4; }
+    if(eff.shadow==='glow'){   ctx.shadowColor=fillGradient?fillGradient[0]:fillColor; ctx.shadowBlur=28; }
+    if(eff.shadow==='blur'){   ctx.shadowColor='rgba(150,200,255,.6)'; ctx.shadowBlur=14; }
+  };
+
+  placed.forEach(ln=>{
+    /* 그라데이션은 줄 전체를 가로지르도록: 회전된 로컬 좌표계로 끝점을 역변환해 이어붙인다 */
+    const gx0 = offX + minX, gx1 = offX + maxX;
+    ln.items.forEach(it=>{
+      const X = offX + it.tx, Y = offY + it.ty;
+      ctx.save();
+      ctx.translate(X, Y);
+      ctx.rotate(it.rot);
+      let fill = fillColor;
+      if(fillGradient){
+        const cos=Math.cos(-it.rot), sin=Math.sin(-it.rot);
+        const inv = (gx, gy)=>({x:(gx-X)*cos-(gy-Y)*sin, y:(gx-X)*sin+(gy-Y)*cos});
+        const p0 = inv(gx0, Y), p1 = inv(gx1, Y);
+        const grad = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
+        fillGradient.forEach((c,k)=>grad.addColorStop(k/(fillGradient.length-1), c));
+        fill = grad;
+      }
+      shadowOf();
+      if(outlineColor && outlineW>0){
+        ctx.lineJoin='round'; ctx.strokeStyle=outlineColor; ctx.lineWidth=outlineW;
+        ctx.strokeText(it.ch, -it.w/2, 0);
+      }
+      ctx.fillStyle = fill;
+      ctx.fillText(it.ch, -it.w/2, 0);
+      ctx.restore();
+    });
+  });
+}
+
+/* ── 물결 렌더링 ──
+   sin 곡선을 따라 글자를 하나씩 배치하고, 그 지점의 기울기만큼 살짝 회전시킨다.
+   주기(파장)는 글자 크기에 비례해 고정, 슬라이더는 진폭(높낮이)만 조절한다. */
+function dsDrawWave(canvas, ctx, o){
+  const {lines, lh, fontSpec, fontSize, eff, fillColor, fillGradient, outlineColor, outlineW} = o;
+  const mag = dsState.arc/100;
+  const sp  = dsState.spacing;
+  const ascent = fontSize*0.88, descent = fontSize*0.28, pad = 34;
+
+  ctx.font = fontSpec;
+  try{ ctx.letterSpacing = '0px'; }catch(e){}
+  const L = lines.map(line=>{
+    const chars = Array.from(line);
+    const w = chars.map(c=>ctx.measureText(c).width);
+    const total = w.reduce((s,x)=>s+x,0) + sp*Math.max(0, chars.length-1);
+    return {chars, w, total};
+  });
+  const maxW = Math.max(...L.map(l=>l.total), 10);
+
+  const amp = mag * fontSize * 0.34;    /* 진폭 상한을 낮춰 급격한 출렁임 방지 */
+  const wavelength = fontSize * 5.2;    /* 파장을 넓혀 글자당 회전각 변화를 완만하게 */
+  const freq = (2*Math.PI) / wavelength;
+  const MAX_ROT = 26 * Math.PI / 180;   /* 글자별 회전각 상한 — 한글은 각진 정사각 형태라 과도한 회전 시 겹치고 들쭉날쭉해 보임 */
+
+  const placed = [];
+  let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
+  L.forEach((ln, i)=>{
+    const baseY = i*lh;
+    let s0;
+    if(dsState.align==='left')       s0 = -maxW/2;
+    else if(dsState.align==='right') s0 =  maxW/2 - ln.total;
+    else                             s0 = -ln.total/2;
+
+    let s = s0;
+    const items = [];
+    ln.chars.forEach((ch, j)=>{
+      const sc = s + ln.w[j]/2;         /* 글자 중심의 가로 좌표 */
+      const tx = sc;
+      const ty = baseY - amp*Math.sin(sc*freq);
+      const slope = amp*freq*Math.cos(sc*freq);
+      let rot = -Math.atan(slope);      /* 그 지점의 기울기만큼 회전 */
+      if(rot > MAX_ROT) rot = MAX_ROT; else if(rot < -MAX_ROT) rot = -MAX_ROT;
+      items.push({ch, w:ln.w[j], tx, ty, rot});
+      const hw = ln.w[j]/2, cos=Math.cos(rot), sin=Math.sin(rot);
+      [[-hw,-ascent],[hw,-ascent],[hw,descent],[-hw,descent]].forEach(([px,py])=>{
+        const X = tx + px*cos - py*sin, Y = ty + px*sin + py*cos;
+        if(X<minX)minX=X; if(X>maxX)maxX=X; if(Y<minY)minY=Y; if(Y>maxY)maxY=Y;
+      });
+      /* U자(골) 구간은 인접 글자가 서로를 향해 회전해 겹쳐 보이므로, 골에 가까울수록 다음 글자와의 자간을 넓혀 보정 */
+      const valleyBoost = Math.max(0, -Math.sin(sc*freq)) * amp * 0.85;
+      s += ln.w[j] + sp + valleyBoost;
+    });
+    placed.push({items});
+  });
+  if(!isFinite(minX)){ minX=0;maxX=10;minY=0;maxY=10; }
+
+  const extra = Math.max(outlineW||0, eff.shadow==='glow'?28:12);
+  const offX = -minX + pad + extra, offY = -minY + pad + extra;
+  canvas.width  = Math.ceil(maxX-minX + (pad+extra)*2);
+  canvas.height = Math.ceil(maxY-minY + (pad+extra)*2);
+
+  ctx.font = fontSpec; ctx.textBaseline='alphabetic'; ctx.textAlign='left';
+  try{ ctx.letterSpacing = '0px'; }catch(e){}
+
+  const shadowOf = ()=>{
+    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+    if(eff.shadow==='soft'){   ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=10; ctx.shadowOffsetY=6; }
+    if(eff.shadow==='strong'){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=4;  ctx.shadowOffsetY=10; }
+    if(eff.shadow==='gray'){   ctx.shadowColor='rgba(120,120,120,.5)'; ctx.shadowBlur=8; ctx.shadowOffsetY=4; }
+    if(eff.shadow==='glow'){   ctx.shadowColor=fillGradient?fillGradient[0]:fillColor; ctx.shadowBlur=28; }
+    if(eff.shadow==='blur'){   ctx.shadowColor='rgba(150,200,255,.6)'; ctx.shadowBlur=14; }
+  };
+
+  placed.forEach(ln=>{
+    const gx0 = offX + minX, gx1 = offX + maxX;
+    ln.items.forEach(it=>{
+      const X = offX + it.tx, Y = offY + it.ty;
+      ctx.save();
+      ctx.translate(X, Y);
+      ctx.rotate(it.rot);
+      let fill = fillColor;
+      if(fillGradient){
+        const cos=Math.cos(-it.rot), sin=Math.sin(-it.rot);
+        const inv = (gx, gy)=>({x:(gx-X)*cos-(gy-Y)*sin, y:(gx-X)*sin+(gy-Y)*cos});
+        const p0 = inv(gx0, Y), p1 = inv(gx1, Y);
+        const grad = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
+        fillGradient.forEach((c,k)=>grad.addColorStop(k/(fillGradient.length-1), c));
+        fill = grad;
+      }
+      shadowOf();
+      if(outlineColor && outlineW>0){
+        ctx.lineJoin='round'; ctx.strokeStyle=outlineColor; ctx.lineWidth=outlineW;
+        ctx.strokeText(it.ch, -it.w/2, 0);
+      }
+      ctx.fillStyle = fill;
+      ctx.fillText(it.ch, -it.w/2, 0);
+      ctx.restore();
+    });
+  });
+}
+
+/* ── 디자인 페이지 JSON-LD 구조화 데이터 (검색엔진용) ── */
+function setDesignJsonLd(f){}
+function removeDesignJsonLd(){}
+
+/* ── 열기/닫기 + URL 연동 ── */
+async function openDesigner(fontId){
+  const f = FONTS.find(x=>x.id===fontId);
+  if(!f) return;
+  dsState.font = f;
+      /* 굵기 선택 박스: ① 서버 굵기 파일(최우선) ② 다중 굵기 웹폰트 */
+      (async function(){
+        const row = document.getElementById('dsWeightRow');
+        const sel = document.getElementById('dsWeight');
+        const setOptions = (list, fam) => {
+          sel.innerHTML = list.map(w=>`<option value="${w.weight}"${w.weight===w.def?' selected':''}>${w.label} (${w.weight})</option>`).join('');
+          dsState.webFamily = fam;
+          row.style.display = 'flex';
+        };
+        // 웹폰트 CDN 소스 (Google Fonts 등, 어드민이 파일 없이 등록) — 로컬 굵기 파일보다 우선
+        if (f.webfontFamily){
+          if (f.webfontCssUrl && !_webfontLoaded.has(f.webfontCssUrl)){
+            _webfontLoaded.add(f.webfontCssUrl);
+            const l = document.createElement('link');
+            l.rel = 'stylesheet'; l.href = f.webfontCssUrl;
+            document.head.appendChild(l);
+          }
+          const ws = (f.webfontWeights && f.webfontWeights.length) ? f.webfontWeights : [400];
+          if (ws.length > 1){
+            const def = ws.includes(700) ? 700 : ws[Math.floor(ws.length/2)];
+            setOptions(ws.map(w=>({weight:w, label: DS_WEIGHT_LABELS[w] || String(w), def})), `'${f.webfontFamily}'`);
+            dsState.weight = def;
+            dsState.loadFamily = f.webfontFamily;
+            try{ document.fonts.load(def + ' 78px ' + dsState.loadFamily).then(()=>dsDraw()); }catch(e){}
+          } else {
+            dsState.weight = null;
+            dsState.webFamily = null;
+            dsState.loadFamily = null;
+            row.style.display = 'none';
+          }
+          return;
+        }
+        let fw = [];
+        try{
+          const r = await fetch('/api/fonts/' + f.id + '/weights');
+          if (r.ok) fw = await r.json();
+        }catch(e){}
+        if (fw.length > 1){
+          // 서버 굵기 파일 — FFP family에 굵기별 @font-face 등록 후 사용
+          dsRegisterWeightFaces(f.id, fw);
+          const def = fw.some(w=>w.weight===700) ? 700 : fw[Math.floor(fw.length/2)].weight;
+          setOptions(fw.map(w=>({weight:w.weight, label:w.label, def})), null);
+          dsState.weight = def;
+          dsState.loadFamily = "FFP-" + String(f.id).padStart(3,'0');
+          try{ document.fonts.load(def + ' 78px ' + dsState.loadFamily).then(()=>dsDraw()); }catch(e){}
+          return;
+        }
+        const wf = webfontOf(f.name);
+        if (wf && wf.weights.length > 1){
+          setOptions(wf.weights.map(w=>({weight:w[0], label:w[1], def:700})), wf.family);
+          dsState.weight = 700;
+          dsState.loadFamily = wf.family.replace(/'/g,'');
+          try{ document.fonts.load('700 78px ' + dsState.loadFamily).then(()=>dsDraw()); }catch(e){}
+        } else {
+          dsState.weight = null;
+          dsState.webFamily = null;
+          dsState.loadFamily = null;
+          row.style.display = 'none';
+        }
+      })();
+  dsState.effect = DS_EFFECTS[0];
+  dsState.textColorOverride = null;
+  dsState.outlineOverride = undefined;
+  dsState.arc = 0;
+  dsState.arcMode = 'circle';
+  document.querySelectorAll('.arc-mode-btn').forEach(b=>b.classList.toggle('active', b.dataset.arcmode==='circle'));
+  document.getElementById('designerTitle').textContent = f.name + ' · 텍스트 디자인';
+  document.getElementById('designerOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  dsSyncUI();
+  dsAutosizeText();
+  setDesignJsonLd(f); /* 폰트별 구조화 데이터 주입 */
+
+  /* 폰트 로드 보장 후 그리기 */
+  ensureFontLoaded(f.id);
+  dsDraw(); /* 폴백 폰트로 1차 표시 */
+  try{
+    await document.fonts.load(`400 78px ${getEffectiveStack(f)}`);
+    await document.fonts.ready;
+  }catch(e){}
+  dsDraw(); /* 실제 폰트로 재렌더 */
+}
+
+function closeDesigner(){
+  document.getElementById('designerOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+
+/* ── 저장 플로우: 저장 탭 → 광고 → 같은 팝업에서 저장 ── */
+const DS_ADS_ENABLED = false; /* 애드센스 승인 후 true로 변경 */
+function startDesignerSave(){
+  dsCanvas().toBlob(blob=>{
+    dsBlob = blob;
+    dsFilename = `폰트픽-${dsState.font.name}-디자인.png`;
+  }, 'image/png');
+
+  const ov = document.getElementById('dsaveOverlay');
+  const visual = document.getElementById('dsaveVisual');
+  const imgWrap = document.getElementById('dsaveImgWrap');
+  const hint = document.getElementById('dsaveHint');
+  const btn = document.getElementById('dsaveActionBtn');
+  const cd = document.getElementById('dsaveCountdown');
+
+  visual.style.display='flex'; imgWrap.style.display='none';
+  hint.textContent='잠시 후 저장할 수 있어요.';
+  btn.disabled=true; btn.classList.remove('primary');
+
+  const readyState = ()=>{
+    cd.textContent='✓';
+    document.getElementById('dsaveLabel').textContent='이미지 준비 완료';
+    btn.disabled=false; btn.classList.add('primary');
+    btn.textContent = dsIsMobile() ? '갤러리에 저장' : 'PNG 다운로드';
+    hint.textContent = dsIsMobile() ? '버튼을 누르면 공유 시트에서 「사진에 저장」을 선택할 수 있어요.' : '버튼을 누르면 바로 다운로드됩니다.';
+  };
+  ov.classList.add('open');
+  if(!DS_ADS_ENABLED){
+    /* 애드센스 승인 전: 광고 없이 즉시 저장 가능 */
+    readyState();
+  } else {
+    let t=3; cd.textContent=t; btn.textContent=`잠시만요 (${t})`;
+    const timer = setInterval(()=>{
+      t-=1;
+      if(t<=0){ clearInterval(timer); readyState(); }
+      else { cd.textContent=t; btn.textContent=`잠시만요 (${t})`; }
+    },1000);
+  }
+  btn.onclick = ()=>{ if(!btn.disabled) dsAttemptSave(); };
+}
+
+function dsIsMobile(){
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || matchMedia('(pointer:coarse)').matches;
+}
+
+async function dsAttemptSave(){
+  const file = new File([dsBlob], dsFilename, {type:'image/png'});
+  if(dsIsMobile() && navigator.canShare && navigator.canShare({files:[file]})){
+    try{
+      await navigator.share({files:[file], title:'폰트픽 텍스트 디자인'});
+      document.getElementById('dsaveOverlay').classList.remove('open');
+      showToast('저장 완료!');
+      return;
+    }catch(err){
+      if(err && err.name==='AbortError') return; /* 사용자가 공유시트만 닫음 — 다시 시도 가능 */
+    }
+  }
+  if(!dsIsMobile()){
+    dsDownloadFile();
+    document.getElementById('dsaveOverlay').classList.remove('open');
+    return;
+  }
+  /* 인앱 브라우저 등 공유 미지원 → 광고 자리를 실제 이미지로 교체 + 롱프레스 안내 */
+  const url = URL.createObjectURL(dsBlob);
+  document.getElementById('dsaveImg').src = url;
+  document.getElementById('dsaveVisual').style.display='none';
+  document.getElementById('dsaveImgWrap').style.display='block';
+  document.getElementById('dsaveHint').innerHTML='<b style="color:var(--accent)">이 브라우저는 바로 저장을 지원하지 않아요.</b><br>위 이미지를 길게 눌러 「사진에 저장」을 선택해주세요.';
+  const btn = document.getElementById('dsaveActionBtn');
+  btn.textContent='파일로 다운로드';
+  btn.onclick = dsDownloadFile;
+}
+
+function dsDownloadFile(){
+  const url = URL.createObjectURL(dsBlob);
+  const a = document.createElement('a');
+  a.href=url; a.download=dsFilename;
+  document.body.appendChild(a); a.click(); a.remove();
+  showToast('다운로드 완료!');
+}
+
 </script>
 </body>
 </html>
