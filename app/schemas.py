@@ -32,6 +32,7 @@ class FontBase(BaseModel):
     url: Optional[str] = ""
     stack: str = "'Nanum Gothic',sans-serif"
     is_english: bool = False
+    is_pick: bool = False
     primary_weight: int = 400
     # 웹폰트 CDN 소스 (Google Fonts 등) — 채워져 있으면 파일 업로드 없이 프론트가 이 값으로 로드
     webfont_family: Optional[str] = None
@@ -51,6 +52,7 @@ class FontUpdate(BaseModel):
     url: Optional[str] = None
     stack: Optional[str] = None
     is_english: Optional[bool] = None
+    is_pick: Optional[bool] = None
     primary_weight: Optional[int] = None
     webfont_family: Optional[str] = None
     webfont_css_url: Optional[str] = None

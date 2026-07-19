@@ -37,6 +37,8 @@ class Font(Base):
     meta = Column(JSON, default=dict)
     # 전역 좋아요 카운트
     like_count = Column(Integer, nullable=False, default=0, server_default="0")
+    # 큐레이터 픽 — 어드민이 직접 지정하는 추천 폰트 (메인 "큐레이터 픽" 섹션 노출용)
+    is_pick = Column(Boolean, nullable=False, default=False, server_default="0")
     # ── 웹폰트 CDN 소스 (Google Fonts 등) — 파일 업로드 없이 등록 가능 ──
     # webfont_family가 채워져 있으면 프론트엔드는 로컬 파일 대신
     # webfont_css_url을 로드해서 webfont_family를 font-family로 사용한다.

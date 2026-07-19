@@ -33,6 +33,7 @@ def init_db():
     _ensure_pairing_weight_columns()
     _ensure_primary_weight_column()
     _ensure_webfont_columns()
+    _ensure_is_pick_column()
     db = SessionLocal()
     try:
         _seed_admin(db)
@@ -127,6 +128,23 @@ def _ensure_webfont_columns():
             added.append("webfont_weights")
     if added:
         print(f"[migrate] fonts 웹폰트 컬럼 추가 완료: {added}")
+
+
+def _ensure_is_pick_column():
+    """fonts 테이블에 is_pick 컬럼이 없으면 추가.
+
+    메인 페이지 "큐레이터 픽" 섹션 — 어드민이 체크박스로 지정한 추천 폰트를 노출하기 위해 필요.
+    """
+    from sqlalchemy import text, inspect
+    inspector = inspect(engine)
+    if "fonts" not in inspector.get_table_names():
+        return  # create_all이 이번에 만들었음
+    columns = {col["name"] for col in inspector.get_columns("fonts")}
+    if "is_pick" in columns:
+        return  # 이미 있음
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE fonts ADD COLUMN is_pick BOOLEAN NOT NULL DEFAULT 0"))
+    print("[migrate] fonts.is_pick 컬럼 추가 완료")
 
 
 def _seed_admin(db: Session):
