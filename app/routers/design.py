@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Font
+from ..header import inject_header
 
 router = APIRouter(tags=["design"])
 
@@ -119,6 +120,7 @@ def design_page(font_id: int, db: Session = Depends(get_db)):
         # 검색엔진이 실제 없는 폰트 URL을 계속 재방문할 수 있어 302로 홈 유도)
         return RedirectResponse(url="/", status_code=302)
     html = _load_index()
+    html = inject_header(html, "home")
     return HTMLResponse(_replace_meta_for_font(html, font))
 
 
@@ -194,13 +196,37 @@ def font_detail_page(font_id: int, db: Session = Depends(get_db)):
     if font is None:
         return RedirectResponse(url="/", status_code=302)
     html = _load_font_page()
+    html = inject_header(html, "")  # 상세페이지는 nav 항목 중 활성 표시할 게 없음
     return HTMLResponse(_replace_meta_for_font_detail(html, font))
+
+
+@router.get("/", response_class=HTMLResponse)
+@router.get("/index.html", response_class=HTMLResponse)
+def home_page():
+    """홈 — 서버가 공유 헤더를 주입해서 응답 (헤더 단일 소스화)"""
+    html = _load_index()
+    return HTMLResponse(inject_header(html, "home"))
+
+
+@router.get("/about.html", response_class=HTMLResponse)
+def about_page():
+    """소개 페이지 — 서버가 공유 헤더를 주입해서 응답"""
+    html = (STATIC_DIR / "about.html").read_text(encoding="utf-8")
+    return HTMLResponse(inject_header(html, "about"))
+
+
+@router.get("/faq.html", response_class=HTMLResponse)
+def faq_page():
+    """자주 묻는 질문 페이지 — 서버가 공유 헤더를 주입해서 응답"""
+    html = (STATIC_DIR / "faq.html").read_text(encoding="utf-8")
+    return HTMLResponse(inject_header(html, "faq"))
 
 
 @router.get("/find-font", response_class=HTMLResponse)
 def find_font_page():
     """폰트 찾기 게시판 고유 URL — SEO용 title/description 치환"""
     html = _load_index()
+    html = inject_header(html, "findfont")
     title = "폰트 찾기 - 이미지로 폰트 이름 찾기 | 폰트픽"
     desc = ("찾고 싶은 폰트 이미지를 올리면 다른 사용자들이 폰트 이름을 답변해드려요. "
             "로그인 없이 무료로 질문하고 답변할 수 있습니다.")
