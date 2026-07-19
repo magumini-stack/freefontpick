@@ -4254,6 +4254,20 @@ window.addEventListener('popstate', ()=>{
   }
 });
 
+/* 뒤로/앞으로가기 캐시(bfcache)로 이 페이지가 복원될 때, 디자인 모달·저장
+   오버레이가 잠긴 상태로 스냅샷째 복원되어 스크롤·클릭이 굳는 현상이 있다.
+   스크롤 잠금만 푸는 것으로는 부족한 경우가 있어, 캐시 복원 시엔 페이지를 새로
+   불러와(정상 진입과 동일) 확실히 초기화한다. /design/{id}로 복원된 경우엔
+   새로 불러온 뒤 handleDesignRoute가 다시 정상적으로 모달을 연다.
+   (reload로 인한 새 진입은 persisted=false 이므로 무한 새로고침 위험 없음) */
+window.addEventListener('pageshow', function(e){
+  if(e.persisted){
+    document.body.style.overflow='';
+    document.documentElement.style.overflow='';
+    location.reload();
+  }
+});
+
 /* /design/{id} 직접 접속 처리 (init 완료 후 호출됨) */
 function handleDesignRoute(){
   const m = location.pathname.match(/^\/design\/(\d+)/);
