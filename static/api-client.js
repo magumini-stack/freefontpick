@@ -326,6 +326,29 @@ const PairingStore = {
 };
 
 /* ════════════════════════════════════════
+   PreviewPhraseStore — 미리보기 문구 프리셋 CRUD (어드민)
+   '문구 미리보기로 추천 받기' 기능에서 쓰는 프리셋. 태그는 Font.meta와
+   동일한 8개 차원 구조를 그대로 재사용.
+════════════════════════════════════════ */
+const PreviewPhraseStore = {
+  async getAll(includeInactive) {
+    return await apiFetch(`/preview-phrases${includeInactive ? '?include_inactive=true' : ''}`);
+  },
+  async add(payload) {
+    return await apiFetch('/preview-phrases', {method: 'POST', body: payload});
+  },
+  async update(id, payload) {
+    return await apiFetch(`/preview-phrases/${id}`, {method: 'PATCH', body: payload});
+  },
+  async remove(id) {
+    await apiFetch(`/preview-phrases/${id}`, {method: 'DELETE'});
+  },
+  async reorder(idsInOrder) {
+    return await apiFetch('/preview-phrases/reorder', {method: 'POST', body: idsInOrder});
+  },
+};
+
+/* ════════════════════════════════════════
    FontWeightStore — 폰트별 추가 굵기 등록 (어드민)
    대표 굵기(primaryWeight)는 FontStore.add/update의 primaryWeight로 관리하고,
    여기서는 대표 파일과 별도인 "추가 굵기" 파일들만 다룬다.
