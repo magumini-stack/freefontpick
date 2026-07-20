@@ -1110,21 +1110,26 @@ async function loadPreviewPhrases(){
 function _presetTabsForPhrases(){
   const tabs = new Set();
   PREVIEW_PHRASES.forEach(p => (p.tags && p.tags.usage || []).forEach(u => tabs.add(u)));
-  return [...tabs].sort();
+  return ['전체', ...[...tabs].sort()];
 }
 
 function renderPresetTabs(){
   const wrap = document.getElementById('presetTabs');
   if(!wrap) return;
   const tabs = _presetTabsForPhrases();
-  wrap.innerHTML = tabs.map(t =>
-    `<button type="button" class="preset-tab${t===activePhrasesTab?' active':''}" onclick="setPresetTab('${t.replace(/'/g,"\\'")}')">${t}</button>`
-  ).join('');
+  wrap.innerHTML = tabs.map(t => {
+    const isActive = (t === '전체') ? activePhrasesTab === null : t === activePhrasesTab;
+    return `<button type="button" class="preset-tab${isActive?' active':''}" onclick="setPresetTab('${t.replace(/'/g,"\\'")}')">${t}</button>`;
+  }).join('');
 }
 
 function setPresetTab(tab){
-  // 이미 선택된 탭을 다시 누르면 전체 보기로 해제
-  activePhrasesTab = (activePhrasesTab === tab) ? null : tab;
+  // "전체"는 항상 필터 해제. 이미 선택된 탭을 다시 누르면 전체 보기로 해제
+  if(tab === '전체'){
+    activePhrasesTab = null;
+  } else {
+    activePhrasesTab = (activePhrasesTab === tab) ? null : tab;
+  }
   renderPresetTabs();
   renderPresetChips();
 }
