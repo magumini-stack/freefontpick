@@ -361,21 +361,21 @@
     .preset-tab{
       border:none;background:none;color:var(--text-secondary);
       font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
-      font-size:13px;font-weight:600;padding:5px 12px;border-radius:12px;
+      font-size:12px;font-weight:600;padding:5px 11px;border-radius:12px;
       cursor:pointer;white-space:nowrap;transition:background-color .15s,color .15s;
     }
     .preset-tab:hover{color:var(--text-primary)}
     .preset-tab.active{background:var(--accent-light);color:var(--accent)}
-    .preset-chip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
-    .preset-empty{font-size:13px;color:var(--text-muted);padding:8px 0}
+    .preset-chip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px}
+    .preset-empty{font-size:12.5px;color:var(--text-muted);padding:8px 0}
     .preset-chip{
       border:1px solid var(--border);
       background:none;
       color:var(--text-secondary);
       font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
-      font-size:13.5px;
+      font-size:12.5px;
       font-weight:500;
-      padding:9px 12px;
+      padding:8px 12px;
       border-radius:2px;
       cursor:pointer;
       text-align:left;
@@ -383,23 +383,6 @@
     }
     .preset-chip:hover{border-color:var(--text-primary);color:var(--text-primary)}
     .preset-chip.active{border-color:var(--accent);color:var(--accent);font-weight:700}
-    /* 문구 선택 후 추천 상태바 */
-    .preview-recommend-status{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
-      margin-top:8px;padding:8px 14px;
-      border:1px solid var(--accent);border-radius:8px;
-      background:var(--accent-light);
-      font-size:13px;color:var(--text-primary);
-      flex-wrap:wrap;
-    }
-    .preview-recommend-status i.ti-sparkles{color:var(--accent);font-size:14px;vertical-align:-2px;margin-right:4px}
-    .preview-recommend-status .rs-matches{color:var(--text-secondary)}
-    .preview-recommend-status .rs-clear{
-      border:1px solid var(--border);background:none;color:var(--text-secondary);
-      font-size:12.5px;padding:4px 10px;border-radius:12px;cursor:pointer;
-      display:flex;align-items:center;gap:4px;white-space:nowrap;
-    }
-    .preview-recommend-status .rs-clear:hover{border-color:var(--text-primary);color:var(--text-primary)}
 
     /* TAGS */
     .tags-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;scroll-margin-top:76px}
@@ -656,7 +639,7 @@
       .preview-bar .preview-divider{display:none}
       .size-wrap input[type=range]{width:70px}
       .preview-presets{padding:12px 14px 14px}
-      .preset-chip{font-size:13px;padding:8px 12px}
+      .preset-chip{font-size:12.5px;padding:8px 12px}
       .preview-toggle{padding:7px;border-radius:50%}
       .preview-toggle-text{display:none}
     }
@@ -719,10 +702,6 @@
     <div class="preview-presets" id="previewPresets" role="group" aria-label="문구 미리보기로 추천 받기 — 문구 선택">
       <div class="preset-tabs" id="presetTabs"></div>
       <div class="preset-chip-grid" id="presetChipGrid"></div>
-    </div>
-    <div class="preview-recommend-status" id="previewRecommendStatus" style="display:none">
-      <span><i class="ti ti-sparkles" aria-hidden="true"></i> 추천 폰트 <strong id="recommendCount">0</strong>개 <span class="rs-matches" id="recommendMatches"></span></span>
-      <button type="button" class="rs-clear" onclick="clearPhraseRecommend()"><i class="ti ti-x" aria-hidden="true"></i> 전체보기로</button>
     </div>
   </div>
 
@@ -1187,16 +1166,12 @@ function applyPresetPhrase(id, btnEl){
     formality: tags.formality || null, weight_feel: tags.weight_feel || null,
     reading_length: tags.reading_length || null,
   };
-  const scored = FONTS.map(f => ({font: f, ...scoreFont(f, extracted)})).filter(x => x.score > 0);
+  const requirePrimary = extracted.usage.size > 0 || extracted.mood.size > 0;
+  const scored = FONTS.map(f => ({font: f, ...scoreFont(f, extracted)}))
+    .filter(x => x.score > 0 && (!requirePrimary || x.primaryMatch));
   scored.sort((a,b) => b.score - a.score || a.font.id - b.font.id);
   _lastRecommended = scored;
   _recommendShowCount = 6;
-
-  const status = document.getElementById('previewRecommendStatus');
-  document.getElementById('recommendCount').textContent = scored.length;
-  const matchWords = [...new Set(scored.slice(0,3).flatMap(s => s.matches))].slice(0,4);
-  document.getElementById('recommendMatches').textContent = matchWords.length ? `· ${matchWords.join(' · ')} 매칭` : '';
-  status.style.display = scored.length ? 'flex' : 'none';
 
   // 패널은 그대로 열어둔 채 유지 — 닫는 건 오직 "문구 미리보기로 추천 받기" 토글 버튼으로만
   renderFonts();
@@ -1205,7 +1180,6 @@ function applyPresetPhrase(id, btnEl){
 function clearPhraseRecommend(){
   activePhraseId = null;
   _lastRecommended = null;
-  document.getElementById('previewRecommendStatus').style.display = 'none';
   document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
   renderFonts();
 }
@@ -1272,10 +1246,6 @@ function setTag(tag, el, pushHash){
   if(activePhraseId !== null){
     activePhraseId = null;
     _lastRecommended = null;
-    const status = document.getElementById('previewRecommendStatus');
-    if(status) status.style.display = 'none';
-    const label = document.getElementById('previewToggleLabel');
-    if(label) label.textContent = '문구 미리보기로 추천 받기';
     document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
   }
   document.querySelectorAll('.tag').forEach(t=>t.classList.remove('active'));
@@ -1314,8 +1284,6 @@ function filterFonts(){
   // 검색을 새로 시작하면 문구 추천 모드는 해제 (필터 우선순위 충돌 방지)
   if(activePhraseId !== null){
     activePhraseId = null;
-    document.getElementById('previewRecommendStatus').style.display = 'none';
-    document.getElementById('previewToggleLabel').textContent = '문구 미리보기로 추천 받기';
   }
   // 새 검색 시작 시 추천 카운트 초기화
   _recommendShowCount = 5;
@@ -2426,14 +2394,15 @@ function extractTagsFromQuery(query){
 
 /* 단일 폰트에 대한 매칭 점수 계산 */
 function scoreFont(font, extracted){
-  if(!font.meta) return 0;
+  if(!font.meta) return { score: 0, matches: [], primaryMatch: false };
   const m = font.meta;
   let score = 0;
   let matches = [];
+  let primaryMatch = false;  // usage 또는 mood가 하나라도 걸렸는지 — 이게 없으면 추천 후보에서 제외
 
   // usage: 가중치 4 (가장 중요 — 용도가 안 맞으면 다른 조건이 맞아도 의미 없음)
   for(const u of extracted.usage){
-    if(m.usage && m.usage.includes(u)){ score += 4; matches.push(u); }
+    if(m.usage && m.usage.includes(u)){ score += 4; matches.push(u); primaryMatch = true; }
   }
   // industry: 가중치 2
   for(const i of extracted.industry){
@@ -2441,7 +2410,7 @@ function scoreFont(font, extracted){
   }
   // mood: 가중치 3
   for(const mo of extracted.mood){
-    if(m.mood && m.mood.includes(mo)){ score += 3; matches.push(mo); }
+    if(m.mood && m.mood.includes(mo)){ score += 3; matches.push(mo); primaryMatch = true; }
   }
   // personality: 가중치 1.5
   for(const p of extracted.personality){
@@ -2453,7 +2422,7 @@ function scoreFont(font, extracted){
   if(extracted.weight_feel && m.weight_feel === extracted.weight_feel){ score += 0.3; matches.push(m.weight_feel); }
   if(extracted.reading_length && m.reading_length === extracted.reading_length){ score += 0.3; matches.push(m.reading_length); }
 
-  return { score, matches };
+  return { score, matches, primaryMatch };
 }
 
 /* 추천 결과 생성 — 점수 상위 폰트들 반환 */
@@ -2465,10 +2434,13 @@ function recommendFonts(query, candidates){
                     (extracted.formality?1:0) + (extracted.weight_feel?1:0) + (extracted.reading_length?1:0);
   if(totalTags === 0) return [];
 
+  // usage/mood 중 하나라도 지정됐다면, 그중 하나는 반드시 매칭돼야 후보로 인정 (약한 태그 단독 매칭 배제)
+  const requirePrimary = extracted.usage.size > 0 || extracted.mood.size > 0;
+
   const scored = candidates.map(f => {
     const r = scoreFont(f, extracted);
-    return { font: f, score: r.score, matches: r.matches };
-  }).filter(x => x.score > 0);
+    return { font: f, score: r.score, matches: r.matches, primaryMatch: r.primaryMatch };
+  }).filter(x => x.score > 0 && (!requirePrimary || x.primaryMatch));
 
   // 점수 내림차순 정렬 (동률 시 id)
   scored.sort((a,b) => {
