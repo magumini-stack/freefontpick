@@ -353,10 +353,21 @@
       border-top:none;
       border-radius:0 0 8px 8px;
       padding:12px 18px 14px;
-      flex-wrap:wrap;
-      gap:8px;
+      flex-direction:column;
+      gap:10px;
     }
     .preview-presets.open{display:flex}
+    .preset-tabs{display:flex;flex-wrap:wrap;gap:6px}
+    .preset-tab{
+      border:none;background:none;color:var(--text-secondary);
+      font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+      font-size:11px;font-weight:600;padding:4px 10px;border-radius:12px;
+      cursor:pointer;white-space:nowrap;transition:background-color .15s,color .15s;
+    }
+    .preset-tab:hover{color:var(--text-primary)}
+    .preset-tab.active{background:var(--accent-light);color:var(--accent)}
+    .preset-chip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+    .preset-empty{font-size:12px;color:var(--text-muted);padding:8px 0}
     .preset-chip{
       border:1px solid var(--border);
       background:none;
@@ -364,15 +375,31 @@
       font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
       font-size:11.5px;
       font-weight:500;
-      padding:6px 12px;
+      padding:8px 12px;
       border-radius:2px;
       cursor:pointer;
-      white-space:nowrap;
+      text-align:left;
       transition:border-color .15s,color .15s;
-      flex-shrink:0;
     }
     .preset-chip:hover{border-color:var(--text-primary);color:var(--text-primary)}
     .preset-chip.active{border-color:var(--accent);color:var(--accent);font-weight:700}
+    /* 문구 선택 후 추천 상태바 */
+    .preview-recommend-status{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      margin-top:8px;padding:8px 14px;
+      border:1px solid var(--accent);border-radius:8px;
+      background:var(--accent-light);
+      font-size:12.5px;color:var(--text-primary);
+      flex-wrap:wrap;
+    }
+    .preview-recommend-status i.ti-sparkles{color:var(--accent);font-size:14px;vertical-align:-2px;margin-right:4px}
+    .preview-recommend-status .rs-matches{color:var(--text-secondary)}
+    .preview-recommend-status .rs-clear{
+      border:1px solid var(--border);background:none;color:var(--text-secondary);
+      font-size:11.5px;padding:4px 10px;border-radius:12px;cursor:pointer;
+      display:flex;align-items:center;gap:4px;white-space:nowrap;
+    }
+    .preview-recommend-status .rs-clear:hover{border-color:var(--text-primary);color:var(--text-primary)}
 
     /* TAGS */
     .tags-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;scroll-margin-top:76px}
@@ -675,8 +702,9 @@
     <div class="preview-bar">
       <span class="preview-label"><i class="ti ti-eye" style="font-size:14px" aria-hidden="true"></i> 미리보기</span>
       <input class="preview-input" id="previewText" type="text" value="" placeholder="미리보기 문구 입력" aria-label="폰트 미리보기 문구" oninput="updatePreviews(); clearPresetActive()">
-      <button type="button" class="preview-toggle" id="previewToggleBtn" onclick="togglePreviewPresets()" aria-expanded="false" aria-controls="previewPresets" aria-label="미리보기 문구 선택 펼치기">
-        <span class="preview-toggle-text">문구선택</span>
+      <button type="button" class="preview-toggle" id="previewToggleBtn" onclick="togglePreviewPresets()" aria-expanded="false" aria-controls="previewPresets" aria-label="문구 미리보기로 추천 받기 펼치기">
+        <i class="ti ti-sparkles" style="font-size:14px" aria-hidden="true"></i>
+        <span class="preview-toggle-text" id="previewToggleLabel">문구 미리보기로 추천 받기</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
           <polyline points="6 9 12 15 18 9"/>
         </svg>
@@ -688,12 +716,13 @@
         <span class="size-val" id="fontSizeVal">26px</span>
       </div>
     </div>
-    <div class="preview-presets" id="previewPresets" role="group" aria-label="미리보기 문구 프리셋">
-      <button type="button" class="preset-chip" data-preset="0" onclick="applyPresetText(this, 'SUMMER SALE 오늘만 50% 할인')">SUMMER SALE 오늘만 50% 할인</button>
-      <button type="button" class="preset-chip" data-preset="1" onclick="applyPresetText(this, &quot;Today's Special 아메리카노 3,900원&quot;)">Today's Special 아메리카노 3,900원</button>
-      <button type="button" class="preset-chip" data-preset="2" onclick="applyPresetText(this, '회원가입 / 3초 만에 시작하기')">회원가입 / 3초 만에 시작하기</button>
-      <button type="button" class="preset-chip" data-preset="3" onclick="applyPresetText(this, '디자이너가 매일 쓰는 무료폰트')">디자이너가 매일 쓰는 무료폰트</button>
-      <button type="button" class="preset-chip" data-preset="4" onclick="applyPresetText(this, 'UI Design 깔끔한 인터페이스')">UI Design 깔끔한 인터페이스</button>
+    <div class="preview-presets" id="previewPresets" role="group" aria-label="문구 미리보기로 추천 받기 — 문구 선택">
+      <div class="preset-tabs" id="presetTabs"></div>
+      <div class="preset-chip-grid" id="presetChipGrid"></div>
+    </div>
+    <div class="preview-recommend-status" id="previewRecommendStatus" style="display:none">
+      <span><i class="ti ti-sparkles" aria-hidden="true"></i> 추천 폰트 <strong id="recommendCount">0</strong>개 <span class="rs-matches" id="recommendMatches"></span></span>
+      <button type="button" class="rs-clear" onclick="clearPhraseRecommend()"><i class="ti ti-x" aria-hidden="true"></i> 전체보기로</button>
     </div>
   </div>
 
@@ -1083,7 +1112,110 @@ function updateFontSize(v){
   document.querySelectorAll('.font-preview-text').forEach(el=>el.style.fontSize=v+'px');
 }
 
-/* ── 미리보기 문구 프리셋 (펼침/선택) ── */
+/* ── 문구 미리보기로 추천 받기 (탭+프리셋, 어드민 등록 데이터 기반) ── */
+let PREVIEW_PHRASES = [];
+let activePhrasesTab = '전체';
+let activePhraseId = null;
+
+async function loadPreviewPhrases(){
+  try {
+    const res = await fetch('/api/preview-phrases');
+    PREVIEW_PHRASES = res.ok ? await res.json() : [];
+  } catch(e){
+    PREVIEW_PHRASES = [];
+  }
+  renderPresetTabs();
+  renderPresetChips();
+}
+
+function _presetTabsForPhrases(){
+  const tabs = new Set();
+  PREVIEW_PHRASES.forEach(p => (p.tags && p.tags.usage || []).forEach(u => tabs.add(u)));
+  return ['전체', ...[...tabs].sort()];
+}
+
+function renderPresetTabs(){
+  const wrap = document.getElementById('presetTabs');
+  if(!wrap) return;
+  const tabs = _presetTabsForPhrases();
+  wrap.innerHTML = tabs.map(t =>
+    `<button type="button" class="preset-tab${t===activePhrasesTab?' active':''}" onclick="setPresetTab('${t.replace(/'/g,"\\'")}')">${t}</button>`
+  ).join('');
+}
+
+function setPresetTab(tab){
+  activePhrasesTab = tab;
+  renderPresetTabs();
+  renderPresetChips();
+}
+
+function renderPresetChips(){
+  const wrap = document.getElementById('presetChipGrid');
+  if(!wrap) return;
+  let list = PREVIEW_PHRASES;
+  if(activePhrasesTab !== '전체'){
+    list = list.filter(p => (p.tags && p.tags.usage || []).includes(activePhrasesTab));
+  }
+  if(!list.length){
+    wrap.innerHTML = '<div class="preset-empty">등록된 문구가 없어요</div>';
+    return;
+  }
+  wrap.innerHTML = list.map(p =>
+    `<button type="button" class="preset-chip${p.id===activePhraseId?' active':''}" onclick="applyPresetPhrase(${p.id}, this)">${escapeHtmlIdx(p.text)}</button>`
+  ).join('');
+}
+
+function escapeHtmlIdx(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function applyPresetPhrase(id, btnEl){
+  const phrase = PREVIEW_PHRASES.find(p => p.id === id);
+  if(!phrase) return;
+  document.getElementById('previewText').value = phrase.text;
+  updatePreviews();
+  document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+  activePhraseId = id;
+
+  // 어드민이 이 문구에 붙인 8차원 태그로 바로 스코어링 (자연어 키워드 추출 단계 생략 — 정확도 우선)
+  const tags = phrase.tags || {};
+  const extracted = {
+    mood: new Set(tags.mood || []), usage: new Set(tags.usage || []),
+    industry: new Set(tags.industry || []), personality: new Set(tags.personality || []),
+    formality: tags.formality || null, weight_feel: tags.weight_feel || null,
+    reading_length: tags.reading_length || null,
+  };
+  const scored = FONTS.map(f => ({font: f, ...scoreFont(f, extracted)})).filter(x => x.score > 0);
+  scored.sort((a,b) => b.score - a.score || a.font.id - b.font.id);
+  _lastRecommended = scored;
+  _recommendShowCount = 5;
+
+  const status = document.getElementById('previewRecommendStatus');
+  document.getElementById('recommendCount').textContent = scored.length;
+  const matchWords = [...new Set(scored.slice(0,3).flatMap(s => s.matches))].slice(0,4);
+  document.getElementById('recommendMatches').textContent = matchWords.length ? `· ${matchWords.join(' · ')} 매칭` : '';
+  status.style.display = scored.length ? 'flex' : 'none';
+
+  // 문구 선택 후엔 결과에 집중할 수 있도록 프리셋 패널은 접는다
+  document.getElementById('previewPresets').classList.remove('open');
+  document.getElementById('previewToggleBtn').classList.remove('open');
+  document.getElementById('previewToggleBtn').setAttribute('aria-expanded', 'false');
+  document.getElementById('previewToggleLabel').textContent = `문구 미리보기로 추천 받기 · ${phrase.text}`;
+
+  renderFonts();
+}
+
+function clearPhraseRecommend(){
+  activePhraseId = null;
+  _lastRecommended = null;
+  document.getElementById('previewRecommendStatus').style.display = 'none';
+  document.getElementById('previewToggleLabel').textContent = '문구 미리보기로 추천 받기';
+  document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
+  renderFonts();
+}
+
+/* ── 문구 프리셋 (펼침) ── */
 function togglePreviewPresets(){
   const panel = document.getElementById('previewPresets');
   const btn = document.getElementById('previewToggleBtn');
@@ -1091,17 +1223,9 @@ function togglePreviewPresets(){
   btn.classList.toggle('open', isOpen);
   btn.setAttribute('aria-expanded', String(isOpen));
 }
-function applyPresetText(btnEl, text){
-  const input = document.getElementById('previewText');
-  input.value = text;
-  updatePreviews();
-  // 선택된 칩 활성 표시 (나머지는 해제)
-  document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
-  if(btnEl) btnEl.classList.add('active');
-}
-/* 사용자가 입력창을 직접 수정하면 프리셋 활성 표시 해제 */
 function clearPresetActive(){
   document.querySelectorAll('.preset-chip.active').forEach(chip => chip.classList.remove('active'));
+  if(activePhraseId !== null) clearPhraseRecommend();
 }
 
 /* ════════════════════════════════════════════
@@ -1150,6 +1274,15 @@ function handlePreviewBlur(el){
 function setTag(tag, el, pushHash){
   if(pushHash === undefined) pushHash = true;
   currentTag=tag;
+  if(activePhraseId !== null){
+    activePhraseId = null;
+    _lastRecommended = null;
+    const status = document.getElementById('previewRecommendStatus');
+    if(status) status.style.display = 'none';
+    const label = document.getElementById('previewToggleLabel');
+    if(label) label.textContent = '문구 미리보기로 추천 받기';
+    document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
+  }
   document.querySelectorAll('.tag').forEach(t=>t.classList.remove('active'));
   if(el){
     el.classList.add('active');
@@ -1183,6 +1316,12 @@ function setTag(tag, el, pushHash){
 /* 검색창 입력: 디바운스 후 hash 동기화 (뒤로가기로 복귀 가능) */
 let _searchHashTimer = null;
 function filterFonts(){
+  // 검색을 새로 시작하면 문구 추천 모드는 해제 (필터 우선순위 충돌 방지)
+  if(activePhraseId !== null){
+    activePhraseId = null;
+    document.getElementById('previewRecommendStatus').style.display = 'none';
+    document.getElementById('previewToggleLabel').textContent = '문구 미리보기로 추천 받기';
+  }
   // 새 검색 시작 시 추천 카운트 초기화
   _recommendShowCount = 5;
   renderFonts();
@@ -1211,6 +1350,11 @@ function filterFonts(){
 }
 
 function getFilteredFonts(){
+  // 문구 미리보기로 추천 받기가 활성화된 상태면, 태그/검색보다 우선해서 추천 결과를 보여준다.
+  if(activePhraseId !== null && _lastRecommended){
+    return _lastRecommended.slice(0, _recommendShowCount).map(s => ({...s.font, _matches: s.matches, _isRecommend: true}));
+  }
+
   const sort=document.querySelector('.sort-select').value;
   const q=(document.getElementById('globalSearch').value||'').trim().toLowerCase();
   let list=[...FONTS];
@@ -2817,6 +2961,7 @@ async function init(){
   await registerUploadedFonts();
   renderFonts();
   renderCuratorPicks();
+  loadPreviewPhrases();
 
   // 라우팅 처리 (해시 기반)
   await route();
