@@ -204,6 +204,24 @@ class FontPairing(Base):
     )
 
 
+class PreviewPhrase(Base):
+    """미리보기 문구 프리셋 — '문구 미리보기로 추천 받기' 기능.
+
+    Font.meta와 동일한 8차원(mood/usage/industry/personality/weight_feel/
+    formality/reading_length) 구조를 tags에 그대로 저장해서, 프론트의
+    scoreFont()를 수정 없이 재사용할 수 있게 한다.
+    어드민에서 추가/수정/삭제/노출여부/순서 편집 가능.
+    """
+    __tablename__ = "preview_phrases"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    text = Column(String(100), nullable=False)
+    tags = Column(JSON, default=dict)
+    is_active = Column(Boolean, nullable=False, default=True, server_default="1")
+    sort_order = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
 class AppMeta(Base):
     """앱 내부 메타 (시드 버전 등 키-값 저장)"""
     __tablename__ = "app_meta"

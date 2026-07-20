@@ -201,6 +201,25 @@ class PairingUpdate(BaseModel):
     sort_order: Optional[int] = None
 
 
+# ─────────── PreviewPhrase (문구 미리보기로 추천 받기) ───────────
+class PreviewPhraseBase(BaseModel):
+    text: str = Field(min_length=1, max_length=100)
+    tags: Dict[str, Any] = Field(default_factory=dict)
+    is_active: bool = True
+    sort_order: int = 0
+
+
+class PreviewPhraseCreate(PreviewPhraseBase):
+    pass
+
+
+class PreviewPhraseUpdate(BaseModel):
+    text: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    tags: Optional[Dict[str, Any]] = None
+    is_active: Optional[bool] = None
+    sort_order: Optional[int] = None
+
+
 # ─────────── FontWeight (어드민 굵기 등록) ───────────
 class FontWeightOut(BaseModel):
     weight: int
