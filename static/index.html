@@ -361,21 +361,21 @@
     .preset-tab{
       border:none;background:none;color:var(--text-secondary);
       font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
-      font-size:11px;font-weight:600;padding:4px 10px;border-radius:12px;
+      font-size:13px;font-weight:600;padding:5px 12px;border-radius:12px;
       cursor:pointer;white-space:nowrap;transition:background-color .15s,color .15s;
     }
     .preset-tab:hover{color:var(--text-primary)}
     .preset-tab.active{background:var(--accent-light);color:var(--accent)}
-    .preset-chip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
-    .preset-empty{font-size:12px;color:var(--text-muted);padding:8px 0}
+    .preset-chip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+    .preset-empty{font-size:13px;color:var(--text-muted);padding:8px 0}
     .preset-chip{
       border:1px solid var(--border);
       background:none;
       color:var(--text-secondary);
       font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
-      font-size:11.5px;
+      font-size:13.5px;
       font-weight:500;
-      padding:8px 12px;
+      padding:9px 12px;
       border-radius:2px;
       cursor:pointer;
       text-align:left;
@@ -389,14 +389,14 @@
       margin-top:8px;padding:8px 14px;
       border:1px solid var(--accent);border-radius:8px;
       background:var(--accent-light);
-      font-size:12.5px;color:var(--text-primary);
+      font-size:13px;color:var(--text-primary);
       flex-wrap:wrap;
     }
     .preview-recommend-status i.ti-sparkles{color:var(--accent);font-size:14px;vertical-align:-2px;margin-right:4px}
     .preview-recommend-status .rs-matches{color:var(--text-secondary)}
     .preview-recommend-status .rs-clear{
       border:1px solid var(--border);background:none;color:var(--text-secondary);
-      font-size:11.5px;padding:4px 10px;border-radius:12px;cursor:pointer;
+      font-size:12.5px;padding:4px 10px;border-radius:12px;cursor:pointer;
       display:flex;align-items:center;gap:4px;white-space:nowrap;
     }
     .preview-recommend-status .rs-clear:hover{border-color:var(--text-primary);color:var(--text-primary)}
@@ -656,7 +656,7 @@
       .preview-bar .preview-divider{display:none}
       .size-wrap input[type=range]{width:70px}
       .preview-presets{padding:12px 14px 14px}
-      .preset-chip{font-size:12.5px;padding:7px 12px}
+      .preset-chip{font-size:13px;padding:8px 12px}
       .preview-toggle{padding:7px;border-radius:50%}
       .preview-toggle-text{display:none}
     }
@@ -1114,7 +1114,7 @@ function updateFontSize(v){
 
 /* ── 문구 미리보기로 추천 받기 (탭+프리셋, 어드민 등록 데이터 기반) ── */
 let PREVIEW_PHRASES = [];
-let activePhrasesTab = '전체';
+let activePhrasesTab = null;  // null = 전체 (탭 미선택 상태) — 별도 "전체" 탭은 없음
 let activePhraseId = null;
 
 async function loadPreviewPhrases(){
@@ -1131,7 +1131,7 @@ async function loadPreviewPhrases(){
 function _presetTabsForPhrases(){
   const tabs = new Set();
   PREVIEW_PHRASES.forEach(p => (p.tags && p.tags.usage || []).forEach(u => tabs.add(u)));
-  return ['전체', ...[...tabs].sort()];
+  return [...tabs].sort();
 }
 
 function renderPresetTabs(){
@@ -1144,7 +1144,8 @@ function renderPresetTabs(){
 }
 
 function setPresetTab(tab){
-  activePhrasesTab = tab;
+  // 이미 선택된 탭을 다시 누르면 전체 보기로 해제
+  activePhrasesTab = (activePhrasesTab === tab) ? null : tab;
   renderPresetTabs();
   renderPresetChips();
 }
@@ -1153,7 +1154,7 @@ function renderPresetChips(){
   const wrap = document.getElementById('presetChipGrid');
   if(!wrap) return;
   let list = PREVIEW_PHRASES;
-  if(activePhrasesTab !== '전체'){
+  if(activePhrasesTab){
     list = list.filter(p => (p.tags && p.tags.usage || []).includes(activePhrasesTab));
   }
   if(!list.length){
@@ -1189,7 +1190,7 @@ function applyPresetPhrase(id, btnEl){
   const scored = FONTS.map(f => ({font: f, ...scoreFont(f, extracted)})).filter(x => x.score > 0);
   scored.sort((a,b) => b.score - a.score || a.font.id - b.font.id);
   _lastRecommended = scored;
-  _recommendShowCount = 5;
+  _recommendShowCount = 6;
 
   const status = document.getElementById('previewRecommendStatus');
   document.getElementById('recommendCount').textContent = scored.length;
@@ -1197,12 +1198,7 @@ function applyPresetPhrase(id, btnEl){
   document.getElementById('recommendMatches').textContent = matchWords.length ? `· ${matchWords.join(' · ')} 매칭` : '';
   status.style.display = scored.length ? 'flex' : 'none';
 
-  // 문구 선택 후엔 결과에 집중할 수 있도록 프리셋 패널은 접는다
-  document.getElementById('previewPresets').classList.remove('open');
-  document.getElementById('previewToggleBtn').classList.remove('open');
-  document.getElementById('previewToggleBtn').setAttribute('aria-expanded', 'false');
-  document.getElementById('previewToggleLabel').textContent = `문구 미리보기로 추천 받기 · ${phrase.text}`;
-
+  // 패널은 그대로 열어둔 채 유지 — 닫는 건 오직 "문구 미리보기로 추천 받기" 토글 버튼으로만
   renderFonts();
 }
 
@@ -1210,7 +1206,6 @@ function clearPhraseRecommend(){
   activePhraseId = null;
   _lastRecommended = null;
   document.getElementById('previewRecommendStatus').style.display = 'none';
-  document.getElementById('previewToggleLabel').textContent = '문구 미리보기로 추천 받기';
   document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
   renderFonts();
 }
@@ -2436,26 +2431,27 @@ function scoreFont(font, extracted){
   let score = 0;
   let matches = [];
 
-  // usage: 가중치 3 (가장 중요)
+  // usage: 가중치 4 (가장 중요 — 용도가 안 맞으면 다른 조건이 맞아도 의미 없음)
   for(const u of extracted.usage){
-    if(m.usage && m.usage.includes(u)){ score += 3; matches.push(u); }
+    if(m.usage && m.usage.includes(u)){ score += 4; matches.push(u); }
   }
   // industry: 가중치 2
   for(const i of extracted.industry){
     if(m.industry && m.industry.includes(i)){ score += 2; matches.push(i); }
   }
-  // mood: 가중치 2
+  // mood: 가중치 3
   for(const mo of extracted.mood){
-    if(m.mood && m.mood.includes(mo)){ score += 2; matches.push(mo); }
+    if(m.mood && m.mood.includes(mo)){ score += 3; matches.push(mo); }
   }
   // personality: 가중치 1.5
   for(const p of extracted.personality){
     if(m.personality && m.personality.includes(p)){ score += 1.5; matches.push(p); }
   }
-  // formality, weight_feel, reading_length: 가중치 1
-  if(extracted.formality && m.formality === extracted.formality){ score += 1; matches.push(m.formality); }
-  if(extracted.weight_feel && m.weight_feel === extracted.weight_feel){ score += 1; matches.push(m.weight_feel); }
-  if(extracted.reading_length && m.reading_length === extracted.reading_length){ score += 1; matches.push(m.reading_length); }
+  // formality, weight_feel, reading_length: 가중치 0.3 — 단일값이라 걸리는 폰트가 너무 많아서
+  // 보조적인 동점 구분 신호로만 쓰고, usage/mood처럼 매칭 폭을 넓히는 용도로는 쓰지 않는다.
+  if(extracted.formality && m.formality === extracted.formality){ score += 0.3; matches.push(m.formality); }
+  if(extracted.weight_feel && m.weight_feel === extracted.weight_feel){ score += 0.3; matches.push(m.weight_feel); }
+  if(extracted.reading_length && m.reading_length === extracted.reading_length){ score += 0.3; matches.push(m.reading_length); }
 
   return { score, matches };
 }
