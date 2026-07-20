@@ -1167,11 +1167,11 @@ function applyPresetPhrase(id, btnEl){
     reading_length: tags.reading_length || null,
   };
   const requirePrimary = extracted.usage.size > 0 || extracted.mood.size > 0;
-  const scored = FONTS.map(f => ({font: f, ...scoreFont(f, extracted)}))
+  const scored = FONTS.filter(f => !f.isEnglish).map(f => ({font: f, ...scoreFont(f, extracted)}))
     .filter(x => x.score > 0 && (!requirePrimary || x.primaryMatch));
   scored.sort((a,b) => b.score - a.score || a.font.id - b.font.id);
   _lastRecommended = scored;
-  _recommendShowCount = 6;
+  _recommendShowCount = 7;
 
   // 패널은 그대로 열어둔 채 유지 — 닫는 건 오직 "문구 미리보기로 추천 받기" 토글 버튼으로만
   renderFonts();
