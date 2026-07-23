@@ -185,7 +185,10 @@
   .app-promo-text{display:flex;flex-direction:column;flex:1;min-width:0}
   .app-promo-title{font-size:13.5px;font-weight:700;color:var(--text-primary)}
   .app-promo-sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
-  .app-promo-cta{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent)}
+  .app-promo-cta-row{display:flex;justify-content:flex-end}
+  .app-promo-cta{font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:8px 14px;border-radius:8px;transition:background-color .15s,transform .1s}
+  .app-promo-banner:hover .app-promo-cta{background:var(--accent-hover)}
+  .app-promo-banner:active .app-promo-cta{transform:scale(.97)}
 
   /* ── LICENSE inline ── */
   .lic-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
@@ -336,6 +339,28 @@
     .dhl-dot.active{border-color:var(--text-primary)}
     .designer-footer{padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:10px}
     .designer-adslot{border:1.5px dashed var(--border);border-radius:12px;padding:12px;text-align:center;font-size:11px;color:var(--text-muted);background:var(--bg-secondary);line-height:1.5}
+    /* 우측 여백 스카이스크래퍼 — 넓은 화면(1600px+)에서만, 스크롤해도 고정 위치 유지 */
+    .skyscraper-ad{
+      display:none;
+      position:fixed;
+      top:132px;
+      right:max(12px, calc((100vw - 1240px) / 2 - 180px));
+      width:160px;
+      height:500px;
+      border:1.5px dashed var(--border);
+      border-radius:12px;
+      background:var(--bg-secondary);
+      color:var(--text-muted);
+      font-size:11px;
+      line-height:1.6;
+      text-align:center;
+      z-index:50;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+    }
+    @media(min-width:1600px){ .skyscraper-ad{display:flex} }
     .ds-promo-banner{display:flex;flex-direction:row;align-items:center;gap:9px;padding:8px 10px;border-radius:12px;background:var(--bg-secondary);border:1px solid var(--border);text-decoration:none;color:inherit;transition:transform .12s ease,border-color .12s ease}
     .ds-promo-banner:active{transform:scale(.98)}
     .ds-promo-banner:hover{border-color:var(--accent)}
@@ -381,6 +406,11 @@
 <!--FFP_HEADER-->
 
 <main class="wrap">
+  <!-- 우측 여백 스카이스크래퍼 (AdSense 승인 후 이 자리에 ins 태그 삽입) -->
+  <div class="skyscraper-ad" id="skyscraperAd">
+    광고 영역<br>160×500
+  </div>
+
   <div class="loading" id="loading">폰트 정보를 불러오는 중…</div>
 
   <div id="content" class="hidden">
@@ -486,7 +516,9 @@
                 <span class="app-promo-sub">사진 위에 예쁜 한글 폰트로 바로 써보세요</span>
               </div>
             </div>
-            <span class="app-promo-cta">무료 받기 →</span>
+            <div class="app-promo-cta-row">
+              <span class="app-promo-cta">무료 받기 →</span>
+            </div>
           </a>
         </section>
 
