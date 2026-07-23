@@ -877,7 +877,7 @@
       document.getElementById('downloadBtn').addEventListener('click', function(){
         window.open(dl, '_blank', 'noopener');
       });
-      document.getElementById('designBtn').setAttribute('href', '/design/' + f.id);
+      document.getElementById('designBtn').setAttribute('href', '/font/' + f.id + '/design');
       document.getElementById('designBtn').onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); };
 
       document.getElementById('loading').classList.add('hidden');
@@ -894,13 +894,13 @@
         var _glyphKo = document.getElementById('glyphKo');
         if (_glyphKo && f.is_english) _glyphKo.classList.add('hidden');
       } catch(e){}
-      var _dtop = document.getElementById('designBtnTop'); if (_dtop){ _dtop.setAttribute('href', '/design/' + f.id); _dtop.onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); }; }
+      var _dtop = document.getElementById('designBtnTop'); if (_dtop){ _dtop.setAttribute('href', '/font/' + f.id + '/design'); _dtop.onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); }; }
       fetchRelated(f);
 
-      /* /design/{id}로 직접 접속(또는 검색엔진 유입)한 경우: 상세페이지 콘텐츠 위에
-         텍스트 디자인 모달을 자동으로 연다. (2026-07 이관: 예전엔 index.html이 이
-         역할을 했으나, 모달이 font.html로 옮겨오면서 여기서 직접 처리한다) */
-      if (/^\/design\//.test(location.pathname)) { dsOpenFor(f); }
+      /* /font/{id}/design으로 직접 접속(또는 검색엔진 유입)한 경우: 상세페이지
+         콘텐츠 위에 텍스트 디자인 모달을 자동으로 연다. 구 URL(/design/{id})은
+         서버에서 301로 이 경로로 리다이렉트되므로 도착 시점엔 이미 새 경로다. */
+      if (/\/design\/?$/.test(location.pathname)) { dsOpenFor(f); }
 
       return fetch('/api/fonts/' + fid + '/pairings');
     })
