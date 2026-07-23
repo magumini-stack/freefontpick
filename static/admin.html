@@ -25,7 +25,7 @@
       --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
       --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
       --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
-      --accent:#FF5C35;--accent-light:#FFF0EC;--accent-hover:#E84A25;
+      --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
       --danger:#E24B4A;--danger-light:#FDECEC;
       --success:#1A8A3A;--success-light:#E8F7EE;
       --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
@@ -36,7 +36,7 @@
       --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
       --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
       --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
-      --accent:#FF6B47;--accent-light:#2A1A14;--accent-hover:#FF8060;
+      --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
       --danger:#FF7873;--danger-light:#2A0F0E;
       --success:#5FCB85;--success-light:#0F2A18;
       --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
@@ -47,7 +47,7 @@
         --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
         --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
         --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
-        --accent:#FF6B47;--accent-light:#2A1A14;--accent-hover:#FF8060;
+        --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
         --danger:#FF7873;--danger-light:#2A0F0E;
         --success:#5FCB85;--success-light:#0F2A18;
         --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
@@ -514,7 +514,7 @@
         <label>제작자 <span class="req">*</span></label>
         <input type="text" id="fmMaker" placeholder="예: 네이버, 또는 개인 제작자명">
       </div>
-      <div class="field" style="display:flex;align-items:center;gap:8px;background:var(--accent-light,#FFF0EC);border:1px solid var(--accent);border-radius:6px;padding:10px 14px">
+      <div class="field" style="display:flex;align-items:center;gap:8px;background:var(--accent-light,#EEF2FB);border:1px solid var(--accent);border-radius:6px;padding:10px 14px">
         <input type="checkbox" id="fmIsPick" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
         <label for="fmIsPick" style="margin:0;cursor:pointer;display:flex;flex-direction:column;gap:2px">
           <span style="font-weight:700">큐레이터 픽으로 지정</span>
@@ -1293,7 +1293,7 @@ function renderFontTable(){
           </div>
         </td>
         <td>
-          <div class="cell-name">${escapeHtml(f.name)} ${uploaded}${f.isPick ? ' <span style="font-family:ui-monospace,monospace;font-size:10px;font-weight:700;color:#FF5C35;border:1px solid #FF5C35;border-radius:2px;padding:1px 5px;vertical-align:middle">PICK</span>' : ''}</div>
+          <div class="cell-name">${escapeHtml(f.name)} ${uploaded}${f.isPick ? ' <span style="font-family:ui-monospace,monospace;font-size:10px;font-weight:700;color:#1E3A8A;border:1px solid #1E3A8A;border-radius:2px;padding:1px 5px;vertical-align:middle">PICK</span>' : ''}</div>
         </td>
         <td><div class="cell-maker">${escapeHtml(f.maker)}</div></td>
         <td>${escapeHtml(f.weights)}</td>
