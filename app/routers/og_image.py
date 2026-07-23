@@ -35,14 +35,14 @@ CARD_BG = "#FFFFFF"
 BORDER = "#E5E5E0"
 TEXT_COLOR = "#1A1A1A"
 MUTED = "#6B6B6B"
-ACCENT = "#FF5C35"
+ACCENT = "#1E3A8A"
 
 # UI 텍스트(배포처/로고마크)용 폰트 — 이미 번들된 Noto Sans CJK KR(시드 id=10)을 재사용.
 # 별도 시스템 폰트나 추가 에셋 없이도 배포 환경에서 항상 존재가 보장된다.
 _UI_FONT_ID = 10
 
 # 레이아웃/렌더링 로직이 바뀔 때마다 올려서 기존 캐시를 무효화한다.
-_CACHE_VERSION = 4
+_CACHE_VERSION = 5
 
 
 def _resolve_font_file(font_id: int) -> Path | None:
