@@ -190,6 +190,32 @@
   .app-promo-banner:hover .app-promo-cta{background:var(--accent-hover)}
   .app-promo-banner:active .app-promo-cta{transform:scale(.97)}
 
+  /* ── 모바일 상단 슬롯에 들어갔을 때: 세로 카드 → 가로 띠배너로 재구성 ──
+     아이콘 | 텍스트 2줄 | CTA(우측 끝) 구조. 사이드바에 있을 때의
+     세로 카드 형태는 그대로 두고, 슬롯 안에서만 스타일을 덮어쓴다. */
+  #appPromoSlot{margin-top:14px}
+  #appPromoSlot .app-promo-banner{
+    flex-direction:row; align-items:center; gap:10px;
+    padding:11px 12px; border-radius:10px;
+  }
+  #appPromoSlot .app-promo-top{flex:1; min-width:0; gap:10px}
+  #appPromoSlot .app-promo-banner img{width:34px;height:34px;border-radius:8px}
+  #appPromoSlot .app-promo-title{
+    font-size:13px; line-height:1.25;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  #appPromoSlot .app-promo-sub{
+    font-size:11.5px; line-height:1.25; margin-top:1px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  #appPromoSlot .app-promo-cta-row{flex-shrink:0}
+  #appPromoSlot .app-promo-cta{font-size:11.5px; padding:7px 11px; white-space:nowrap}
+  /* 아주 좁은 화면에선 CTA 문구를 줄여 텍스트 2줄 공간을 확보 */
+  @media(max-width:380px){
+    #appPromoSlot .app-promo-cta{padding:7px 9px}
+    #appPromoSlot .app-promo-sub{font-size:11px}
+  }
+
   /* ── LICENSE inline ── */
   .lic-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
   .lic-title{font-size:20px;font-weight:800;letter-spacing:-.4px;display:flex;align-items:center;gap:8px}
@@ -436,6 +462,13 @@
       </div>
     </div>
 
+    <!-- 모바일 전용 앱 프로모 슬롯 —
+         앱 배너(#appPromoSec)는 데스크톱에선 우측 사이드바 하단에 있지만,
+         모바일에선 컬럼이 세로로 쌓이면서 페이지 맨 아래로 밀려 노출이 거의 안 된다.
+         그래서 모바일(≤768px)에서만 JS로 배너를 이 슬롯(=액션 버튼 바로 아래)으로
+         옮겨온다. 배너 요소 자체는 하나만 유지해서 base64 아이콘 중복을 피한다. -->
+    <div id="appPromoSlot"></div>
+
     <div class="layout">
       <div class="col-main">
 
@@ -514,8 +547,8 @@
           <div class="rel-grid" id="relatedGrid"></div>
         </section>
 
-        <!-- 앱 프로모 배너 -->
-        <section class="blk" style="padding:0;border-bottom:none">
+        <!-- 앱 프로모 배너 (모바일에선 JS가 #appPromoSlot으로 이동시킨다) -->
+        <section class="blk" id="appPromoSec" style="padding:0;border-bottom:none">
           <a class="app-promo-banner" href="https://tosto.re/ktext" target="_blank" rel="noopener">
             <div class="app-promo-top">
               <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAARdElEQVR42u2de3RV1Z3HP3ufc+5N7r25ARIhaMtLNKGxFZQqPqC11eWqHUdHXVOlZaAzY2urLc6yil0yrtpKq+3Y8QVI64xWi/Slgh0t4xRbQJflGRAhSVF5SjQE8rw393HO3vPHPjc3LyAhacwl2WvtBTnn3nPP+Z7v+f4e+7f3EfPmzUtzgqa1xrIstNbE43GUUowePZqzzy6ltLSUCRMmUFx8GpFIGNsOkMvNddPEYi3U1dWxd+9eqqurqK6upra2FikloVA+Qkg8z0MIccLjiXnz5unjfkAIhBDE43Esy6a8vJyZMy+lvPwcRo4c0c3NyGl86Q6zhoZGdu58m/XrX2fnzrdxXZdQKITWGn2CCz4uwFJKXNclkUgwdeo0rr32WqZMKWvb73nmBzJ3sid3NBdaBrTMtVlW9rqqqqpZtWolW7duJRjMw3FslFK9B9iyLGKxGNFoIbNnz+Yzn5nVBdRTBdCeAN4Z7HXr1vPcc8/R2NhAOBzG87xuv2sfC9zm5mZKS8v45je/SUnJmDZgpZRDBtjOMmk0WiGEYNasmZSWlrJ06RIqK3dRUBDtFmRr6tSp3+sMblNTExdeOIM77/wOhYWFpNNe7gHrecYg9Nc5KwVKIXwcXNcjGi3g4osv4YMPPuCdd94hPz+/iybbXZnbxIwZM7j99tsRQuK6Csuycul5Nv86/XzO7THwMXFdheM4zJ8/HxC8+eYbXZhstzdosViM0tIp3HbbtwCBUkYScgpcXyPV71aiXnwJ/X4NeKqPGgGiaCTi85dhzfsniOSDq5BSopRGCLj11ltpaGigurqKUCjUZvjEvHnztBACz/PIy8vjBz9YxOjRxbj+AXKLuRricdw5/4pa9TvA8vtJIIoElDmmuWVACvHJ6di/WY4oOwtcBVKilMK2JXV1R1i48B7i8Ti2bRublRHxRCLBnDlzGT26uE1zc8zUgyVxvz4fterXUDAGIiMhXNCzHiqAcNT0QJ4B1gmav0MFEB4B0bHoHdtwr7sJGptBCvANfzrtUVxcxNy580ilkm32SkopicfjnHfeeVx66cW5p7kZg2ZL9OsbUCueg0gJpFPgekYePOUbPNm1a8x+pcBzIZmAopGIz10G4z8OqYT5rudBKgXR09CVW/Ce/IUB2NfbjCZfdNEMzj9/OvF4DCklMhMGX3fdDbnsqJqHePWrQLr78CyegJZaaKmDlsN+r4V4C0hpgCooQK5ehbVjI3LN7xHln4B0q9nf/maKfNTq/8sYry4/d/31N2DbDlpr7Hg8zrRp53HWWWfieSr3pKE9znVHfP3sEI5CMob4wpUw49NQW2e2CSAchort6Nf+CIEQNDTC2BIoGmVYXXvY+AHtXS+tQUuob+gCsJQSz1NMmjSRc889l82bN2FrrZk1a1bbd3M6huju5G0LvAD6UA3WvXdnt6fSkEqi7vk+rH4R7HzD1t3vwpSzIZVCNzf7xq63D5Nm5szPsGnTJuwxY8ZQXn7OKZVL6BAcNNUaVm9/E69kMkQLoKEBWmKQTIIloeRMcByIN5htQkAiCbG4YWgvMlgGQ0F5eTklJWOxS0vLiEYjeJ7uP4C1Nhc3kEbOE1kghADXhTGjkbfcjU4kECMKIT/fAFYYhdNLEBMnmG2ji9E/fhi14N+yT0E6bVjuOCbIcN0eA+x5mkgkRFlZGXZZWVmHzFG/AOtYHSOfv3XLRG3BQNZvlRJiccTXvooYXQy1deiDBxFlZRDKg63bUY8/YTyNYBC9dr3xmTPEcF3D5mQDJB3IL+gxk024LAzA48aN7x95yERRlgWHj0JlFcQSA8dgx4L39oEMGJCkhHgcb/pMSLTCkTrEPd9FzB8Hnota+nPYtRNdsRNaD4MzqiPAiSR4HuIL18DZk9GLf2bY3GOZgHHjxmMXFxf1X4ja2IK+/S741fMgHXNCeiB03bfO6QQ4oTbfFMuCmhpwU8hnn0J85UtGmq+9CSaMQ77xJzh4CPWPX0FvqTAGLUO04lFYf90GxaMg7eI9swJaWiAQ6DHAxcXF2OFw2PcexMmDizbgXvJ5iMUQK56Ciy4w+jYQhtN1IWDD7QvgyWUQKTLbLAtaY4h772sDVy99Er3qV/CxUrjj2/DxMxAP3I++/CpzHRkZSCTQz6yAopEwZQpMHA8VFRAM9ti+hkIhbOMQ99FSOxb6tgXQ1IKo3gb5Azwup7SJqhynowa3xuGsc5B3fMuw+v0PjFtWUAIHD6B37ESMHYMoLjJhcbo1S4jDR1B3fsfkIJyoATaY1yvjbVlW9wn3XrHXseDDOlj+W8TLvzHgtqYg4AwcwBkGd2aK9hDRAigoMIFFa6sxhPUHwB6BmDQRbBv11LMQbzZBhe0bTEtC4WhzbK2NV3EST2PfwrbM3dxRCaF8uGi6OZmAY05moHvnc8uLoLdsQs292fi9pZOx3t6EfPAnyDfWQOlk9KKfoB9+1CR1UB0NmetmAT5JqbP7hUGpFNi+vyhEuxTfRx1oeBCKop99Fm9zBXLul+GC6TDjYlj9Kt5Xvw67dkBeQTZNGQj4frXqF/vRPwALMXjH65Uyqcaqv6LuvgtCo0y2bOIEaG6BvFC7aM2CgoghytgScGxDnj603M3s9NZPjoTBzkMufRhrfxVy7WqTLUvEDUGUMuzVoN/ciH7okazu9oE8NkOlacBtRVfvNvm2WBxdUwMy2G4cz0HN/ip8WGs8imC4zzIxdADOtHjcT9Bb0JoAFQORb/Ylk3Bwr383ZL+kF+WQA1gpo7HSQt53D0w627hvngfRKHxqGuKm2cjlv0C+9BvQapjBPdbhYCF6xa/Rn52J+IerETdej3Xj9bBvPwSCJtHe3n/fsNn40I1NYNsnpcWnFMBibImflzhGUCQtqG9CXXcT4pq/Q1x1pWFtOg31DehDNQbs9/aiDxyEujrDdsvqmAoVHmLMaf6NUyYoOaUB9odt5NVX4d13f9aH7RLZaRNIOA561Ur0qhcy9PZ1VxhXDQcsp/vsmWWBTiCvvdo/pjqu0uYmwH4ZE1Jmu+shpn0SedutqEcfhPCYY7tYAogWtQuKREd3w3X9fZ2S+EJA0yHEJVcg59zos9c6xSRCKbBlljV+8QdCgquwH1qE66VRi58Akj4je6OdAoIFkGzFjFBnwFeAQF5xNdYzT5rkj+cnmU4ZgLU24G7eCu+9C+dPhzMnmgvNME6A/fhD6C9/CfXSy+gD7/e8dEr4mvryqzDjQjijxPwtBaK4CHH5Zci/v8pXlROD6xtXrU+6p1ztaa29V9ZoNzpRe00x87erdJ+O211Pe9rTWrsLF2oXTC8o0N7KVeY3U675nJv97Ml2d9Rk7b26tvv9Xu+uT+aULOyqhEWLzOMZLYTmZvSCu8zwjpUJDHyjl1aQciHt9aynXOPKtcTNcVpi5u9EKrs/7WX1+JRy0zKGpqbG/D8YBDcNeXlQdxiaY3Car4lt1l72Lo5qP6aY8Uwsy0hvHwZwByeDle7qhikN086DceOhqclY+kQCLpkJxSONsRuEdR2DD2AN2KKj5ySEAXjUCMTzz8PnPgfjx8Ps2YhlywZN+nnwS4T2LfOe92HsaX7YKrIs9jRMPx+xZg20JiE/mPWg5OCsSpKDClxMmaj+4hxY+WqH8tA2JrvKAJ0fNEbHG9wT8wYPwJmY/mcroHIj+keLjQWXnaIx6dcueLrdENUwwCc2araEw0fR3/9PCI6Ft7bA4mcN6N0NledIoeLgAFibaEnf/zh8uN8MoDoR9I8ehUOHfZB1z27UMMDdSINtwdt/hWW/gMAIkz50gnDkEPq+h32ZUD0Io4fdtG4edRN96bsfhGQsW/jhuhAcCU8th81vmwKXY+UUMkHC3kPZCYjDAJMdG3v5T/DyK5A3wpSTtjdo6SR6wY+yN6M7WRBAQzN61tXwyxcN2K43xAHO+LzJNPq7D4K0uwLoeZBfCK/9EX77B386gNe9ft92Lxx4D333Ith3CBw5sEXggw7gjFu27DnYsQXyIt1LgNZgBdH3PAix1o5um+vXBT+7EpYvh8gZUFuD/trd2WS7HooAZ9yy2iPoRY+AHenKzPaZtGAYdu+Eh//b3JTMvDZHwp6D6PkLwYmYuXGhkfDqK/DT//J12xuCAGce6x88BrUHzMzK4xkmzwMniv6PJbC/psPjr29eAPVHwA5kJwwGR6Lv+SFsq4SA1fe5yjkFcMYte6safv4MBEeceIKJ1uAEoOEw+t8fMo9/wIYf/xzW/C+ERmSZmhk9TiTQ//IdSKaMtn9EnsXAA9zmlj0AybgBoyct47b9coW5OdV70PcuMts6y4BnqirZugG98Ke+cfxoWDyw2bTMZJXfvwZ/WG3cst5opB9H6FsXmilWaT/p3h14rgt5RfDQY3DlLLj8YpMcGuB52APH4Ixblkihv/uAcct6a+KVMsbs9Y2wsQICBSdmprTRN98JR5vM7w9wOD1wAGfcsieWw84K45adjJ+qlWFtXt6Jw2elIBiCvbvR87/nj9upUxDgzOTEw/XoBx6HYKFhryU7Fo+cqFsym6IUIlvWZFnZY1mdPq8VRIqNdv/qfwbcdbMHTB7Q6Dvuhw+rgCIgTvdFZMc90HFkRRzneAJQ6LnzEeeUQvlkv95BniIA+1ZczLkOZl9jrre3Uij8yE11U9yn/d843sRtaRmvxbHJFKicQgz2EzdXXDI4UlyKAUvYD6ybllZ89MkBOaCjIQMLsDX0CuqH3hXnJMA5vxZNZ4Paf/P++gdgxzZLYimV2wsIZ7Jxabff5lr3DeCMH1k+xVQjbt7ur9uQ9pPdOdTTflX7lh3Q3ASf+oTP5r5BJDyvj5TzEzj6hn+G7RWIqq1t60fmXFOgyz8NpVMQK5/pl+SQSCbT2nHsk3+ylTYpyPpG9IWzID8f8ehPYfo0yAvmBrDJJGzZhv72HdDUjNi4zizEoelTtKeUQtTXN+gRIwr7tuqU8msSDh9F3/JteGm1WQ/ScQZ15WN2KZo0xJrgi1cilj0GY4rA1X0qKJQSGhubEbt3v6snT57U92W9VLvCj30HYccuU3nOIFreoNv4W5tFOj5ZDhM+Zjb3EVyzXKVgz5692AcO7Gfy5El9X9ZL+gV5WsP4j5meay1TxN3HUtjMsl779x/Arqqq4rLLPts/i9Jl0ohuDrprQvRbdi2DZXV1FXZ1dRUtLXEikVD/rf4nh3aAaFmCWKyVyspdyJqaGnbt2gmc+KUbw61nngNoKisrqampMYHG+vXrAMEQe3vD39R4rl+/ziwxHg6H2bZtG3v27MOy5HHfajLcTsxe25bs27efioqthEIhpBCCdDrNCy88P4xQP7UXXniBVCpllhhXShEOh9m0aSMbN27Cts0qzsOttxkDw97Nm7ewYcNfCIfDKKWMBmutCQQCPP300xw92oBtD0tF76RBY9uShoZGnn76KQKBQJvD0Aaw4zjU1x9lyZLFKOUhpRj2KnoYVJhVwRRLliyhrq4Ox3E6ApwR6HA4zFtvbWfp0ieQUrR9cbgdm7mmPEOwbNkytm2rIBKJdMBMdtQRj2g0yrp1a1m8eDFaq2FNPq7mmlzGkiVL+fOfXyMa7fpGLrvrFw3Ia9eupaGhkW984xZGjRqF6/orfkgx5FkLGseR1NfXs3TpE2zbVkE0Wtiz151ldCU/P5+DBw+wYcMGioqKGDfu40gp8DzVpi9D7YV9WhtjJqVg48ZNPPLIw+zZ8x4FBQXHfGHfCV85mU6nSafTXHDBBVxzzbVMmjSxHdtP3bcjdvcWRIA9e/awatVLbNjwF2zbJhAIotSxa916/NLUWCxGMBhk6tSpXHrpTKZMmUIkEu70+Jwa4HbOVbW0xKiqquL119dTUVFBMpnELM3ex5emdmazUop4PI4QgtNPP52ysimUlZUxbtw4ioqKCIVCCCFznrnxeIwjR45w4MB+qqqqqKys5NChGrRWJvyVPY8T/h9OZHhCsbabOAAAAABJRU5ErkJggg==" alt="한글로 사진에 글쓰기 앱 아이콘">
@@ -579,6 +612,32 @@
       if(!document.documentElement.hasAttribute('data-theme')) applyThemeIcons();
     });
   }
+
+  /* ── 앱 프로모 배너 위치 제어 (모바일 전용) ──
+     데스크톱: 우측 사이드바(.col-side) 하단에 세로 카드로 유지.
+     모바일(≤768px): 컬럼이 세로로 쌓이면서 페이지 맨 아래로 밀려 사실상
+     노출이 안 되므로, '이 폰트로 텍스트 디자인' 버튼 바로 아래 슬롯으로
+     옮겨 가로 띠배너 형태로 보여준다(스타일은 #appPromoSlot CSS가 담당).
+     구글의 모바일 인터스티셜 페널티 대상이 아닌 인라인 배너 방식이라
+     검색 순위에 영향이 없다. 요소를 복제하지 않고 이동만 시켜서
+     base64 아이콘이 중복 로드되지 않는다. */
+  (function(){
+    var MOBILE_MAX = 768;
+    var sec  = document.getElementById('appPromoSec');
+    var slot = document.getElementById('appPromoSlot');
+    if(!sec || !slot) return;
+    var home = sec.parentNode;   // 원래 자리(.col-side)
+    function place(){
+      var isMobile = window.innerWidth <= MOBILE_MAX;
+      var target = isMobile ? slot : home;
+      if(sec.parentNode !== target) target.appendChild(sec);
+    }
+    place();
+    var t;
+    window.addEventListener('resize', function(){
+      clearTimeout(t); t = setTimeout(place, 150);
+    });
+  })();
 })();
 </script>
 
