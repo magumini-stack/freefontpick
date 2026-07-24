@@ -1410,7 +1410,9 @@ function dsAutosizeText(){
     dsSyncUI(); dsDraw();
   });
   document.getElementById('dsArcReset').onclick=()=>{ dsState.arc=0; dsSyncUI(); dsDraw(); };
-  document.getElementById('designerOverlay').addEventListener('click', function(e){ if(e.target===this) closeDesigner(); });
+  /* 2026-07: 모달 바깥(오버레이) 클릭으로 닫히던 동작 제거.
+     디자인 작업 중 캔버스 밖을 잘못 눌러 편집 내용이 통째로 날아가는
+     사고가 잦아, 우측 상단 X 버튼으로만 명시적으로 닫도록 변경했다. */
 })();
 
 function dsSyncUI(){
