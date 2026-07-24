@@ -11,15 +11,28 @@
   경량 폰트로 축소한 뒤 렌더링한다.
 - 생성 결과는 디스크에 캐싱하고, 폰트 파일/이름이 바뀌면 캐시가 자동 무효화되도록
   파일 mtime을 캐시 키에 포함한다.
+- 2026-07: 생성은 요청 1건당 약 +58MB(실측)를 순간적으로 잡아먹는다. 이 엔드포인트는
+  동기 함수라 FastAPI가 스레드풀에서 병렬 실행하므로, 캐시가 비어있는 상태에서
+  크롤러 여러 대가 서로 다른 폰트를 동시에 요청하면 메모리가 배수로 튀어 컨테이너가
+  죽는다(502). 그래서 생성 구간 전체를 프로세스 단위 락으로 감싸 항상 한 번에
+  하나만 만들도록 직렬화한다. 캐시가 채워진 뒤에는 락에 들어가지 않고 파일만 내보내므로
+  평상시 성능에는 영향이 없다.
+    실측(동시 요청 수 → 프로세스 최대 메모리):
+      2건  127MB → 105MB / 4건  220MB → 140MB / 8건  403MB → 187MB
+- 캐시를 미리 채워두면 크롤러가 생성을 유발할 일 자체가 없어지므로,
+  관리자용 예열 엔드포인트(POST /api/fonts/og-warm)를 함께 제공한다.
 """
+import gc
 import io
 import os
+import threading
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from ..auth import get_current_admin
 from ..database import get_db
 from ..models import Font
 from .files import FONT_RESOLUTION, font_path, bundled_font_path
@@ -254,6 +267,40 @@ def _cache_key(font: Font) -> str:
     return f"font-{font.id:03d}-v{_CACHE_VERSION}-{mtime}.png"
 
 
+# 생성 직렬화용 락 — 워커 프로세스당 하나.
+# 이미지 생성은 순간 메모리 사용량이 커서(실측 +58MB) 동시에 여러 건이 돌면
+# 512MB 컨테이너도 넘길 수 있다. 캐시 히트 경로는 락을 타지 않는다.
+_GEN_LOCK = threading.Lock()
+
+
+def _ensure_cached(font: Font) -> tuple[Path, bytes | None]:
+    """캐시된 파일 경로를 보장한다. 없으면 락을 잡고 하나만 생성한다.
+
+    반환: (캐시경로, 폴백데이터)
+      - 정상 캐시 시 폴백데이터는 None
+      - 디스크 쓰기에 실패하면 경로는 존재하지 않고 폴백데이터에 PNG 바이트가 담긴다
+    """
+    cache_path = CACHE_DIR / _cache_key(font)
+    if cache_path.exists():
+        return cache_path, None
+
+    with _GEN_LOCK:
+        # 락을 기다리는 동안 다른 요청이 같은 이미지를 만들었을 수 있다.
+        if cache_path.exists():
+            return cache_path, None
+        try:
+            data = _generate(font)
+            try:
+                cache_path.write_bytes(data)
+            except Exception:
+                return cache_path, data
+        finally:
+            # 생성 과정에서 잡힌 폰트 파싱 객체들을 즉시 회수(실측 약 8MB 반환).
+            # 생성이 예외로 끝난 경우에도 반드시 돌려준다.
+            gc.collect()
+    return cache_path, None
+
+
 @router.get("/{font_id}/og-image.png")
 def get_og_image(font_id: int, db: Session = Depends(get_db)):
     from fastapi.responses import Response
@@ -262,23 +309,50 @@ def get_og_image(font_id: int, db: Session = Depends(get_db)):
     if not font:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
 
-    cache_path = CACHE_DIR / _cache_key(font)
     headers = {"Cache-Control": "public, max-age=86400"}
-    if cache_path.exists():
-        return FileResponse(cache_path, media_type="image/png", headers=headers)
-
     try:
-        data = _generate(font)
+        cache_path, fallback = _ensure_cached(font)
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"이미지 생성 실패: {e}")
 
-    try:
-        cache_path.write_bytes(data)
-    except Exception:
-        pass
-
     if cache_path.exists():
         return FileResponse(cache_path, media_type="image/png", headers=headers)
-    return Response(content=data, media_type="image/png", headers=headers)
+    return Response(content=fallback or b"", media_type="image/png", headers=headers)
+
+
+@router.post("/og-warm")
+def warm_og_cache(
+    limit: int = 20,
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    """OG 이미지 캐시 예열 — 아직 만들어지지 않은 것들을 순차로 생성한다.
+
+    폰트를 새로 추가한 뒤 한 번 호출해두면, 이후 검색엔진 크롤러가 몰려와도
+    이미 만들어진 파일만 나가므로 생성으로 인한 메모리 스파이크가 발생하지 않는다.
+
+    전체를 한 요청에서 처리하면 응답 시간이 수 분대가 되어 타임아웃이 나므로,
+    limit개씩 끊어서 처리하고 남은 개수를 함께 돌려준다.
+    remaining이 0이 될 때까지 반복 호출하면 된다.
+    """
+    limit = max(1, min(limit, 50))
+
+    fonts = db.query(Font).order_by(Font.id).all()
+    pending = [f for f in fonts if not (CACHE_DIR / _cache_key(f)).exists()]
+
+    created, failed = [], []
+    for font in pending[:limit]:
+        try:
+            _ensure_cached(font)
+            created.append(font.id)
+        except Exception as e:
+            failed.append({"id": font.id, "name": font.name, "error": str(e)})
+
+    return {
+        "total": len(fonts),
+        "created": created,
+        "failed": failed,
+        "remaining": len(pending) - len(created),
+    }
