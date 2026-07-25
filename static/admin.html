@@ -369,6 +369,7 @@
         <option value="all">전체 카테고리</option>
       </select>
       <button class="btn-secondary" id="reorderToggleBtn" onclick="toggleReorderMode()"><i class="ti ti-arrows-sort" aria-hidden="true"></i> 순서 변경</button>
+      <button class="btn-secondary" id="ogWarmBtn" onclick="warmOgImages()"><i class="ti ti-refresh" aria-hidden="true"></i> OG 이미지 생성</button>
       <button class="btn-primary" onclick="openFontModal()"><i class="ti ti-plus" aria-hidden="true"></i> 새 폰트 등록</button>
     </div>
     <div class="reorder-hint" id="reorderHint" style="display:none">
@@ -2713,6 +2714,58 @@ function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 let _toastTimer = null;
+/* OG 이미지 캐시 예열 — 아직 안 만들어진 폰트별 OG 이미지를 서버에서 순차 생성.
+   서버가 생성을 한 번에 하나씩만 하도록 락을 걸어두었기 때문에(메모리 보호),
+   여기서는 20개씩 끊어 요청하고 남은 개수가 0이 될 때까지 반복한다.
+   폰트를 새로 추가한 뒤 이 버튼을 눌러두면, 이후 검색엔진/SNS 크롤러가 몰려도
+   이미 만들어진 파일만 나가므로 생성 부하로 서버가 죽는(502) 일이 없다. */
+let _ogWarmRunning = false;
+async function warmOgImages(){
+  if(_ogWarmRunning) return;
+  const btn = document.getElementById('ogWarmBtn');
+  _ogWarmRunning = true;
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  let totalCreated = 0;
+  const allFailed = [];
+  try {
+    while(true){
+      let r;
+      try {
+        r = await apiFetch('/fonts/og-warm?limit=20', {method:'POST'});
+      } catch(e){
+        if(e.status === 401){
+          showToast('세션이 만료됐어요. 다시 로그인해주세요.');
+        } else {
+          showToast('OG 이미지 생성 실패: ' + (e.message || '알 수 없는 오류'));
+        }
+        break;
+      }
+      totalCreated += r.created.length;
+      if(r.failed && r.failed.length) allFailed.push(...r.failed);
+      const done = r.total - r.remaining;
+      btn.innerHTML = `<i class="ti ti-refresh" aria-hidden="true"></i> 생성 중 ${done}/${r.total}`;
+      if(r.remaining <= 0){
+        if(allFailed.length){
+          showToast(`OG 이미지 생성 완료 — 성공 ${totalCreated}건, 실패 ${allFailed.length}건`);
+          console.warn('OG 이미지 생성 실패 목록:', allFailed);
+        } else if(totalCreated === 0){
+          showToast('이미 모든 OG 이미지가 생성되어 있어요');
+        } else {
+          showToast(`OG 이미지 ${totalCreated}건을 생성했어요`);
+        }
+        break;
+      }
+    }
+  } finally {
+    _ogWarmRunning = false;
+    btn.disabled = false;
+    btn.style.opacity = '';
+    btn.innerHTML = originalHtml;
+  }
+}
+
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
