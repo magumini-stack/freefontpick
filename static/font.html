@@ -934,7 +934,14 @@
 
       var dl = f.url || ('https://noonnu.cc/index?keyword=' + encodeURIComponent(f.name));
       document.getElementById('downloadBtn').addEventListener('click', function(){
-        window.open(dl, '_blank', 'noopener');
+        /* 외부 배포처는 새 탭으로 열어 폰트픽 페이지를 잃지 않게 하고,
+           폰트픽 안의 페이지(예: /wisefont/{slug} 자사 폰트 배포 페이지)는
+           같은 탭에서 이동한다. 자기 사이트 안에서 새 탭이 계속 쌓이면
+           뒤로가기가 끊겨 오히려 불편하다. */
+        var isInternal = /^\//.test(dl) ||
+          new RegExp('^https?://(www\\.)?' + location.hostname.replace(/^www\./, '').replace(/\./g, '\\.') + '(/|$)').test(dl);
+        if (isInternal) { location.href = dl; }
+        else { window.open(dl, '_blank', 'noopener'); }
       });
       document.getElementById('designBtn').setAttribute('href', '/font/' + f.id + '/design');
       document.getElementById('designBtn').onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); };
