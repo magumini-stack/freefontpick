@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
 from .seed import init_db
-from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, preview_phrases
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, preview_phrases, wisefont
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -76,8 +76,9 @@ app.include_router(submissions.router)
 app.include_router(pairings.router)
 app.include_router(preview_phrases.router)
 app.include_router(og_image.router)
-# design 라우터는 catch-all(/{full_path:path})보다 반드시 먼저 등록해야
-# /design/{id}, /find-font 요청이 catch-all에 가로채이지 않는다.
+# wisefont / design 라우터는 catch-all(/{full_path:path})보다 반드시 먼저 등록해야
+# /wisefont/{slug}, /design/{id}, /find-font 요청이 catch-all에 가로채이지 않는다.
+app.include_router(wisefont.router)
 app.include_router(design.router)
 
 
