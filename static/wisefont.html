@@ -59,7 +59,11 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   }
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
+/* body 의 padding 은 리셋하지 않는다 —
+   header.css 가 body{padding-top:60px} 으로 고정 헤더(position:fixed, 60px) 높이를
+   보정해 주는데, 여기서 padding:0 으로 덮으면 본문이 헤더 밑에 깔린다. */
+html{margin:0;padding:0}
+body{margin:0}
 body{
   background:var(--bg);color:var(--text-primary);
   font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
