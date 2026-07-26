@@ -172,6 +172,47 @@ footer{border-top:1px solid var(--border);padding:32px 24px;max-width:1240px;mar
 .footer-company-info a:hover{color:var(--accent)}
 .footer-copyright{font-size:11px;color:var(--text-muted);margin-top:14px;letter-spacing:.3px;text-align:center}
 
+/* ── 다운로드 직후 앱 홍보 모달 ──────────────────────────
+   페이지 진입이 아니라 '다운로드 버튼 클릭' 시점에만 띄운다.
+   이 페이지들은 검색 유입을 노리는 페이지라, 진입 즉시 콘텐츠를 덮는
+   팝업은 구글의 모바일 인터스티셜 페널티 대상이 된다. 클릭 트리거는
+   크롤러가 유발하지 않으므로 색인·순위에 영향이 없고, 사용자도
+   원하던 폰트를 이미 받은 뒤라 거부감이 적다.
+   다운로드 자체는 절대 막지 않는다(광고 뒤에 가두지 않는다). */
+.adm-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+  z-index:900;align-items:center;justify-content:center;padding:20px;
+}
+.adm-overlay.open{display:flex;animation:admFade .18s ease}
+@keyframes admFade{from{opacity:0}to{opacity:1}}
+.adm{
+  background:var(--bg-card);border-radius:var(--radius-lg);
+  max-width:400px;width:100%;overflow:hidden;position:relative;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);animation:admUp .22s cubic-bezier(.2,.8,.3,1);
+}
+@keyframes admUp{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.adm-x{
+  position:absolute;top:10px;right:10px;width:36px;height:36px;border:0;
+  border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:20px;
+  line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;
+}
+.adm-x:hover{background:rgba(0,0,0,.65)}
+.adm-x:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.adm-head{padding:18px 52px 14px 20px;border-bottom:1px solid var(--border)}
+.adm-head b{display:block;font-size:15.5px;font-weight:800;margin-bottom:3px}
+.adm-head span{font-size:13px;color:var(--text-secondary);line-height:1.6}
+.adm-img{display:block;line-height:0}
+.adm-img img{width:100%;height:auto;display:block}
+.adm-cta{
+  display:block;padding:16px 20px;text-align:center;background:var(--accent);
+  color:#fff;font-weight:800;font-size:15.5px;text-decoration:none;
+}
+.adm-cta:hover{background:var(--accent-hover)}
+.adm-cta:focus-visible{outline:3px solid var(--accent);outline-offset:-4px}
+@media(prefers-reduced-motion:reduce){
+  .adm-overlay.open,.adm{animation:none}
+}
+
 @media(max-width:980px){
   .specimen{grid-template-columns:1fr;gap:28px;padding:32px 0 36px}
 }
@@ -261,6 +302,21 @@ footer{border-top:1px solid var(--border);padding:32px 24px;max-width:1240px;mar
 
 </main>
 
+<div class="adm-overlay" id="admOverlay" role="dialog" aria-modal="true" aria-labelledby="admTitle">
+  <div class="adm">
+    <button type="button" class="adm-x" onclick="closeAdModal()" aria-label="닫기">&times;</button>
+    <div class="adm-head">
+      <b id="admTitle">다운로드를 시작했어요</b>
+      <span>받은 폰트, 사진 위에 바로 써보시겠어요?</span>
+    </div>
+    <a class="adm-img" href="https://tosto.re/ktext" target="_blank" rel="noopener">
+      <img src="/static/photoAD.jpg" width="400" height="400" loading="lazy"
+           alt="한글로 사진에 글쓰기 앱 — 사진 위에 예쁜 한글 폰트로 바로 쓰기">
+    </a>
+    <a class="adm-cta" href="https://tosto.re/ktext" target="_blank" rel="noopener">앱 무료로 받기 →</a>
+  </div>
+</div>
+
 <footer>
   <div class="footer-links">
     <a href="/policy.html" target="_blank" rel="noopener noreferrer">이용약관</a><a href="/privacy.html" target="_blank" rel="noopener noreferrer">개인정보처리방침</a><a href="mailto:help@tdtd.io?subject=폰트제보">폰트제보</a><a href="mailto:help@tdtd.io?subject=문의하기">문의하기</a>
@@ -310,6 +366,32 @@ if(window.matchMedia){
     if(!document.documentElement.hasAttribute('data-theme')) applyThemeIcons();
   });
 }
+
+/* 다운로드 버튼 → 다운로드 시작 + 앱 홍보 모달 */
+function openAdModal(){
+  document.getElementById('admOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeAdModal(){
+  document.getElementById('admOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+(function(){
+  var ov = document.getElementById('admOverlay');
+  var btn = document.querySelector('a.dl');
+  if(!ov || !btn) return;
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    /* zip은 Content-Disposition: attachment 로 내려오므로
+       location.href 로 열어도 페이지가 이동하지 않고 다운로드만 시작된다. */
+    window.location.href = btn.getAttribute('href');
+    setTimeout(openAdModal, 400);
+  });
+  ov.addEventListener('click', function(e){ if(e.target === this) closeAdModal(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && ov.classList.contains('open')) closeAdModal();
+  });
+})();
 </script>
 
 </body>
