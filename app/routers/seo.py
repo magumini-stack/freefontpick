@@ -44,6 +44,20 @@ def sitemap(db: Session = Depends(get_db)):
         # DB 접근 실패해도 sitemap은 정적 페이지만이라도 반환
         pass
 
+    # (주)와이즈폰트 자사 폰트 배포 페이지 (/wisefont/{slug})
+    # 목록을 여기서 다시 적지 않고 라우터에서 가져와야, 폰트를 추가·삭제할 때
+    # sitemap이 자동으로 따라온다. 두 곳에 나눠 적으면 반드시 어긋난다.
+    try:
+        from .wisefont import WISEFONTS
+        for wf in WISEFONTS:
+            pages.append({
+                "loc": f"{SITE_URL}/wisefont/{wf['slug']}",
+                "priority": "0.8",
+                "changefreq": "monthly",
+            })
+    except Exception:
+        pass
+
     items = "\n".join(
         f"  <url>\n    <loc>{p['loc']}</loc>\n    <lastmod>{today}</lastmod>\n"
         f"    <changefreq>{p['changefreq']}</changefreq>\n    <priority>{p['priority']}</priority>\n  </url>"
