@@ -2663,8 +2663,22 @@ function ensureFontLoaded(id){
    상세페이지 '미리 써보기'에 그대로 이어지게 한다. */
 function stashPreviewText(id){
   try{
-    const card = document.querySelector(`.font-card[data-font-id="${id}"] .font-preview-text`);
-    const txt = card ? card.textContent.trim() : (typeof getPreviewText==='function' ? getPreviewText() : '');
+    // 문구가 화면에 그려지는 위치가 두 군데다.
+    //   일반 카드   : .font-card  > .font-preview-text  (contenteditable — 직접 입력 가능)
+    //   큐레이터 픽 : .pick-row   > .pick-specimen
+    // 예전에는 .font-card만 찾아서, 큐레이터 픽에서 상세로 들어가면 폰트 고유 문구가
+    // 아니라 DEFAULT_PREVIEW('기적처럼 내게 왔으니…')가 넘어갔다.
+    const el = document.querySelector(`.font-card[data-font-id="${id}"] .font-preview-text`)
+            || document.querySelector(`.pick-row[data-font-id="${id}"] .pick-specimen`);
+    let txt = el ? el.textContent.trim() : '';
+    if(!txt){
+      // DOM에서 못 찾은 경우에도 기본 문구로 떨어지지 않도록 그 폰트의 고유 문구를 쓴다
+      const f = (typeof FONTS !== 'undefined' && Array.isArray(FONTS))
+        ? FONTS.find(x => x.id === id) : null;
+      txt = (f && typeof getPreviewTextFor === 'function')
+        ? getPreviewTextFor(f)
+        : (typeof getPreviewText === 'function' ? getPreviewText() : '');
+    }
     if(txt) sessionStorage.setItem('ffp_preview_text', txt);
   }catch(e){}
 }
