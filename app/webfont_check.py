@@ -87,6 +87,40 @@ def _supports(parsed: dict, w: int) -> bool:
     return any(lo <= w <= hi for lo, hi in parsed["ranges"])
 
 
+def normalize_css_url(raw: str) -> str:
+    """폰트 제작사 사이트에서 복사한 형태를 순수 주소로 정리한다.
+
+    제작사들은 보통 아래 형태로 안내하기 때문에, 어드민이 그대로 붙여넣는 게 자연스럽다.
+    이걸 오류로 돌려주는 대신 알아서 주소만 뽑아낸다.
+
+        @import url("https://.../GoormSans.min.css");
+        <link rel="stylesheet" href="https://.../GoormSans.min.css">
+        url('https://.../font.css')
+        "https://.../font.css"
+    """
+    s = (raw or "").strip()
+    if not s:
+        return ""
+
+    # <link ... href="..."> 형태
+    m = re.search(r"""<link[^>]*\bhref\s*=\s*["']([^"']+)["']""", s, re.I)
+    if m:
+        return m.group(1).strip()
+
+    # @import url(...) / url(...) 형태
+    m = re.search(r"""url\(\s*["']?(.*?)["']?\s*\)""", s, re.I)
+    if m:
+        return m.group(1).strip()
+
+    # @import "..." 형태 (url() 없이)
+    m = re.match(r"""^@import\s+["'](.+?)["']\s*;?$""", s, re.I)
+    if m:
+        return m.group(1).strip()
+
+    # 남은 따옴표·세미콜론 정리
+    return s.strip().rstrip(";").strip().strip("'\"").strip()
+
+
 def _encode_url(url: str) -> str:
     """URL에 든 한글 등 비ASCII 문자를 퍼센트 인코딩한다.
 
@@ -106,7 +140,10 @@ def fetch_css(url: str) -> tuple:
     except urllib.error.HTTPError as e:
         return "", f"CSS 주소가 HTTP {e.code}를 반환했습니다"
     except urllib.error.URLError as e:
-        return "", f"CSS 주소에 연결하지 못했습니다 ({e.reason})"
+        reason = str(getattr(e, "reason", e))
+        if "getaddrinfo" in reason or "Name or service" in reason:
+            return "", "그런 주소를 찾을 수 없습니다. 주소에 오타가 없는지 확인해 주세요"
+        return "", f"CSS 주소에 연결하지 못했습니다 ({reason})"
     except Exception as e:  # noqa: BLE001 - 검증 실패가 등록을 막아선 안 된다
         return "", f"CSS 주소를 확인하지 못했습니다 ({e.__class__.__name__})"
 
@@ -119,12 +156,15 @@ def check_webfont(family: str, css_url: str, weights) -> dict:
     - warnings: 동작은 하지만 확인이 필요한 것
     """
     family = (family or "").strip()
-    css_url = (css_url or "").strip()
+    raw_url = (css_url or "").strip()
+    # @import url("...") / <link href="..."> 같은 형태로 붙여넣어도 그대로 받아준다
+    css_url = normalize_css_url(raw_url)
     weights = [int(w) for w in (weights or [])]
     errors, warnings = [], []
     # suggested_* 는 어드민 화면이 "이 값으로 고치기" 버튼에 쓰는 자동 채움 값이다.
     info = {"css_families": [], "css_weights": [], "face_count": 0,
-            "suggested_family": None, "suggested_weights": []}
+            "suggested_family": None, "suggested_weights": [],
+            "suggested_css_url": css_url if css_url != raw_url else None}
 
     if not css_url:
         if family:
@@ -133,6 +173,13 @@ def check_webfont(family: str, css_url: str, weights) -> dict:
 
     if not family:
         errors.append("webfont_css_url만 있고 webfont_family가 비어 있습니다")
+
+    if not re.match(r"^https?://", css_url, re.I):
+        errors.append(
+            f"주소 형식이 아닙니다: {css_url[:60]}. "
+            "http:// 또는 https:// 로 시작하는 CSS 파일 주소를 넣어주세요"
+        )
+        return {"ok": False, "errors": errors, "warnings": warnings, "info": info}
 
     css, err = fetch_css(css_url)
     if err:

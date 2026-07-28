@@ -622,8 +622,10 @@
           </label>
         </div>
         <div class="field-hint" style="margin-bottom:10px">
-          <b>가장 쉬운 방법</b> — 아래 <b>CSS URL</b> 칸에 주소를 붙여넣고
+          <b>가장 쉬운 방법</b> — 아래 <b>CSS URL</b> 칸에 붙여넣고
           <b>“주소 확인하고 자동 채우기”</b>를 누르세요. 폰트 이름과 굵기를 알아서 채워 드려요.
+          <br>제작사 사이트에서 복사한 <code>@import url("...");</code> 나
+          <code>&lt;link href="..."&gt;</code> 를 <b>통째로 붙여넣어도 됩니다</b> — 주소만 알아서 골라냅니다.
           <br>Google Fonts 폰트라면 이름만 입력하고 “CSS URL 자동 생성”을 눌러도 됩니다.
         </div>
 
@@ -1535,6 +1537,13 @@ async function verifyWebfontUrl(){
     });
     const info = r.info || {};
 
+    // @import url("...") / <link href="..."> 형태로 붙여넣었으면 주소만 남기고 정리
+    let urlCleaned = false;
+    if(info.suggested_css_url){
+      document.getElementById('fmWebfontCssUrl').value = info.suggested_css_url;
+      urlCleaned = true;
+    }
+
     // 폰트를 아예 못 불러오는 경우 — 자동 채우기 불가
     if(!info.face_count){
       _webfontResultBox(
@@ -1548,6 +1557,9 @@ async function verifyWebfontUrl(){
 
     // 여기까지 왔으면 CSS는 정상 — 이름과 굵기를 자동으로 맞춰준다
     const changes = [];
+    if(urlCleaned){
+      changes.push('붙여넣으신 <code>@import url(...)</code> 에서 주소만 남기고 정리했어요');
+    }
     const nameEl = document.getElementById('fmWebfontName');
     if(info.suggested_family && nameEl.value.trim() !== info.suggested_family){
       changes.push(`폰트 이름을 <b>${info.suggested_family}</b> 로 채웠어요` +

@@ -8,7 +8,7 @@ from ..database import get_db
 from ..models import Font, Tag, FontTag, FontPairing
 from ..auth import require_password_changed
 from ..schemas import FontCreate, FontUpdate, FontOut, FontReorderRequest
-from ..webfont_check import check_webfont
+from ..webfont_check import check_webfont, normalize_css_url
 
 router = APIRouter(prefix="/api/fonts", tags=["fonts"])
 
@@ -190,7 +190,8 @@ def create_font(
         is_pick=payload.is_pick,
         primary_weight=payload.primary_weight or 400,
         webfont_family=(payload.webfont_family or "").strip() or None,
-        webfont_css_url=(payload.webfont_css_url or "").strip() or None,
+        # @import url("...") 처럼 복사해 붙여넣어도 주소만 뽑아서 저장한다
+        webfont_css_url=normalize_css_url(payload.webfont_css_url) or None,
         webfont_weights=",".join(str(w) for w in (payload.webfont_weights or [])) or None,
         meta=payload.meta or {},
         sort_order=max_order + 10,
@@ -224,8 +225,8 @@ def update_font(
         v = (data.pop("webfont_family") or "").strip()
         font.webfont_family = v or None
     if "webfont_css_url" in data:
-        v = (data.pop("webfont_css_url") or "").strip()
-        font.webfont_css_url = v or None
+        # @import url("...") 처럼 복사해 붙여넣어도 주소만 뽑아서 저장한다
+        font.webfont_css_url = normalize_css_url(data.pop("webfont_css_url")) or None
     for k, v in data.items():
         setattr(font, k, v)
     db.commit()
