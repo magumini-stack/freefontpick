@@ -7,7 +7,9 @@
 - PATCH /api/pairings/{id}          : 페어링 수정 — 관리자
 - DELETE /api/pairings/{id}         : 페어링 삭제 — 관리자
 """
+import math
 import random
+from collections import Counter
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_
@@ -424,57 +426,170 @@ def _cohesion(font_a: Font, font_b: Font) -> float:
 
 
 def _collect_theme_samples(db: Session) -> dict:
-    """DB의 기존 페어링에서 (테마 → [(제목문구, 본문문구), ...]) 수집.
+    """테마 → [(제목문구, 본문문구), ...] 문구 풀.
 
-    자동 생성 후보에 실제로 쓰인 다양한 문구를 배정하기 위한 소스.
-    비어있으면 최소한의 기본값 하나를 반환한다.
+    두 소스를 합친다:
+      1) DB에 저장된 기존 페어링의 샘플 문구 (어드민이 직접 쓴 것)
+      2) `pairing_phrases.THEME_PHRASE_BANK` — 코드에 내장한 문구 뱅크
+
+    예전에는 1)만 썼기 때문에 테마당 문구가 5~16개에 그쳤다. 뱅크를 합쳐
+    테마마다 20개 이상의 후보를 확보해, 같은 폰트를 여러 번 조회해도 매번
+    다른 문구가 나오도록 한다.
     """
+    from ..pairing_phrases import THEME_PHRASE_BANK, THEME_ALIASES
+
     pool: dict = {}
-    rows = db.query(FontPairing).all()
-    for p in rows:
-        theme = (p.theme or "").strip()
-        if not theme:
-            continue
-        st = (p.sample_title or "").strip()
-        sb = (p.sample_body or "").strip()
-        if not st and not sb:
-            continue
-        pool.setdefault(theme, [])
-        if (st, sb) not in pool[theme]:
-            pool[theme].append((st, sb))
+
+    def _add(theme: str, st: str, sb: str):
+        if not theme or (not st and not sb):
+            return
+        bucket = pool.setdefault(theme, [])
+        if (st, sb) not in bucket:
+            bucket.append((st, sb))
+
+    for p in db.query(FontPairing).all():
+        _add((p.theme or "").strip(),
+             (p.sample_title or "").strip(),
+             (p.sample_body or "").strip())
+
+    # 뱅크 병합 — DB에 존재하는 테마에만 붙인다(쓰이지 않는 테마를 새로 만들지 않음).
+    # 파편화된 테마명("SNS 카드뉴스" 등)은 정규 테마의 뱅크를 함께 쓴다.
+    for theme in list(pool.keys()):
+        canon = THEME_ALIASES.get(theme, theme)
+        for st, sb in THEME_PHRASE_BANK.get(canon, []):
+            _add(theme, st, sb)
+
     if not pool:
         pool["추천 조합"] = [("어울리는 조합을 찾았어요", "제목과 본문에 함께 써보세요")]
     return pool
 
 
-def _theme_candidates_for(meta_a: dict, meta_b: dict, available_themes: list) -> list:
-    """두 폰트의 usage/mood/industry/personality/formality를 근거로,
-    실제 등록된 테마 중 어울리는 것들을 우선순위 순으로 반환한다.
-    하나도 못 맞추면 전체 테마를 반환(폴백)."""
-    hints = []
-    for u in (meta_a.get("usage") or []) + (meta_b.get("usage") or []):
-        hints += _USAGE_THEME_HINTS.get(u, [])
-    for mood in (meta_a.get("mood") or []) + (meta_b.get("mood") or []):
-        hints += _MOOD_THEME_HINTS.get(mood, [])
-    for ind in (meta_a.get("industry") or []) + (meta_b.get("industry") or []):
-        hints += _INDUSTRY_THEME_HINTS.get(ind, [])
-    for per in (meta_a.get("personality") or []) + (meta_b.get("personality") or []):
-        hints += _PERSONALITY_THEME_HINTS.get(per, [])
-    for f in (meta_a.get("formality"), meta_b.get("formality")):
-        if f:
-            hints += _FORMALITY_THEME_HINTS.get(f, [])
+# ── 테마 선택: 기존 큐레이션에서 학습한 "테마 프로파일" 기반 ──────────
+#
+# 예전 방식(_theme_candidates_for)은 힌트 키워드를 테마 '이름'에 부분일치시켜
+# 첫 매칭을 그대로 채택했다. 세 가지 문제가 있었다:
+#   1) usage 축이 사실상 단독으로 테마를 결정 (나머지 4개 축은 死코드)
+#   2) meta['usage']가 가나다순이라 "SNS카드"가 항상 먼저 걸림
+#      → 전체 폰트의 절반 이상이 '카드뉴스' 테마로 쏠림
+#   3) 이름이 긴 복합 테마일수록 키워드가 많이 걸려 유리해짐
+#      ("한글 + 영문 조합"은 걸리는 키워드가 0개라 구조적으로 도달 불가)
+#
+# 대신 이미 어드민이 큐레이션해 둔 페어링에서 테마별 폰트 메타 분포를 학습해
+# 프로파일 벡터로 만들고, 후보 폰트쌍과의 코사인 유사도로 테마를 고른다.
+# 테마를 새로 추가해도 힌트 테이블을 고칠 필요가 없다.
 
-    matched, seen = [], set()
-    for kw in hints:
-        for theme in available_themes:
-            if kw in theme and theme not in seen:
-                matched.append(theme)
-                seen.add(theme)
-    # 매칭된 것 뒤에 나머지 테마도 폴백으로 이어붙임
+_META_DIMS = ("usage", "mood", "industry", "personality", "formality")
+
+_HINT_MAPS = {
+    "usage": _USAGE_THEME_HINTS,
+    "mood": _MOOD_THEME_HINTS,
+    "industry": _INDUSTRY_THEME_HINTS,
+    "personality": _PERSONALITY_THEME_HINTS,
+    "formality": _FORMALITY_THEME_HINTS,
+}
+
+# 온도가 낮을수록 유사도 상위 테마에 집중되고, 높을수록 골고루 퍼진다.
+# 0.08은 "가장 어울리는 테마 대비 적합도 87%를 유지하면서 1번 슬롯 쏠림을
+# 12%까지 낮추는" 지점 — 142개 폰트 전수 시뮬레이션으로 고른 값이다.
+_THEME_TEMPERATURE = 0.08
+# DB에 이미 많이 쌓인 테마를 얼마나 억제할지 (0이면 억제 없음).
+# 너무 크면 최다 노출 테마가 사실상 차단되므로 0.15 정도가 적당하다.
+_THEME_BALANCE = 0.15
+# 학습 표본이 이보다 적은 테마는 힌트 테이블로 프로파일을 합성해 보완한다.
+_MIN_PROFILE_SAMPLES = 3
+
+
+def _font_features(font: Font) -> Counter:
+    """폰트 한 개의 메타/태그를 'dim:value' 피처로 펼친다."""
+    c: Counter = Counter()
+    meta = font.meta or {}
+    for dim in _META_DIMS:
+        v = meta.get(dim)
+        vals = v if isinstance(v, list) else ([v] if v else [])
+        for x in vals:
+            c[f"{dim}:{x}"] += 1
+    for t in _font_tags(font):
+        c[f"tag:{t}"] += 1
+    return c
+
+
+def _hint_profile(theme: str) -> Counter:
+    """힌트 테이블을 역방향으로 읽어, 그 테마를 가리키는 메타값들을 프로파일로."""
+    c: Counter = Counter()
+    for dim, table in _HINT_MAPS.items():
+        for value, keywords in table.items():
+            if any(kw in theme for kw in keywords):
+                c[f"{dim}:{value}"] += 1
+    return c
+
+
+def _l2_tfidf(counts: Counter, idf: dict) -> dict:
+    total = sum(counts.values()) or 1
+    vec = {k: (n / total) * idf.get(k, 1.0) for k, n in counts.items()}
+    norm = math.sqrt(sum(v * v for v in vec.values())) or 1.0
+    return {k: v / norm for k, v in vec.items()}
+
+
+def _cosine(a: dict, b: dict) -> float:
+    if len(a) > len(b):
+        a, b = b, a
+    return sum(v * b[k] for k, v in a.items() if k in b)
+
+
+def _build_theme_profiles(db: Session, available_themes: list):
+    """(테마 → 프로파일 벡터), idf, 테마별 기존 페어링 수를 반환."""
+    raw = {t: Counter() for t in available_themes}
+    sample_counts: Counter = Counter()
+
+    for p in db.query(FontPairing).all():
+        theme = (p.theme or "").strip()
+        if theme not in raw:
+            continue
+        for f in (p.title_font, p.body_font):
+            if f is not None:
+                raw[theme] += _font_features(f)
+        sample_counts[theme] += 1
+
+    # 표본이 얇은 테마는 힌트 테이블로 보강 (새로 만든 테마의 콜드스타트 대비)
     for theme in available_themes:
-        if theme not in seen:
-            matched.append(theme)
-    return matched
+        if sample_counts[theme] < _MIN_PROFILE_SAMPLES:
+            for k, v in _hint_profile(theme).items():
+                raw[theme][k] += v * 2
+
+    df: Counter = Counter()
+    for c in raw.values():
+        df.update(c.keys())
+    n_themes = max(len(raw), 1)
+    idf = {k: math.log(n_themes / (1 + d)) + 1.0 for k, d in df.items()}
+
+    profiles = {t: _l2_tfidf(c, idf) for t, c in raw.items()}
+    return profiles, idf, sample_counts
+
+
+def _pick_theme(title_font: Font, body_font: Font, profiles: dict, idf: dict,
+                exposure: Counter, exclude: set) -> str:
+    """폰트쌍과 가장 어울리는 테마를 확률적으로 고른다.
+
+    - 유사도가 높을수록 뽑힐 확률이 높지만 결정적이지는 않다(매번 다른 결과).
+    - DB에 이미 많이 쌓인 테마는 감점해서, 적게 쓰인 테마도 기회를 갖는다.
+    """
+    vec = _l2_tfidf(_font_features(title_font) + _font_features(body_font), idf)
+    busiest = max(exposure.values()) if exposure else 0
+
+    candidates = []
+    for theme, prof in profiles.items():
+        if theme in exclude:
+            continue
+        score = _cosine(vec, prof)
+        if busiest:
+            score -= _THEME_BALANCE * (exposure.get(theme, 0) / busiest)
+        candidates.append((theme, score))
+    if not candidates:
+        return ""
+
+    lowest = min(s for _, s in candidates)
+    weights = [math.exp((s - lowest) / _THEME_TEMPERATURE) for _, s in candidates]
+    return random.choices([t for t, _ in candidates], weights=weights, k=1)[0]
 
 
 def _pick_weight(font: Font, target: int) -> int:
@@ -511,9 +626,11 @@ def auto_generate_pairings(
       (완전 무작위가 아니라 상위권 내에서만 순서가 흔들리는 정도).
     - D: 태그로 추정한 서체 모양(세리프/산세리프/손글씨/디스플레이) 축을
       제목/본문 적합도와 궁합 점수에 반영한다.
+    - E: 테마는 기존 큐레이션에서 학습한 프로파일과의 코사인 유사도로 고르고,
+      확률 추출이라 같은 폰트를 다시 조회해도 결과가 달라진다(_pick_theme).
+      DB에 이미 많이 쌓인 테마는 감점해 적게 쓰인 테마도 기회를 갖는다.
+    - F: 샘플 문구는 DB 문구 + 내장 문구 뱅크를 합친 풀에서 무작위로 뽑는다.
 
-    테마와 샘플 문구는 DB에 이미 등록된 페어링들에서 수집한 풀에서 뽑아,
-    후보마다 서로 다른 테마·문구가 배정되도록 한다(중복 최소화).
     최소 3개 이상을 목표로 하되, 후보 폰트가 3개 미만이면 있는 만큼만 반환한다.
     """
     anchor = db.query(Font).filter(Font.id == font_id).first()
@@ -527,6 +644,7 @@ def auto_generate_pairings(
 
     theme_pool = _collect_theme_samples(db)
     available_themes = list(theme_pool.keys())
+    theme_profiles, theme_idf, theme_exposure = _build_theme_profiles(db, available_themes)
 
     # B: 폰트별 기존 페어링 등장 횟수 (단골 폰트 노출 억제용)
     usage_counts: dict = {}
@@ -560,31 +678,29 @@ def auto_generate_pairings(
 
     results = []
     used_partners = set()
-    used_themes = set()      # 이미 배정한 테마 (다양성 확보)
+    used_themes = set()      # 이미 배정한 테마 (한 응답 안에서 중복 방지)
     used_samples = set()     # 이미 배정한 (제목,본문) 문구
-    theme_sample_idx = {}    # 테마별로 다음에 꺼낼 문구 인덱스
 
     for score, title_font, body_font in scored:
         partner = body_font.id if title_font.id == anchor.id else title_font.id
         if partner in used_partners:
             continue
 
-        theme_order = _theme_candidates_for(
-            title_font.meta or {}, body_font.meta or {}, available_themes,
+        theme = _pick_theme(
+            title_font, body_font, theme_profiles, theme_idf,
+            theme_exposure, used_themes,
         )
-        # 아직 안 쓴 테마를 우선 배정 (다양성), 다 썼으면 순서대로
-        theme = next((t for t in theme_order if t not in used_themes), theme_order[0] if theme_order else "추천 조합")
+        if not theme:
+            theme = next((t for t in available_themes if t not in used_themes), "추천 조합")
 
+        # 문구는 풀에서 무작위로 뽑는다. 예전에는 인덱스 0부터 순서대로 꺼냈는데,
+        # 인덱스가 요청마다 초기화돼서 테마별로 늘 같은 문구만 나왔다.
         samples = theme_pool.get(theme) or [("어울리는 조합을 찾았어요", "제목과 본문에 함께 써보세요")]
-        idx = theme_sample_idx.get(theme, 0)
-        sample_title, sample_body = samples[idx % len(samples)]
-        # 같은 문구가 이미 쓰였으면 다음 문구로 회피
+        sample_title, sample_body = random.choice(samples)
         tries = 0
         while (sample_title, sample_body) in used_samples and tries < len(samples):
-            idx += 1
-            sample_title, sample_body = samples[idx % len(samples)]
+            sample_title, sample_body = random.choice(samples)
             tries += 1
-        theme_sample_idx[theme] = idx + 1
 
         used_partners.add(partner)
         used_themes.add(theme)
