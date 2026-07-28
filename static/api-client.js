@@ -163,6 +163,9 @@ function _fromServer(f) {
     sort_order: f.sort_order,
     meta: f.meta || {},
     like_count: f.like_count || 0,
+    // 저장(생성/수정) 응답에만 채워지는 웹폰트 검증 결과. 목록 조회에서는 항상 빈 배열.
+    webfontErrors: f.webfont_errors || [],
+    webfontWarnings: f.webfont_warnings || [],
   };
 }
 

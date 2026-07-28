@@ -621,20 +621,38 @@
             웹폰트 CDN 연결 (선택) <span class="meta-sub">— Google Fonts 등에 있는 폰트는 파일 업로드 없이 이 방식으로 등록할 수 있어요</span>
           </label>
         </div>
+        <div class="field-hint" style="margin-bottom:10px">
+          <b>가장 쉬운 방법</b> — 아래 <b>CSS URL</b> 칸에 주소를 붙여넣고
+          <b>“주소 확인하고 자동 채우기”</b>를 누르세요. 폰트 이름과 굵기를 알아서 채워 드려요.
+          <br>Google Fonts 폰트라면 이름만 입력하고 “CSS URL 자동 생성”을 눌러도 됩니다.
+        </div>
+
+        <div class="meta-label">CSS URL <span class="meta-sub">— Google Fonts, 눈누, 제작사 공식 CDN 등 어떤 주소든 됩니다</span></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+          <input type="text" id="fmWebfontCssUrl" placeholder="예: https://statics.goorm.io/fonts/GoormSans/v1.0.0/GoormSans.min.css" style="flex:1;min-width:220px;height:38px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 10px;font-size:12.5px;background:var(--bg-card);color:var(--text-primary);font-family:inherit">
+          <button type="button" class="btn-secondary" id="fmWebfontCheckBtn" onclick="verifyWebfontUrl()">주소 확인하고 자동 채우기</button>
+        </div>
+
+        <!-- 확인 결과 안내 (JS가 채움) -->
+        <div id="fmWebfontResult" style="display:none;margin-bottom:10px"></div>
+
         <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px">
           <div style="flex:1;min-width:180px">
-            <div class="meta-label">Google Fonts 폰트 이름</div>
-            <input type="text" id="fmWebfontName" placeholder="예: Poppins" oninput="onWebfontNameInput()">
+            <div class="meta-label">폰트 이름 (CSS에 적힌 이름 그대로)</div>
+            <input type="text" id="fmWebfontName" placeholder="예: Goorm Sans" oninput="onWebfontNameInput()">
           </div>
           <button type="button" class="btn-secondary" onclick="autoFillWebfontUrl()">CSS URL 자동 생성</button>
         </div>
-        <div class="meta-label">CSS URL</div>
-        <input type="text" id="fmWebfontCssUrl" placeholder="https://fonts.googleapis.com/css2?family=...&display=swap" style="width:100%;height:38px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 10px;font-size:12.5px;background:var(--bg-card);color:var(--text-primary);font-family:inherit;margin-bottom:10px">
+
         <div class="meta-label" style="margin-bottom:6px">사용 가능한 굵기</div>
         <div id="fmWebfontWeights" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">
           <!-- JS로 100~900 체크박스 렌더링 -->
         </div>
-        <div class="field-hint">폰트 이름을 입력하고 "CSS URL 자동 생성"을 누르면 표준 Google Fonts 주소가 채워져요. 다른 CDN(예: 눈누·자체 호스팅)이면 URL을 직접 입력해도 돼요. 굵기는 실제 Google Fonts 페이지에서 제공하는 굵기만 체크해주세요 — 없는 굵기를 체크하면 브라우저가 비슷하게 흉내만 냅니다.</div>
+        <div class="field-hint">
+          ⚠️ <b>폰트 이름은 화면에 보여줄 한글 이름이 아니라, CSS 파일 안에 적힌 이름이어야 합니다.</b>
+          (예: 구름산스 → <code>Goorm Sans</code>) 이름이 한 글자라도 다르면 폰트가 적용되지 않고
+          굵기가 전부 똑같아 보입니다. “주소 확인하고 자동 채우기”를 쓰면 이 값을 알아서 맞춰 줍니다.
+        </div>
       </div>
 
       <div class="field">
@@ -1399,6 +1417,7 @@ function openFontModal(){
   document.getElementById('fmWebfontName').value = '';
   document.getElementById('fmWebfontCssUrl').value = '';
   renderWebfontWeightCheckboxes([]);
+  clearWebfontResult();
   // 새 폰트: 카테고리 선택 전엔 빈 메타로 시작 (사용자가 카테고리 선택하면 자동 채워짐)
   fmMeta = inferMetaFromTags([]);  // 기본값으로 비어있는 메타
   fmMetaAuto = JSON.parse(JSON.stringify(fmMeta));
@@ -1430,6 +1449,7 @@ function editFont(id){
   document.getElementById('fmWebfontName').value = f.webfontFamily || '';
   document.getElementById('fmWebfontCssUrl').value = f.webfontCssUrl || '';
   renderWebfontWeightCheckboxes(f.webfontWeights || []);
+  clearWebfontResult();
   // 기존 메타가 있으면 그것 사용, 없으면 카테고리로부터 추론
   if(f.meta){
     fmMeta = JSON.parse(JSON.stringify(f.meta));
@@ -1477,6 +1497,87 @@ function getCheckedWebfontWeights(){
 
 function onWebfontNameInput(){
   // 이름 입력 중에는 별도 동작 없음 — "CSS URL 자동 생성" 버튼을 눌러야 채워짐
+}
+
+/* CSS 주소를 실제로 열어보고 → 폰트 이름·굵기를 자동으로 채운다.
+   예전에는 이름을 손으로 적어야 했는데, CSS 안에 적힌 이름과 한 글자라도 다르면
+   폰트가 적용되지 않고 굵기가 전부 똑같아 보이는 문제가 있었다. (구름산스 사례) */
+function clearWebfontResult(){
+  const box = document.getElementById('fmWebfontResult');
+  if(box){ box.style.display = 'none'; box.innerHTML = ''; }
+}
+
+function _webfontResultBox(html, tone){
+  const box = document.getElementById('fmWebfontResult');
+  const color = tone === 'ok' ? 'var(--ok,#1A8A3A)' : tone === 'warn' ? '#B8790A' : 'var(--danger,#C8281F)';
+  const bg    = tone === 'ok' ? 'rgba(26,138,58,.08)' : tone === 'warn' ? 'rgba(184,121,10,.08)' : 'rgba(200,40,31,.08)';
+  box.style.display = 'block';
+  box.innerHTML = `<div style="border:1px solid ${color};background:${bg};border-radius:var(--radius-sm);padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--text-primary)">${html}</div>`;
+}
+
+async function verifyWebfontUrl(){
+  const url = document.getElementById('fmWebfontCssUrl').value.trim();
+  if(!url){ showToast('CSS URL을 먼저 붙여넣어 주세요'); return; }
+
+  const btn = document.getElementById('fmWebfontCheckBtn');
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = '확인 중…';
+  _webfontResultBox('주소를 확인하고 있어요…', 'warn');
+
+  try {
+    const r = await apiFetch('/fonts/webfont-check', {
+      method: 'POST',
+      body: {
+        webfont_family: document.getElementById('fmWebfontName').value.trim(),
+        webfont_css_url: url,
+        webfont_weights: getCheckedWebfontWeights(),
+      },
+    });
+    const info = r.info || {};
+
+    // 폰트를 아예 못 불러오는 경우 — 자동 채우기 불가
+    if(!info.face_count){
+      _webfontResultBox(
+        `<b>❌ 이 주소로는 폰트를 불러올 수 없어요.</b><br>` +
+        (r.errors || []).map(e => '· ' + e).join('<br>') +
+        `<br><br>주소가 정확한지 확인해 주세요. Google Fonts에 없는 폰트를 Google Fonts 주소로 ` +
+        `등록하면 이 오류가 납니다 — 제작사 공식 웹폰트 주소를 사용하세요.`, 'err');
+      showToast('폰트를 불러올 수 없는 주소예요');
+      return;
+    }
+
+    // 여기까지 왔으면 CSS는 정상 — 이름과 굵기를 자동으로 맞춰준다
+    const changes = [];
+    const nameEl = document.getElementById('fmWebfontName');
+    if(info.suggested_family && nameEl.value.trim() !== info.suggested_family){
+      changes.push(`폰트 이름을 <b>${info.suggested_family}</b> 로 채웠어요` +
+                   (nameEl.value.trim() ? ` (원래 값: ${nameEl.value.trim()})` : ''));
+      nameEl.value = info.suggested_family;
+    }
+    if((info.suggested_weights || []).length){
+      const before = getCheckedWebfontWeights().slice().sort((a,b)=>a-b).join(',');
+      const after  = info.suggested_weights.slice().sort((a,b)=>a-b).join(',');
+      if(before !== after){
+        renderWebfontWeightCheckboxes(info.suggested_weights);
+        changes.push(`실제 제공하는 굵기 <b>${info.suggested_weights.join(', ')}</b> 만 체크했어요`);
+      }
+    }
+
+    const head = `<b>✅ 폰트를 정상적으로 불러왔어요.</b> ` +
+                 `(CSS 이름: ${(info.css_families || []).join(', ')} / 굵기: ${(info.css_weights || []).join(', ')})`;
+    _webfontResultBox(
+      head + (changes.length ? '<br>' + changes.map(c => '· ' + c).join('<br>') +
+              '<br><br>이제 아래 <b>저장</b>을 누르면 적용됩니다.'
+            : '<br>· 입력하신 값이 이미 정확해요.'),
+      'ok');
+    showToast(changes.length ? '확인 완료 — 값을 자동으로 채웠어요' : '확인 완료 — 문제 없어요');
+
+  } catch(e) {
+    _webfontResultBox(`<b>❌ 확인하지 못했어요.</b><br>· ${e.message || e}`, 'err');
+    showToast('확인 중 오류가 났어요');
+  } finally {
+    btn.disabled = false; btn.textContent = label;
+  }
 }
 
 function autoFillWebfontUrl(){
@@ -1859,6 +1960,29 @@ async function saveFont(){
       fileUploadError = e.message || '알 수 없는 오류';
       console.error('파일 업로드 실패:', e);
     }
+  }
+
+  // 웹폰트를 연결했는데 실제로는 적용되지 않는 상태라면, 모달을 닫지 않고 알려준다.
+  // (확인 버튼을 안 누르고 바로 저장한 경우의 안전망 — 저장 자체는 이미 끝났다)
+  const wfErrors   = (saved && saved.webfontErrors)   || [];
+  const wfWarnings = (saved && saved.webfontWarnings) || [];
+  if(wfErrors.length){
+    editingId = saved.id;   // 이어서 고칠 수 있도록 수정 모드 유지
+    _webfontResultBox(
+      `<b>❌ 저장은 됐지만, 이 설정으로는 웹폰트가 적용되지 않아요.</b><br>` +
+      wfErrors.map(m => '· ' + m).join('<br>') +
+      `<br><br>위 <b>주소 확인하고 자동 채우기</b> 버튼을 누른 뒤 다시 저장해 주세요.`, 'err');
+    showToast('저장했지만 웹폰트가 적용되지 않아요 — 확인이 필요해요');
+    await refresh();
+    return;
+  }
+  if(wfWarnings.length){
+    _webfontResultBox(
+      `<b>⚠️ 저장했어요. 다만 확인할 게 있어요.</b><br>` +
+      wfWarnings.map(m => '· ' + m).join('<br>'), 'warn');
+    showToast('저장했어요 — 굵기 설정을 확인해 주세요');
+    await refresh();
+    return;
   }
 
   closeFontModal();

@@ -1,14 +1,23 @@
 """폰트 CRUD API"""
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from ..database import get_db
 from ..models import Font, Tag, FontTag, FontPairing
 from ..auth import require_password_changed
 from ..schemas import FontCreate, FontUpdate, FontOut, FontReorderRequest
+from ..webfont_check import check_webfont
 
 router = APIRouter(prefix="/api/fonts", tags=["fonts"])
+
+
+class WebfontCheckRequest(BaseModel):
+    """어드민이 저장 전에 웹폰트 등록값을 미리 검사할 때 쓰는 입력."""
+    webfont_family: Optional[str] = None
+    webfont_css_url: Optional[str] = None
+    webfont_weights: List[int] = Field(default_factory=list)
 
 
 def _paired_font_ids(db: Session) -> set:
@@ -53,6 +62,26 @@ def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
     )
 
 
+def _attach_webfont_check(font: Font, out: FontOut) -> FontOut:
+    """웹폰트로 등록된 폰트면 저장 직후 실제 CSS를 확인해 경고를 응답에 담는다.
+
+    검증 실패가 저장을 막지는 않는다 — 외부 CDN이 잠깐 죽었다고 폰트 등록 자체가
+    불가능해지면 곤란하므로, 어드민에게 알리되 저장은 그대로 진행한다.
+    """
+    if not (font.webfont_css_url or font.webfont_family):
+        return out
+    try:
+        result = check_webfont(
+            font.webfont_family, font.webfont_css_url,
+            _parse_webfont_weights(font.webfont_weights),
+        )
+        out.webfont_errors = result["errors"]
+        out.webfont_warnings = result["warnings"]
+    except Exception:  # noqa: BLE001
+        pass
+    return out
+
+
 def _resolve_tags(db: Session, tag_names: list) -> List[Tag]:
     """카테고리 이름 배열 → Tag 객체 배열. 없는 카테고리는 자동 생성."""
     tags = []
@@ -77,6 +106,58 @@ def list_fonts(db: Session = Depends(get_db)):
     fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
     paired = _paired_font_ids(db)
     return [_to_out(f, paired) for f in fonts]
+
+
+# ⚠️ 아래 두 경로는 반드시 `/{font_id}` 보다 먼저 선언해야 한다.
+#    FastAPI는 선언 순서대로 매칭하므로, 뒤에 두면 "webfont-audit"을 font_id(int)로
+#    파싱하려다 422를 낸다.
+
+@router.post("/webfont-check")
+def webfont_check(
+    payload: WebfontCheckRequest,
+    _admin = Depends(require_password_changed),
+) -> dict:
+    """저장 전에 웹폰트 등록값이 실제로 동작하는지 검사한다 (DB 변경 없음).
+
+    CSS를 실제로 받아와서 @font-face 존재 여부, font-family 일치, 굵기 제공 여부를
+    확인해 errors/warnings로 돌려준다.
+    """
+    return check_webfont(
+        payload.webfont_family, payload.webfont_css_url, payload.webfont_weights,
+    )
+
+
+@router.get("/webfont-audit")
+def webfont_audit(
+    db: Session = Depends(get_db),
+    _admin = Depends(require_password_changed),
+) -> dict:
+    """웹폰트로 등록된 폰트를 전수 점검한다.
+
+    등록 시점 검증이 없던 때 들어간 잘못된 값을 찾아내기 위한 관리자용 도구.
+    """
+    rows = (
+        db.query(Font)
+        .filter(Font.webfont_css_url.isnot(None))
+        .order_by(Font.sort_order, Font.id)
+        .all()
+    )
+    items, broken = [], 0
+    for f in rows:
+        result = check_webfont(
+            f.webfont_family, f.webfont_css_url, _parse_webfont_weights(f.webfont_weights),
+        )
+        if not result["ok"] or result["warnings"]:
+            broken += 1
+        items.append({
+            "id": f.id,
+            "name": f.name,
+            "webfont_family": f.webfont_family,
+            "webfont_css_url": f.webfont_css_url,
+            "webfont_weights": _parse_webfont_weights(f.webfont_weights),
+            **result,
+        })
+    return {"checked": len(items), "problem_count": broken, "items": items}
 
 
 @router.get("/{font_id}", response_model=FontOut)
@@ -118,7 +199,7 @@ def create_font(
     db.add(font)
     db.commit()
     db.refresh(font)
-    return _to_out(font)
+    return _attach_webfont_check(font, _to_out(font))
 
 
 @router.patch("/{font_id}", response_model=FontOut)
@@ -149,7 +230,7 @@ def update_font(
         setattr(font, k, v)
     db.commit()
     db.refresh(font)
-    return _to_out(font)
+    return _attach_webfont_check(font, _to_out(font))
 
 
 @router.delete("/{font_id}", status_code=status.HTTP_204_NO_CONTENT)
