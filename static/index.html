@@ -2648,8 +2648,17 @@ function ensureFontLoaded(id){
     return;
   }
   const family = `FFP-${String(id).padStart(3,'0')}`;
-  const url = `/api/fonts/${id}/file`;
-  // @font-face 규칙을 누적 추가
+  // 어드민에서 지정한 '대표 굵기'에 해당하는 실제 파일을 요청한다.
+  //
+  // 예전에는 weight 파라미터 없이 /api/fonts/{id}/file 만 불러서, 여러 굵기를 등록한
+  // 폰트(네오현대·G마켓 산스 등)에서 대표 굵기를 바꿔도 메인 화면이 그대로였다.
+  // font-weight를 CSS로 올리는 방식은 브라우저가 가짜 볼드를 합성해 버리므로,
+  // 굵기 자체를 CSS로 흉내내지 않고 그 굵기의 woff2 파일을 직접 받아온다.
+  // 해당 굵기 파일이 없으면 서버가 대표 파일로 폴백하므로 안전하다.
+  const pw = (f && f.primaryWeight) || 0;
+  const url = pw ? `/api/fonts/${id}/file?weight=${pw}` : `/api/fonts/${id}/file`;
+  // 받아온 파일을 'normal'로 선언해 둔다. 화면 요소는 기본 굵기로 그려지므로
+  // 합성 없이 이 파일이 그대로 쓰인다.
   _fontStyleEl.appendChild(document.createTextNode(
     `@font-face{font-family:'${family}';src:url('${url}') format('woff2');font-display:swap;font-weight:normal;font-style:normal}`
   ));
