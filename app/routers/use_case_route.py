@@ -6,9 +6,8 @@ HTML에 박혀 있어야 검색엔진이 허브를 각각 다른 페이지로 �
 JS로 채우면 색인이 안 되거나 전부 같은 페이지로 취급된다 — 이 페이지들을
 만드는 목적 자체가 그거라서 SSR이 필수다.
 
-추천 4종의 폰트명과 추천 이유도 서버에서 렌더한다(#picksSsr). JS가 뜨면
-미리보기가 들어간 카드로 교체되지만, 크롤러와 JS 차단 환경에서는 정적
-목록이 그대로 남는다.
+추천 폰트도 서버에서 렌더한다(#picksSsr). JS가 뜨면 미리보기가 들어간
+카드로 교체되지만, 크롤러와 JS 차단 환경에서는 정적 목록이 그대로 남는다.
 """
 import html as _html
 import json
@@ -40,15 +39,19 @@ def use_case_page(slug: str, db: Session = Depends(get_db)):
         # 없는 허브는 홈으로 — soft 404 방지 (wisefont.py와 동일한 처리)
         return RedirectResponse(url="/", status_code=302)
 
-    picks = [f for f in uc.fonts if f.font is not None]
-    pick_ids = {f.font_id for f in picks}
+    # 1~4위만 추천 이유를 단 카드로 노출하고, 5위 이후는 목록으로 내려간다.
+    PICK_CARD_LIMIT = 4
+    linked = [f for f in uc.fonts if f.font is not None]
+    picks = linked[:PICK_CARD_LIMIT]
+    rest = linked[PICK_CARD_LIMIT:]
+    linked_ids = {f.font_id for f in linked}
 
-    more_count = 0
+    more_count = len(rest)
     if uc.tag_id:
         q = db.query(Font).join(Font.tags).filter(Tag.id == uc.tag_id)
-        if pick_ids:
-            q = q.filter(~Font.id.in_(pick_ids))
-        more_count = q.count()
+        if linked_ids:
+            q = q.filter(~Font.id.in_(linked_ids))
+        more_count += q.count()
     total = len(picks) + more_count
 
     url = f"{BASE_URL}/use/{slug}"
@@ -94,6 +97,16 @@ def use_case_page(slug: str, db: Session = Depends(get_db)):
         f' — {_esc(p.reason)}</li>'
         for p in picks
     ) + "</ul>"
+    # 5위 이후도 이름만이라도 HTML에 남긴다 — 크롤러가 이 페이지에서
+    # 어떤 폰트를 다루는지 알 수 있어야 하고, JS 차단 환경에서도 목록이 보여야 한다.
+    if rest:
+        picks_ssr += (
+            '<p class="ssr-list" style="margin-top:10px">그 밖에 '
+            + ", ".join(
+                f'<a href="/font/{r.font_id}">{_esc(r.font.name)}</a>' for r in rest
+            )
+            + " 등이 있습니다.</p>"
+        )
 
     phrase_chips = "".join(
         f'<button type="button" class="chip" data-text="{_esc(ph.text)}">{_esc(ph.text)}</button>'
