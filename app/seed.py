@@ -400,9 +400,22 @@ def _seed_use_cases(db: Session):
       다르면 경고를 남긴다 (연결은 id 기준이라 끊어지지 않는다)
     - 존재하지 않는 font_id는 건너뛰되 반드시 로그를 남긴다 — 조용히 비는 허브가
       생기면 원인 추적에 시간이 든다
-    - 어드민 용도 관리 탭 도입 후에는 버전을 올리지 말 것 (수동 편집 데이터 보호)
+    - 어드민에서 편집한 이력이 있으면 시드는 아예 손대지 않는다 (아래 가드)
     """
     from .models import UseCase, UseCaseFont, UseCasePhrase
+
+    # 어드민에서 한 번이라도 편집했다면 시드는 절대 덮어쓰지 않는다.
+    # 버전만 올리면 지우고 다시 넣는 구조라, 이 방어가 없으면 운영자가
+    # 다듬어 놓은 문구가 배포 한 번에 통째로 사라진다.
+    edited = db.query(AppMeta).filter(AppMeta.key == "use_case_admin_edited").first()
+    if edited and edited.value == "1":
+        meta = db.query(AppMeta).filter(AppMeta.key == "use_case_seed_version").first()
+        if not meta or meta.value != USE_CASE_SEED_VERSION:
+            print(
+                "[seed] 용도 허브 시드 건너뜀 — 어드민에서 편집된 이력이 있어 덮어쓰지 않습니다. "
+                "시드로 되돌리려면 app_meta의 use_case_admin_edited 행을 지우세요."
+            )
+        return
 
     meta = db.query(AppMeta).filter(AppMeta.key == "use_case_seed_version").first()
     if meta and meta.value == USE_CASE_SEED_VERSION:
