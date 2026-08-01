@@ -34,10 +34,12 @@ def init_db():
     _ensure_primary_weight_column()
     _ensure_webfont_columns()
     _ensure_is_pick_column()
+    _ensure_tag_axis_column()
     db = SessionLocal()
     try:
         _seed_admin(db)
         _seed_fonts_and_tags(db)
+        _migrate_tag_axes(db)
         _seed_pairings(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
         from .routers.files import build_font_resolution
@@ -145,6 +147,135 @@ def _ensure_is_pick_column():
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE fonts ADD COLUMN is_pick BOOLEAN NOT NULL DEFAULT 0"))
     print("[migrate] fonts.is_pick 컬럼 추가 완료")
+
+
+def _ensure_tag_axis_column():
+    """tags 테이블에 axis 컬럼('use'|'shape'|'mood')이 없으면 추가.
+
+    태그 3축 분리(용도/모양/느낌)의 기반 — 레일 필터는 shape만, 용도 허브는 use만 쓰게 된다.
+    """
+    from sqlalchemy import text, inspect
+    inspector = inspect(engine)
+    if "tags" not in inspector.get_table_names():
+        return  # create_all이 이번에 만들었음
+    columns = {col["name"] for col in inspector.get_columns("tags")}
+    if "axis" in columns:
+        return  # 이미 있음
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE tags ADD COLUMN axis VARCHAR(10) NULL"))
+    print("[migrate] tags.axis 컬럼 추가 완료")
+
+
+# ── 태그 정리 마이그레이션 데이터 (2026-08 태그 3축 분리) ─────────────────
+# 구 태그명 → 신 태그명. 신 태그가 이미 있으면 병합(폰트 연결 이전 후 구 태그 삭제).
+_TAG_RENAMES = {
+    "또박또박 손글씨": "손글씨",
+    # 아래 4건은 운영 DB에선 이미 어드민에서 이관 완료 — 신규 설치(seed) 경로 대비용
+    "가독성 좋은 고딕": "제목-본문용 고딕",
+    "꽉찬고딕": "네모틀 고딕",
+    "부드러운 명조": "부드러운 바탕",
+    "부드러운 굴림": "제목용 굴림",
+}
+
+# 태그명 → 축. 여기 없는 태그(향후 어드민 신규 생성 등)는 NULL 유지.
+_TAG_AXIS = {
+    # use: 용도 허브로 승격 예정
+    "유튜브 썸네일 추천": "use", "브이로그 자막용": "use", "카드뉴스용": "use",
+    "UI/UX/Web": "use", "로고디자인": "use", "시선을 끄는 제목용": "use",
+    # shape: 레일 필터 유지
+    "제목-본문용 고딕": "shape", "네모틀 고딕": "shape", "제목용 굴림": "shape",
+    "부드러운 바탕": "shape", "독특한 세리프": "shape", "디스플레이": "shape",
+    "장식": "shape", "손글씨": "shape", "캘리그라피": "shape", "펜시": "shape",
+    "디자인 영어": "shape", "본문용 영어": "shape",
+    # mood: 추천 매칭 축
+    "귀여운": "mood",
+}
+
+# 모양(shape) 태그가 하나도 없는 폰트 보완 — 2026-08 실서버 전수 확인분.
+_SHAPE_BACKFILL = {
+    "구름산스": "제목-본문용 고딕",
+    "KoPub돋움": "제목-본문용 고딕",
+    "메모먼트 꾹꾹체": "손글씨",
+    "카페 24 빛나는별": "손글씨",
+    "창원단감아삭체": "디스플레이",
+    "넥슨 배찌체": "손글씨",
+    "메이플스토리": "손글씨",
+    "쿠키런": "제목용 굴림",
+    "수박양체": "손글씨",
+    "온글잎 박다현체": "손글씨",
+    "카페24 고운밤": "손글씨",
+    "핑크퐁 아기상어체": "손글씨",
+    "카페24 슈퍼매직": "손글씨",
+    "제주 돌담체": "손글씨",
+}
+
+
+def _migrate_tag_axes(db: Session):
+    """태그 3축 분리 마이그레이션 (멱등).
+
+    ① 태그 개명/병합(_TAG_RENAMES) ② axis 부여(_TAG_AXIS)
+    ③ 모양 태그 고아 폰트 보완(_SHAPE_BACKFILL — 이미 모양 태그가 있으면 건너뜀)
+    """
+    from .models import Tag, Font
+
+    # ① 개명 또는 병합
+    for old, new in _TAG_RENAMES.items():
+        old_tag = db.query(Tag).filter(Tag.name == old).first()
+        if not old_tag:
+            continue
+        new_tag = db.query(Tag).filter(Tag.name == new).first()
+        if new_tag is None:
+            old_tag.name = new
+            print(f"[migrate] 태그 개명: {old} → {new}")
+        else:
+            for f in list(old_tag.fonts):
+                if new_tag not in f.tags:
+                    f.tags.append(new_tag)
+                f.tags.remove(old_tag)
+            db.delete(old_tag)
+            print(f"[migrate] 태그 병합: {old} → {new}")
+    db.flush()
+
+    # ② axis 부여 — raw SQL 사용.
+    # (모델에 axis 속성이 아직 배포되지 않은 중간 상태에서도 동작해야 하므로
+    #  ORM 속성 접근 대신 UPDATE 문으로 처리. 단일 파일 순차 배포 안전성.)
+    from sqlalchemy import text
+    changed = 0
+    for tag_name, axis in _TAG_AXIS.items():
+        result = db.execute(
+            text("UPDATE tags SET axis = :axis WHERE name = :name AND (axis IS NULL OR axis != :axis)"),
+            {"axis": axis, "name": tag_name},
+        )
+        changed += result.rowcount or 0
+    if changed:
+        print(f"[migrate] tags.axis 부여: {changed}건")
+
+    # ③ 모양 고아 보완 (ORM은 name/fonts 관계만 사용 — axis는 SQL로 후처리)
+    shape_names = {n for n, a in _TAG_AXIS.items() if a == "shape"}
+    tag_by_name = {t.name: t for t in db.query(Tag).all()}
+    fixed = 0
+    for font_name, shape_name in _SHAPE_BACKFILL.items():
+        font = db.query(Font).filter(Font.name == font_name).first()
+        if not font:
+            continue
+        if {t.name for t in font.tags} & shape_names:
+            continue  # 이미 모양 태그 보유
+        shape_tag = tag_by_name.get(shape_name)
+        if shape_tag is None:
+            shape_tag = Tag(name=shape_name)
+            db.add(shape_tag)
+            db.flush()
+            db.execute(
+                text("UPDATE tags SET axis = 'shape' WHERE name = :name"),
+                {"name": shape_name},
+            )
+            tag_by_name[shape_name] = shape_tag
+        font.tags.append(shape_tag)
+        fixed += 1
+    if fixed:
+        print(f"[migrate] 모양 고아 보완: {fixed}건")
+
+    db.commit()
 
 
 def _seed_admin(db: Session):
