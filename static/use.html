@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{UC_TITLE}}</title>
+<meta name="description" content="{{UC_DESC}}">
+<link rel="canonical" href="{{UC_CANONICAL}}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{UC_TITLE}}">
+<meta property="og:description" content="{{UC_DESC}}">
+<meta property="og:url" content="{{UC_CANONICAL}}">
+<meta property="og:image" content="{{UC_OG_IMAGE}}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{{UC_OG_IMAGE}}">
+{{UC_JSONLD}}
+<link rel="icon" type="image/png" href="/favicon.png">
+<meta name="google-adsense-account" content="ca-pub-3337261318293302">
+<link rel="stylesheet" href="/static/header.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<script>
+/* 렌더 전에 저장된 테마를 먼저 적용 — 새로고침 시 흰 화면 번쩍임 방지 */
+(function(){try{var t=localStorage.getItem('ffp-theme');
+if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3337261318293302"
+     crossorigin="anonymous"></script>
+<style>
+/* ── 폰트픽 라이트 토큰 (index.html과 동일) ───────────── */
+:root{
+  --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
+  --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+  --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+  --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+  --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
+  --mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+  --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+  --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+  --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+  --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]):not([data-theme="dark"]){
+    --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+    --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+    --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+    --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+    --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+    color-scheme:dark;
+  }
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+  background:var(--bg);color:var(--text-primary);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px 80px}
+
+/* 빵부스러기 */
+.crumb{font-size:12px;color:var(--text-muted);padding:20px 0 0;display:flex;gap:6px;flex-wrap:wrap}
+.crumb a{text-decoration:none}
+.crumb a:hover{color:var(--accent)}
+
+/* 히어로 */
+.hero{padding:18px 0 26px;border-bottom:1px solid var(--border);margin-bottom:28px}
+.hero h1{font-size:30px;font-weight:900;letter-spacing:-.8px;line-height:1.25}
+.hero .sub{margin-top:8px;font-size:15px;color:var(--text-secondary)}
+.hero .count{margin-top:12px;display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;
+  color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:3px 8px}
+
+/* 브리핑 */
+.brief{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+.brief-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 20px}
+.brief-box h2{font-size:13px;font-weight:800;color:var(--accent);margin-bottom:8px;letter-spacing:-.2px}
+.brief-box p{font-size:14px;color:var(--text-secondary);line-height:1.75}
+@media(max-width:720px){.brief{grid-template-columns:1fr}}
+
+/* 문구 칩 */
+.phrases{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:26px}
+.phrases .label{font-size:12px;font-weight:700;color:var(--text-muted);margin-right:2px}
+.chip{font-size:13px;font-weight:700;padding:7px 14px;border-radius:20px;border:1px solid var(--border);
+  background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:all .15s}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* 섹션 제목 */
+.sec-head{display:flex;align-items:baseline;gap:10px;margin:0 0 16px}
+.sec-head h2{font-size:19px;font-weight:800;letter-spacing:-.4px}
+.sec-head .note{font-size:12px;color:var(--text-muted)}
+
+/* 추천 카드 */
+.picks{display:flex;flex-direction:column;gap:14px;margin-bottom:40px}
+.pick{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);
+  padding:20px 22px;transition:all .15s;text-decoration:none;display:block}
+.pick:hover{border-color:var(--border-hover);box-shadow:var(--shadow-hover)}
+.pick-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.rank{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--accent);
+  border-radius:2px;padding:2px 7px;flex-shrink:0}
+.pick-name{font-size:17px;font-weight:800;letter-spacing:-.3px}
+.pick-maker{font-size:12px;color:var(--text-muted)}
+.pick-preview{font-size:34px;line-height:1.45;padding:14px 0 12px;color:var(--text-primary);
+  word-break:keep-all;min-height:64px}
+.pick-reason{font-size:13.5px;color:var(--text-secondary);line-height:1.7;
+  border-top:1px solid var(--border);padding-top:12px}
+
+/* 더보기 목록 */
+.more-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.more-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);
+  padding:16px 18px;text-decoration:none;display:block;transition:all .15s}
+.more-card:hover{border-color:var(--border-hover);box-shadow:var(--shadow-card)}
+.more-name{font-size:13px;font-weight:800;margin-bottom:6px}
+.more-preview{font-size:22px;line-height:1.4;color:var(--text-secondary);word-break:keep-all}
+.more-empty{font-size:13px;color:var(--text-muted);padding:20px 0}
+
+/* 다른 용도 */
+.others{margin-top:48px;padding-top:28px;border-top:1px solid var(--border)}
+.others h2{font-size:15px;font-weight:800;margin-bottom:14px}
+.other-links{display:flex;gap:8px;flex-wrap:wrap}
+.other-links a{font-size:13px;font-weight:700;padding:8px 14px;border-radius:20px;
+  border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);text-decoration:none;transition:all .15s}
+.other-links a:hover{border-color:var(--accent);color:var(--accent)}
+
+/* JS 없이 볼 때의 정적 목록 — 크롤러와 JS 차단 환경 모두를 위한 것 */
+.ssr-list{font-size:14px;color:var(--text-secondary);line-height:1.9}
+.ssr-list li{margin-left:18px}
+
+footer{border-top:1px solid var(--border);margin-top:60px;padding:24px 0;text-align:center;
+  font-size:12px;color:var(--text-muted)}
+</style>
+</head>
+<body>
+
+<!--FFP_HEADER-->
+
+<div class="wrap">
+
+  <nav class="crumb">
+    <a href="/">폰트픽</a><span>›</span><span>{{UC_H1}}</span>
+  </nav>
+
+  <header class="hero">
+    <h1>{{UC_H1}}</h1>
+    <p class="sub">{{UC_SUBTITLE}}</p>
+    <span class="count">{{UC_COUNT}}종</span>
+  </header>
+
+  <section class="brief">
+    <div class="brief-box">
+      <h2>이런 기준으로 골랐어요</h2>
+      <p>{{UC_CRITERIA}}</p>
+    </div>
+    <div class="brief-box">
+      <h2>이렇게 쓰면 좋아요</h2>
+      <p>{{UC_HOWTO}}</p>
+    </div>
+  </section>
+
+  <div class="phrases" id="phrases">
+    <span class="label">미리보기 문구</span>
+    {{UC_PHRASE_CHIPS}}
+  </div>
+
+  <div class="sec-head">
+    <h2>추천 폰트</h2>
+    <span class="note">폰트픽이 직접 고른 {{UC_H1_SHORT}} 폰트</span>
+  </div>
+
+  <!-- 서버가 렌더한 정적 목록. JS가 뜨면 아래 #picks로 대체된다.
+       크롤러와 JS 차단 환경에서도 추천 폰트와 이유가 그대로 읽혀야 하므로 필수. -->
+  <div id="picksSsr">
+    {{UC_PICKS_SSR}}
+  </div>
+  <div class="picks" id="picks" style="display:none"></div>
+
+  <div id="moreSection" style="display:none">
+    <div class="sec-head">
+      <h2>{{UC_H1_SHORT}} 폰트 더 보기</h2>
+      <span class="note" id="moreCount"></span>
+    </div>
+    <div class="more-grid" id="moreGrid"></div>
+  </div>
+
+  <section class="others">
+    <h2>다른 용도로 찾기</h2>
+    <div class="other-links">{{UC_OTHERS}}</div>
+  </section>
+
+  <footer>© (주)와이즈폰트 · 폰트픽</footer>
+</div>
+
+<script>
+(function(){
+  var SLUG = "{{UC_SLUG}}";
+  var fontStyleEl = document.createElement('style');
+  document.head.appendChild(fontStyleEl);
+  var loadedFile = {}, loadedCss = {};
+
+  /* 폰트 미리보기 로딩 — font.html의 방식을 그대로 따른다.
+     웹폰트 CDN 소스가 있으면 CSS를 링크하고, 없으면 로컬 woff2를 @font-face로 등록. */
+  function stackOf(f){
+    if (f.webfont_family && f.webfont_css_url){
+      if (!loadedCss[f.webfont_css_url]){
+        loadedCss[f.webfont_css_url] = true;
+        var l = document.createElement('link');
+        l.rel = 'stylesheet'; l.href = f.webfont_css_url;
+        document.head.appendChild(l);
+      }
+      return "'" + f.webfont_family + "'," + (f.stack || "'Nanum Gothic',sans-serif");
+    }
+    if (f.has_file){
+      if (!loadedFile[f.id]){
+        loadedFile[f.id] = true;
+        var fam = 'FFP-' + String(f.id).padStart(3,'0');
+        fontStyleEl.appendChild(document.createTextNode(
+          "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + f.id +
+          "/file') format('woff2');font-display:swap;font-weight:normal;font-style:normal}"
+        ));
+      }
+      return f.stack || "'Nanum Gothic',sans-serif";
+    }
+    return "'Nanum Gothic',sans-serif";
+  }
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  var currentPhrase = null;
+  var picksData = [], moreData = [];
+
+  function renderPicks(){
+    var el = document.getElementById('picks');
+    el.innerHTML = picksData.map(function(p){
+      var f = p.font;
+      var sample = currentPhrase || f.name;
+      return '<a class="pick" href="/font/' + f.id + '">' +
+        '<div class="pick-top">' +
+          '<span class="rank">' + p.rank + '</span>' +
+          '<span class="pick-name">' + esc(f.name) + '</span>' +
+          '<span class="pick-maker">' + esc(f.maker) + '</span>' +
+        '</div>' +
+        '<div class="pick-preview" style="font-family:' + stackOf(f) + '">' + esc(sample) + '</div>' +
+        '<div class="pick-reason">' + esc(p.reason) + '</div>' +
+      '</a>';
+    }).join('');
+    document.getElementById('picksSsr').style.display = 'none';
+    el.style.display = 'flex';
+  }
+
+  function renderMore(){
+    if (!moreData.length) return;
+    document.getElementById('moreCount').textContent = moreData.length + '종';
+    document.getElementById('moreGrid').innerHTML = moreData.map(function(f){
+      var sample = currentPhrase || f.name;
+      return '<a class="more-card" href="/font/' + f.id + '">' +
+        '<div class="more-name">' + esc(f.name) + '</div>' +
+        '<div class="more-preview" style="font-family:' + stackOf(f) + '">' + esc(sample) + '</div>' +
+      '</a>';
+    }).join('');
+    document.getElementById('moreSection').style.display = 'block';
+  }
+
+  document.getElementById('phrases').addEventListener('click', function(e){
+    var btn = e.target.closest('.chip');
+    if (!btn) return;
+    var wasOn = btn.classList.contains('on');
+    Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(c){ c.classList.remove('on'); });
+    if (wasOn){ currentPhrase = null; }
+    else { btn.classList.add('on'); currentPhrase = btn.getAttribute('data-text'); }
+    renderPicks(); renderMore();
+  });
+
+  fetch('/api/use-cases/' + SLUG)
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if (!d) return;
+      picksData = d.picks || [];
+      moreData = d.more || [];
+      renderPicks();
+      renderMore();
+    })
+    .catch(function(){ /* 실패해도 서버가 렌더한 정적 목록이 그대로 남는다 */ });
+})();
+</script>
+</body>
+</html>
