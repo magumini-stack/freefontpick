@@ -94,6 +94,8 @@ class Tag(Base):
     __tablename__ = "tags"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(50), nullable=False, unique=True)
+    # 태그 축: 'use'(용도) | 'shape'(모양) | 'mood'(느낌). NULL = 미분류
+    axis = Column(String(10), nullable=True)
     sort_order = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, server_default=func.now())
 
