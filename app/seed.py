@@ -41,6 +41,7 @@ def init_db():
         _seed_fonts_and_tags(db)
         _migrate_tag_axes(db)
         _seed_pairings(db)
+        _seed_use_cases(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
         from .routers.files import build_font_resolution
         build_font_resolution(db)
@@ -386,3 +387,94 @@ def _seed_pairings(db: Session):
         inserted += 1
     db.commit()
     print(f"[seed] 페어링 {inserted}개 삽입 (v{PAIRING_SEED_VERSION})" + (f", 매칭실패 {len(skipped)}건: {', '.join(skipped)}" if skipped else ""))
+
+
+from .use_case_data import USE_CASE_SEED, USE_CASE_SEED_VERSION
+
+
+def _seed_use_cases(db: Session):
+    """용도 허브 시드 삽입 (버전 관리).
+
+    - 저장된 use_case_seed_version과 현재 버전이 다르면 지우고 재삽입
+    - 폰트는 font_id로 연결하고, 시드에 적힌 이름과 실제 DB 폰트명을 대조해
+      다르면 경고를 남긴다 (연결은 id 기준이라 끊어지지 않는다)
+    - 존재하지 않는 font_id는 건너뛰되 반드시 로그를 남긴다 — 조용히 비는 허브가
+      생기면 원인 추적에 시간이 든다
+    - 어드민 용도 관리 탭 도입 후에는 버전을 올리지 말 것 (수동 편집 데이터 보호)
+    """
+    from .models import UseCase, UseCaseFont, UseCasePhrase
+
+    meta = db.query(AppMeta).filter(AppMeta.key == "use_case_seed_version").first()
+    if meta and meta.value == USE_CASE_SEED_VERSION:
+        return  # 최신 버전 시드 이미 적용됨
+
+    db.query(UseCasePhrase).delete()
+    db.query(UseCaseFont).delete()
+    db.query(UseCase).delete()
+    if meta is None:
+        meta = AppMeta(key="use_case_seed_version", value=USE_CASE_SEED_VERSION)
+        db.add(meta)
+    else:
+        meta.value = USE_CASE_SEED_VERSION
+
+    tags_by_name = {t.name: t for t in db.query(Tag).all()}
+    fonts_by_id = {f.id: f for f in db.query(Font).all()}
+
+    inserted = 0
+    missing_fonts = []
+    renamed_fonts = []
+    missing_tags = []
+
+    for i, uc in enumerate(USE_CASE_SEED):
+        tag_id = None
+        if uc["tag_name"]:
+            tag = tags_by_name.get(uc["tag_name"])
+            if tag is None:
+                missing_tags.append(f"{uc['slug']}←{uc['tag_name']}")
+            else:
+                tag_id = tag.id
+
+        row = UseCase(
+            slug=uc["slug"],
+            title=uc["title"],
+            subtitle=uc.get("subtitle", ""),
+            tag_id=tag_id,
+            criteria=uc.get("criteria", ""),
+            howto=uc.get("howto", ""),
+            is_active=True,
+            sort_order=(i + 1) * 10,
+        )
+        db.add(row)
+        db.flush()
+
+        for rank, (font_id, expected_name, reason) in enumerate(uc.get("fonts", []), start=1):
+            font = fonts_by_id.get(font_id)
+            if font is None:
+                missing_fonts.append(f"{uc['slug']}#{rank} id={font_id}({expected_name})")
+                continue
+            if font.name != expected_name:
+                renamed_fonts.append(f"id={font_id} 시드'{expected_name}' vs DB'{font.name}'")
+            db.add(UseCaseFont(
+                use_case_id=row.id,
+                font_id=font_id,
+                rank=rank,
+                reason=reason,
+            ))
+
+        for j, text_ in enumerate(uc.get("phrases", [])):
+            db.add(UseCasePhrase(
+                use_case_id=row.id,
+                text=text_,
+                sort_order=(j + 1) * 10,
+            ))
+        inserted += 1
+
+    db.commit()
+
+    print(f"[seed] 용도 허브 {inserted}개 삽입 (v{USE_CASE_SEED_VERSION})")
+    if missing_tags:
+        print(f"[seed] ⚠ 용도 허브 태그 미발견 {len(missing_tags)}건: {', '.join(missing_tags)}")
+    if missing_fonts:
+        print(f"[seed] ⚠ 용도 허브 폰트 미발견 {len(missing_fonts)}건: {', '.join(missing_fonts)}")
+    if renamed_fonts:
+        print(f"[seed] ℹ 폰트명 변경 감지 {len(renamed_fonts)}건 (id 연결이라 정상 동작): {', '.join(renamed_fonts)}")
