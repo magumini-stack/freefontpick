@@ -21,6 +21,8 @@ class TagUpdate(BaseModel):
 class TagOut(TagBase):
     id: int
     sort_order: int
+    # 'use' | 'shape' | 'mood' | None(미분류)
+    axis: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
 
