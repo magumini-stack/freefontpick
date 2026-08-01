@@ -9,7 +9,7 @@ import secrets
 from pathlib import Path
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
@@ -63,6 +63,27 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ─── API 응답 캐시 방지 ─────────────────────────────────────
+# 커스텀 도메인(freefontpick.co.kr) 앞단에서 /api/* GET 응답이 캐시되어,
+# 어드민에서 데이터를 고쳐도 사용자에게 옛 데이터가 나가는 문제가 있었다.
+# (2026-08 태그 axis 마이그레이션 때 원본 서버와 도메인 응답이 달랐던 건이 발단)
+#
+# 단, /api 아래에는 캐시가 이득인 바이너리 응답이 섞여 있으므로 제외한다:
+#   - /api/fonts/{id}/og-image.png : OG 이미지 (디스크 캐시 파일)
+#   - /api/fonts/{id}/file         : woff2 폰트 파일 (매 페이지뷰마다 재다운로드되면 치명적)
+_CACHE_EXEMPT_SUFFIXES = ("/og-image.png", "/file")
+
+
+@app.middleware("http")
+async def no_store_for_api(request: Request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith("/api/") and not path.endswith(_CACHE_EXEMPT_SUFFIXES):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
 
 # API 라우터 등록
 app.include_router(auth.router)
