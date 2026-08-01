@@ -229,3 +229,77 @@ class AppMeta(Base):
     __tablename__ = "app_meta"
     key = Column(String(50), primary_key=True)
     value = Column(String(200), nullable=False, default="")
+
+
+class UseCase(Base):
+    """용도 허브 — "어디에 쓰실 건가요?" 그리드에서 진입하는 페이지.
+
+    tag_id가 있으면 추천 4종 아래에 해당 태그의 전체 폰트 목록이 이어 붙고,
+    NULL이면 추천 4종만 노출된다. (신규 큐레이션 허브)
+    """
+    __tablename__ = "use_cases"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slug = Column(String(40), nullable=False, unique=True)
+    title = Column(String(60), nullable=False)
+    subtitle = Column(String(120), nullable=False, default="")
+    # 연결된 모양/용도 태그 (없으면 순수 큐레이션 허브)
+    tag_id = Column(Integer, ForeignKey("tags.id", ondelete="SET NULL"), nullable=True)
+    criteria = Column(Text, nullable=False, default="")   # 선정 기준
+    howto = Column(Text, nullable=False, default="")      # 활용 방법
+    is_active = Column(Boolean, nullable=False, default=True, server_default="1")
+    sort_order = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    tag = relationship("Tag", lazy="joined")
+    fonts = relationship(
+        "UseCaseFont",
+        back_populates="use_case",
+        cascade="all, delete-orphan",
+        order_by="UseCaseFont.rank",
+        lazy="selectin",
+    )
+    phrases = relationship(
+        "UseCasePhrase",
+        back_populates="use_case",
+        cascade="all, delete-orphan",
+        order_by="UseCasePhrase.sort_order",
+        lazy="selectin",
+    )
+
+
+class UseCaseFont(Base):
+    """용도 허브의 상단 추천 폰트 (rank 순).
+
+    font_id로 연결한다 — 이름 매칭은 어드민에서 폰트명을 바꾸는 순간
+    조용히 끊어지기 때문이다.
+    """
+    __tablename__ = "use_case_fonts"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    use_case_id = Column(Integer, ForeignKey("use_cases.id", ondelete="CASCADE"), nullable=False)
+    font_id = Column(Integer, ForeignKey("fonts.id", ondelete="CASCADE"), nullable=False)
+    rank = Column(Integer, nullable=False, default=0)
+    reason = Column(Text, nullable=False, default="")
+
+    use_case = relationship("UseCase", back_populates="fonts")
+    font = relationship("Font", lazy="joined")
+
+    __table_args__ = (
+        Index("idx_ucf_use_case", "use_case_id"),
+        Index("idx_ucf_font", "font_id"),
+    )
+
+
+class UseCasePhrase(Base):
+    """용도 허브의 샘플 문구 칩 — 미리보기에 바로 넣어볼 문장."""
+    __tablename__ = "use_case_phrases"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    use_case_id = Column(Integer, ForeignKey("use_cases.id", ondelete="CASCADE"), nullable=False)
+    text = Column(String(100), nullable=False)
+    sort_order = Column(Integer, nullable=False, default=0)
+
+    use_case = relationship("UseCase", back_populates="phrases")
+
+    __table_args__ = (
+        Index("idx_ucp_use_case", "use_case_id"),
+    )
