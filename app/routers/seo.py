@@ -58,6 +58,20 @@ def sitemap(db: Session = Depends(get_db)):
     except Exception:
         pass
 
+    # 용도 허브 (/use/{slug}) — 검색 진입을 노리는 핵심 랜딩 페이지
+    # 허브 목록은 DB에서 읽는다. 여기에 slug를 다시 적어두면 어드민에서
+    # 허브를 켜고 끌 때 sitemap이 어긋난다.
+    try:
+        from ..models import UseCase
+        for (uslug,) in db.query(UseCase.slug).filter(UseCase.is_active.is_(True)).all():
+            pages.append({
+                "loc": f"{SITE_URL}/use/{uslug}",
+                "priority": "0.9",
+                "changefreq": "weekly",
+            })
+    except Exception:
+        pass
+
     items = "\n".join(
         f"  <url>\n    <loc>{p['loc']}</loc>\n    <lastmod>{today}</lastmod>\n"
         f"    <changefreq>{p['changefreq']}</changefreq>\n    <priority>{p['priority']}</priority>\n  </url>"
