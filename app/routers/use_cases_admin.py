@@ -40,6 +40,8 @@ class PickIn(BaseModel):
 
 
 class UseCasePatch(BaseModel):
+    # [라벨, 내용] 쌍의 목록. 라벨이 허브마다 달라 고정 컬럼으로 두지 않는다.
+    tips: Optional[List[List[str]]] = None
     title: Optional[str] = Field(default=None, min_length=1, max_length=60)
     subtitle: Optional[str] = Field(default=None, max_length=120)
     criteria: Optional[str] = None
@@ -67,6 +69,7 @@ class UseCaseAdminOut(BaseModel):
     subtitle: str
     criteria: str
     howto: str
+    tips: List[List[str]] = []
     is_active: bool
     sort_order: int
     tag_name: Optional[str] = None
@@ -82,6 +85,7 @@ def _to_out(uc: UseCase) -> UseCaseAdminOut:
         subtitle=uc.subtitle or "",
         criteria=uc.criteria or "",
         howto=uc.howto or "",
+        tips=[list(t)[:2] for t in (uc.tips or []) if t],
         is_active=bool(uc.is_active),
         sort_order=uc.sort_order,
         tag_name=uc.tag.name if uc.tag else None,
@@ -121,6 +125,19 @@ def update_use_case(
 ):
     uc = _get(db, use_case_id)
     data = payload.model_dump(exclude_unset=True)
+    if "tips" in data:
+        # 라벨·내용이 모두 있는 행만 남긴다. 빈 행이 섞이면 화면에 빈 칸이 생긴다.
+        cleaned = []
+        for row in (data["tips"] or []):
+            if not row:
+                continue
+            label = (row[0] or "").strip()
+            body = (row[1] or "").strip() if len(row) > 1 else ""
+            if label and body:
+                cleaned.append([label[:20], body[:300]])
+        if len(cleaned) > 5:
+            raise HTTPException(status_code=400, detail="활용 방법은 최대 5줄까지입니다")
+        data["tips"] = cleaned
     for k, v in data.items():
         setattr(uc, k, v)
     _mark_admin_edited(db)
