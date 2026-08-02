@@ -711,15 +711,9 @@
   </section>
 
   <!-- CURATOR PICKS -->
-  <section class="picks-section" id="picksSection" aria-labelledby="picksSectionTitle" style="display:none">
-    <div class="picks-head">
-      <div class="picks-title" id="picksSectionTitle">
-        큐레이터 픽<span class="picks-badge">EDITOR'S CHOICE</span>
-      </div>
-      <p class="picks-desc">폰트픽 큐레이션팀이 직접 고른 무료폰트예요.</p>
-    </div>
-    <div class="picks-list" id="picksList"></div>
-  </section>
+  <!-- [제거 2026-08] 큐레이터 픽 섹션.
+       용도 허브 10칸이 추천 진입로가 되면서 역할이 겹쳐 걷어냄.
+       fonts.is_pick 컬럼과 어드민 체크박스는 그대로 남아 있으므로 되살릴 수 있다. -->
 </div>
 
 <button type="button" class="collapse-toggle" id="collapseToggleBtn" onclick="toggleHeroPicks()" aria-expanded="true" aria-controls="heroPicksWrap">
@@ -2985,10 +2979,24 @@ document.addEventListener('keydown',function(e){
 });
 
 /* ── 카테고리 태그 동적 렌더링 ── */
+/* 태그 레일에는 '형태(shape)' 축 카테고리만 남긴다.
+   용도(use) 태그는 위 용도 그리드가, 느낌(mood) 태그는 추천 점수 계산이 담당한다.
+   같은 줄에 용도와 형태가 섞여 있으면 사용자는 두 축을 하나로 착각한다.
+   axis 값은 /api/tags 가 내려주므로 여기서 직접 받아온다
+   (TagStore.getAll()은 이름 배열만 주고 axis를 잃어버린다). */
 async function renderTagsBar(){
-  const tags = await TagStore.getAll();
+  let tags;
+  try {
+    const rows = await (await fetch('/api/tags')).json();
+    const shaped = rows.filter(t => t.axis === 'shape');
+    // axis가 아직 하나도 없는 DB(구버전)에서는 전체를 보여주는 쪽이 안전하다.
+    tags = (shaped.length ? shaped : rows).map(t => t.name);
+  } catch(e){
+    console.warn('태그 로딩 실패 — 전체 태그로 폴백', e);
+    tags = await TagStore.getAll();
+  }
   const bar = document.getElementById('tagsBar');
-  // 현재 활성 태그가 삭제됐다면 'all'로 리셋
+  // 현재 활성 태그가 목록에서 빠졌다면 'all'로 리셋
   if(currentTag !== 'all' && !tags.includes(currentTag)){
     currentTag = 'all';
   }
@@ -3051,7 +3059,7 @@ async function init(){
   await renderTagsBar();
   await registerUploadedFonts();
   renderFonts();
-  renderCuratorPicks();
+  // renderCuratorPicks();  // [제거 2026-08] 큐레이터 픽
   renderUseGrid();
   // loadPreviewPhrases();  // [비활성 2026-08] 문구 프리셋 추천 — 용도 그리드로 대체
 
@@ -3071,7 +3079,8 @@ async function init(){
     await renderTagsBar();
     await registerUploadedFonts();
     renderFonts();
-    renderCuratorPicks();
+    // renderCuratorPicks();  // [제거 2026-08] 큐레이터 픽
+    renderUseGrid();
     // 공지사항 화면이 활성화돼있다면 같이 갱신
     if(location.hash.startsWith('#notice')) await route();
   });
