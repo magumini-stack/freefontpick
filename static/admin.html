@@ -978,12 +978,21 @@
         <label>이런 기준으로 골랐어요</label>
         <textarea id="ucCriteria" rows="3" placeholder="이 용도에서 폰트를 고를 때 무엇을 봤는지"></textarea>
       </div>
-      <div class="field">
-        <label>활용 방법</label>
-        <textarea id="ucHowto" rows="3" placeholder="크기·굵기·주의점을 숫자로"></textarea>
-        <div class="field-hint">
+      <div class="field meta-section">
+        <div class="meta-header">
+          <label><i class="ti ti-ruler" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i>
+            활용 방법 <span class="meta-sub">— 왼쪽은 항목 이름, 오른쪽은 내용. 3줄을 권장합니다</span>
+          </label>
+        </div>
+        <div id="ucTipRows" style="display:flex;flex-direction:column;gap:8px"></div>
+        <button type="button" class="btn-secondary" style="margin-top:10px" onclick="addUcTipRow()">
+          <i class="ti ti-plus" aria-hidden="true"></i> 줄 추가
+        </button>
+        <div class="field-hint" style="margin-top:8px">
           <b>숫자로 검증 가능한 것만 쓰세요.</b> "가독성 좋게 쓰세요" 같은 문장은 조언이 아니라 소음이에요.
-          "1280×720 기준 제목 120~180px, 한 줄 6~9자"처럼 규격을 주는 게 이 페이지가 파는 것입니다.
+          "1280×720 기준 제목 120~180px", "한 줄 6~9자"처럼 규격을 주는 게 이 페이지가 파는 것입니다.<br>
+          항목 이름은 허브마다 달라도 됩니다 — 썸네일은 <code>글자 수</code>, 자막은 <code>위치</code>,
+          메뉴판은 <code>숫자</code>가 중요합니다. 마지막 줄은 <code>주의</code>로 두는 걸 권합니다.
         </div>
       </div>
 
@@ -3067,8 +3076,11 @@ function openUseCaseModal(id){
   document.getElementById('ucSlug').value = '/use/' + u.slug;
   document.getElementById('ucSubtitle').value = u.subtitle || '';
   document.getElementById('ucCriteria').value = u.criteria || '';
-  document.getElementById('ucHowto').value = u.howto || '';
   document.getElementById('ucIsActive').checked = !!u.is_active;
+
+  document.getElementById('ucTipRows').innerHTML = '';
+  const tips = (u.tips && u.tips.length) ? u.tips : [['크기',''],['굵기',''],['주의','']];
+  tips.forEach(t => addUcTipRow(t[0], t[1]));
 
   document.getElementById('ucFontRows').innerHTML = '';
   u.picks.forEach(p => addUcFontRow(p.font_id, p.reason));
@@ -3137,6 +3149,22 @@ function updateUcFontHint(){
     : '폰트를 1개 이상 추가해주세요.';
 }
 
+function addUcTipRow(label, body){
+  const wrap = document.getElementById('ucTipRows');
+  const row = document.createElement('div');
+  row.className = 'uc-tip-row';
+  row.style.cssText = 'display:flex;gap:8px;align-items:center';
+  row.innerHTML = `
+    <input class="uc-tip-k" type="text" maxlength="20" placeholder="항목" value="${escapeHtml(label||'')}"
+      style="width:110px;flex:0 0 auto;height:34px;border:1px solid var(--border);border-radius:6px;padding:0 10px;background:var(--bg-card);color:var(--text-primary);font-family:inherit;font-size:12.5px;font-weight:700">
+    <input class="uc-tip-v" type="text" maxlength="300" placeholder="예: 1280×720 기준 제목 120~180px" value="${escapeHtml(body||'')}"
+      style="flex:1;min-width:0;height:34px;border:1px solid var(--border);border-radius:6px;padding:0 10px;background:var(--bg-card);color:var(--text-primary);font-family:inherit;font-size:12.5px">
+    <button type="button" class="btn-icon danger" onclick="this.closest('.uc-tip-row').remove()" aria-label="삭제">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+    </button>`;
+  wrap.appendChild(row);
+}
+
 function addUcPhraseRow(text){
   const wrap = document.getElementById('ucPhraseRows');
   const row = document.createElement('div');
@@ -3178,7 +3206,9 @@ async function saveUseCase(){
       title,
       subtitle: document.getElementById('ucSubtitle').value.trim(),
       criteria: document.getElementById('ucCriteria').value.trim(),
-      howto: document.getElementById('ucHowto').value.trim(),
+      tips: [...document.querySelectorAll('#ucTipRows .uc-tip-row')]
+        .map(r => [r.querySelector('.uc-tip-k').value.trim(), r.querySelector('.uc-tip-v').value.trim()])
+        .filter(t => t[0] && t[1]),
       is_active: document.getElementById('ucIsActive').checked,
     }});
     await apiFetch(`/admin/use-cases/${id}/fonts`, {method:'PUT', body: picks});

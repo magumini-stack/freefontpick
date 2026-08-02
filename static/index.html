@@ -445,11 +445,8 @@
     .tag.active{color:var(--accent);border-color:var(--accent);font-weight:700;background:none}
 
     /* FILTER BAR */
-    .filter-bar{display:flex;align-items:center;justify-content:flex-end;margin-bottom:14px;gap:10px}
     .count-label{font-size:13px;color:var(--text-secondary)}
     .count-label strong{color:var(--text-primary);font-weight:800}
-    .sort-select{font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;background:var(--bg-card);color:var(--text-secondary);outline:none;cursor:pointer;font-family:inherit;transition:border-color .15s}
-    .sort-select:focus{border-color:var(--accent)}
 
     /* GRID */
     .font-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;grid-auto-flow:dense}
@@ -736,14 +733,8 @@
 <main class="main">
   <div class="tags-bar" id="tagsBar" role="group" aria-label="폰트 카테고리 필터"></div>
 
-  <div class="filter-bar">
-    <select class="sort-select" onchange="renderFonts()" aria-label="정렬 기준">
-      <option value="curator">추천순</option>
-      <option value="latest">최신순</option>
-      <option value="name">이름순</option>
-    </select>
-  </div>
-
+  <!-- [제거 2026-08] 정렬 드롭다운(추천순/최신순/이름순).
+       기본값인 '추천순'(어드민이 정한 저장 순서)만 남긴다. -->
   <div class="preview-bar-wrap">
     <p class="gallery-tools-hint">쓰려는 문구를 넣어 <b>아래 전체 폰트</b>를 한 번에 비교해 보세요.</p>
     <div class="preview-bar">
@@ -1393,7 +1384,7 @@ function getFilteredFonts(){
     return _lastRecommended.slice(0, _recommendShowCount).map(s => ({...s.font, _matches: s.matches, _isRecommend: true}));
   }
 
-  const sort=document.querySelector('.sort-select').value;
+  // 정렬 드롭다운 제거 — 항상 어드민이 정한 저장 순서(추천순)를 따른다
   const q=(document.getElementById('globalSearch').value||'').trim().toLowerCase();
   let list=[...FONTS];
   if(currentTag!=='all') list=list.filter(f=>f.tags.includes(currentTag));
@@ -1422,9 +1413,7 @@ function getFilteredFonts(){
     }
   }
 
-  if(sort==='latest') list.sort((a,b)=>b.id-a.id);
-  else if(sort==='name') list.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
-  // 'curator' (기본값): FONTS 배열의 저장 순서 그대로 유지 — 관리자가 정한 순서
+  // FONTS 배열의 저장 순서 그대로 유지 — 관리자가 정한 순서
   return list;
 }
 
