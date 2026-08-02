@@ -46,6 +46,8 @@ class UseCaseDetail(BaseModel):
     subtitle: str
     criteria: str
     howto: str
+    # [라벨, 내용] 3단 활용 방법. 비어 있으면 프론트가 howto 한 문단으로 폴백한다.
+    tips: List[List[str]] = []
     tag_name: Optional[str] = None
     picks: List[UseCaseFontOut]
     more: List[FontOut]      # 5위 이후 큐레이션 폰트 + 태그 폰트
@@ -117,6 +119,7 @@ def get_use_case(slug: str, db: Session = Depends(get_db)):
         subtitle=uc.subtitle,
         criteria=uc.criteria,
         howto=uc.howto,
+        tips=[list(t)[:2] for t in (uc.tips or []) if t],
         tag_name=uc.tag.name if uc.tag else None,
         picks=picks,
         more=more,
