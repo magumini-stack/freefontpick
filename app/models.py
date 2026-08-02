@@ -245,7 +245,11 @@ class UseCase(Base):
     # 연결된 모양/용도 태그 (없으면 순수 큐레이션 허브)
     tag_id = Column(Integer, ForeignKey("tags.id", ondelete="SET NULL"), nullable=True)
     criteria = Column(Text, nullable=False, default="")   # 선정 기준
-    howto = Column(Text, nullable=False, default="")      # 활용 방법
+    howto = Column(Text, nullable=False, default="")      # 활용 방법 (구버전 한 문단 — tips 없을 때 폴백)
+    # 활용 방법 3단 구조: [["크기·굵기", "1280×720 기준 ..."], ...]
+    # 라벨을 고정 컬럼 3개로 두지 않은 이유: 허브마다 라벨이 다르다
+    # (썸네일=글자 수 / 자막=위치 / 메뉴판=숫자 / 청첩장=행간).
+    tips = Column(JSON, default=list)
     is_active = Column(Boolean, nullable=False, default=True, server_default="1")
     sort_order = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, server_default=func.now())
