@@ -506,7 +506,7 @@
         <section class="blk">
           <div class="lbl" id="specimenLbl">글자 견본</div>
           <figure class="sample-img hidden" id="sampleImgWrap">
-            <img id="sampleImg" alt="" loading="lazy" decoding="async">
+            <img id="sampleImg" alt="" decoding="async">
             <figcaption class="sample-credit hidden" id="sampleCredit"></figcaption>
           </figure>
           <div class="glyphs" id="glyphSet">
@@ -980,33 +980,40 @@
         var _imgWrap = document.getElementById('sampleImgWrap');
         var _img = document.getElementById('sampleImg');
         if (f.has_sample && _imgWrap && _img && _glyphSet) {
-          _img.alt = f.name + ' 샘플 이미지';
-          _img.onload = function(){
-            _glyphSet.classList.add('hidden');
-            _imgWrap.classList.remove('hidden');
-            var lbl = document.getElementById('specimenLbl');
-            if (lbl) lbl.textContent = '폰트 샘플';
+          var _lbl = document.getElementById('specimenLbl');
 
-            /* 출처 표기. meta.sample_credit(문구)과 meta.sample_credit_url(링크).
-               URL이 있으면 링크로 걸되 rel="nofollow noopener"를 붙인다 —
-               외부 출처에 우리 페이지의 신뢰도를 넘겨줄 이유가 없다. */
-            var m = f.meta || {};
-            var credit = (m.sample_credit || '').trim();
-            var creditUrl = (m.sample_credit_url || '').trim();
-            var capEl = document.getElementById('sampleCredit');
-            if (capEl && credit) {
-              var safe = esc(credit);
-              if (/^https?:\/\//i.test(creditUrl)) {
-                capEl.innerHTML = '출처 · <a href="' + esc(creditUrl) +
-                  '" target="_blank" rel="nofollow noopener">' + safe + '</a>';
-              } else {
-                capEl.textContent = '출처 · ' + credit;
-              }
-              capEl.classList.remove('hidden');
-            }
+          /* 먼저 전환하고 나중에 되돌린다.
+             반대로 onload를 기다렸다가 보여주면, 숨겨진(display:none) 이미지는
+             브라우저가 로딩을 미루기 때문에 onload가 영영 오지 않는다. */
+          _glyphSet.classList.add('hidden');
+          _imgWrap.classList.remove('hidden');
+          if (_lbl) _lbl.textContent = '폰트 샘플';
+
+          _img.onerror = function(){
+            // 파일이 사라졌는데 인덱스가 남은 경우 등 — 글자 견본으로 되돌린다
+            _imgWrap.classList.add('hidden');
+            _glyphSet.classList.remove('hidden');
+            if (_lbl) _lbl.textContent = '글자 견본';
           };
-          _img.onerror = function(){ _imgWrap.classList.add('hidden'); };
+          _img.alt = f.name + ' 샘플 이미지';
           _img.src = '/api/fonts/' + f.id + '/sample-image';
+
+          /* 출처 표기. meta.sample_credit(문구)과 meta.sample_credit_url(링크).
+             URL이 있으면 링크로 걸되 rel="nofollow noopener"를 붙인다 —
+             외부 출처에 우리 페이지의 신뢰도를 넘겨줄 이유가 없다. */
+          var _m = f.meta || {};
+          var _credit = (_m.sample_credit || '').trim();
+          var _creditUrl = (_m.sample_credit_url || '').trim();
+          var _cap = document.getElementById('sampleCredit');
+          if (_cap && _credit) {
+            if (/^https?:\/\//i.test(_creditUrl)) {
+              _cap.innerHTML = '출처 · <a href="' + esc(_creditUrl) +
+                '" target="_blank" rel="nofollow noopener">' + esc(_credit) + '</a>';
+            } else {
+              _cap.textContent = '출처 · ' + _credit;
+            }
+            _cap.classList.remove('hidden');
+          }
         }
       } catch(e){}
       var _dtop = document.getElementById('designBtnTop'); if (_dtop){ _dtop.setAttribute('href', '/font/' + f.id + '/design'); _dtop.onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); }; }
