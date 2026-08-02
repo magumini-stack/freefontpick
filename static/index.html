@@ -428,8 +428,17 @@
     .preset-chip.active{border-color:var(--accent);color:var(--accent);font-weight:700}
 
     /* TAGS */
-    .tags-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;scroll-margin-top:76px}
-    .tag{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;padding:6px 12px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500}
+    /* 형태 카테고리는 항상 한 줄로 둔다.
+       줄바꿈을 허용하면 태그가 늘 때마다 레일 높이가 들쭉날쭉해지고,
+       그만큼 갤러리가 아래로 밀린다. 대신 넘치면 가로 스크롤. */
+    .tags-bar{display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;
+      -webkit-overflow-scrolling:touch;margin-bottom:16px;scroll-margin-top:76px;
+      scrollbar-width:none;-ms-overflow-style:none;
+      /* 잘리는 쪽 끝을 흐리게 처리해 '더 있다'는 걸 알린다 */
+      -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);
+      mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%)}
+    .tags-bar::-webkit-scrollbar{display:none}
+    .tag{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:11.5px;padding:5px 9px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500;flex:0 0 auto}
     .tag:hover{border-color:var(--text-primary);color:var(--text-primary)}
     .tag.active{color:var(--accent);border-color:var(--accent);font-weight:700;background:none}
 
@@ -3002,6 +3011,8 @@ async function renderTagsBar(){
   }
   bar.innerHTML = `<button class="tag${currentTag==='all'?' active':''}" onclick="setTag('all',this)">전체</button>` +
     tags.map(t=>`<button class="tag${currentTag===t?' active':''}" onclick="setTag('${t.replace(/'/g,"\\'")}',this)">${t}</button>`).join('');
+  // 가로 스크롤 레일이므로, 선택된 태그가 화면 밖이면 보이는 위치로 끌어온다
+  bar.querySelector('.tag.active')?.scrollIntoView({block:'nearest', inline:'nearest'});
 }
 
 /* ── 업로드된 폰트 등록 ──
