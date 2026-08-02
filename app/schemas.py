@@ -72,6 +72,9 @@ class FontOut(FontBase):
     tags: List[str]  # 이름 배열
     meta: Dict[str, Any] = Field(default_factory=dict)
     like_count: int = 0
+    # 상세페이지 '글자 견본' 자리를 대체하는 샘플 이미지 보유 여부.
+    # 실제 이미지는 GET /api/fonts/{id}/sample-image 로 받는다.
+    has_sample: bool = False
     # 웹폰트 등록값 검증 결과. 생성/수정 응답에서만 채워지고 목록 조회에서는 항상 비어 있다
     # (목록마다 외부 CSS를 받아오면 느려지므로).
     webfont_errors: List[str] = Field(default_factory=list)
