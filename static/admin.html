@@ -359,6 +359,7 @@
     <button class="tab-btn" onclick="switchTab('submissions',this)">폰트 찾기</button>
     <button class="tab-btn" onclick="switchTab('pairings',this)">페어링 관리</button>
     <button class="tab-btn" onclick="switchTab('phrases',this)">문구 관리</button>
+    <button class="tab-btn" onclick="switchTab('usecases',this)">용도 관리</button>
   </div>
 
   <!-- FONTS TAB -->
@@ -494,6 +495,31 @@
       </table>
       <div id="phraseEmpty" class="empty" style="display:none">
         <i class="ti ti-message-2" aria-hidden="true"></i>등록된 문구가 없어요
+      </div>
+    </div>
+  </div>
+
+  <!-- USE CASES TAB (용도 허브 관리) -->
+  <div class="tab-panel" id="tab-usecases">
+    <p style="font-size:12px;color:var(--text-muted);margin:2px 0 14px;line-height:1.7">
+      메인 "어디에 쓰실 건가요?" 그리드와 <code>/use/{slug}</code> 페이지에 노출되는 용도 허브예요.
+      <b>카테고리 관리와는 별개</b>입니다 — 카테고리(태그)는 폰트에 붙이는 분류고, 여기는 검색 유입을 받는 랜딩 페이지예요.<br>
+      허브 <b>추가·삭제는 여기서 할 수 없습니다.</b> 색인된 페이지가 실수로 사라지면 되돌릴 근거가 남지 않아서, 구성 변경은 코드 수정으로만 합니다.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:60px;text-align:center">순서</th>
+          <th>허브</th><th style="width:150px">연결 카테고리</th>
+          <th style="width:80px;text-align:center">추천</th>
+          <th style="width:80px;text-align:center">문구</th>
+          <th style="width:70px;text-align:center">노출</th>
+          <th style="text-align:right;width:80px">관리</th>
+        </tr></thead>
+        <tbody id="useCaseTableBody"></tbody>
+      </table>
+      <div id="useCaseEmpty" class="empty" style="display:none">
+        <i class="ti ti-layout-grid" aria-hidden="true"></i>등록된 용도 허브가 없어요
       </div>
     </div>
   </div>
@@ -926,6 +952,78 @@
   </div>
 </div>
 
+<!-- USE CASE MODAL -->
+<div class="modal-overlay" id="useCaseModal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-head">
+      <h3 id="ucModalTitle">용도 허브 편집</h3>
+      <button class="modal-close" onclick="closeUseCaseModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="field" style="display:flex;gap:12px;align-items:flex-end">
+        <div style="flex:1">
+          <label>제목 <span class="req">*</span></label>
+          <input type="text" id="ucTitle" maxlength="60" placeholder="예: 유튜브 썸네일">
+        </div>
+        <div style="width:150px">
+          <label>주소 (고정)</label>
+          <input type="text" id="ucSlug" disabled style="opacity:.6">
+        </div>
+      </div>
+      <div class="field">
+        <label>부제</label>
+        <input type="text" id="ucSubtitle" maxlength="120" placeholder="한 줄 설명">
+      </div>
+      <div class="field">
+        <label>이런 기준으로 골랐어요</label>
+        <textarea id="ucCriteria" rows="3" placeholder="이 용도에서 폰트를 고를 때 무엇을 봤는지"></textarea>
+      </div>
+      <div class="field">
+        <label>활용 방법</label>
+        <textarea id="ucHowto" rows="3" placeholder="크기·굵기·주의점을 숫자로"></textarea>
+        <div class="field-hint">
+          <b>숫자로 검증 가능한 것만 쓰세요.</b> "가독성 좋게 쓰세요" 같은 문장은 조언이 아니라 소음이에요.
+          "1280×720 기준 제목 120~180px, 한 줄 6~9자"처럼 규격을 주는 게 이 페이지가 파는 것입니다.
+        </div>
+      </div>
+
+      <div class="field meta-section">
+        <div class="meta-header">
+          <label><i class="ti ti-star" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i>
+            추천 폰트 <span class="meta-sub">— 위에서부터 1위. <b>1~4위만</b> 추천 이유가 달린 큰 카드로 나오고, 5위부터는 이름·미리보기만 나옵니다</span>
+          </label>
+        </div>
+        <div id="ucFontRows" style="display:flex;flex-direction:column;gap:8px"></div>
+        <button type="button" class="btn-secondary" style="margin-top:10px" onclick="addUcFontRow()">
+          <i class="ti ti-plus" aria-hidden="true"></i> 폰트 추가
+        </button>
+        <div class="field-hint" style="margin-top:8px" id="ucFontHint"></div>
+      </div>
+
+      <div class="field meta-section">
+        <div class="meta-header">
+          <label><i class="ti ti-message-2" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i>
+            샘플 문구 <span class="meta-sub">— 페이지에서 눌러 미리보기를 바꾸는 칩. 짧은 것부터 긴 것까지 섞으세요</span>
+          </label>
+        </div>
+        <div id="ucPhraseRows" style="display:flex;flex-direction:column;gap:8px"></div>
+        <button type="button" class="btn-secondary" style="margin-top:10px" onclick="addUcPhraseRow()">
+          <i class="ti ti-plus" aria-hidden="true"></i> 문구 추가
+        </button>
+      </div>
+
+      <div class="field" style="display:flex;align-items:center;gap:8px;background:var(--bg-secondary);border-radius:6px;padding:10px 14px">
+        <input type="checkbox" id="ucIsActive" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+        <label for="ucIsActive" style="margin:0;cursor:pointer">사이트에 노출 (끄면 <code>/use/{slug}</code>가 홈으로 넘어갑니다)</label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeUseCaseModal()">취소</button>
+      <button class="btn-save" onclick="saveUseCase()">저장</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- PHRASE MODAL -->
@@ -1187,6 +1285,7 @@ function switchTab(tab, btn){
   if(tab === 'submissions') refreshSubmissions();
   if(tab === 'pairings') refreshPairings();
   if(tab === 'phrases') refreshPhrases();
+  if(tab === 'usecases') refreshUseCases();
 }
 
 /* ════════════════════════════════════════
@@ -2857,6 +2956,245 @@ async function saveSelectedAutoPairings(){
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+/* ════════════════════════════════════════
+   용도 허브 관리 (/use/{slug} 랜딩 페이지)
+
+   카테고리(태그) 관리와는 별개다. 태그는 폰트에 붙이는 분류고,
+   여기는 검색 유입을 받는 페이지의 내용이다.
+   허브 추가·삭제는 의도적으로 넣지 않았다 — 색인된 페이지가
+   버튼 하나로 사라지면 되돌릴 근거가 남지 않는다.
+════════════════════════════════════════ */
+let USECASES = [];
+let editingUseCaseId = null;
+const UC_CARD_LIMIT = 4;   // 서버의 PICK_CARD_LIMIT과 같은 값
+
+async function refreshUseCases(){
+  try {
+    USECASES = await apiFetch('/admin/use-cases');
+  } catch(e) {
+    console.error('용도 허브 로딩 실패:', e);
+    showToast(e.status === 401 ? '세션이 만료됐어요. 다시 로그인해주세요.' : '용도 허브를 불러오지 못했어요');
+    USECASES = [];
+  }
+  renderUseCaseTable();
+}
+
+function renderUseCaseTable(){
+  const tbody = document.getElementById('useCaseTableBody');
+  const empty = document.getElementById('useCaseEmpty');
+  if(!USECASES.length){
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = USECASES.map((u, idx) => `
+    <tr style="${u.is_active ? '' : 'opacity:.5'}">
+      <td style="text-align:center">
+        <div style="display:inline-flex;gap:2px">
+          <button class="btn-icon" onclick="moveUseCase(${u.id},-1)" aria-label="위로" ${idx===0?'disabled':''}>
+            <svg viewBox="0 0 24 24" width="14" height="14"><path d="M18 15l-6-6-6 6"/></svg>
+          </button>
+          <button class="btn-icon" onclick="moveUseCase(${u.id},1)" aria-label="아래로" ${idx===USECASES.length-1?'disabled':''}>
+            <svg viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+      </td>
+      <td>
+        <div class="cell-name">${escapeHtml(u.title)}</div>
+        <div class="cell-maker">/use/${escapeHtml(u.slug)} · ${escapeHtml(u.subtitle || '')}</div>
+      </td>
+      <td>${u.tag_name
+            ? `<span class="pill">${escapeHtml(u.tag_name)}</span>`
+            : `<span style="font-size:11px;color:var(--text-muted)">— 직접 큐레이션</span>`}</td>
+      <td style="text-align:center;font-size:12px">${u.picks.length}종</td>
+      <td style="text-align:center;font-size:12px">${u.phrases.length}개</td>
+      <td style="text-align:center">
+        <input type="checkbox" ${u.is_active?'checked':''} onchange="toggleUseCaseActive(${u.id}, this.checked)" style="width:auto">
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="btn-icon" onclick="openUseCaseModal(${u.id})" aria-label="편집">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <a class="btn-icon" href="/use/${escapeHtml(u.slug)}" target="_blank" rel="noopener" aria-label="페이지 열기" title="페이지 열기" style="text-decoration:none">
+            <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+          </a>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function toggleUseCaseActive(id, isActive){
+  try {
+    const updated = await apiFetch(`/admin/use-cases/${id}`, {method:'PATCH', body:{is_active: isActive}});
+    const i = USECASES.findIndex(u=>u.id===id);
+    if(i>=0) USECASES[i] = updated;
+    renderUseCaseTable();
+    showToast(isActive ? '노출로 바꿨어요' : '숨김으로 바꿨어요');
+  } catch(e){
+    showToast(e.message || '변경에 실패했어요');
+    await refreshUseCases();
+  }
+}
+
+async function moveUseCase(id, dir){
+  const i = USECASES.findIndex(u=>u.id===id);
+  const j = i + dir;
+  if(i<0 || j<0 || j>=USECASES.length) return;
+  const arr = [...USECASES];
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  try {
+    USECASES = await apiFetch('/admin/use-cases/reorder', {
+      method:'POST',
+      body: arr.map((u,k)=>({id:u.id, sort_order:(k+1)*10})),
+    });
+    renderUseCaseTable();
+  } catch(e){
+    showToast(e.message || '순서 변경에 실패했어요');
+    await refreshUseCases();
+  }
+}
+
+/* ── 편집 모달 ── */
+function openUseCaseModal(id){
+  const u = USECASES.find(x=>x.id===id);
+  if(!u) return;
+  editingUseCaseId = id;
+  document.getElementById('ucModalTitle').textContent = `${u.title} 편집`;
+  document.getElementById('ucTitle').value = u.title;
+  document.getElementById('ucSlug').value = '/use/' + u.slug;
+  document.getElementById('ucSubtitle').value = u.subtitle || '';
+  document.getElementById('ucCriteria').value = u.criteria || '';
+  document.getElementById('ucHowto').value = u.howto || '';
+  document.getElementById('ucIsActive').checked = !!u.is_active;
+
+  document.getElementById('ucFontRows').innerHTML = '';
+  u.picks.forEach(p => addUcFontRow(p.font_id, p.reason));
+  document.getElementById('ucPhraseRows').innerHTML = '';
+  u.phrases.forEach(t => addUcPhraseRow(t));
+  updateUcFontHint();
+
+  document.getElementById('useCaseModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeUseCaseModal(){
+  document.getElementById('useCaseModal').classList.remove('open');
+  document.body.style.overflow = '';
+  editingUseCaseId = null;
+}
+
+function ucFontOptions(selectedId){
+  return FONTS.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko'))
+    .map(f=>`<option value="${f.id}"${String(f.id)===String(selectedId)?' selected':''}>${escapeHtml(f.name)}</option>`).join('');
+}
+
+function addUcFontRow(fontId, reason){
+  const wrap = document.getElementById('ucFontRows');
+  const row = document.createElement('div');
+  row.className = 'uc-font-row';
+  row.style.cssText = 'display:flex;gap:8px;align-items:center;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px';
+  row.innerHTML = `
+    <span class="uc-rank" style="font-family:ui-monospace,monospace;font-size:11px;font-weight:700;min-width:26px;text-align:center"></span>
+    <select class="uc-font" style="width:170px;height:34px;border:1px solid var(--border);border-radius:6px;background:var(--bg-secondary);color:var(--text-primary);font-family:inherit;font-size:12.5px">${ucFontOptions(fontId)}</select>
+    <input class="uc-reason" type="text" maxlength="500" placeholder="추천 이유 (1~4위만 화면에 나옴)" value="${escapeHtml(reason||'')}"
+      style="flex:1;min-width:0;height:34px;border:1px solid var(--border);border-radius:6px;padding:0 10px;background:var(--bg-secondary);color:var(--text-primary);font-family:inherit;font-size:12.5px">
+    <button type="button" class="handle-btn" onclick="moveUcFontRow(this,-1)" title="위로"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></button>
+    <button type="button" class="handle-btn" onclick="moveUcFontRow(this,1)" title="아래로"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <button type="button" class="btn-icon danger" onclick="this.closest('.uc-font-row').remove();updateUcFontHint()" aria-label="삭제">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+    </button>`;
+  wrap.appendChild(row);
+  updateUcFontHint();
+}
+
+function moveUcFontRow(btn, dir){
+  const row = btn.closest('.uc-font-row');
+  const wrap = row.parentElement;
+  if(dir < 0 && row.previousElementSibling) wrap.insertBefore(row, row.previousElementSibling);
+  if(dir > 0 && row.nextElementSibling) wrap.insertBefore(row.nextElementSibling, row);
+  updateUcFontHint();
+}
+
+/* 순위 배지와 안내를 갱신. 5위 이후는 추천 이유가 화면에 안 나오므로 흐리게 표시해
+   "왜 내가 쓴 이유가 안 보이지?" 하는 혼란을 미리 막는다. */
+function updateUcFontHint(){
+  const rows = [...document.querySelectorAll('#ucFontRows .uc-font-row')];
+  rows.forEach((r, i) => {
+    const badge = r.querySelector('.uc-rank');
+    const reason = r.querySelector('.uc-reason');
+    const isCard = i < UC_CARD_LIMIT;
+    badge.textContent = i + 1;
+    badge.style.color = isCard ? 'var(--accent)' : 'var(--text-muted)';
+    reason.style.opacity = isCard ? '1' : '.45';
+    reason.placeholder = isCard ? '추천 이유 (화면에 표시됨)' : '5위 이후 — 화면에 안 나옴';
+  });
+  const n = rows.length;
+  document.getElementById('ucFontHint').innerHTML = n
+    ? `현재 <b>${n}종</b> — 1~${Math.min(UC_CARD_LIMIT,n)}위는 이유가 달린 카드, ${n>UC_CARD_LIMIT?`${UC_CARD_LIMIT+1}~${n}위는 목록`:'목록 없음'}. 카테고리가 연결된 허브는 그 아래에 해당 카테고리 폰트가 자동으로 이어집니다.`
+    : '폰트를 1개 이상 추가해주세요.';
+}
+
+function addUcPhraseRow(text){
+  const wrap = document.getElementById('ucPhraseRows');
+  const row = document.createElement('div');
+  row.className = 'uc-phrase-row';
+  row.style.cssText = 'display:flex;gap:8px;align-items:center';
+  row.innerHTML = `
+    <input class="uc-phrase" type="text" maxlength="100" placeholder="예: 구독자 10만 돌파" value="${escapeHtml(text||'')}"
+      style="flex:1;min-width:0;height:34px;border:1px solid var(--border);border-radius:6px;padding:0 10px;background:var(--bg-card);color:var(--text-primary);font-family:inherit;font-size:12.5px">
+    <button type="button" class="btn-icon danger" onclick="this.closest('.uc-phrase-row').remove()" aria-label="삭제">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+    </button>`;
+  wrap.appendChild(row);
+}
+
+async function saveUseCase(){
+  if(!editingUseCaseId) return;
+  const id = editingUseCaseId;
+  const title = document.getElementById('ucTitle').value.trim();
+  if(!title){ showToast('제목을 입력해주세요'); return; }
+
+  const picks = [...document.querySelectorAll('#ucFontRows .uc-font-row')].map(r => ({
+    font_id: parseInt(r.querySelector('.uc-font').value, 10),
+    reason: r.querySelector('.uc-reason').value.trim(),
+  }));
+  if(!picks.length){ showToast('추천 폰트를 1개 이상 넣어주세요'); return; }
+  const ids = picks.map(p=>p.font_id);
+  if(new Set(ids).size !== ids.length){ showToast('같은 폰트를 중복으로 넣을 수 없어요'); return; }
+  const emptyReason = picks.slice(0, UC_CARD_LIMIT).findIndex(p => !p.reason);
+  if(emptyReason >= 0){
+    showToast(`${emptyReason+1}위 추천 이유를 입력해주세요 — 1~${UC_CARD_LIMIT}위는 화면에 이유가 함께 나옵니다`);
+    return;
+  }
+
+  const phrases = [...document.querySelectorAll('#ucPhraseRows .uc-phrase')]
+    .map(i=>i.value.trim()).filter(Boolean);
+
+  try {
+    await apiFetch(`/admin/use-cases/${id}`, {method:'PATCH', body:{
+      title,
+      subtitle: document.getElementById('ucSubtitle').value.trim(),
+      criteria: document.getElementById('ucCriteria').value.trim(),
+      howto: document.getElementById('ucHowto').value.trim(),
+      is_active: document.getElementById('ucIsActive').checked,
+    }});
+    await apiFetch(`/admin/use-cases/${id}/fonts`, {method:'PUT', body: picks});
+    await apiFetch(`/admin/use-cases/${id}/phrases`, {method:'PUT', body: phrases});
+    closeUseCaseModal();
+    showToast('용도 허브를 저장했어요');
+    await refreshUseCases();
+  } catch(e){
+    showToast(e.message || '저장에 실패했어요');
+  }
+}
+
+document.getElementById('useCaseModal').addEventListener('click', function(e){
+  if(e.target===this) closeUseCaseModal();
+});
+
 let _toastTimer = null;
 /* OG 이미지 캐시 예열 — 아직 안 만들어진 폰트별 OG 이미지를 서버에서 순차 생성.
    서버가 생성을 한 번에 하나씩만 하도록 락을 걸어두었기 때문에(메모리 보호),
@@ -2929,6 +3267,7 @@ document.addEventListener('keydown',(e)=>{
     if(document.getElementById('fontModal').classList.contains('open')) closeFontModal();
     else if(document.getElementById('catEditModal').classList.contains('open')) closeCatEdit();
     else if(document.getElementById('noticeModal').classList.contains('open')) closeNoticeModal();
+    else if(document.getElementById('useCaseModal').classList.contains('open')) closeUseCaseModal();
     else if(document.getElementById('submissionModal').classList.contains('open')) closeSubmissionModal();
     else if(document.getElementById('confirmModal').classList.contains('open')) closeConfirm();
   }
