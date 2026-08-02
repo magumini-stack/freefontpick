@@ -46,9 +46,8 @@ USE_CASE_SEED_VERSION을 올리면 기존 시드를 지우고 재삽입한다.
 
 USE_CASE_SEED_VERSION = "5"
 
-# 각 허브: slug / title / subtitle / tag_name / criteria / howto / tips / fonts / phrases
+# 각 허브: slug / title / subtitle / tag_name / criteria / howto / fonts / phrases
 #   fonts: (font_id, 검증용 폰트명, 추천 이유)  — 순서가 곧 rank
-#   tips:  [라벨, 내용]  — 화면에서 좌우로 갈라 렌더된다
 USE_CASE_SEED = [
     # ── 태그 기반 4개 ─────────────────────────────────────
     {
