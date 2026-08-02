@@ -35,6 +35,7 @@ def init_db():
     _ensure_webfont_columns()
     _ensure_is_pick_column()
     _ensure_tag_axis_column()
+    _ensure_use_case_tips_column()
     db = SessionLocal()
     try:
         _seed_admin(db)
@@ -137,6 +138,7 @@ def _ensure_is_pick_column():
     """fonts 테이블에 is_pick 컬럼이 없으면 추가.
 
     메인 페이지 "큐레이터 픽" 섹션 — 어드민이 체크박스로 지정한 추천 폰트를 노출하기 위해 필요.
+    (2026-08 홈 리디자인에서 화면 노출은 걷어냈지만, 컬럼과 어드민 체크박스는 유지한다.)
     """
     from sqlalchemy import text, inspect
     inspector = inspect(engine)
@@ -148,6 +150,23 @@ def _ensure_is_pick_column():
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE fonts ADD COLUMN is_pick BOOLEAN NOT NULL DEFAULT 0"))
     print("[migrate] fonts.is_pick 컬럼 추가 완료")
+
+
+def _ensure_use_case_tips_column():
+    """use_cases 테이블에 tips 컬럼이 없으면 추가.
+
+    활용 방법을 한 문단에서 [라벨, 내용] 3단 구조로 바꾸기 위해 필요.
+    """
+    from sqlalchemy import text, inspect
+    inspector = inspect(engine)
+    if "use_cases" not in inspector.get_table_names():
+        return  # create_all이 이번에 만들었음
+    columns = {col["name"] for col in inspector.get_columns("use_cases")}
+    if "tips" in columns:
+        return
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE use_cases ADD COLUMN tips JSON NULL"))
+    print("[migrate] use_cases.tips 컬럼 추가 완료")
 
 
 def _ensure_tag_axis_column():
@@ -454,6 +473,7 @@ def _seed_use_cases(db: Session):
             tag_id=tag_id,
             criteria=uc.get("criteria", ""),
             howto=uc.get("howto", ""),
+            tips=uc.get("tips", []),
             is_active=True,
             sort_order=(i + 1) * 10,
         )
