@@ -39,6 +39,16 @@ def _parse_webfont_weights(csv: str) -> List[int]:
     return out
 
 
+# 샘플 이미지 보유 여부는 디스크 인덱스로 판단한다 (DB 컬럼 없음).
+# 순환 임포트를 피하려고 함수 안에서 늦게 임포트한다.
+def _has_sample(font_id: int) -> bool:
+    try:
+        from .sample_image import has_sample
+        return has_sample(font_id)
+    except Exception:
+        return False
+
+
 def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
     return FontOut(
         has_pairing=font.id in paired_ids,
@@ -59,6 +69,7 @@ def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
         tags=[t.name for t in font.tags],
         meta=font.meta or {},
         like_count=font.like_count or 0,
+        has_sample=_has_sample(font.id),
     )
 
 
