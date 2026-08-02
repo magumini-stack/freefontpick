@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
 from .seed import init_db
-from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, sample_image
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -72,7 +72,8 @@ app.add_middleware(
 # 단, /api 아래에는 캐시가 이득인 바이너리 응답이 섞여 있으므로 제외한다:
 #   - /api/fonts/{id}/og-image.png : OG 이미지 (디스크 캐시 파일)
 #   - /api/fonts/{id}/file         : woff2 폰트 파일 (매 페이지뷰마다 재다운로드되면 치명적)
-_CACHE_EXEMPT_SUFFIXES = ("/og-image.png", "/file")
+#   - /api/fonts/{id}/sample-image : 상세페이지 샘플 이미지
+_CACHE_EXEMPT_SUFFIXES = ("/og-image.png", "/file", "/sample-image")
 
 
 @app.middleware("http")
@@ -98,6 +99,7 @@ app.include_router(pairings.router)
 app.include_router(preview_phrases.router)
 app.include_router(use_cases.router)
 app.include_router(use_cases_admin.router)
+app.include_router(sample_image.router)
 app.include_router(og_image.router)
 # wisefont / design / use 라우터는 catch-all(/{full_path:path})보다 반드시 먼저 등록해야
 # /wisefont/{slug}, /design/{id}, /use/{slug}, /find-font 요청이 catch-all에 가로채이지 않는다.
