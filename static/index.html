@@ -335,7 +335,7 @@
     .collapse-toggle.is-collapsed .ct-icon{transform:rotate(180deg)}
 
     /* MAIN */
-    .main{max-width:1240px;margin:0 auto;padding:0 24px 80px}
+    .main{max-width:1240px;margin:0 auto;padding:22px 24px 80px}
 
     /* PREVIEW BAR */
     .preview-bar{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:13px 18px;margin-bottom:0;display:flex;align-items:center;gap:12px;position:relative}
@@ -435,8 +435,10 @@
       -webkit-overflow-scrolling:touch;margin-bottom:16px;scroll-margin-top:76px;
       scrollbar-width:none;-ms-overflow-style:none;
       /* 잘리는 쪽 끝을 흐리게 처리해 '더 있다'는 걸 알린다 */
+      padding-bottom:2px;
       -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);
-      mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%)}
+      mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);
+      -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
     .tags-bar::-webkit-scrollbar{display:none}
     .tag{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:11.5px;padding:5px 9px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500;flex:0 0 auto}
     .tag:hover{border-color:var(--text-primary);color:var(--text-primary)}
@@ -686,7 +688,7 @@
       .hero{padding:28px 16px 20px}.hero-title{font-size:22px}
       .use-section{padding:0 16px 24px}
       .picks-section{padding:0 16px 28px}
-      .main{padding:0 16px 60px}
+      .main{padding:18px 16px 60px}
       .preview-bar{flex-wrap:wrap}
       .preview-bar .preview-divider{display:none}
       .size-wrap input[type=range]{width:70px}
@@ -3011,8 +3013,15 @@ async function renderTagsBar(){
   }
   bar.innerHTML = `<button class="tag${currentTag==='all'?' active':''}" onclick="setTag('all',this)">전체</button>` +
     tags.map(t=>`<button class="tag${currentTag===t?' active':''}" onclick="setTag('${t.replace(/'/g,"\\'")}',this)">${t}</button>`).join('');
-  // 가로 스크롤 레일이므로, 선택된 태그가 화면 밖이면 보이는 위치로 끌어온다
-  bar.querySelector('.tag.active')?.scrollIntoView({block:'nearest', inline:'nearest'});
+  // 선택된 태그가 레일 밖에 있으면 '레일만' 가로로 굴린다.
+  // scrollIntoView는 세로로도 페이지를 움직여 스티키 헤더 아래로 파묻히므로 쓰지 않는다.
+  if(currentTag !== 'all'){
+    const act = bar.querySelector('.tag.active');
+    if(act){
+      const left = act.offsetLeft - bar.clientWidth / 2 + act.offsetWidth / 2;
+      bar.scrollLeft = Math.max(0, left);
+    }
+  }
 }
 
 /* ── 업로드된 폰트 등록 ──
