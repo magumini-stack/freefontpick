@@ -108,6 +108,20 @@ def use_case_page(slug: str, db: Session = Depends(get_db)):
             + " 등이 있습니다.</p>"
         )
 
+    # ── 활용 방법 3단 ──
+    # [라벨, 내용]을 좌우로 갈라 렌더한다. 한 문단으로 붙이면 숫자가 문장 속에
+    # 묻혀 안 읽힌다 — 규격을 주는 게 이 페이지의 핵심이라 스캔이 되게 해야 한다.
+    tips = [t for t in (uc.tips or []) if t and len(t) >= 2 and t[0] and t[1]]
+    if tips:
+        howto_html = "".join(
+            f'<div class="tip-row"><span class="tip-k">{_esc(t[0])}</span>'
+            f'<span class="tip-v">{_esc(t[1])}</span></div>'
+            for t in tips
+        )
+    else:
+        # 구버전 데이터(한 문단) 폴백
+        howto_html = f'<p>{_esc(uc.howto)}</p>'
+
     phrase_chips = "".join(
         f'<button type="button" class="chip" data-text="{_esc(ph.text)}">{_esc(ph.text)}</button>'
         for ph in uc.phrases
@@ -138,7 +152,7 @@ def use_case_page(slug: str, db: Session = Depends(get_db)):
         "{{UC_SUBTITLE}}": _esc(uc.subtitle),
         "{{UC_COUNT}}": str(total),
         "{{UC_CRITERIA}}": _esc(uc.criteria),
-        "{{UC_HOWTO}}": _esc(uc.howto),
+        "{{UC_HOWTO}}": howto_html,
         "{{UC_PHRASE_CHIPS}}": phrase_chips,
         "{{UC_PICKS_SSR}}": picks_ssr,
         "{{UC_OTHERS}}": other_links,
