@@ -696,6 +696,47 @@
         <div class="field-hint" id="fmSizeWarning" style="display:none;color:var(--danger,#d33);font-weight:600">⚠ 파일이 큽니다 (1MB 초과). 사용자 페이지 로딩이 느려질 수 있으니 서브셋으로 용량을 줄이는 것을 권장합니다.</div>
       </div>
 
+      <div class="field meta-section" id="fmSampleSection">
+        <div class="meta-header">
+          <label>
+            <i class="ti ti-photo" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i>
+            샘플 이미지 <span class="meta-sub">— 올리면 상세페이지의 '글자 견본'이 이 이미지로 바뀝니다</span>
+          </label>
+        </div>
+        <div id="fmSampleLocked" style="font-size:12px;color:var(--text-muted);padding:10px 0">
+          이 폰트를 먼저 <strong>저장</strong>한 뒤, 다시 <strong>수정</strong>에서 샘플 이미지를 올릴 수 있어요.
+        </div>
+        <div id="fmSampleBody" style="display:none">
+          <div id="fmSamplePreview" style="margin-bottom:10px"></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="file" id="fmSampleFile" accept="image/png,image/jpeg,image/webp,image/gif" style="flex:1;min-width:180px;font-size:12px">
+            <button type="button" class="btn-secondary" onclick="uploadSampleImage()"><i class="ti ti-upload" aria-hidden="true"></i> 업로드</button>
+            <button type="button" class="btn-icon danger" id="fmSampleDelBtn" onclick="deleteSampleImage()" aria-label="샘플 이미지 삭제" title="삭제" style="display:none">
+              <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+            </button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:12px">
+            <div style="flex:1;min-width:180px">
+              <div class="meta-label">출처 표기 (선택)</div>
+              <input type="text" id="fmSampleCredit" maxlength="120" placeholder="예: 눈누 / 제작사 공식 소개 이미지"
+                style="width:100%;height:34px;border:1px solid var(--border);border-radius:6px;padding:0 10px;background:var(--bg-card);color:var(--text-primary);font-family:inherit;font-size:12.5px">
+            </div>
+            <div style="flex:1;min-width:180px">
+              <div class="meta-label">출처 링크 (선택)</div>
+              <input type="url" id="fmSampleCreditUrl" maxlength="500" placeholder="https://..."
+                style="width:100%;height:34px;border:1px solid var(--border);border-radius:6px;padding:0 10px;background:var(--bg-card);color:var(--text-primary);font-family:inherit;font-size:12.5px">
+            </div>
+          </div>
+          <div class="field-hint" style="margin-top:8px">
+            ⚠ <b>출처는 아래 '저장' 버튼을 눌러야 반영됩니다.</b> 이미지 업로드는 즉시 반영되지만
+            출처는 폰트 정보와 함께 저장돼요.<br>
+            JPG · PNG · WEBP · GIF, 최대 3MB. 상세페이지에서 <b>가로 폭에 맞춰 그대로 표시</b>되므로
+            가로 1200px 내외, 여백을 포함한 완성된 이미지를 올리세요.<br>
+            이미지를 <b>삭제하면 글자 견본이 다시 나옵니다.</b>
+          </div>
+        </div>
+      </div>
+
       <div class="field meta-section" id="fmExtraWeightsSection">
         <div class="meta-header">
           <label>
@@ -1422,7 +1463,7 @@ function renderFontTable(){
           </div>
         </td>
         <td>
-          <div class="cell-name">${escapeHtml(f.name)} ${uploaded}${f.isPick ? ' <span style="font-family:ui-monospace,monospace;font-size:10px;font-weight:700;color:#1E3A8A;border:1px solid #1E3A8A;border-radius:2px;padding:1px 5px;vertical-align:middle">PICK</span>' : ''}</div>
+          <div class="cell-name">${escapeHtml(f.name)} ${uploaded}${f.hasSample ? ' <span class="pill" style="background:var(--accent-light);color:var(--accent)"><i class="ti ti-photo" style="font-size:10px"></i> 샘플</span>' : ''}${f.isPick ? ' <span style="font-family:ui-monospace,monospace;font-size:10px;font-weight:700;color:#1E3A8A;border:1px solid #1E3A8A;border-radius:2px;padding:1px 5px;vertical-align:middle">PICK</span>' : ''}</div>
         </td>
         <td><div class="cell-maker">${escapeHtml(f.maker)}</div></td>
         <td>${escapeHtml(f.weights)}</td>
@@ -1537,6 +1578,10 @@ function openFontModal(){
   // 추가 굵기 등록은 폰트를 먼저 저장해야 가능 (font_id 필요) — 새 등록에서는 안내 문구만
   document.getElementById('fmExtraWeightsLocked').style.display = 'block';
   document.getElementById('fmExtraWeightsBody').style.display = 'none';
+  document.getElementById('fmSampleLocked').style.display = 'block';
+  document.getElementById('fmSampleBody').style.display = 'none';
+  document.getElementById('fmSampleCredit').value = '';
+  document.getElementById('fmSampleCreditUrl').value = '';
   document.getElementById('fontModal').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -1574,6 +1619,11 @@ function editFont(id){
   document.getElementById('fmExtraWeightsLocked').style.display = 'none';
   document.getElementById('fmExtraWeightsBody').style.display = 'block';
   refreshExtraWeights(id);
+  document.getElementById('fmSampleLocked').style.display = 'none';
+  document.getElementById('fmSampleBody').style.display = 'block';
+  renderSamplePreview(id, !!f.hasSample);
+  document.getElementById('fmSampleCredit').value = (f.meta && f.meta.sample_credit) || '';
+  document.getElementById('fmSampleCreditUrl').value = (f.meta && f.meta.sample_credit_url) || '';
   document.getElementById('fontModal').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -2045,6 +2095,14 @@ async function saveFont(){
   const introInput = document.getElementById('fmIntro').value.trim();
   if(introInput) meta.intro = introInput;
   else delete meta.intro;
+
+  // 샘플 이미지 출처 (비우면 키 제거 — 상세페이지에 캡션이 안 나옴)
+  const creditInput = document.getElementById('fmSampleCredit').value.trim();
+  if(creditInput) meta.sample_credit = creditInput;
+  else delete meta.sample_credit;
+  const creditUrlInput = document.getElementById('fmSampleCreditUrl').value.trim();
+  if(creditUrlInput && /^https?:\/\//i.test(creditUrlInput)) meta.sample_credit_url = creditUrlInput;
+  else delete meta.sample_credit_url;
 
   // 갤러리 미리보기 문구 반영 (비우면 자동 배정되도록 키 제거)
   const previewTextInput = document.getElementById('fmPreviewText').value.trim();
@@ -2965,6 +3023,57 @@ async function saveSelectedAutoPairings(){
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+/* ── 샘플 이미지 (상세페이지 '글자 견본' 대체) ──
+   DB 컬럼이 아니라 파일 존재 여부로 판단하므로, 업로드·삭제 후에는
+   목록을 다시 불러와야 has_sample이 갱신된다. */
+function renderSamplePreview(fontId, hasSample){
+  const box = document.getElementById('fmSamplePreview');
+  const delBtn = document.getElementById('fmSampleDelBtn');
+  document.getElementById('fmSampleFile').value = '';
+  if(hasSample){
+    // ?v= 로 브라우저 캐시를 무효화한다 (이미지는 24시간 캐시된다)
+    box.innerHTML = `<img src="/api/fonts/${fontId}/sample-image?v=${Date.now()}" alt="샘플 이미지"
+      style="max-width:100%;border:1px solid var(--border);border-radius:8px;display:block">`;
+    delBtn.style.display = '';
+  } else {
+    box.innerHTML = `<div style="font-size:12px;color:var(--text-muted)">등록된 샘플 이미지가 없어요 — 상세페이지에는 글자 견본이 나옵니다.</div>`;
+    delBtn.style.display = 'none';
+  }
+}
+
+async function uploadSampleImage(){
+  if(!editingId){ showToast('폰트를 먼저 저장한 뒤 이미지를 올려주세요'); return; }
+  const input = document.getElementById('fmSampleFile');
+  const file = input.files[0];
+  if(!file){ showToast('이미지 파일을 선택해주세요'); return; }
+  if(file.size > 3*1024*1024){ showToast('3MB를 초과할 수 없어요'); return; }
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    await apiFetch(`/fonts/${editingId}/sample-image`, {method:'POST', body: fd});
+    showToast('샘플 이미지를 업로드했어요');
+    renderSamplePreview(editingId, true);
+    FONTS = await FontStore.getAll();
+    renderFontTable();
+  } catch(e){
+    showToast(e.message || '업로드에 실패했어요');
+  }
+}
+
+async function deleteSampleImage(){
+  if(!editingId) return;
+  if(!confirm('샘플 이미지를 삭제할까요? 상세페이지에는 글자 견본이 다시 나옵니다.')) return;
+  try {
+    await apiFetch(`/fonts/${editingId}/sample-image`, {method:'DELETE'});
+    showToast('샘플 이미지를 삭제했어요');
+    renderSamplePreview(editingId, false);
+    FONTS = await FontStore.getAll();
+    renderFontTable();
+  } catch(e){
+    showToast(e.message || '삭제에 실패했어요');
+  }
+}
+
 /* ════════════════════════════════════════
    용도 허브 관리 (/use/{slug} 랜딩 페이지)
 

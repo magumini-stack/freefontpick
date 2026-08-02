@@ -158,7 +158,14 @@
   .w-label{width:130px;flex-shrink:0}
   .w-label b{display:block;font-size:13px;font-weight:700;color:var(--text-primary)}
   .w-label span{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
-  .w-sample{flex:1;min-width:0;font-size:clamp(26px,4.4vw,40px);line-height:1.25;letter-spacing:-.3px;color:var(--text-primary);word-break:break-word}
+  .sample-img{margin:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;
+  background:var(--bg-secondary,#F3F3EF);line-height:0}
+.sample-img img{width:100%;height:auto;display:block}
+.sample-credit{font-size:12px;line-height:1.6;color:var(--text-muted,#9A9A9A);
+  padding:8px 12px;border-top:1px solid var(--border);background:var(--bg-card,#fff)}
+.sample-credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.sample-credit a:hover{color:var(--accent)}
+.w-sample{flex:1;min-width:0;font-size:clamp(26px,4.4vw,40px);line-height:1.25;letter-spacing:-.3px;color:var(--text-primary);word-break:break-word}
 
   /* ── USAGE ── */
   .u-cap{font-family:var(--mono);font-size:11px;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
@@ -493,10 +500,16 @@
           <p class="u-body uses-font" style="font-weight:400" data-ko="글꼴은 단순한 장식이 아니라 목소리입니다. 같은 문장도 어떤 폰트로 담느냐에 따라 다정하게, 단단하게, 혹은 우아하게 들립니다. 화면과 인쇄물 모두에서 안정적으로 읽히는지 직접 확인해 보세요." data-en="A typeface is not mere decoration but a voice. The same sentence can sound warm, bold, or elegant depending on the font that carries it. Check how it reads on both screen and print.">글꼴은 단순한 장식이 아니라 목소리입니다. 같은 문장도 어떤 폰트로 담느냐에 따라 다정하게, 단단하게, 혹은 우아하게 들립니다. 화면과 인쇄물 모두에서 안정적으로 읽히는지 직접 확인해 보세요.</p>
         </section>
 
-        <!-- ④ 글자 견본 -->
+        <!-- ④ 글자 견본 / 샘플 이미지 -->
+        <!-- 샘플 이미지가 있으면 글자 견본 대신 이미지를 보여준다.
+             둘 다 같은 자리(④번 블록)를 쓰고, 어느 쪽을 보일지는 has_sample이 정한다. -->
         <section class="blk">
-          <div class="lbl">글자 견본</div>
-          <div class="glyphs">
+          <div class="lbl" id="specimenLbl">글자 견본</div>
+          <figure class="sample-img hidden" id="sampleImgWrap">
+            <img id="sampleImg" alt="" loading="lazy" decoding="async">
+            <figcaption class="sample-credit hidden" id="sampleCredit"></figcaption>
+          </figure>
+          <div class="glyphs" id="glyphSet">
             <div id="glyphKo"><div class="g-cap">한글</div><div class="g-set uses-font">가 나 다 라 마 바 사 아 자 차 카 타 파 하</div></div>
             <div><div class="g-cap">영문</div><div class="g-set uses-font">A B C D E F G a b c d e f g</div></div>
             <div><div class="g-cap">숫자 · 기호</div><div class="g-set uses-font">0 1 2 3 4 5 6 7 8 9 . , ! ? ₩ @ #</div></div>
@@ -959,6 +972,42 @@
         });
         var _glyphKo = document.getElementById('glyphKo');
         if (_glyphKo && f.is_english) _glyphKo.classList.add('hidden');
+
+        /* 샘플 이미지가 등록돼 있으면 글자 견본을 감추고 이미지를 띄운다.
+           이미지 로딩이 실패하면(파일이 지워졌는데 인덱스가 남은 경우 등)
+           글자 견본으로 되돌린다 — 빈 자리가 남는 것보다 낫다. */
+        var _glyphSet = document.getElementById('glyphSet');
+        var _imgWrap = document.getElementById('sampleImgWrap');
+        var _img = document.getElementById('sampleImg');
+        if (f.has_sample && _imgWrap && _img && _glyphSet) {
+          _img.alt = f.name + ' 샘플 이미지';
+          _img.onload = function(){
+            _glyphSet.classList.add('hidden');
+            _imgWrap.classList.remove('hidden');
+            var lbl = document.getElementById('specimenLbl');
+            if (lbl) lbl.textContent = '폰트 샘플';
+
+            /* 출처 표기. meta.sample_credit(문구)과 meta.sample_credit_url(링크).
+               URL이 있으면 링크로 걸되 rel="nofollow noopener"를 붙인다 —
+               외부 출처에 우리 페이지의 신뢰도를 넘겨줄 이유가 없다. */
+            var m = f.meta || {};
+            var credit = (m.sample_credit || '').trim();
+            var creditUrl = (m.sample_credit_url || '').trim();
+            var capEl = document.getElementById('sampleCredit');
+            if (capEl && credit) {
+              var safe = esc(credit);
+              if (/^https?:\/\//i.test(creditUrl)) {
+                capEl.innerHTML = '출처 · <a href="' + esc(creditUrl) +
+                  '" target="_blank" rel="nofollow noopener">' + safe + '</a>';
+              } else {
+                capEl.textContent = '출처 · ' + credit;
+              }
+              capEl.classList.remove('hidden');
+            }
+          };
+          _img.onerror = function(){ _imgWrap.classList.add('hidden'); };
+          _img.src = '/api/fonts/' + f.id + '/sample-image';
+        }
       } catch(e){}
       var _dtop = document.getElementById('designBtnTop'); if (_dtop){ _dtop.setAttribute('href', '/font/' + f.id + '/design'); _dtop.onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); }; }
       fetchRelated(f);
