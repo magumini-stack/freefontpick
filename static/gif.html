@@ -178,7 +178,10 @@ select.inp{appearance:none;cursor:pointer}
 .adv>summary{list-style:none;cursor:pointer;padding:9px 30px 9px 11px;font-size:14px;font-weight:600;
              display:flex;align-items:center;gap:8px;user-select:none;line-height:1.4}
 .adv>summary::-webkit-details-marker{display:none}
-.adv>summary:hover{background:var(--bg-card)}
+/* background 단축을 쓰면 안 된다. 단축은 background-repeat까지 초기값(repeat)으로
+   되돌리는데, 펼친 상태의 화살표는 더 구체적인 규칙(details[open]>summary.opener)이
+   지정해서 살아남는다. 결과가 '바 전체에 화살표가 타일처럼 깔리는' 모양이었다. */
+.adv>summary:hover{background-color:var(--bg-card)}
 .advhint{font-weight:400;font-size:11px;color:var(--text-muted);margin-left:auto}
 .advbody{padding:4px 11px 12px;border-top:1px solid var(--border)}
 .advsep{border:none;border-top:1px solid var(--border);margin:11px 0 7px}

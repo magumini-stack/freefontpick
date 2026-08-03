@@ -377,9 +377,6 @@ const GifTemplateStore = {
   async importAll(items) {
     return await apiFetch('/gif-templates/import', {method: 'POST', body: items});
   },
-  async reorder(idsInOrder) {
-    return await apiFetch('/gif-templates/reorder', {method: 'POST', body: idsInOrder});
-  },
   /** 편집기·제작툴용 축약 폰트 목록 (용도별) */
   async fonts() {
     return await apiFetch('/gif-fonts');

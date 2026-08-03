@@ -6,7 +6,6 @@
 - PATCH  /api/gif-templates/{id}       수정 — 관리자
 - DELETE /api/gif-templates/{id}       삭제 — 관리자
 - POST   /api/gif-templates/import     일괄 등록(번호 기준 덮어쓰기) — 관리자
-- POST   /api/gif-templates/reorder    순서 변경 — 관리자
 - GET    /api/gif-fonts                편집기용 폰트 목록(용도별) — 공개
 
 - GET    /api/gif-use-cases            용도 5종 + 각 용도의 폰트
@@ -94,6 +93,17 @@ def _to_out(t: GifTemplate) -> dict:
 # ══════════════════════════════════════════════════════════════
 # 입력 스키마
 # ══════════════════════════════════════════════════════════════
+def _order_from_number(number: str, fallback: int = 0) -> int:
+    """목록 순서는 번호에서 뽑는다.
+
+    따로 관리하던 sort_order를 저장할 때마다 새로 매기던 것이 문제였다.
+    '012'를 고쳐 저장하면 목록 맨 뒤로 밀려, 어드민이 방금 고친 템플릿을
+    다시 찾아야 했다. 번호가 곧 순서면 어긋날 일이 없다.
+    """
+    n = (number or "").strip()
+    return int(n) * 10 if n.isdigit() else fallback
+
+
 class GifTemplateIn(BaseModel):
     number: str
     title: str = ""
@@ -108,7 +118,8 @@ class GifTemplateIn(BaseModel):
     sample_text: str = ""
     config: Dict[str, Any] = Field(default_factory=dict)
     is_active: bool = True
-    sort_order: int = 0
+    # 보내지 않으면 번호에서 뽑는다 (아래 _order_from_number 참고)
+    sort_order: Optional[int] = None
 
 
 class GifTemplatePatch(BaseModel):
@@ -190,7 +201,8 @@ def list_gif_templates(
         q = q.filter(GifTemplate.anim_category == category)
     if ratio:
         q = q.filter(GifTemplate.ratio == ratio)
-    rows = q.order_by(GifTemplate.sort_order.asc(), GifTemplate.id.asc()).all()
+    # 번호순 — number는 '001'처럼 자리를 채운 문자열이라 사전순이 곧 번호순이다
+    rows = q.order_by(GifTemplate.number.asc(), GifTemplate.id.asc()).all()
     return [_to_out(t) for t in rows]
 
 
@@ -441,7 +453,10 @@ def create_gif_template(
 ) -> dict:
     if db.query(GifTemplate).filter(GifTemplate.number == body.number).first():
         raise HTTPException(status_code=400, detail=f"번호 {body.number}는 이미 있습니다")
-    t = GifTemplate(**body.model_dump())
+    data = body.model_dump()
+    if data.get("sort_order") is None:
+        data["sort_order"] = _order_from_number(body.number)
+    t = GifTemplate(**data)
     _sync_from_config(t)
     db.add(t)
     _mark_admin_edited(db)
@@ -496,6 +511,11 @@ def import_gif_templates(
     for item in items:
         t = db.query(GifTemplate).filter(GifTemplate.number == item.number).first()
         data = item.model_dump()
+        # sort_order를 안 보냈으면 번호에서 뽑는다. 고쳐 저장할 때마다 새 순번을
+        # 매기면 방금 고친 템플릿이 목록 맨 뒤로 밀려난다.
+        if data.get("sort_order") is None:
+            data["sort_order"] = _order_from_number(
+                item.number, t.sort_order if t else 0)
         if t is None:
             t = GifTemplate(**data)
             _sync_from_config(t)
@@ -510,17 +530,3 @@ def import_gif_templates(
     db.commit()
     return {"created": created, "updated": updated, "total": created + updated}
 
-
-@router.post("/gif-templates/reorder")
-def reorder_gif_templates(
-    order: List[int],
-    db: Session = Depends(get_db),
-    _admin=Depends(require_password_changed),
-) -> dict:
-    id_to_order = {tid: idx for idx, tid in enumerate(order)}
-    rows = db.query(GifTemplate).filter(GifTemplate.id.in_(order)).all()
-    for t in rows:
-        t.sort_order = id_to_order[t.id]
-    _mark_admin_edited(db)
-    db.commit()
-    return {"updated": len(rows)}
