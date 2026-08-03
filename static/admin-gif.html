@@ -150,6 +150,48 @@ select.inp{padding:8px 8px}
        font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.on{opacity:1}
 
+/* ── 용도 · 폰트 관리 레이어 ── */
+.ucwrap{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.45);
+        display:none;align-items:center;justify-content:center;padding:24px}
+.ucwrap.on{display:flex}
+.ucbox{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;
+       width:min(880px,100%);max-height:min(760px,92vh);display:flex;flex-direction:column;
+       overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.uchead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:16px 18px;
+        border-bottom:1px solid var(--border)}
+.uchead h2{font-size:16px;font-weight:800;letter-spacing:-.3px}
+.ucsub{font-size:11.5px;color:var(--text-muted)}
+.uctabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px 0}
+.uctabs button{border:1px solid var(--border);background:transparent;color:var(--text-secondary);
+               padding:6px 12px;font-size:12.5px;font-weight:700;border-radius:20px}
+.uctabs button.on{border-color:var(--accent);background:var(--accent);color:#fff}
+.uctabs button.off{opacity:.5}
+.ucbody{padding:14px 18px 18px;overflow-y:auto;flex:1;min-height:0}
+.ucmeta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.uch3{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+      color:var(--text-muted);margin:14px 0 8px}
+.ucfonts{display:flex;flex-direction:column;gap:5px}
+.ucf{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--border);
+     border-radius:var(--radius-sm);background:var(--bg-secondary);font-size:13px}
+.ucf .rk{font-family:var(--mono);font-size:11px;color:var(--text-muted);width:22px;flex:none}
+.ucf .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.ucf .mk{font-size:11px;color:var(--text-muted);flex:none}
+.ucf.bad{border-color:#C2410C55;background:#C2410C11}
+.ucf .why{font-size:10.5px;color:#C2410C;flex:none}
+.ucf button{border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);
+            width:26px;height:24px;border-radius:6px;flex:none;font-size:12px;line-height:1}
+.ucf button:hover:not(:disabled){color:var(--text-primary);border-color:var(--border-hover)}
+.ucf button:disabled{opacity:.3;cursor:not-allowed}
+.ucpick{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;max-height:190px;overflow-y:auto;
+        padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);
+        background:var(--bg-secondary)}
+.ucpick button{border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);
+               padding:5px 10px;font-size:12px;border-radius:20px}
+.ucpick button:hover{border-color:var(--accent);color:var(--accent)}
+.ucfoot{display:flex;align-items:center;gap:10px;padding:12px 18px;
+        border-top:1px solid var(--border);background:var(--bg-secondary)}
+.ucdirty{font-size:12px;color:#C2410C;font-weight:600}
+
 @media(max-width:1200px){ .left{width:290px} .right{width:290px} }
 @media(max-width:980px){
   .work{flex-direction:column}
@@ -179,6 +221,7 @@ select.inp{padding:8px 8px}
   <h1>GIF 템플릿 제작툴</h1>
   <span class="badge" id="savedCount">0개 저장됨</span>
   <div class="sp">
+    <button class="btn btn-sm" id="ucOpen">용도 · 폰트 관리</button>
     <a class="btn btn-sm" href="/gif" target="_blank">편집기 열기</a>
     <a class="btn btn-sm" href="/gif/templates" target="_blank">갤러리 열기</a>
     <a class="btn btn-sm" href="/admin.html">← 관리자</a>
@@ -193,7 +236,6 @@ select.inp{padding:8px 8px}
       <div class="row tight" id="hubChips"></div>
       <select class="inp" id="fontSel" style="margin-top:8px"></select>
       <div class="row tight" id="weightChips" style="margin-top:7px"></div>
-      <div class="row tight" id="phraseChips" style="margin-top:8px"></div>
     </div>
 
     <div class="sec">
@@ -285,6 +327,44 @@ select.inp{padding:8px 8px}
 </div>
 </div>
 
+<!-- ── 용도 · 폰트 관리 ──────────────────────────────────────────
+     편집기에서 용도를 고르면 나오는 폰트 목록을 여기서 정한다.
+     맨 위 폰트가 그 용도의 기본값이 되므로 순서에도 의미가 있다. -->
+<div class="ucwrap" id="ucWrap">
+  <div class="ucbox">
+    <div class="uchead">
+      <h2>용도 · 폰트 관리</h2>
+      <span class="ucsub">편집기에서 용도를 고르면 나오는 폰트 목록입니다. 맨 위 폰트가 기본으로 잡혀요.</span>
+      <button class="btn btn-sm" id="ucClose" style="margin-left:auto">닫기</button>
+    </div>
+    <div class="uctabs" id="ucTabs"></div>
+    <div class="ucbody">
+      <div class="ucmeta">
+        <input class="inp" id="ucTitle" placeholder="용도 이름" style="width:180px">
+        <input class="inp" id="ucSub" placeholder="설명 (선택)" style="flex:1;min-width:140px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap">
+          <input type="checkbox" id="ucActive"> 편집기에 노출
+        </label>
+        <button class="btn btn-sm btn-danger" id="ucDel">이 용도 삭제</button>
+      </div>
+
+      <h3 class="uch3">폰트 <span id="ucCount" style="color:var(--text-muted)"></span></h3>
+      <div class="ucfonts" id="ucFonts"></div>
+
+      <h3 class="uch3">폰트 추가</h3>
+      <div class="row tight">
+        <input class="inp" id="ucSearch" placeholder="폰트 이름으로 찾기" style="flex:1;min-width:160px">
+      </div>
+      <div class="ucpick" id="ucPick"></div>
+    </div>
+    <div class="ucfoot">
+      <button class="btn btn-sm" id="ucNew">+ 새 용도</button>
+      <span class="ucdirty" id="ucDirty"></span>
+      <button class="btn btn-primary" id="ucSave" style="margin-left:auto">저장</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="/static/api-client.js"></script>
@@ -342,7 +422,7 @@ function renderHubs(){
     ui.hub = c.dataset.h;
     const h = hubOf(ui.hub);
     await selectFont(h && h.fonts[0]);
-    renderHubs(); renderFonts(); renderPhrases();
+    renderHubs(); renderFonts();
   });
 }
 function renderFonts(){
@@ -366,16 +446,6 @@ function renderWeights(){
   $('weightChips').querySelectorAll('.chip').forEach(c=>c.onclick=async()=>{
     await selectFont(fontOf(ui.fontId), +c.dataset.w);
     renderWeights();
-  });
-}
-function renderPhrases(){
-  const h = hubOf(ui.hub);
-  const list = (h && h.phrases) || [];
-  $('phraseChips').innerHTML = list.map(p=>`<button class="chip" data-p="${esc(p)}">${esc(p)}</button>`).join('');
-  $('phraseChips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
-    $('txt').value = c.dataset.p;
-    R.setState({text:c.dataset.p});
-    updLen();
   });
 }
 
@@ -598,7 +668,7 @@ async function loadTemplate(id){
   $('tplNum').value = t.number;
   $('tplTitle').value = t.title || '';
   ui.t = 0;
-  renderHubs(); renderFonts(); renderPhrases(); renderAnims(); renderFx(); renderRatios();
+  renderHubs(); renderFonts(); renderAnims(); renderFx(); renderRatios();
   syncSliders(); syncMeta(); reloadList();
 }
 
@@ -631,6 +701,182 @@ $('impFile').onchange = async e=>{
 };
 
 /* ══════════════════════════════════════════════════════════════
+   용도 · 폰트 관리 레이어
+
+   폰트 목록은 화면에서 마음껏 고치다가 [저장]을 눌러야 서버로 간다.
+   한 줄 지울 때마다 요청을 보내면, 잘못 지웠을 때 되돌릴 방법이 없다.
+══════════════════════════════════════════════════════════════ */
+let UC = [];            // 서버에서 받은 용도 목록
+let ALLFONTS = [];      // 폰트 193종 (추가 후보)
+let ucSel = null;       // 지금 보고 있는 용도 id
+let ucDraft = [];       // 편집 중인 폰트 id 배열 — 저장 전까지 서버와 다르다
+
+function ucCur(){ return UC.find(u=>u.id===ucSel) || UC[0] || null; }
+
+function ucDirty(){
+  const u = ucCur();
+  if(!u) return false;
+  const now = u.fonts.map(f=>f.id).join(',');
+  return now !== ucDraft.join(',');
+}
+function ucSyncDirty(){
+  $('ucDirty').textContent = ucDirty() ? '저장하지 않은 변경이 있어요' : '';
+}
+
+async function ucOpen(){
+  $('ucWrap').classList.add('on');
+  try{
+    const [ucs, fonts] = await Promise.all([
+      GifUseCaseStore.getAll(),
+      ALLFONTS.length ? Promise.resolve(ALLFONTS) : FontStore.getAll(),
+    ]);
+    UC = ucs; ALLFONTS = fonts;
+  }catch(err){ toast('용도를 불러오지 못했어요: ' + (err.message||err)); return; }
+  if(!UC.length){ ucSel = null; }
+  else if(!UC.some(u=>u.id===ucSel)) ucSel = UC[0].id;
+  ucLoadDraft();
+  ucRender();
+}
+function ucLoadDraft(){
+  const u = ucCur();
+  ucDraft = u ? u.fonts.map(f=>f.id) : [];
+}
+
+function ucRender(){
+  $('ucTabs').innerHTML = UC.map(u=>
+    `<button class="${u.id===ucSel?'on':''}${u.is_active?'':' off'}" data-id="${u.id}">`
+    + `${esc(u.title)} <span style="opacity:.6">${u.fonts.length}</span></button>`).join('')
+    || '<span class="ucsub">용도가 없어요. 아래 [+ 새 용도]로 만들어주세요.</span>';
+  $('ucTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    if(ucDirty() && !confirm('저장하지 않은 변경이 있어요. 버리고 이동할까요?')) return;
+    ucSel = +b.dataset.id; ucLoadDraft(); ucRender();
+  });
+
+  const u = ucCur();
+  const has = !!u;
+  ['ucTitle','ucSub','ucActive','ucDel','ucSearch','ucSave'].forEach(id=>$(id).disabled = !has);
+  if(!has){ $('ucFonts').innerHTML = ''; $('ucPick').innerHTML = ''; $('ucCount').textContent=''; return; }
+
+  $('ucTitle').value  = u.title;
+  $('ucSub').value    = u.subtitle || '';
+  $('ucActive').checked = !!u.is_active;
+  $('ucCount').textContent = `${ucDraft.length}종`;
+
+  const byId = {};
+  UC.forEach(x=>x.fonts.forEach(f=>byId[f.id]=f));
+  ALLFONTS.forEach(f=>{ if(!byId[f.id]) byId[f.id] = f; });
+
+  $('ucFonts').innerHTML = ucDraft.map((fid,i)=>{
+    const f = byId[fid] || {name:`(폰트 ${fid})`, maker:''};
+    const bad = f.usable === false;
+    return `<div class="ucf${bad?' bad':''}">
+      <span class="rk">${i+1}</span>
+      <span class="nm">${esc(f.name)}</span>
+      <span class="mk">${esc(f.maker||'')}</span>
+      ${bad ? `<span class="why">${esc(f.blocked_reason||'사용 불가')}</span>` : ''}
+      <button data-up="${i}" ${i===0?'disabled':''} title="위로">↑</button>
+      <button data-dn="${i}" ${i===ucDraft.length-1?'disabled':''} title="아래로">↓</button>
+      <button data-rm="${i}" title="빼기">×</button>
+    </div>`;
+  }).join('') || '<div class="empty">폰트가 없어요. 아래에서 추가해주세요.</div>';
+
+  $('ucFonts').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const d = b.dataset;
+    if(d.rm !== undefined) ucDraft.splice(+d.rm, 1);
+    else if(d.up !== undefined){ const i=+d.up; [ucDraft[i-1],ucDraft[i]]=[ucDraft[i],ucDraft[i-1]]; }
+    else if(d.dn !== undefined){ const i=+d.dn; [ucDraft[i+1],ucDraft[i]]=[ucDraft[i],ucDraft[i+1]]; }
+    ucRender(); ucSyncDirty();
+  });
+
+  ucRenderPick();
+  ucSyncDirty();
+}
+
+function ucRenderPick(){
+  const q = ($('ucSearch').value || '').trim().toLowerCase();
+  const inList = new Set(ucDraft);
+  const cand = ALLFONTS
+    .filter(f=>!inList.has(f.id))
+    .filter(f=>!q || String(f.name).toLowerCase().includes(q)
+                  || String(f.maker||'').toLowerCase().includes(q))
+    .slice(0, 60);
+  $('ucPick').innerHTML = cand.length
+    ? cand.map(f=>`<button data-add="${f.id}">${esc(f.name)}</button>`).join('')
+    : '<span class="ucsub">해당하는 폰트가 없어요</span>';
+  $('ucPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    ucDraft.push(+b.dataset.add);
+    ucRender();
+  });
+}
+
+$('ucOpen').onclick  = ucOpen;
+$('ucClose').onclick = ()=>{
+  if(ucDirty() && !confirm('저장하지 않은 변경이 있어요. 버리고 닫을까요?')) return;
+  $('ucWrap').classList.remove('on');
+};
+$('ucWrap').onclick = e=>{ if(e.target === $('ucWrap')) $('ucClose').click(); };
+$('ucSearch').oninput = ucRenderPick;
+
+$('ucSave').onclick = async ()=>{
+  const u = ucCur(); if(!u) return;
+  $('ucSave').disabled = true;
+  try{
+    await GifUseCaseStore.update(u.id, {
+      title: $('ucTitle').value.trim() || u.title,
+      subtitle: $('ucSub').value.trim(),
+      is_active: $('ucActive').checked,
+    });
+    const saved = await GifUseCaseStore.setFonts(u.id, ucDraft);
+    UC = UC.map(x=>x.id===saved.id ? saved : x);
+    ucLoadDraft();
+    ucRender();
+    toast(`${saved.title} — 폰트 ${saved.fonts.length}종 저장했어요`);
+    await refreshHubs();
+  }catch(err){ toast('저장 실패: ' + (err.message||err)); }
+  $('ucSave').disabled = false;
+};
+
+$('ucNew').onclick = async ()=>{
+  const title = prompt('새 용도 이름 (예: 공지)');
+  if(!title) return;
+  const slug = prompt('영문 주소용 이름 (예: notice) — 소문자·숫자·하이픈만');
+  if(!slug) return;
+  try{
+    const created = await GifUseCaseStore.add({
+      slug: slug.trim().toLowerCase(), title: title.trim(),
+      sort_order: (UC.length ? Math.max(...UC.map(u=>u.sort_order)) : 0) + 10,
+    });
+    UC.push(created); ucSel = created.id; ucLoadDraft(); ucRender();
+    toast(`'${created.title}' 만들었어요`);
+  }catch(err){ toast('만들기 실패: ' + (err.message||err)); }
+};
+
+$('ucDel').onclick = async ()=>{
+  const u = ucCur(); if(!u) return;
+  if(!confirm(`'${u.title}' 용도를 삭제할까요?`)) return;
+  try{
+    await GifUseCaseStore.remove(u.id);
+    UC = UC.filter(x=>x.id!==u.id);
+    ucSel = UC.length ? UC[0].id : null;
+    ucLoadDraft(); ucRender();
+    toast('삭제했어요');
+    await refreshHubs();
+  }catch(err){ toast(err.message||String(err)); }
+};
+
+/* 용도를 고친 뒤 제작툴 왼쪽의 용도·폰트 목록도 새로 받아온다.
+   안 하면 방금 뺀 폰트로 템플릿을 계속 만들 수 있다. */
+async function refreshHubs(){
+  const res = await GifTemplateStore.fonts().catch(()=>null);
+  if(!res) return;
+  HUBS = res.hubs || [];
+  if(!HUBS.some(h=>h.slug===ui.hub)) ui.hub = HUBS.length ? HUBS[0].slug : null;
+  const h = hubOf(ui.hub);
+  if(h && !h.fonts.some(f=>f.id===ui.fontId)) await selectFont(h.fonts[0]);
+  renderHubs(); renderFonts();
+}
+
+/* ══════════════════════════════════════════════════════════════
    시작
 ══════════════════════════════════════════════════════════════ */
 let _booted = false;
@@ -644,7 +890,7 @@ async function boot(){
   await selectFont(hubOf(ui.hub) && hubOf(ui.hub).fonts[0]);
 
   bindSliders();
-  renderHubs(); renderFonts(); renderPhrases();
+  renderHubs(); renderFonts();
   renderAnims(); renderFx(); renderRatios();
   syncSliders(); syncMeta();
   await reloadList();

@@ -7,18 +7,24 @@
 - DELETE /api/gif-templates/{id}       삭제 — 관리자
 - POST   /api/gif-templates/import     일괄 등록(번호 기준 덮어쓰기) — 관리자
 - POST   /api/gif-templates/reorder    순서 변경 — 관리자
-- GET    /api/gif-fonts                편집기용 폰트 목록(허브별) — 공개
+- GET    /api/gif-fonts                편집기용 폰트 목록(용도별) — 공개
+
+- GET    /api/gif-use-cases            용도 5종 + 각 용도의 폰트
+- POST   /api/gif-use-cases            용도 추가 — 관리자
+- PATCH  /api/gif-use-cases/{id}       이름·노출·순서 — 관리자
+- DELETE /api/gif-use-cases/{id}       삭제 — 관리자 (템플릿이 쓰고 있으면 거부)
+- PUT    /api/gif-use-cases/{id}/fonts 용도의 폰트 목록 교체 — 관리자
 
 import 이 있는 이유
 -------------------
-템플릿 48개를 어드민에서 한 개씩 저장 버튼을 눌러 만들 수는 없다.
+템플릿 50개를 어드민에서 한 개씩 저장 버튼을 눌러 만들 수는 없다.
 제작툴에서 만들어 JSON으로 내보낸 뒤 여기로 한 번에 밀어넣는다.
 번호(number)로 덮어쓰기 때문에 같은 파일을 두 번 올려도 중복이 생기지 않는다.
 
 gif-fonts 가 따로 있는 이유
 ---------------------------
 /api/fonts 는 193종을 meta(추천용 8차원 블롭)까지 통째로 준다(~130KB).
-편집기에는 이름·굵기·파일 유무만 있으면 되고, 폰트는 허브 6개 안에서만
+편집기에는 이름·굵기·파일 유무만 있으면 되고, 폰트는 용도 5종 안에서만
 고르므로 훨씬 작게 줄 수 있다.
 """
 from typing import Any, Dict, List, Optional
@@ -28,14 +34,10 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import AppMeta, Font, FontWeight, GifTemplate, Tag, UseCase
+from ..models import AppMeta, Font, FontWeight, GifTemplate, GifUseCase, GifUseCaseFont
 from ..auth import require_password_changed
 
 router = APIRouter(prefix="/api", tags=["gif-templates"])
-
-# 편집기 폰트 선택에 노출할 용도 허브. 전체 10개를 다 보여주면
-# 목록이 길어지고, GIF로 만들 일이 거의 없는 허브(보고서·UI)가 섞인다.
-GIF_HUBS = ["thumbnail", "vlog", "card", "wedding", "quote", "goods"]
 
 # GIF 생성기에서 뺄 폰트.
 # 84 조선일보명조체: woff2 파일을 브라우저가 거부한다(Invalid font data).
@@ -203,87 +205,229 @@ def get_gif_template(key: str, db: Session = Depends(get_db)) -> dict:
     return _to_out(t)
 
 
-@router.get("/gif-fonts")
-def list_gif_fonts(db: Session = Depends(get_db)) -> dict:
-    """편집기 폰트 선택용 — 허브 6개와 그에 속한 폰트만.
+def _weights_by_font(db: Session) -> Dict[int, List[int]]:
+    """굵기 파일 목록을 한 번에 모아 폰트별로 나눈다 (폰트마다 조회하면 N+1)."""
+    out: Dict[int, List[int]] = {}
+    for fw in db.query(FontWeight).order_by(FontWeight.weight).all():
+        out.setdefault(fw.font_id, []).append(fw.weight)
+    return out
 
-    파일이 없는 폰트(has_file=False, 웹폰트도 아님)는 캔버스에 그릴 수 없으니
-    아예 내려보내지 않는다. 목록에 떠 있는데 고르면 대체 폰트로 나오는 것이
-    가장 나쁘다.
 
-    태그 폰트까지 포함하는 이유
-    --------------------------
-    썸네일·브이로그·카드뉴스 허브는 큐레이션 링크가 4개뿐이고 나머지는
-    태그(예: '유튜브 썸네일 추천')로 붙어 있다. 링크만 읽으면 이 세 허브만
-    4종으로 나와 다른 허브(12종)와 어긋난다. /use/{slug} 페이지가 picks+more로
-    합쳐 보여주는 것과 같은 구성을 여기서도 만든다.
-    """
-    ucs = {
-        uc.slug: uc
-        for uc in db.query(UseCase).filter(UseCase.slug.in_(GIF_HUBS)).all()
+def _font_out(f: Font, weights: Dict[int, List[int]]) -> dict:
+    ws = sorted(set(weights.get(f.id, []) + [int(f.primary_weight or 400)]))
+    return {
+        "id": f.id,
+        "name": f.name,
+        "maker": f.maker or "",
+        "stack": f.stack or "'Nanum Gothic',sans-serif",
+        "has_file": bool(f.has_file),
+        "is_english": bool(f.is_english),
+        "primary_weight": int(f.primary_weight or 400),
+        "weights": ws,
+        "webfont_family": f.webfont_family or None,
+        "webfont_css_url": f.webfont_css_url or None,
     }
 
-    # 굵기 파일 목록을 한 번에 모아 폰트별로 나눈다 (폰트마다 조회하면 N+1)
-    weights_by_font: Dict[int, List[int]] = {}
-    for fw in db.query(FontWeight).order_by(FontWeight.weight).all():
-        weights_by_font.setdefault(fw.font_id, []).append(fw.weight)
 
-    def font_out(f: Font) -> dict:
-        ws = sorted(set(weights_by_font.get(f.id, []) + [int(f.primary_weight or 400)]))
-        return {
-            "id": f.id,
-            "name": f.name,
-            "maker": f.maker or "",
-            "stack": f.stack or "'Nanum Gothic',sans-serif",
-            "has_file": bool(f.has_file),
-            "is_english": bool(f.is_english),
-            "primary_weight": int(f.primary_weight or 400),
-            "weights": ws,
-            "webfont_family": f.webfont_family or None,
-            "webfont_css_url": f.webfont_css_url or None,
-        }
+def _usable(f: Font) -> bool:
+    """캔버스에 실제로 그릴 수 있는 폰트인가.
 
-    def usable(f: Font) -> bool:
-        if f.id in GIF_FONT_EXCLUDE:
-            return False
-        return bool(f.has_file) or bool(f.webfont_family)
+    파일도 웹폰트도 없는 폰트는 목록에 두지 않는다 — 떠 있는데 고르면
+    대체 폰트로 그려진 GIF가 나가는 것이 가장 나쁘다.
+    """
+    if f.id in GIF_FONT_EXCLUDE:
+        return False
+    return bool(f.has_file) or bool(f.webfont_family)
 
-    # 허브가 가리키는 태그의 폰트를 한 번에 모아 둔다 (허브마다 조회하면 N+1)
-    tag_ids = {uc.tag_id for uc in ucs.values() if uc.tag_id}
-    tag_fonts: Dict[int, List[Font]] = {}
-    if tag_ids:
-        q = (db.query(Tag.id, Font)
-               .join(Font.tags)
-               .filter(Tag.id.in_(tag_ids))
-               .order_by(Font.sort_order, Font.id))
-        for tid, f in q.all():
-            tag_fonts.setdefault(tid, []).append(f)
 
-    # 허브당 상한. 큐레이션 허브가 12종이라 태그 허브도 12종으로 맞춘다 —
-    # 허브마다 개수가 들쭉날쭉하면 고르는 사람이 왜 여긴 적은지 궁금해진다.
-    PER_HUB = 12
+@router.get("/gif-fonts")
+def list_gif_fonts(db: Session = Depends(get_db)) -> dict:
+    """편집기 폰트 선택용 — 용도 5종과 그에 속한 폰트.
 
+    응답 키가 'hubs'인 이유는 편집기·갤러리가 이미 그 이름으로 읽고 있어서다.
+    안에 담기는 것은 gif_use_cases 테이블의 용도다.
+    """
+    weights = _weights_by_font(db)
+    rows = (db.query(GifUseCase)
+              .filter(GifUseCase.is_active.is_(True))
+              .order_by(GifUseCase.sort_order, GifUseCase.id).all())
     hubs = []
-    for slug in GIF_HUBS:
-        uc = ucs.get(slug)
-        if uc is None:
-            continue
-        seen, fonts = set(), []
-        # 큐레이션으로 직접 지목한 폰트가 먼저, 그 다음이 태그 폰트
-        for f in [l.font for l in uc.fonts] + tag_fonts.get(uc.tag_id, []):
-            if f is None or f.id in seen or not usable(f):
+    for uc in rows:
+        fonts, seen = [], set()
+        for link in uc.fonts:
+            f = link.font
+            if f is None or f.id in seen or not _usable(f):
                 continue
             seen.add(f.id)
-            fonts.append(font_out(f))
-            if len(fonts) >= PER_HUB:
-                break
+            fonts.append(_font_out(f, weights))
         hubs.append({
             "slug": uc.slug,
             "title": uc.title,
-            "phrases": [p.text for p in uc.phrases],
+            "subtitle": uc.subtitle or "",
             "fonts": fonts,
         })
     return {"hubs": hubs}
+
+
+# ══════════════════════════════════════════════════════════════
+# 용도 관리 — 어드민
+# ══════════════════════════════════════════════════════════════
+UC_EDITED_KEY = "gif_use_case_admin_edited"
+
+
+def _mark_uc_edited(db: Session) -> None:
+    """어드민이 용도를 손댔다고 표시한다 — 시드가 덮어쓰지 않게."""
+    row = db.query(AppMeta).filter(AppMeta.key == UC_EDITED_KEY).first()
+    if row is None:
+        db.add(AppMeta(key=UC_EDITED_KEY, value="1"))
+    elif row.value != "1":
+        row.value = "1"
+
+
+def _uc_out(uc: GifUseCase, weights: Dict[int, List[int]]) -> dict:
+    """어드민용 — 못 쓰는 폰트도 숨기지 않고 이유를 붙여 보여준다.
+
+    공개 API가 조용히 걸러낸 폰트를 어드민에서도 숨기면, 운영자는
+    12종을 넣었는데 편집기에 11종만 나오는 이유를 영영 알 수 없다.
+    """
+    fonts = []
+    for link in uc.fonts:
+        f = link.font
+        if f is None:
+            continue
+        d = _font_out(f, weights)
+        d["usable"] = _usable(f)
+        d["blocked_reason"] = (
+            "GIF 생성기 제외 목록" if f.id in GIF_FONT_EXCLUDE
+            else ("" if (f.has_file or f.webfont_family) else "폰트 파일 없음")
+        )
+        fonts.append(d)
+    return {
+        "id": uc.id,
+        "slug": uc.slug,
+        "title": uc.title,
+        "subtitle": uc.subtitle or "",
+        "is_active": bool(uc.is_active),
+        "sort_order": uc.sort_order,
+        "fonts": fonts,
+    }
+
+
+class GifUseCaseIn(BaseModel):
+    slug: str
+    title: str
+    subtitle: str = ""
+    is_active: bool = True
+    sort_order: int = 0
+
+
+class GifUseCasePatch(BaseModel):
+    title: Optional[str] = None
+    subtitle: Optional[str] = None
+    is_active: Optional[bool] = None
+    sort_order: Optional[int] = None
+
+
+@router.get("/gif-use-cases")
+def list_gif_use_cases(
+    include_inactive: bool = True,
+    db: Session = Depends(get_db),
+) -> List[dict]:
+    q = db.query(GifUseCase)
+    if not include_inactive:
+        q = q.filter(GifUseCase.is_active.is_(True))
+    rows = q.order_by(GifUseCase.sort_order, GifUseCase.id).all()
+    weights = _weights_by_font(db)
+    return [_uc_out(uc, weights) for uc in rows]
+
+
+@router.post("/gif-use-cases")
+def create_gif_use_case(
+    body: GifUseCaseIn,
+    db: Session = Depends(get_db),
+    _admin=Depends(require_password_changed),
+) -> dict:
+    if db.query(GifUseCase).filter(GifUseCase.slug == body.slug).first():
+        raise HTTPException(status_code=400, detail=f"'{body.slug}'는 이미 있는 용도입니다")
+    uc = GifUseCase(**body.model_dump())
+    db.add(uc)
+    _mark_uc_edited(db)
+    db.commit()
+    db.refresh(uc)
+    return _uc_out(uc, _weights_by_font(db))
+
+
+@router.patch("/gif-use-cases/{uc_id}")
+def update_gif_use_case(
+    uc_id: int,
+    body: GifUseCasePatch,
+    db: Session = Depends(get_db),
+    _admin=Depends(require_password_changed),
+) -> dict:
+    uc = db.query(GifUseCase).filter(GifUseCase.id == uc_id).first()
+    if uc is None:
+        raise HTTPException(status_code=404, detail="용도를 찾을 수 없습니다")
+    for k, v in body.model_dump(exclude_unset=True).items():
+        if v is not None:
+            setattr(uc, k, v)
+    _mark_uc_edited(db)
+    db.commit()
+    db.refresh(uc)
+    return _uc_out(uc, _weights_by_font(db))
+
+
+@router.delete("/gif-use-cases/{uc_id}")
+def delete_gif_use_case(
+    uc_id: int,
+    db: Session = Depends(get_db),
+    _admin=Depends(require_password_changed),
+) -> dict:
+    uc = db.query(GifUseCase).filter(GifUseCase.id == uc_id).first()
+    if uc is None:
+        raise HTTPException(status_code=404, detail="용도를 찾을 수 없습니다")
+    used = db.query(GifTemplate).filter(GifTemplate.hub_slug == uc.slug).count()
+    if used:
+        raise HTTPException(
+            status_code=400,
+            detail=f"이 용도를 쓰는 템플릿이 {used}개 있습니다. 템플릿을 먼저 옮겨주세요.")
+    db.delete(uc)
+    _mark_uc_edited(db)
+    db.commit()
+    return {"deleted": uc_id}
+
+
+@router.put("/gif-use-cases/{uc_id}/fonts")
+def set_gif_use_case_fonts(
+    uc_id: int,
+    font_ids: List[int],
+    db: Session = Depends(get_db),
+    _admin=Depends(require_password_changed),
+) -> dict:
+    """용도의 폰트 목록을 통째로 바꾼다 — 추가·삭제·순서가 한 번에 끝난다.
+
+    엔드포인트를 셋으로 나누지 않은 이유: 화면에서 폰트 셋을 지우고 둘을
+    더한 뒤 저장을 누르면, 나뉘어 있을 때는 요청 다섯 개가 순서대로 성공해야
+    한다. 중간에 하나가 실패하면 화면과 DB가 어긋난 채로 남는다.
+    """
+    uc = db.query(GifUseCase).filter(GifUseCase.id == uc_id).first()
+    if uc is None:
+        raise HTTPException(status_code=404, detail="용도를 찾을 수 없습니다")
+
+    known = {f.id for f in db.query(Font.id).filter(Font.id.in_(font_ids)).all()}
+    ordered, seen = [], set()
+    for fid in font_ids:            # 중복은 첫 위치만 남긴다
+        if fid in known and fid not in seen:
+            seen.add(fid)
+            ordered.append(fid)
+
+    db.query(GifUseCaseFont).filter(GifUseCaseFont.gif_use_case_id == uc.id).delete()
+    db.flush()
+    for rank, fid in enumerate(ordered):
+        db.add(GifUseCaseFont(gif_use_case_id=uc.id, font_id=fid, rank=rank))
+    _mark_uc_edited(db)
+    db.commit()
+    db.refresh(uc)
+    return _uc_out(uc, _weights_by_font(db))
 
 
 # ══════════════════════════════════════════════════════════════

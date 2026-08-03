@@ -380,9 +380,34 @@ const GifTemplateStore = {
   async reorder(idsInOrder) {
     return await apiFetch('/gif-templates/reorder', {method: 'POST', body: idsInOrder});
   },
-  /** 편집기·제작툴용 축약 폰트 목록 (허브별) */
+  /** 편집기·제작툴용 축약 폰트 목록 (용도별) */
   async fonts() {
     return await apiFetch('/gif-fonts');
+  },
+};
+
+/* ════════════════════════════════════════
+   GifUseCaseStore — GIF 생성기의 용도 (일상·인사·감성·상세페이지·블로그)
+   폰트 목록은 통째로 교체한다(setFonts). 추가·삭제·순서를 따로 두면
+   화면에서 여러 번 고친 뒤 저장할 때 요청이 줄줄이 나가고, 중간에 하나가
+   실패하면 화면과 DB가 어긋난 채 남는다.
+════════════════════════════════════════ */
+const GifUseCaseStore = {
+  async getAll() {
+    return await apiFetch('/gif-use-cases');
+  },
+  async add(payload) {
+    return await apiFetch('/gif-use-cases', {method: 'POST', body: payload});
+  },
+  async update(id, payload) {
+    return await apiFetch(`/gif-use-cases/${id}`, {method: 'PATCH', body: payload});
+  },
+  async remove(id) {
+    await apiFetch(`/gif-use-cases/${id}`, {method: 'DELETE'});
+  },
+  /** 폰트 목록 통째 교체 — 배열 순서가 그대로 노출 순서가 된다 */
+  async setFonts(id, fontIdsInOrder) {
+    return await apiFetch(`/gif-use-cases/${id}/fonts`, {method: 'PUT', body: fontIdsInOrder});
   },
 };
 

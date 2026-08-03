@@ -60,10 +60,14 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothi
 a{color:inherit}
 button{font-family:inherit;cursor:pointer}
 
+/* background 단축 속성 대신 background-color를 쓴다.
+   단축을 쓰면 .opener가 넣는 화살표(background-image)가 hover 때마다 사라진다. */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--border);
-     background:transparent;color:var(--text-primary);font-size:13px;font-weight:600;
-     padding:8px 14px;border-radius:var(--radius-sm);transition:.15s}
-.btn:hover:not(:disabled){border-color:var(--border-hover);background:var(--bg-secondary)}
+     background-color:transparent;color:var(--text-primary);font-size:13px;font-weight:600;
+     padding:8px 14px;border-radius:var(--radius-sm);
+     /* 'all'로 두면 .opener의 화살표가 위/아래로 바뀔 때 두 그림이 겹쳐 흐려진다 */
+     transition:background-color .15s, border-color .15s, color .15s}
+.btn:hover:not(:disabled){border-color:var(--border-hover);background-color:var(--bg-secondary)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn-primary:hover:not(:disabled){background:var(--accent-hover);border-color:var(--accent-hover)}
@@ -83,7 +87,7 @@ button{font-family:inherit;cursor:pointer}
 .ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;
     stroke-linecap:round;stroke-linejoin:round;display:block}
 
-.panel{width:304px;flex:none;border-right:1px solid var(--border);background:var(--bg-card);
+.panel{width:340px;flex:none;border-right:1px solid var(--border);background:var(--bg-card);
        padding:18px 16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;max-height:calc(100vh - 124px)}
 .panel h3{margin:0;font-size:17px;font-weight:800;letter-spacing:-.3px}
 .phead{display:flex;align-items:center;justify-content:space-between}
@@ -94,6 +98,9 @@ button{font-family:inherit;cursor:pointer}
             font-size:12.5px;font-weight:600;padding:6px 11px}
 .seg button+button{border-left:1px solid var(--border)}
 .seg button.on{background:var(--accent);color:#fff}
+
+.hubsub{font-size:11px;color:var(--text-muted);margin:5px 2px 0;line-height:1.4}
+.hubsub:empty{display:none}
 
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{border:1px solid var(--border);background:transparent;color:var(--text-secondary);
@@ -141,8 +148,8 @@ button{font-family:inherit;cursor:pointer}
 .tlmeta{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap}
 .mono{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
 
-.props{width:288px;flex:none;border-left:1px solid var(--border);background:var(--bg-card);
-       padding:18px 16px;display:flex;flex-direction:column;gap:18px;overflow-y:auto;max-height:calc(100vh - 124px)}
+.props{width:340px;flex:none;border-left:1px solid var(--border);background:var(--bg-card);
+       padding:18px 18px;display:flex;flex-direction:column;gap:18px;overflow-y:auto;max-height:calc(100vh - 124px)}
 .lbl{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted);
      font-weight:700;margin-bottom:7px}
 .inp{width:100%;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);
@@ -151,21 +158,28 @@ button{font-family:inherit;cursor:pointer}
 .inp:focus{outline:none;border-color:var(--accent)}
 .counter{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:5px}
 .counter .warn{color:#C2410C;font-weight:700}
-select.inp{appearance:none;cursor:pointer;padding-right:30px;
+/* ── 눌러서 여는 항목의 공통 모양 ──
+   용도·폰트 드롭다운, 효과 팝업, 세부 조정은 전부 '눌러서 여는' 것인데
+   각각 브라우저 기본 화살표 / '효과 보기' 글자 / '▾' 문자를 쓰고 있었다.
+   같은 동작이면 같은 모양이어야 하므로 화살표 하나로 통일한다.
+   색을 토큰으로 못 넣는 이유: 배경 이미지라 currentColor가 안 먹는다.
+   #9A9A9A는 밝은 테마의 --text-muted이고, 어두운 테마에서도 대비가 충분하다. */
+.opener{padding-right:30px;
   background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239A9A9A' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 9px center;background-size:15px}
+.opener[data-open="1"],details[open]>summary.opener{
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239A9A9A' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m18 15-6-6-6 6'/%3E%3C/svg%3E")}
+select.inp{appearance:none;cursor:pointer}
 
 /* ── 세부 조정 (접이식) ──
    제작툴에 있던 크기·길이·형광 바·매트를 여기서도 만질 수 있게 두되,
    기본은 접어둔다. 대부분은 템플릿 그대로 쓰고 문구만 바꾼다. */
 .adv{border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-secondary)}
-.adv>summary{list-style:none;cursor:pointer;padding:9px 11px;font-size:12.5px;font-weight:700;
-             display:flex;align-items:center;gap:8px;user-select:none}
+.adv>summary{list-style:none;cursor:pointer;padding:9px 30px 9px 11px;font-size:14px;font-weight:600;
+             display:flex;align-items:center;gap:8px;user-select:none;line-height:1.4}
 .adv>summary::-webkit-details-marker{display:none}
-.adv>summary::after{content:'▾';margin-left:auto;color:var(--text-muted);font-size:11px;transition:transform .15s}
-.adv[open]>summary::after{transform:rotate(180deg)}
 .adv>summary:hover{background:var(--bg-card)}
-.advhint{font-weight:500;font-size:11px;color:var(--text-muted)}
+.advhint{font-weight:400;font-size:11px;color:var(--text-muted);margin-left:auto}
 .advbody{padding:4px 11px 12px;border-top:1px solid var(--border)}
 .advsep{border:none;border-top:1px solid var(--border);margin:11px 0 7px}
 .advchk{display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;margin-top:4px}
@@ -184,9 +198,13 @@ select.inp{appearance:none;cursor:pointer;padding-right:30px;
 #bgColorInput.on{display:block}
 
 /* 효과 열기 버튼 — 지금 고른 효과의 색을 점으로 미리 보여준다 */
-.fxbtn{width:100%;justify-content:flex-start;gap:9px;padding:9px 11px}
+/* 효과 고르기 — 드롭다운과 같은 상자·같은 화살표로 맞춘다.
+   background 단축 속성을 쓰면 .opener의 화살표(background-image)까지 지워진다. */
+.fxbtn{width:100%;justify-content:flex-start;gap:9px;padding:9px 30px 9px 11px;
+       background-color:var(--bg-secondary);font-weight:400;font-size:14px;text-align:left}
+.fxbtn:hover:not(:disabled){background-color:var(--bg-secondary);border-color:var(--border-hover)}
 .fxdot{width:18px;height:18px;border-radius:5px;flex:none;border:1px solid var(--border)}
-.fxbtn .fxmore{margin-left:auto;font-size:11.5px;color:var(--text-muted);font-weight:600}
+.fxbtn .fxmore{margin-left:auto;font-size:11px;color:var(--text-muted);font-weight:400}
 .hint{display:flex;align-items:flex-start;gap:6px;font-size:11px;line-height:1.5;
       color:var(--text-muted);margin-top:8px}
 .hint .ic{width:13px;height:13px;flex:none;margin-top:2px;color:var(--accent)}
@@ -269,7 +287,11 @@ select.inp{appearance:none;cursor:pointer;padding-right:30px;
                 overflow-y:auto;padding:2px;flex:1;min-height:0}
 .fxpop .fxnote{margin-top:10px;font-size:10.5px;color:var(--text-muted);line-height:1.5}
 
-@media(max-width:1100px){ .panel{width:250px} .props{width:250px} }
+/* 캔버스가 620px, 좌우 패널이 340px씩이면 1300px 아래에서 캔버스가 눌린다.
+   패널을 줄이는 대신 두 단계로 나눠 좁힌다 — 한 번에 250px로 떨어뜨리면
+   우측 세부 조정의 라벨+슬라이더가 두 줄로 접힌다. */
+@media(max-width:1240px){ .panel{width:296px} .props{width:296px} }
+@media(max-width:1060px){ .panel{width:262px} .props{width:262px} }
 
 /* ── 모바일 ──
    캔버스를 맨 위로 올려 화면에 붙여두고(작업 결과를 늘 보이게),
@@ -329,13 +351,7 @@ select.inp{appearance:none;cursor:pointer;padding-right:30px;
   <!-- 템플릿 패널 -->
   <div class="panel">
     <div class="phead"><h3>GIF 템플릿</h3><span class="psub" id="tplCount">—</span></div>
-    <select class="inp" id="tplHubSel" aria-label="용도별 템플릿"></select>
-    <div class="seg" id="animFilter">
-      <button class="on" data-cat="all">전체</button>
-      <button data-cat="basic">기본</button>
-      <button data-cat="cinematic">시네마틱 ✦</button>
-      <button data-cat="dynamic">역동 ⚡</button>
-    </div>
+    <select class="inp opener" id="tplHubSel" aria-label="용도별 템플릿"></select>
     <div class="tplgrid" id="tplGrid"></div>
     <div class="psub" style="display:flex;align-items:center;gap:6px">
       <span class="dots g">●●●</span> GIF 적합도 — 3점일수록 용량·색이 안정적
@@ -410,23 +426,24 @@ select.inp{appearance:none;cursor:pointer;padding-right:30px;
 
     <div>
       <div class="lbl">폰트</div>
-      <select class="inp" id="hubSel" aria-label="용도"></select>
-      <select class="inp" id="fontSel" style="margin-top:7px" aria-label="폰트"></select>
+      <select class="inp opener" id="hubSel" aria-label="용도"></select>
+      <div class="hubsub" id="hubSub"></div>
+      <select class="inp opener" id="fontSel" style="margin-top:7px" aria-label="폰트"></select>
       <div class="chips" id="weightChips" style="margin-top:8px"></div>
     </div>
 
     <div>
       <div class="lbl">효과</div>
-      <button class="btn fxbtn" id="fxOpen">
+      <button class="btn fxbtn opener" id="fxOpen" aria-expanded="false">
         <i class="fxdot" id="fxDot"></i>
         <span id="fxName">굵은외곽선</span>
-        <span class="fxmore">효과 보기</span>
+        <span class="fxmore" id="fxMore">32종</span>
       </button>
     </div>
 
     <!-- 세부 조정 — 접어둔다. 슬라이더 6개를 펼쳐두면 문구·폰트가 화면 밖으로 밀린다. -->
     <details class="adv" id="advBox">
-      <summary>세부 조정<span class="advhint">크기 · 길이 · 형광 바</span></summary>
+      <summary class="opener">세부 조정<span class="advhint">크기 · 길이 · 형광 바</span></summary>
       <div class="advbody">
         <div class="slider"><label>글자 크기</label><input type="range" id="sSize" min="16" max="200" value="64"><span class="val" id="sSizeV">64</span></div>
         <div class="slider"><label>줄 간격</label><input type="range" id="sLh" min="90" max="200" value="130"><span class="val" id="sLhV">1.30</span></div>
@@ -487,7 +504,7 @@ select.inp{appearance:none;cursor:pointer;padding-right:30px;
 <div class="fxpop" id="fxPop">
   <div class="fxhead">
     <h4>효과 고르기</h4>
-    <span class="fxcount">32종</span>
+    <span class="fxcount" id="fxCount">32종</span>
     <button class="fxclose" id="fxCloseBtn" aria-label="닫기">×</button>
   </div>
   <div class="fx-grid" id="fxGrid"></div>
@@ -538,7 +555,7 @@ const R = FFPGif.createRenderer($('cv'));
 let TPLS = [];          // /api/gif-templates
 let HUBS = [];          // /api/gif-fonts
 let ui = {
-  tplNumber: null, hub: null, fontId: null, cat: 'all', tplHub: 'all',
+  tplNumber: null, hub: null, fontId: null, tplHub: 'all',
   t: 0, playing: true, busy: false,
 };
 const AUTOSAVE_KEY = 'ffp-gif-draft';
@@ -557,9 +574,7 @@ function fontOf(id){
    템플릿 목록
 ══════════════════════════════════════════════════════════════ */
 function renderTpls(){
-  const list = TPLS.filter(t =>
-    (ui.cat==='all' || t.anim_category===ui.cat) &&
-    (ui.tplHub==='all' || t.hub_slug===ui.tplHub));
+  const list = TPLS.filter(t => ui.tplHub==='all' || t.hub_slug===ui.tplHub);
   $('tplCount').textContent = list.length ? list.length+'종' : '';
   if(!list.length){
     $('tplGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">해당하는 템플릿이 없어요</div>';
@@ -607,13 +622,6 @@ $('tplHubSel').onchange = ()=>{ ui.tplHub = $('tplHubSel').value; renderTpls(); 
 function animName(id){ const a = FFPGif.ANIM_BY_ID[id]; return a ? a.name : id; }
 function esc(s){ return String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-$('animFilter').onclick = e=>{
-  const b = e.target.closest('button'); if(!b) return;
-  [...$('animFilter').children].forEach(x=>x.classList.toggle('on', x===b));
-  ui.cat = b.dataset.cat;
-  renderTpls();
-};
-
 async function applyTemplate(number){
   const t = TPLS.find(x=>x.number===number);
   if(!t) return;
@@ -642,6 +650,9 @@ function renderHubs(){
   ).join('');
 
   const h = hubOf(ui.hub);
+  /* 용도 설명 — 이름만으로는 '감성'과 '일상'의 차이가 안 보인다.
+     어드민에서 고치면 여기에 그대로 나온다. */
+  $('hubSub').textContent = (h && h.subtitle) || '';
   const fonts = h ? h.fonts : [];
   $('fontSel').innerHTML = fonts.length
     ? fonts.map(f=>
@@ -747,6 +758,8 @@ function renderFx(){
   /* 패널의 버튼도 함께 갱신 — 팝업을 닫아도 뭘 골랐는지 보여야 한다 */
   const cur = FFP_EFFECT_BY_ID[R.state.effect] || FFP_EFFECTS[0];
   $('fxName').textContent = cur.name;
+  /* 효과 개수는 ffp-effects.js가 정한다 — 33번째가 생겨도 화면이 따라온다 */
+  $('fxMore').textContent = $('fxCount').textContent = FFP_EFFECTS.length + '종';
   $('fxDot').style.background = cur.id==='none' ? 'transparent'
     : (cur.gradient ? `linear-gradient(135deg,${cur.gradient.join(',')})` : cur.color);
   $('fxDot').style.borderStyle = cur.id==='none' ? 'dashed' : 'solid';
@@ -806,12 +819,16 @@ function placeFxPop(){
 }
 function fxOpen(){
   renderFx();
+  $('fxOpen').dataset.open = '1';
+  $('fxOpen').setAttribute('aria-expanded', 'true');
   $('fxBack').classList.add('open');
   $('fxPop').classList.add('open');
   placeFxPop();
   requestAnimationFrame(placeFxPop);   // 내용이 채워진 뒤 실제 높이로 다시 잡는다
 }
 function fxClose(){
+  $('fxOpen').dataset.open = '0';
+  $('fxOpen').setAttribute('aria-expanded', 'false');
   $('fxPop').classList.remove('open');
   $('fxBack').classList.remove('open');
 }

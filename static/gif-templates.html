@@ -151,18 +151,9 @@ button{font-family:inherit;cursor:pointer}
 
 <div class="filters">
   <div class="wrap">
-    <div class="frow" style="margin-bottom:8px">
+    <div class="frow">
       <span class="flabel">용도</span>
       <div class="chips" id="hubF"></div>
-    </div>
-    <div class="frow">
-      <span class="flabel">움직임</span>
-      <div class="chips" id="catF">
-        <button class="chip on" data-c="all">전체</button>
-        <button class="chip" data-c="basic">기본</button>
-        <button class="chip" data-c="cinematic">시네마틱 ✦</button>
-        <button class="chip" data-c="dynamic">역동 ⚡</button>
-      </div>
       <div class="chips" style="margin-left:auto">
         <button class="chip" id="ratioF">모든 비율</button>
       </div>
@@ -225,7 +216,7 @@ applyThemeIcons();
 ══════════════════════════════════════════════════════════════ */
 const $ = id => document.getElementById(id);
 let TPLS = [], HUB_NAME = {};
-let filt = {hub:'all', cat:'all', ratio:'all'};
+let filt = {hub:'all', ratio:'all'};
 const dots = r => '●●●'.slice(0, r) || '—';
 const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const animName = id => (FFPGif.ANIM_BY_ID[id] || {}).name || id;
@@ -238,7 +229,6 @@ let io = null;
 function filtered(){
   return TPLS.filter(t =>
     (filt.hub==='all'   || t.hub_slug===filt.hub) &&
-    (filt.cat==='all'   || t.anim_category===filt.cat) &&
     (filt.ratio==='all' || t.ratio===filt.ratio));
 }
 
@@ -407,7 +397,6 @@ function bindChips(containerId, key, attr){
     render();
   };
 }
-bindChips('catF','cat','c');
 
 const RORDER = ['all','16:9','1:1','4:5','9:16'];
 const RLABEL = {all:'모든 비율','16:9':'16:9 가로','1:1':'1:1 정사각','4:5':'4:5 세로','9:16':'9:16 세로'};

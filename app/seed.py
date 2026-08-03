@@ -43,6 +43,7 @@ def init_db():
         _migrate_tag_axes(db)
         _seed_pairings(db)
         _seed_use_cases(db)
+        _seed_gif_use_cases(db)
         _seed_gif_templates(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
         from .routers.files import build_font_resolution
@@ -512,6 +513,53 @@ def _seed_use_cases(db: Session):
         print(f"[seed] ⚠ 용도 허브 폰트 미발견 {len(missing_fonts)}건: {', '.join(missing_fonts)}")
     if renamed_fonts:
         print(f"[seed] ℹ 폰트명 변경 감지 {len(renamed_fonts)}건 (id 연결이라 정상 동작): {', '.join(renamed_fonts)}")
+
+
+def _seed_gif_use_cases(db: Session):
+    """GIF 생성기 용도 5종 + 용도별 폰트.
+
+    어드민이 폰트를 하나라도 넣거나 뺐으면 그 뒤로는 손대지 않는다.
+    이 용도 목록은 '운영자가 계속 다듬는 것'이 전제라 시드가 덮어쓰면
+    작업이 통째로 사라진다 — 템플릿 시드와 같은 방어다.
+    """
+    from .models import GifUseCase, GifUseCaseFont
+    from .gif_use_case_data import GIF_USE_CASES, GIF_USE_CASE_SEED_VERSION
+
+    edited = db.query(AppMeta).filter(AppMeta.key == "gif_use_case_admin_edited").first()
+    if edited and edited.value == "1":
+        return
+
+    meta = db.query(AppMeta).filter(AppMeta.key == "gif_use_case_seed_version").first()
+    if meta and meta.value == GIF_USE_CASE_SEED_VERSION:
+        return
+
+    db.query(GifUseCaseFont).delete()
+    db.query(GifUseCase).delete()
+    if meta is None:
+        db.add(AppMeta(key="gif_use_case_seed_version", value=GIF_USE_CASE_SEED_VERSION))
+    else:
+        meta.value = GIF_USE_CASE_SEED_VERSION
+
+    font_ids = {f.id for f in db.query(Font.id).all()}
+    missing = []
+    for i, uc in enumerate(GIF_USE_CASES):
+        row = GifUseCase(
+            slug=uc["slug"], title=uc["title"], subtitle=uc.get("subtitle", ""),
+            is_active=True, sort_order=i * 10,
+        )
+        db.add(row)
+        db.flush()          # id가 있어야 폰트 줄을 붙인다
+        rank = 0
+        for fid in uc["fonts"]:
+            if fid not in font_ids:
+                missing.append(f"{uc['slug']}←폰트{fid}")
+                continue
+            db.add(GifUseCaseFont(gif_use_case_id=row.id, font_id=fid, rank=rank))
+            rank += 1
+    db.commit()
+    print(f"[seed] GIF 용도 {len(GIF_USE_CASES)}종 삽입 (v{GIF_USE_CASE_SEED_VERSION})")
+    if missing:
+        print(f"[seed] ⚠ GIF 용도 폰트 미발견 {len(missing)}건: {', '.join(missing)}")
 
 
 def _seed_gif_templates(db: Session):

@@ -360,3 +360,57 @@ class GifTemplate(Base):
         Index("idx_gif_tpl_sort", "sort_order"),
         Index("idx_gif_tpl_hub", "hub_slug"),
     )
+
+
+class GifUseCase(Base):
+    """GIF 생성기의 용도 — 편집기에서 폰트를 고를 때 묶어 보여주는 단위.
+
+    사이트의 use_cases(용도 허브)를 그대로 빌려 쓰지 않는 이유
+    -------------------------------------------------------
+    ① 분류 축이 다르다. /use/{slug}는 "이 용도에 어울리는 폰트를 고르는" 곳이고
+       여기는 "움직이는 문구를 만드는" 곳이라, 청첩장처럼 GIF로 만들 일이 없는
+       용도가 섞이고 반대로 인사·감성처럼 필요한 축이 없다.
+    ② use_cases는 시드 버전이 오르면 통째로 지웠다 다시 넣는다. 거기에 얹어두면
+       운영자가 GIF 쪽에서 폰트를 빼고 더한 손질이 배포 한 번에 사라진다.
+    """
+    __tablename__ = "gif_use_cases"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slug = Column(String(30), nullable=False, unique=True)
+    title = Column(String(40), nullable=False)
+    subtitle = Column(String(120), nullable=False, default="")
+    is_active = Column(Boolean, nullable=False, default=True, server_default="1")
+    sort_order = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    fonts = relationship(
+        "GifUseCaseFont",
+        back_populates="use_case",
+        cascade="all, delete-orphan",
+        order_by="GifUseCaseFont.rank",
+        lazy="selectin",
+    )
+
+
+class GifUseCaseFont(Base):
+    """용도에 넣어둔 폰트 (rank 순). 어드민에서 추가·삭제한다.
+
+    ondelete는 CASCADE — 폰트를 지우면 이 줄도 같이 사라지는 게 맞다.
+    템플릿(SET NULL)과 다른 이유: 템플릿은 폰트를 잃어도 고쳐 쓸 대상이
+    남지만, 여기는 목록의 한 줄일 뿐이라 남겨두면 빈 항목이 된다.
+    """
+    __tablename__ = "gif_use_case_fonts"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    gif_use_case_id = Column(
+        Integer, ForeignKey("gif_use_cases.id", ondelete="CASCADE"), nullable=False)
+    font_id = Column(Integer, ForeignKey("fonts.id", ondelete="CASCADE"), nullable=False)
+    rank = Column(Integer, nullable=False, default=0)
+
+    use_case = relationship("GifUseCase", back_populates="fonts")
+    font = relationship("Font", lazy="joined")
+
+    __table_args__ = (
+        Index("idx_gucf_use_case", "gif_use_case_id"),
+        Index("idx_gucf_font", "font_id"),
+        UniqueConstraint("gif_use_case_id", "font_id", name="uq_gucf_case_font"),
+    )
