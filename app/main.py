@@ -4,7 +4,9 @@
 - 정적 파일: /static/ 아래 + 루트(/) 도 정적 서빙
 - 세션 미들웨어: itsdangerous SessionMiddleware
 """
+import hashlib
 import os
+import re
 import secrets
 from pathlib import Path
 from contextlib import asynccontextmanager
@@ -12,7 +14,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.middleware.sessions import SessionMiddleware
 
 from .seed import init_db
@@ -74,6 +76,76 @@ app.add_middleware(
 #   - /api/fonts/{id}/file         : woff2 폰트 파일 (매 페이지뷰마다 재다운로드되면 치명적)
 #   - /api/fonts/{id}/sample-image : 상세페이지 샘플 이미지
 _CACHE_EXEMPT_SUFFIXES = ("/og-image.png", "/file", "/sample-image")
+
+
+# ══════════════════════════════════════════════════════════════
+# 정적 JS/CSS 캐시 무효화
+#
+# 카페24 앞단이 /static/* 에 Cache-Control: max-age=315360000(10년)을
+# 붙인다. 앱이 설정하는 값이 아니라 우리가 끌 수 없다. 그래서 배포로
+# api-client.js를 고쳐도 방문자 브라우저는 10년 전 파일을 계속 쓴다.
+# 실제로 어드민의 '용도 · 폰트 관리'가 이것 때문에 빈 화면이었다 —
+# HTML은 새 파일인데 거기서 부르는 GifUseCaseStore가 옛 JS에는 없었다.
+#
+# 프록시 설정을 못 바꾸니 URL을 바꾼다. HTML을 내보낼 때
+# /static/api-client.js → /static/api-client.js?v=1a2b3c4d 로 고쳐 쓰면
+# 파일이 바뀔 때마다 주소가 달라져 캐시가 비켜간다. 주소가 그대로인
+# 동안에는 10년 캐시가 그대로 살아 있어 속도 손해도 없다.
+# ══════════════════════════════════════════════════════════════
+_ASSET_REF = re.compile(r'(src|href)="(/static/[^"?]+\.(?:js|css))"')
+_asset_versions: dict = {}
+
+
+def _asset_version(url_path: str) -> str:
+    """파일 '내용'이 바뀔 때만 바뀌는 짧은 문자열.
+
+    수정시각이 아니라 내용으로 해시하는 이유: git으로 배포하면 파일을 새로
+    받으면서 수정시각이 전부 바뀐다. 시각으로 잡으면 고치지도 않은 파일까지
+    배포할 때마다 다시 내려받게 된다.
+
+    한 번 계산하면 프로세스가 살아있는 동안 재사용한다 —
+    정적 파일은 재배포(=새 컨테이너)로만 바뀐다. 실제로 참조된 파일만
+    읽으므로 시작이 느려지지도 않는다.
+    """
+    hit = _asset_versions.get(url_path)
+    if hit:
+        return hit
+    try:
+        data = (STATIC_DIR / url_path[len("/static/"):]).read_bytes()
+        v = hashlib.md5(data).hexdigest()[:8]
+    except OSError:
+        v = "0"          # 파일이 없으면 주소를 건드리지 않는 편이 안전하다
+    _asset_versions[url_path] = v
+    return v
+
+
+def _stamp_assets(html: str) -> str:
+    return _ASSET_REF.sub(
+        lambda m: f'{m.group(1)}="{m.group(2)}?v={_asset_version(m.group(2))}"', html)
+
+
+@app.middleware("http")
+async def stamp_static_assets(request: Request, call_next):
+    response = await call_next(request)
+    if not response.headers.get("content-type", "").startswith("text/html"):
+        return response
+
+    body = b""
+    async for chunk in response.body_iterator:
+        body += chunk
+    try:
+        body = _stamp_assets(body.decode("utf-8")).encode("utf-8")
+    except UnicodeDecodeError:
+        pass                                  # HTML이 아니면 손대지 않고 그대로 돌려준다
+
+    out = Response(status_code=response.status_code)
+    out.body = body
+    # dict(response.headers)로 옮기면 같은 이름의 헤더가 하나로 뭉개진다.
+    # Set-Cookie가 둘 이상일 때 로그인 세션이 조용히 사라지므로 raw로 옮긴다.
+    out.raw_headers = [
+        (k, v) for (k, v) in response.raw_headers if k.lower() != b"content-length"
+    ] + [(b"content-length", str(len(body)).encode())]
+    return out
 
 
 @app.middleware("http")
