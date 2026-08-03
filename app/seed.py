@@ -43,6 +43,7 @@ def init_db():
         _migrate_tag_axes(db)
         _seed_pairings(db)
         _seed_use_cases(db)
+        _seed_gif_templates(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
         from .routers.files import build_font_resolution
         build_font_resolution(db)
@@ -511,3 +512,52 @@ def _seed_use_cases(db: Session):
         print(f"[seed] ⚠ 용도 허브 폰트 미발견 {len(missing_fonts)}건: {', '.join(missing_fonts)}")
     if renamed_fonts:
         print(f"[seed] ℹ 폰트명 변경 감지 {len(renamed_fonts)}건 (id 연결이라 정상 동작): {', '.join(renamed_fonts)}")
+
+
+def _seed_gif_templates(db: Session):
+    """GIF 생성기 템플릿 시드 48종.
+
+    운영자가 어드민(/admin/gif)에서 하나라도 저장·삭제하면 그 뒤로는
+    시드가 절대 손대지 않는다. 이 방어가 없으면 다듬어 놓은 템플릿이
+    배포 한 번에 통째로 되돌아간다 — 용도 허브 시드와 같은 이유다.
+
+    없는 폰트 id는 건너뛰지 않고 font_id=None으로 넣는다. 건너뛰면
+    번호가 비어 조용히 47종이 되고, 왜 하나가 없는지 나중에 못 찾는다.
+    어드민 목록에서 폰트 없는 템플릿으로 보이는 편이 낫다.
+    """
+    from .models import GifTemplate
+    from .gif_template_data import GIF_TEMPLATES, GIF_TEMPLATE_SEED_VERSION
+
+    edited = db.query(AppMeta).filter(AppMeta.key == "gif_template_admin_edited").first()
+    if edited and edited.value == "1":
+        return
+
+    meta = db.query(AppMeta).filter(AppMeta.key == "gif_template_seed_version").first()
+    if meta and meta.value == GIF_TEMPLATE_SEED_VERSION:
+        return  # 최신 버전 시드 이미 적용됨
+
+    db.query(GifTemplate).delete()
+    if meta is None:
+        db.add(AppMeta(key="gif_template_seed_version", value=GIF_TEMPLATE_SEED_VERSION))
+    else:
+        meta.value = GIF_TEMPLATE_SEED_VERSION
+
+    font_ids = {f.id for f in db.query(Font.id).all()}
+    missing = []
+    for t in GIF_TEMPLATES:
+        fid = t["font_id"]
+        if fid not in font_ids:
+            missing.append(f"{t['number']}←폰트{fid}")
+            fid = None
+        db.add(GifTemplate(
+            number=t["number"], title=t["title"], hub_slug=t["hub_slug"],
+            anim=t["anim"], anim_category=t["anim_category"], effect=t["effect"],
+            ratio=t["ratio"], gif_rating=t["gif_rating"],
+            font_id=fid, font_weight=t["font_weight"],
+            sample_text=t["sample_text"], config=t["config"],
+            is_active=t["is_active"], sort_order=t["sort_order"],
+        ))
+    db.commit()
+    print(f"[seed] GIF 템플릿 {len(GIF_TEMPLATES)}종 삽입 (v{GIF_TEMPLATE_SEED_VERSION})")
+    if missing:
+        print(f"[seed] ⚠ GIF 템플릿 폰트 미발견 {len(missing)}건: {', '.join(missing)}")

@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>GIF 템플릿 제작툴 — 폰트픽 관리자</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<script>
+(function(){try{var t=localStorage.getItem('ffp-theme');
+if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+<style>
+:root{
+  --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
+  --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+  --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+  --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
+  --danger:#B91C1C;--ok:#15803D;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+  --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
+  --mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+  --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+  --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+  --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+  --danger:#F87171;--ok:#4ADE80;
+  --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+  background:var(--bg);color:var(--text-primary);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit;font-size:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--border);
+     background:transparent;color:var(--text-primary);font-size:13px;font-weight:600;
+     padding:8px 14px;border-radius:var(--radius-sm);transition:.15s}
+.btn:hover:not(:disabled){border-color:var(--border-hover);background:var(--bg-secondary)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover:not(:disabled){background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn-sm{padding:5px 9px;font-size:12px}
+.btn-danger{color:var(--danger);border-color:var(--danger)}
+
+/* ── 로그인 ── */
+.login-wrap{min-height:90vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;
+            padding:36px 32px 28px;width:100%;max-width:380px;box-shadow:var(--shadow-hover)}
+.login-card h1{font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;text-align:center}
+.login-card p{font-size:13px;color:var(--text-secondary);margin-bottom:24px;text-align:center}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:6px}
+.field input{width:100%;height:42px;border:1px solid var(--border);border-radius:var(--radius-sm);
+             padding:0 14px;background:var(--bg-secondary);color:var(--text-primary);outline:none}
+.field input:focus{border-color:var(--accent);background:var(--bg-card)}
+.err{font-size:12px;color:var(--danger);margin-top:6px;min-height:18px}
+
+/* ── 헤더 ── */
+.top{height:56px;display:flex;align-items:center;gap:14px;padding:0 20px;
+     border-bottom:1px solid var(--border);background:var(--bg-card);position:sticky;top:0;z-index:40}
+.top h1{font-size:16px;font-weight:800;letter-spacing:-.3px}
+.top .sp{margin-left:auto;display:flex;gap:8px;align-items:center}
+.badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;
+       background:var(--accent-light);color:var(--accent)}
+
+/* ── 3분할 ── */
+.work{display:flex;min-height:calc(100vh - 56px);align-items:stretch}
+.col{padding:16px;overflow-y:auto;max-height:calc(100vh - 56px)}
+.left{width:340px;flex:none;border-right:1px solid var(--border);background:var(--bg-card)}
+.mid{flex:1;min-width:0;background:var(--bg-secondary);display:flex;flex-direction:column;
+     padding:0;max-height:calc(100vh - 56px)}
+.right{width:330px;flex:none;border-left:1px solid var(--border);background:var(--bg-card)}
+
+.sec{margin-bottom:20px}
+.sec>h3{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+        color:var(--text-muted);margin-bottom:9px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row.tight{gap:5px}
+.inp{width:100%;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);
+     border-radius:var(--radius-sm);padding:8px 10px;outline:none;line-height:1.4;resize:vertical}
+.inp:focus{border-color:var(--accent)}
+select.inp{padding:8px 8px}
+.slider{display:flex;align-items:center;gap:9px;margin-top:7px}
+.slider label{font-size:11.5px;color:var(--text-secondary);width:56px;flex:none}
+.slider input[type=range]{flex:1;accent-color:var(--accent);height:3px}
+.slider .val{font-family:var(--mono);font-size:11px;color:var(--text-muted);width:52px;text-align:right;flex:none}
+
+.chip{border:1px solid var(--border);background:transparent;color:var(--text-secondary);
+      padding:5px 10px;font-size:11.5px;font-weight:600;border-radius:20px}
+.chip.on{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+
+.animgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.animgrid button{border:1px solid var(--border);background:transparent;color:var(--text-secondary);
+                 font-size:11.5px;font-weight:600;padding:7px 4px;border-radius:var(--radius-sm)}
+.animgrid button.on{border-color:var(--accent);background:var(--accent);color:#fff}
+
+.fx-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px 6px}
+.fx-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.fx-chip{width:100%;height:34px;border-radius:8px;border:2px solid transparent;display:flex;
+         align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff}
+.fx-item.active .fx-chip{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}
+.fx-item span{font-size:8.5px;font-weight:700;color:var(--text-muted);white-space:nowrap;
+              overflow:hidden;text-overflow:ellipsis;width:100%;text-align:center}
+.fx-item.active span{color:var(--accent)}
+.fx-chip.none-chip{background:var(--bg-card);border:2px dashed var(--border);color:var(--text-muted)}
+
+/* ── 캔버스 ── */
+.stagebar{display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap;
+          border-bottom:1px solid var(--border);background:var(--bg-card)}
+.canvaswrap{flex:1;display:flex;align-items:center;justify-content:center;padding:22px;min-height:0}
+#cv{max-width:min(680px,100%);max-height:56vh;width:auto;height:auto;
+    background:repeating-conic-gradient(rgba(255,255,255,.06) 0% 25%, transparent 0% 50%) 0 0/18px 18px;
+    box-shadow:var(--shadow-hover);border:1px solid var(--border)}
+.timeline{border-top:1px solid var(--border);background:var(--bg-card);padding:11px 16px 14px;
+          display:flex;flex-direction:column;gap:8px}
+.tlrow{display:flex;align-items:center;gap:11px}
+.scrub{flex:1;height:24px;border:1px solid var(--border);position:relative;background:var(--bg-secondary);
+       border-radius:4px;overflow:hidden;cursor:pointer;touch-action:none}
+.scrubfill{position:absolute;inset:0 auto 0 0;background:var(--accent-light)}
+.scrubhead{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--accent)}
+.mono{font-family:var(--mono);font-size:12px;white-space:nowrap}
+.tlmeta{display:flex;gap:14px;font-size:11.5px;color:var(--text-secondary);flex-wrap:wrap}
+
+/* ── 템플릿 목록 ── */
+.tpl{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--border);
+     border-radius:var(--radius-sm);background:var(--bg-secondary);margin-bottom:5px;font-size:12px}
+.tpl .n{font-family:var(--mono);font-size:11px;color:var(--text-muted);flex:none;width:30px}
+.tpl .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.tpl .m{font-size:10.5px;color:var(--text-muted);flex:none}
+.tpl.on{border-color:var(--accent);background:var(--accent-light)}
+.tpl button{border:none;background:transparent;color:var(--text-muted);padding:2px 5px;
+            border-radius:4px;font-size:13px}
+.tpl button:hover{background:var(--bg-card);color:var(--text-primary)}
+.empty{padding:18px 8px;text-align:center;font-size:12px;color:var(--text-muted)}
+
+.note{font-size:11.5px;line-height:1.6;color:var(--text-secondary);background:var(--bg-secondary);
+      border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;margin-top:8px}
+.note.warn{color:#C2410C;border-color:#C2410C33;background:#C2410C11}
+.note.ok{color:var(--ok);border-color:#15803D33;background:#15803D11}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:90;
+       background:var(--text-primary);color:var(--bg);padding:10px 18px;border-radius:20px;
+       font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+
+@media(max-width:1200px){ .left{width:290px} .right{width:290px} }
+@media(max-width:980px){
+  .work{flex-direction:column}
+  .mid{order:-1;max-height:none}
+  .left,.right{width:100%;max-height:none;border:none;border-bottom:1px solid var(--border)}
+  #cv{max-height:36vh}
+}
+</style>
+</head>
+<body>
+
+<!-- 로그인 -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <h1>GIF 템플릿 제작툴</h1>
+    <p>폰트픽 관리자 계정으로 로그인하세요.</p>
+    <div class="field"><label for="lu">아이디</label><input id="lu" autocomplete="username"></div>
+    <div class="field"><label for="lp">비밀번호</label><input id="lp" type="password" autocomplete="current-password"></div>
+    <div class="err" id="loginErr"></div>
+    <button class="btn btn-primary" id="loginBtn" style="width:100%;height:44px">로그인</button>
+  </div>
+</div>
+
+<!-- 본문 -->
+<div id="app" style="display:none">
+<div class="top">
+  <h1>GIF 템플릿 제작툴</h1>
+  <span class="badge" id="savedCount">0개 저장됨</span>
+  <div class="sp">
+    <a class="btn btn-sm" href="/gif" target="_blank">편집기 열기</a>
+    <a class="btn btn-sm" href="/gif/templates" target="_blank">갤러리 열기</a>
+    <a class="btn btn-sm" href="/admin.html">← 관리자</a>
+  </div>
+</div>
+
+<div class="work">
+  <!-- 왼쪽: 만들기 -->
+  <div class="col left">
+    <div class="sec">
+      <h3>1 · 용도 · 폰트</h3>
+      <div class="row tight" id="hubChips"></div>
+      <select class="inp" id="fontSel" style="margin-top:8px"></select>
+      <div class="row tight" id="weightChips" style="margin-top:7px"></div>
+      <div class="row tight" id="phraseChips" style="margin-top:8px"></div>
+    </div>
+
+    <div class="sec">
+      <h3>2 · 문구</h3>
+      <textarea class="inp" id="txt" rows="2" spellcheck="false">지금 아니면 늦어요</textarea>
+      <div class="row" style="justify-content:space-between;margin-top:5px">
+        <span class="mono" id="lenV" style="color:var(--text-muted)"></span>
+        <span style="font-size:11px;color:var(--text-muted)">3줄 이상은 표시되지 않아요</span>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>3 · 애니메이션</h3>
+      <div class="animgrid" id="animGrid"></div>
+      <div class="note" id="animNote"></div>
+    </div>
+
+    <div class="sec">
+      <h3>4 · 효과</h3>
+      <div class="fx-grid" id="fxGrid"></div>
+    </div>
+  </div>
+
+  <!-- 가운데: 캔버스 -->
+  <div class="mid">
+    <div class="stagebar">
+      <div class="row tight" id="ratioChips"></div>
+      <span style="font-size:11.5px;color:var(--text-muted)" id="ratioDesc"></span>
+      <div class="sp" style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-sm" id="newBtn">새로 만들기</button>
+        <button class="btn btn-primary btn-sm" id="saveBtn">템플릿 저장</button>
+      </div>
+    </div>
+    <div class="canvaswrap"><canvas id="cv" width="800" height="450"></canvas></div>
+    <div class="timeline">
+      <div class="tlrow">
+        <button class="btn" id="playBtn" style="width:34px;height:32px;padding:0">❚❚</button>
+        <span class="mono" id="tNow">0.00s</span>
+        <div class="scrub" id="scrub">
+          <div class="scrubfill" id="scrubFill" style="right:100%"></div>
+          <div class="scrubhead" id="scrubHead" style="left:0"></div>
+        </div>
+        <span class="mono" id="tEnd" style="color:var(--text-muted)">2.50s</span>
+      </div>
+      <div class="tlmeta">
+        <span id="mSize"></span><span id="mFrames"></span>
+        <span id="mMatte" style="margin-left:auto"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 오른쪽: 세부 · 목록 -->
+  <div class="col right">
+    <div class="sec">
+      <h3>번호 · 제목</h3>
+      <div class="row">
+        <input class="inp" id="tplNum" style="width:80px" placeholder="001">
+        <input class="inp" id="tplTitle" style="flex:1;min-width:0" placeholder="제목 (비우면 애니메이션명)">
+      </div>
+      <div class="note">번호는 고유해야 합니다. 같은 번호로 저장하면 덮어씁니다.</div>
+    </div>
+
+    <div class="sec">
+      <h3>세부 조정</h3>
+      <div class="slider"><label>글자 크기</label><input type="range" id="sSize" min="20" max="160" value="64"><span class="val" id="sSizeV">64</span></div>
+      <div class="slider"><label>줄 간격</label><input type="range" id="sLh" min="90" max="200" value="130"><span class="val" id="sLhV">1.30</span></div>
+      <div class="slider"><label>세로 위치</label><input type="range" id="sPos" min="10" max="90" value="50"><span class="val" id="sPosV">50%</span></div>
+      <div class="slider"><label>길이</label><input type="range" id="sTotal" min="10" max="60" value="25"><span class="val" id="sTotalV">2.5s</span></div>
+      <div class="slider"><label>fps</label><input type="range" id="sFps" min="10" max="30" value="20"><span class="val" id="sFpsV">20</span></div>
+      <div class="slider"><label>등장 시간</label><input type="range" id="sIn" min="3" max="40" value="15"><span class="val" id="sInV">1.5s</span></div>
+      <div class="row" style="margin-top:10px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px">
+          <input type="checkbox" id="hlOn"> 하이라이트 바
+        </label>
+        <input type="color" id="hlColor" value="#FDE047" style="width:36px;height:26px;border:1px solid var(--border);border-radius:6px;background:none">
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>저장된 템플릿 <span id="tplCount" style="color:var(--text-muted)"></span></h3>
+      <div class="row tight" style="margin-bottom:8px">
+        <button class="btn btn-sm" id="expBtn">JSON 내보내기</button>
+        <button class="btn btn-sm" id="impBtn">JSON 가져오기</button>
+        <input type="file" id="impFile" accept="application/json" hidden>
+      </div>
+      <div id="tplList"><div class="empty">아직 저장된 템플릿이 없어요</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/static/api-client.js"></script>
+<script src="/static/ffp-effects.js"></script>
+<script src="/static/gif-render.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+let R = null;                 // 렌더러
+let HUBS = [], SAVED = [];
+let ui = {hub:null, fontId:null, editingId:null, t:0, playing:true};
+
+function toast(msg){
+  const el = $('toast');
+  el.textContent = msg; el.classList.add('on');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>el.classList.remove('on'), 2200);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   로그인
+══════════════════════════════════════════════════════════════ */
+async function tryEnter(){
+  try{
+    const s = await AuthAPI.status();
+    if(s && s.authenticated){ $('loginWrap').style.display='none'; $('app').style.display=''; return true; }
+  }catch(e){}
+  return false;
+}
+$('loginBtn').onclick = async ()=>{
+  $('loginErr').textContent = '';
+  try{
+    await AuthAPI.login($('lu').value.trim(), $('lp').value);
+    if(await tryEnter()) boot();
+  }catch(err){
+    $('loginErr').textContent = err.message || '로그인에 실패했어요';
+  }
+};
+$('lp').addEventListener('keydown', e=>{ if(e.key==='Enter') $('loginBtn').click(); });
+
+/* ══════════════════════════════════════════════════════════════
+   왼쪽 패널
+══════════════════════════════════════════════════════════════ */
+function hubOf(slug){ return HUBS.find(h=>h.slug===slug) || HUBS[0] || null; }
+function fontOf(id){
+  for(const h of HUBS){ const f = h.fonts.find(x=>x.id===id); if(f) return f; }
+  return null;
+}
+
+function renderHubs(){
+  $('hubChips').innerHTML = HUBS.map(h=>
+    `<button class="chip${h.slug===ui.hub?' on':''}" data-h="${esc(h.slug)}">${esc(h.title)}</button>`).join('');
+  $('hubChips').querySelectorAll('.chip').forEach(c=>c.onclick=async()=>{
+    ui.hub = c.dataset.h;
+    const h = hubOf(ui.hub);
+    await selectFont(h && h.fonts[0]);
+    renderHubs(); renderFonts(); renderPhrases();
+  });
+}
+function renderFonts(){
+  const h = hubOf(ui.hub);
+  const fonts = h ? h.fonts : [];
+  $('fontSel').innerHTML = fonts.length
+    ? fonts.map(f=>`<option value="${f.id}"${f.id===ui.fontId?' selected':''}>${esc(f.name)} — ${esc(f.maker||'')}</option>`).join('')
+    : '<option value="">등록된 폰트가 없어요</option>';
+  $('fontSel').onchange = async ()=>{
+    await selectFont(fontOf(+$('fontSel').value));
+    renderWeights();
+  };
+  renderWeights();
+}
+function renderWeights(){
+  const f = fontOf(ui.fontId);
+  const ws = (f && f.weights) || [];
+  $('weightChips').innerHTML = ws.length > 1
+    ? ws.map(w=>`<button class="chip${w===R.state.fontWeight?' on':''}" data-w="${w}">${w}${FFP_WEIGHT_LABELS[w]?' '+FFP_WEIGHT_LABELS[w]:''}</button>`).join('')
+    : '<span style="font-size:11px;color:var(--text-muted)">굵기 1종</span>';
+  $('weightChips').querySelectorAll('.chip').forEach(c=>c.onclick=async()=>{
+    await selectFont(fontOf(ui.fontId), +c.dataset.w);
+    renderWeights();
+  });
+}
+function renderPhrases(){
+  const h = hubOf(ui.hub);
+  const list = (h && h.phrases) || [];
+  $('phraseChips').innerHTML = list.map(p=>`<button class="chip" data-p="${esc(p)}">${esc(p)}</button>`).join('');
+  $('phraseChips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
+    $('txt').value = c.dataset.p;
+    R.setState({text:c.dataset.p});
+    updLen();
+  });
+}
+
+async function selectFont(f, weight){
+  if(!f) return;
+  ui.fontId = f.id;
+  const ws = f.weights || [];
+  let w = weight || R.state.fontWeight || f.primary_weight;
+  if(ws.length && !ws.includes(w)) w = ws.reduce((a,b)=>Math.abs(b-w)<Math.abs(a-w)?b:a, ws[0]);
+  R.setState({fontWeight:w, fontStack: ffpEffectiveStack(f, w)});
+  await R.ensureFont(f);
+}
+
+function renderAnims(){
+  $('animGrid').innerHTML = FFPGif.ANIMS.map(a=>{
+    const mark = a.cat==='cinematic' ? ' ✦' : a.cat==='dynamic' ? ' ⚡' : '';
+    return `<button class="${a.id===R.state.anim?'on':''}" data-a="${a.id}">${esc(a.name)}${mark}</button>`;
+  }).join('');
+  $('animGrid').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    R.setAnim(b.dataset.a);      // 권장 길이·fps도 함께 적용된다
+    ui.t = 0;
+    renderAnims(); syncSliders(); syncMeta();
+  });
+  const d = FFPGif.animDefaults(R.state.anim);
+  $('animNote').textContent =
+    `권장 ${d.total}초 · ${d.fps}fps · 등장 ${d.inDur}초 — 애니메이션을 바꾸면 자동으로 적용됩니다.`;
+}
+
+const LIGHT = ['#FFFFFF','#FBBF24','#FFD700','#BBE6FF','#7DD3FC','#FDE047','#E5E7EB','#5EEAD4','#C4B5FD','#FCD34D','#F9A8D4'];
+function renderFx(){
+  $('fxGrid').innerHTML = FFP_EFFECTS.map(e=>{
+    const r = FFP_GIF_RATING[e.id] ?? 2;
+    const style = e.id==='none' ? '' :
+      `background:${e.gradient?`linear-gradient(135deg,${e.gradient.join(',')})`:e.color};`
+      + (LIGHT.includes(e.color)?'color:rgba(0,0,0,.55);':'');
+    return `<div class="fx-item${e.id===R.state.effect?' active':''}" data-id="${e.id}"
+      title="${esc(e.name)} · GIF 적합도 ${r}">
+      <div class="fx-chip${e.id==='none'?' none-chip':''}" style="${style}">Aa</div>
+      <span>${esc(e.name)}</span></div>`;
+  }).join('');
+  $('fxGrid').querySelectorAll('.fx-item').forEach(el=>el.onclick=()=>{
+    R.setState({effect:el.dataset.id});
+    renderFx(); syncMeta();
+  });
+}
+
+function renderRatios(){
+  $('ratioChips').innerHTML = Object.keys(FFPGif.RATIOS).map(k=>
+    `<button class="chip${k===R.state.ratio?' on':''}" data-r="${k}">${k}</button>`).join('');
+  $('ratioChips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
+    R.setState({ratio:c.dataset.r});
+    renderRatios(); syncMeta();
+  });
+  const r = FFPGif.RATIOS[R.state.ratio];
+  $('ratioDesc').textContent = r ? `${r.w}×${r.h} · ${r.desc}` : '';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   슬라이더
+══════════════════════════════════════════════════════════════ */
+function bindSliders(){
+  const S = R.state;
+  $('sSize').oninput = ()=>{
+    /* 기준 캔버스를 지금 크기로 갱신한다 — 이 크기는 이 비율에서 정한 값이다 */
+    R.setState({size:+$('sSize').value, baseW:R.width, baseH:R.height});
+    $('sSizeV').textContent = $('sSize').value; syncMeta();
+  };
+  $('sLh').oninput = ()=>{ R.setState({lh:+$('sLh').value/100}); $('sLhV').textContent=(+$('sLh').value/100).toFixed(2); };
+  $('sPos').oninput = ()=>{ R.setState({posY:+$('sPos').value/100}); $('sPosV').textContent=$('sPos').value+'%'; };
+  $('sTotal').oninput = ()=>{ R.setState({total:+$('sTotal').value/10}); $('sTotalV').textContent=(+$('sTotal').value/10).toFixed(1)+'s'; syncMeta(); };
+  $('sFps').oninput = ()=>{ R.setState({fps:+$('sFps').value}); $('sFpsV').textContent=$('sFps').value; syncMeta(); };
+  $('sIn').oninput = ()=>{ R.setState({inDur:+$('sIn').value/10}); $('sInV').textContent=(+$('sIn').value/10).toFixed(1)+'s'; };
+  $('hlOn').onchange = ()=>{ R.setState({hlOn:$('hlOn').checked}); };
+  $('hlColor').oninput = ()=>{ R.setState({hl:$('hlColor').value}); };
+  $('txt').oninput = ()=>{ R.setState({text:$('txt').value}); updLen(); };
+}
+function syncSliders(){
+  const S = R.state;
+  $('sSize').value = S.size;   $('sSizeV').textContent = S.size;
+  $('sLh').value = S.lh*100;   $('sLhV').textContent = S.lh.toFixed(2);
+  $('sPos').value = S.posY*100;$('sPosV').textContent = Math.round(S.posY*100)+'%';
+  $('sTotal').value = S.total*10; $('sTotalV').textContent = S.total.toFixed(1)+'s';
+  $('sFps').value = S.fps;     $('sFpsV').textContent = S.fps;
+  $('sIn').value = S.inDur*10; $('sInV').textContent = S.inDur.toFixed(1)+'s';
+  $('hlOn').checked = S.hlOn;  $('hlColor').value = S.hl;
+  $('txt').value = S.text;
+  updLen();
+}
+function updLen(){
+  const v = R.state.text || '';
+  const rows = v.split('\n').filter(x=>x.trim()).length;
+  $('lenV').textContent = `${rows||1}줄 · ${v.replace(/\s/g,'').length}자`;
+  $('lenV').style.color = rows>2 ? '#C2410C' : 'var(--text-muted)';
+}
+function syncMeta(){
+  const est = R.estimate();
+  const kb = n => n>=1024 ? (n/1024).toFixed(1)+'MB' : Math.round(n/10)*10+'KB';
+  $('mSize').textContent = `예상 ${kb(est.gifKBLow)}~${kb(est.gifKBHigh)}`;
+  $('mSize').style.color = est.heavy ? '#C2410C' : 'var(--text-secondary)';
+  $('mFrames').textContent = `${est.w}×${est.h} · ${est.frames}프레임`;
+  $('mMatte').textContent = `매트 ${R.currentMatte()}`;
+  $('tEnd').textContent = R.state.total.toFixed(2)+'s';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   재생 루프
+══════════════════════════════════════════════════════════════ */
+$('playBtn').onclick = ()=>{
+  ui.playing = !ui.playing;
+  $('playBtn').textContent = ui.playing ? '❚❚' : '▶';
+};
+(function(){
+  const el = $('scrub');
+  const seek = ev=>{
+    const r = el.getBoundingClientRect();
+    ui.t = Math.max(0, Math.min(1, (ev.clientX-r.left)/r.width));
+    ui.playing = false; $('playBtn').textContent = '▶';
+  };
+  el.addEventListener('pointerdown', e=>{
+    seek(e); el.setPointerCapture(e.pointerId);
+    const mv = ev=>seek(ev);
+    const up = ()=>{ el.removeEventListener('pointermove',mv); el.removeEventListener('pointerup',up); };
+    el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up);
+  });
+})();
+let last = performance.now();
+function loop(now){
+  const dt = (now-last)/1000; last = now;
+  if(ui.playing) ui.t = (ui.t + dt/R.state.total) % 1;
+  R.render(ui.t);
+  $('tNow').textContent = (ui.t*R.state.total).toFixed(2)+'s';
+  $('scrubFill').style.right = (100-ui.t*100)+'%';
+  $('scrubHead').style.left = (ui.t*100)+'%';
+  requestAnimationFrame(loop);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   저장 · 목록
+══════════════════════════════════════════════════════════════ */
+function nextNumber(){
+  const used = new Set(SAVED.map(t=>t.number));
+  for(let i=1;i<1000;i++){
+    const n = String(i).padStart(3,'0');
+    if(!used.has(n)) return n;
+  }
+  return '999';
+}
+
+function payload(){
+  const anim = FFPGig_animOf(R.state.anim);
+  return {
+    number: ($('tplNum').value || '').trim() || nextNumber(),
+    title: ($('tplTitle').value || '').trim() || anim.name,
+    hub_slug: ui.hub || '',
+    anim: R.state.anim,
+    anim_category: anim.cat,
+    effect: R.state.effect,
+    ratio: R.state.ratio,
+    gif_rating: FFP_GIF_RATING[R.state.effect] ?? 2,
+    font_id: ui.fontId,
+    font_weight: R.state.fontWeight,
+    sample_text: R.state.text,
+    config: R.snapshot(),
+    is_active: true,
+    sort_order: SAVED.length * 10,
+  };
+}
+function FFPGig_animOf(id){ return FFPGif.ANIM_BY_ID[id] || {name:id, cat:'basic'}; }
+
+$('saveBtn').onclick = async ()=>{
+  if(!ui.fontId){ toast('폰트를 먼저 골라주세요'); return; }
+  const body = payload();
+  try{
+    /* 번호가 이미 있으면 덮어쓴다 — 어드민이 같은 번호를 다시 저장하는 건
+       "고쳐서 다시 저장"이지 "새로 만들기"가 아니다 */
+    await GifTemplateStore.importAll([body]);
+    toast(`${body.number} 저장했어요`);
+    $('tplNum').value = '';
+    await reloadList();
+  }catch(err){ toast('저장 실패: ' + (err.message||err)); }
+};
+
+$('newBtn').onclick = ()=>{
+  ui.editingId = null;
+  $('tplNum').value = nextNumber();
+  $('tplTitle').value = '';
+  toast('새 번호 ' + $('tplNum').value);
+};
+
+async function reloadList(){
+  SAVED = await GifTemplateStore.getAll(true);
+  $('tplCount').textContent = SAVED.length ? `${SAVED.length}개` : '';
+  $('savedCount').textContent = `${SAVED.length}개 저장됨`;
+  $('tplList').innerHTML = SAVED.length ? SAVED.map(t=>`
+    <div class="tpl${t.id===ui.editingId?' on':''}" data-id="${t.id}">
+      <span class="n">${esc(t.number)}</span>
+      <span class="t">${esc((t.sample_text||'').replace(/\n/g,' '))}</span>
+      <span class="m">${esc(FFPGig_animOf(t.anim).name)}</span>
+      <button data-load="${t.id}" title="불러오기">↺</button>
+      <button data-del="${t.id}" title="삭제">×</button>
+    </div>`).join('') : '<div class="empty">아직 저장된 템플릿이 없어요</div>';
+
+  $('tplList').querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>loadTemplate(+b.dataset.load));
+  $('tplList').querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
+    const t = SAVED.find(x=>x.id===+b.dataset.del);
+    if(!t || !confirm(`${t.number} 템플릿을 삭제할까요?`)) return;
+    await GifTemplateStore.remove(t.id);
+    toast('삭제했어요');
+    await reloadList();
+  });
+}
+
+async function loadTemplate(id){
+  const t = SAVED.find(x=>x.id===id);
+  if(!t) return;
+  ui.editingId = id;
+  R.applyConfig(t.config || {});
+  ui.hub = t.hub_slug || ui.hub;
+  await selectFont(fontOf(t.font_id) || (hubOf(ui.hub) && hubOf(ui.hub).fonts[0]), t.font_weight);
+  $('tplNum').value = t.number;
+  $('tplTitle').value = t.title || '';
+  ui.t = 0;
+  renderHubs(); renderFonts(); renderPhrases(); renderAnims(); renderFx(); renderRatios();
+  syncSliders(); syncMeta(); reloadList();
+}
+
+/* ── JSON 내보내기 / 가져오기 ── */
+$('expBtn').onclick = ()=>{
+  if(!SAVED.length){ toast('저장된 템플릿이 없어요'); return; }
+  const blob = new Blob([JSON.stringify(SAVED.map(t=>({
+    number:t.number, title:t.title, hub_slug:t.hub_slug, anim:t.anim,
+    anim_category:t.anim_category, effect:t.effect, ratio:t.ratio,
+    gif_rating:t.gif_rating, font_id:t.font_id, font_weight:t.font_weight,
+    sample_text:t.sample_text, config:t.config, is_active:t.is_active, sort_order:t.sort_order,
+  })), null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `gif-templates-${SAVED.length}.json`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+};
+$('impBtn').onclick = ()=>$('impFile').click();
+$('impFile').onchange = async e=>{
+  const f = e.target.files[0]; if(!f) return;
+  try{
+    const items = JSON.parse(await f.text());
+    if(!Array.isArray(items)) throw new Error('배열 형태의 JSON이어야 해요');
+    const res = await GifTemplateStore.importAll(items);
+    toast(`새로 ${res.created}개 · 덮어쓴 ${res.updated}개`);
+    await reloadList();
+  }catch(err){ toast('가져오기 실패: ' + (err.message||err)); }
+  e.target.value = '';
+};
+
+/* ══════════════════════════════════════════════════════════════
+   시작
+══════════════════════════════════════════════════════════════ */
+let _booted = false;
+async function boot(){
+  if(_booted) return; _booted = true;
+  R = FFPGif.createRenderer($('cv'));
+
+  const res = await GifTemplateStore.fonts().catch(()=>({hubs:[]}));
+  HUBS = res.hubs || [];
+  ui.hub = HUBS.length ? HUBS[0].slug : null;
+  await selectFont(hubOf(ui.hub) && hubOf(ui.hub).fonts[0]);
+
+  bindSliders();
+  renderHubs(); renderFonts(); renderPhrases();
+  renderAnims(); renderFx(); renderRatios();
+  syncSliders(); syncMeta();
+  await reloadList();
+  $('tplNum').value = nextNumber();
+  requestAnimationFrame(loop);
+}
+
+(async ()=>{ if(await tryEnter()) boot(); })();
+</script>
+</body>
+</html>

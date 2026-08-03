@@ -354,6 +354,39 @@ const PreviewPhraseStore = {
 };
 
 /* ════════════════════════════════════════
+   GifTemplateStore — GIF 생성기 템플릿 (어드민)
+   importAll이 주력이다. 제작툴에서 만든 목록을 통째로 밀어넣고,
+   번호가 같으면 덮어쓴다 — 같은 파일을 두 번 올려도 중복이 안 생긴다.
+════════════════════════════════════════ */
+const GifTemplateStore = {
+  async getAll(includeInactive) {
+    return await apiFetch(`/gif-templates${includeInactive ? '?include_inactive=true' : ''}`);
+  },
+  async get(numberOrId) {
+    return await apiFetch(`/gif-templates/${numberOrId}`);
+  },
+  async add(payload) {
+    return await apiFetch('/gif-templates', {method: 'POST', body: payload});
+  },
+  async update(id, payload) {
+    return await apiFetch(`/gif-templates/${id}`, {method: 'PATCH', body: payload});
+  },
+  async remove(id) {
+    await apiFetch(`/gif-templates/${id}`, {method: 'DELETE'});
+  },
+  async importAll(items) {
+    return await apiFetch('/gif-templates/import', {method: 'POST', body: items});
+  },
+  async reorder(idsInOrder) {
+    return await apiFetch('/gif-templates/reorder', {method: 'POST', body: idsInOrder});
+  },
+  /** 편집기·제작툴용 축약 폰트 목록 (허브별) */
+  async fonts() {
+    return await apiFetch('/gif-fonts');
+  },
+};
+
+/* ════════════════════════════════════════
    FontWeightStore — 폰트별 추가 굵기 등록 (어드민)
    대표 굵기(primaryWeight)는 FontStore.add/update의 primaryWeight로 관리하고,
    여기서는 대표 파일과 별도인 "추가 굵기" 파일들만 다룬다.

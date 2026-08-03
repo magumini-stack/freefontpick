@@ -1193,6 +1193,8 @@ window.addEventListener('pageshow', function(e){
   </div>
 </div>
 
+<!-- 효과 32종 단일 소스 — GIF 생성기와 같은 파일을 쓴다 -->
+<script src="/static/ffp-effects.js"></script>
 <script>
 /* 간단 토스트 (저장/다운로드 알림용) */
 function showToast(msg){
@@ -1315,45 +1317,7 @@ function dsOpenFor(f){
   FONTS = [dsAdaptFont(f)];
   openDesigner(f.id);
 }
-const DS_EFFECTS = [
-  {id:'none', name:'없음', color:'#111111', outline:null, outlineW:0, shadow:'none'},
-  /* ── 클래식 ── */
-  {id:'classic-white', name:'화이트', color:'#FFFFFF', outline:'#000000', outlineW:6, shadow:'soft'},
-  {id:'classic-black', name:'블랙', color:'#000000', outline:'#FFFFFF', outlineW:6, shadow:'gray'},
-  {id:'soft-shadow', name:'소프트', color:'#FFFFFF', outline:null, outlineW:0, shadow:'strong'},
-  {id:'bold-outline', name:'굵은외곽선', color:'#FFFFFF', outline:'#000000', outlineW:12, shadow:'none'},
-  {id:'double-line', name:'더블라인', color:'#111111', outline:'#FFFFFF', outlineW:10, shadow:'soft'},
-  /* ── 컬러 ── */
-  {id:'golden', name:'골드', color:'#FFD700', outline:'#7A5C00', outlineW:5, shadow:'soft'},
-  {id:'silver', name:'실버', color:'#E5E7EB', outline:'#6B7280', outlineW:5, shadow:'soft'},
-  {id:'sky-blue', name:'스카이', color:'#7DD3FC', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
-  {id:'rose-pink', name:'로즈핑크', color:'#EC4899', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
-  {id:'mint', name:'민트', color:'#5EEAD4', outline:'#0F766E', outlineW:5, shadow:'soft'},
-  {id:'lavender', name:'라벤더', color:'#C4B5FD', outline:'#6D28D9', outlineW:5, shadow:'soft'},
-  {id:'lemon', name:'레몬', color:'#FDE047', outline:'#A16207', outlineW:5, shadow:'none'},
-  {id:'cherry', name:'체리', color:'#DC2626', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
-  {id:'forest', name:'포레스트', color:'#16A34A', outline:'#FFFFFF', outlineW:6, shadow:'soft'},
-  {id:'midnight', name:'미드나잇', color:'#1E3A8A', outline:'#93C5FD', outlineW:5, shadow:'gray'},
-  /* ── 네온 ── */
-  {id:'neon-blue', name:'네온블루', color:'#06B6D4', outline:'#1D4ED8', outlineW:4, shadow:'glow'},
-  {id:'neon-pink', name:'네온핑크', color:'#FF1493', outline:'#7C3AED', outlineW:4, shadow:'glow'},
-  {id:'neon-green', name:'네온그린', color:'#4ADE80', outline:'#15803D', outlineW:4, shadow:'glow'},
-  {id:'neon-purple', name:'네온퍼플', color:'#A855F7', outline:'#6D28D9', outlineW:4, shadow:'glow'},
-  {id:'neon-orange', name:'네온오렌지', color:'#FB923C', outline:'#C2410C', outlineW:4, shadow:'glow'},
-  /* ── 무드 ── */
-  {id:'frost', name:'프로스트', color:'#BBE6FF', outline:'#FFFFFF', outlineW:4, shadow:'blur'},
-  {id:'comic', name:'코믹', color:'#FBBF24', outline:'#000000', outlineW:12, shadow:'none'},
-  {id:'retro', name:'레트로', color:'#F59E0B', outline:'#78350F', outlineW:8, shadow:'gray'},
-  {id:'vintage', name:'빈티지', color:'#D4A574', outline:'#5C3D1E', outlineW:5, shadow:'gray'},
-  {id:'candy', name:'캔디', color:'#F9A8D4', outline:'#DB2777', outlineW:6, shadow:'none'},
-  /* ── 그라데이션 ── */
-  {id:'sunset', name:'선셋', color:'#F97316', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#F97316','#EC4899']},
-  {id:'ocean', name:'오션', color:'#06B6D4', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#06B6D4','#3B82F6','#7C3AED']},
-  {id:'rainbow', name:'레인보우', color:'#EF4444', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#EF4444','#F97316','#FBBF24','#10B981','#06B6D4','#7C3AED','#EC4899']},
-  {id:'gold-grad', name:'골드빔', color:'#FCD34D', outline:'#92400E', outlineW:5, shadow:'soft', gradient:['#FEF3C7','#FCD34D','#D97706']},
-  {id:'purple-magenta', name:'퍼플마젠타', color:'#A855F7', outline:'#FFFFFF', outlineW:6, shadow:'soft', gradient:['#A855F7','#EC4899']},
-  {id:'fire', name:'파이어', color:'#EF4444', outline:'#7F1D1D', outlineW:5, shadow:'glow', gradient:['#FBBF24','#F97316','#DC2626']},
-];
+const DS_EFFECTS = FFP_EFFECTS;   /* ffp-effects.js — GIF 생성기와 공유 */
 const DS_TEXT_COLORS = ['#111111','#374151','#6B7280','#9CA3AF','#FFFFFF','#EC4899','#F472B6','#EF4444','#B91C1C','#F97316','#C2410C','#FBBF24','#D97706','#CA8A04','#84CC16','#10B981','#047857','#14B8A6','#06B6D4','#60A5FA','#3B82F6','#1D4ED8','#1E3A8A','#A78BFA','#7C3AED','#5B21B6','#D4A574','#92400E','#FF7F50','#7F1D1D'];
 const DS_TEXT_GRADIENTS = [
   {name:'sunset', colors:['#F97316','#EC4899']},
@@ -1573,12 +1537,8 @@ function dsDraw(){
       ctx.fillStyle = dsState.highlight;
       ctx.fillRect(x-8, y-fontSize*0.82, width+16, fontSize*1.05);
     }
-    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
-    if(eff.shadow==='soft'){ ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=10; ctx.shadowOffsetY=6; }
-    if(eff.shadow==='strong'){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=4; ctx.shadowOffsetY=10; }
-    if(eff.shadow==='gray'){ ctx.shadowColor='rgba(120,120,120,.5)'; ctx.shadowBlur=8; ctx.shadowOffsetY=4; }
-    if(eff.shadow==='glow'){ ctx.shadowColor=fillGradient?fillGradient[0]:fillColor; ctx.shadowBlur=28; }
-    if(eff.shadow==='blur'){ ctx.shadowColor='rgba(150,200,255,.6)'; ctx.shadowBlur=14; }
+    /* 그림자 5종 — ffp-effects.js. glow는 실제로 칠하는 색으로 번지게 한다 */
+    ffpApplyShadow(ctx, eff, fillGradient?fillGradient[0]:fillColor);
     if(outlineColor && outlineW>0){
       ctx.lineJoin='round'; ctx.strokeStyle=outlineColor; ctx.lineWidth=outlineW;
       ctx.strokeText(line, x, y);
@@ -1674,12 +1634,8 @@ function dsDrawArc(canvas, ctx, o){
   try{ ctx.letterSpacing = '0px'; }catch(e){}
 
   const shadowOf = ()=>{
-    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
-    if(eff.shadow==='soft'){   ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=10; ctx.shadowOffsetY=6; }
-    if(eff.shadow==='strong'){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=4;  ctx.shadowOffsetY=10; }
-    if(eff.shadow==='gray'){   ctx.shadowColor='rgba(120,120,120,.5)'; ctx.shadowBlur=8; ctx.shadowOffsetY=4; }
-    if(eff.shadow==='glow'){   ctx.shadowColor=fillGradient?fillGradient[0]:fillColor; ctx.shadowBlur=28; }
-    if(eff.shadow==='blur'){   ctx.shadowColor='rgba(150,200,255,.6)'; ctx.shadowBlur=14; }
+    /* 그림자 5종 — ffp-effects.js. glow는 실제로 칠하는 색으로 번지게 한다 */
+    ffpApplyShadow(ctx, eff, fillGradient?fillGradient[0]:fillColor);
   };
 
   placed.forEach(ln=>{
@@ -1776,12 +1732,8 @@ function dsDrawWave(canvas, ctx, o){
   try{ ctx.letterSpacing = '0px'; }catch(e){}
 
   const shadowOf = ()=>{
-    ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
-    if(eff.shadow==='soft'){   ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=10; ctx.shadowOffsetY=6; }
-    if(eff.shadow==='strong'){ ctx.shadowColor='rgba(0,0,0,.55)'; ctx.shadowBlur=4;  ctx.shadowOffsetY=10; }
-    if(eff.shadow==='gray'){   ctx.shadowColor='rgba(120,120,120,.5)'; ctx.shadowBlur=8; ctx.shadowOffsetY=4; }
-    if(eff.shadow==='glow'){   ctx.shadowColor=fillGradient?fillGradient[0]:fillColor; ctx.shadowBlur=28; }
-    if(eff.shadow==='blur'){   ctx.shadowColor='rgba(150,200,255,.6)'; ctx.shadowBlur=14; }
+    /* 그림자 5종 — ffp-effects.js. glow는 실제로 칠하는 색으로 번지게 한다 */
+    ffpApplyShadow(ctx, eff, fillGradient?fillGradient[0]:fillColor);
   };
 
   placed.forEach(ln=>{

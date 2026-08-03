@@ -26,6 +26,10 @@ def sitemap(db: Session = Depends(get_db)):
         {"loc": f"{SITE_URL}/#notice", "priority": "0.6", "changefreq": "weekly"},
         {"loc": f"{SITE_URL}/about.html", "priority": "0.5", "changefreq": "monthly"},
         {"loc": f"{SITE_URL}/faq.html", "priority": "0.5", "changefreq": "monthly"},
+        # GIF 생성기는 페이지 2개뿐이다. 템플릿별 URL을 만들지 않은 이유는
+        # gif.py 주석 참고 — 페이로드만 다른 페이지 48개는 중복 색인 판정을 부른다.
+        {"loc": f"{SITE_URL}/gif", "priority": "0.8", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/gif/templates", "priority": "0.7", "changefreq": "weekly"},
         {"loc": f"{SITE_URL}/policy.html", "priority": "0.3", "changefreq": "yearly"},
     ]
     # 폰트별 상세페이지 (핵심 SEO 자산)
@@ -89,7 +93,7 @@ def sitemap(db: Session = Depends(get_db)):
 @router.get("/robots.txt", include_in_schema=False)
 def robots():
     body = (
-        "User-agent: *\nAllow: /\nDisallow: /admin.html\n"
+        "User-agent: *\nAllow: /\nDisallow: /admin.html\nDisallow: /admin/gif\n"
         "Disallow: /api/auth/\nDisallow: /api/fonts/*/file\n"
         "Disallow: /api/fonts/*/like\n\n"
         f"Sitemap: {SITE_URL}/sitemap.xml\n"

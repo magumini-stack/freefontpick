@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIF 생성기 — 움직이는 글자 만들기 | 폰트픽</title>
+<meta name="description" content="무료 한글 폰트로 움직이는 GIF를 만드세요. 템플릿을 고르고 문구만 바꾸면 됩니다. 서버 업로드 없이 브라우저에서 바로 만들어지고, 투명 배경 GIF도 지원합니다.">
+<link rel="canonical" href="https://freefontpick.co.kr/gif">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GIF 생성기 — 움직이는 글자 만들기 | 폰트픽">
+<meta property="og:description" content="무료 한글 폰트로 움직이는 GIF를 만드세요. 템플릿을 고르고 문구만 바꾸면 됩니다.">
+<meta property="og:url" content="https://freefontpick.co.kr/gif">
+<meta property="og:image" content="https://freefontpick.co.kr/og-image-v3.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="/favicon.png">
+<meta name="google-adsense-account" content="ca-pub-3337261318293302">
+<link rel="stylesheet" href="/static/header.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<script>
+/* 렌더 전에 저장된 테마를 먼저 적용 — 새로고침 시 흰 화면 번쩍임 방지 */
+(function(){try{var t=localStorage.getItem('ffp-theme');
+if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+<style>
+/* ── 폰트픽 토큰 (index.html과 동일) ───────────── */
+:root{
+  --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
+  --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+  --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+  --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+  --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
+  --mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+  --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+  --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+  --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+  --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]):not([data-theme="dark"]){
+    --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+    --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+    --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+    --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+    --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+    color-scheme:dark;
+  }
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+  background:var(--bg);color:var(--text-primary);line-height:1.5;font-size:14px;
+  -webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font-family:inherit;cursor:pointer}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--border);
+     background:transparent;color:var(--text-primary);font-size:13px;font-weight:600;
+     padding:8px 14px;border-radius:var(--radius-sm);transition:.15s}
+.btn:hover:not(:disabled){border-color:var(--border-hover);background:var(--bg-secondary)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover:not(:disabled){background:var(--accent-hover);border-color:var(--accent-hover)}
+
+/* ── 작업줄 ── */
+.toolbar{display:flex;align-items:center;gap:14px;padding:11px 24px;
+         border-bottom:1px solid var(--border);background:var(--bg-secondary);flex-wrap:wrap}
+.crumb{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-muted)}
+.crumb b{color:var(--text-primary);font-weight:700}
+.tag{display:inline-flex;align-items:center;font-size:11px;padding:3px 9px;border-radius:20px}
+.tag-out{border:1px solid var(--border-hover);color:var(--text-secondary)}
+.tag-acc{background:var(--accent-light);color:var(--accent)}
+.note{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-muted)}
+
+/* ── 3분할 ── */
+.work{display:flex;min-height:calc(100vh - 124px)}
+.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;
+    stroke-linecap:round;stroke-linejoin:round;display:block}
+
+.panel{width:304px;flex:none;border-right:1px solid var(--border);background:var(--bg-card);
+       padding:18px 16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;max-height:calc(100vh - 124px)}
+.panel h3{margin:0;font-size:17px;font-weight:800;letter-spacing:-.3px}
+.phead{display:flex;align-items:center;justify-content:space-between}
+.psub{font-size:11.5px;color:var(--text-muted)}
+
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;flex-wrap:wrap}
+.seg button{border:none;background:transparent;color:var(--text-secondary);
+            font-size:12.5px;font-weight:600;padding:6px 11px}
+.seg button+button{border-left:1px solid var(--border)}
+.seg button.on{background:var(--accent);color:#fff}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--border);background:transparent;color:var(--text-secondary);
+      padding:5px 10px;font-size:11.5px;font-weight:600;border-radius:20px}
+.chip.on{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.chip:disabled{opacity:.38;cursor:not-allowed}
+
+.tplgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tplcell{border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);
+         padding:0;overflow:hidden;display:flex;flex-direction:column;height:98px;text-align:left}
+.tplcell:hover{border-color:var(--border-hover)}
+.tplcell.on{border-color:var(--accent);background:var(--accent-light)}
+.tplspec{flex:1;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;
+         color:var(--text-primary);padding:4px;text-align:center;line-height:1.15;word-break:keep-all;
+         overflow:hidden}
+.tplmeta{display:flex;justify-content:space-between;align-items:center;gap:4px;font-size:10.5px;
+         padding:5px 7px;border-top:1px solid var(--border);color:var(--text-secondary)}
+.dots{letter-spacing:-1px;color:var(--text-muted)}
+.dots.g{color:var(--accent)}
+
+.stage{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg-secondary)}
+.stagebar{display:flex;align-items:center;gap:10px;padding:10px 18px;flex-wrap:wrap;
+          border-bottom:1px solid var(--border);background:var(--bg-card)}
+.vsep{width:1px;height:20px;background:var(--border)}
+.canvaswrap{flex:1;display:flex;align-items:center;justify-content:center;padding:26px}
+.checker{background:repeating-conic-gradient(var(--bg-card) 0% 25%, var(--bg-secondary) 0% 50%) 0 0/18px 18px;
+         box-shadow:var(--shadow-hover);border:1px solid var(--border)}
+/* 세로 비율(9:16)이 화면 밖으로 넘치지 않도록 가로·세로 둘 다 제한한다.
+   캔버스는 replaced element라 max-* 두 개를 걸면 비율을 유지하며 줄어든다.
+   인라인 스타일로 두면 모바일 미디어쿼리가 못 이기므로 반드시 여기에 둔다. */
+#cv{max-width:min(620px,100%);max-height:52vh;width:auto;height:auto}
+.timeline{border-top:1px solid var(--border);background:var(--bg-card);padding:12px 18px 16px;
+          display:flex;flex-direction:column;gap:9px}
+.tlrow{display:flex;align-items:center;gap:12px}
+.scrub{flex:1;height:26px;border:1px solid var(--border);position:relative;background:var(--bg-secondary);
+       border-radius:4px;overflow:hidden;cursor:pointer;touch-action:none}
+.scrubfill{position:absolute;inset:0 auto 0 0;background:var(--accent-light)}
+.scrubhead{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--accent)}
+.ticks{position:absolute;inset:0;display:flex;pointer-events:none}
+.ticks span{flex:1;border-right:1px solid var(--border)}
+.ticks span:last-child{border:none}
+.tlmeta{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap}
+.mono{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+
+.props{width:288px;flex:none;border-left:1px solid var(--border);background:var(--bg-card);
+       padding:18px 16px;display:flex;flex-direction:column;gap:18px;overflow-y:auto;max-height:calc(100vh - 124px)}
+.lbl{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted);
+     font-weight:700;margin-bottom:7px}
+.inp{width:100%;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);
+     border-radius:var(--radius-sm);padding:9px 11px;font-size:14px;font-family:inherit;
+     line-height:1.4;resize:none}
+.inp:focus{outline:none;border-color:var(--accent)}
+.counter{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:5px}
+.counter .warn{color:#C2410C;font-weight:700}
+.fontlist{margin-top:8px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;
+          max-height:216px;overflow-y:auto}
+.fontrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;
+         font-size:13px;color:var(--text-secondary);border:none;background:none;width:100%;text-align:left}
+.fontrow+.fontrow{border-top:1px solid var(--border)}
+.fontrow:hover{background:var(--bg-secondary)}
+.fontrow.on{background:var(--accent-light);color:var(--accent);font-weight:700}
+.fontrow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lic{font-size:10.5px;color:var(--text-muted);flex:none}
+.hint{display:flex;align-items:flex-start;gap:6px;font-size:11px;line-height:1.5;
+      color:var(--text-muted);margin-top:8px}
+.hint .ic{width:13px;height:13px;flex:none;margin-top:2px;color:var(--accent)}
+.empty{padding:16px 10px;text-align:center;font-size:12px;color:var(--text-muted)}
+
+/* ── 전체보기 상자 (템플릿 패널 하단 고정) ── */
+.allbox{margin-top:auto;display:flex;align-items:center;gap:10px;text-decoration:none;
+        border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-secondary);
+        padding:11px 12px;color:inherit;transition:.15s}
+.allbox:hover{border-color:var(--accent);background:var(--accent-light)}
+.allbox-ic{width:34px;height:34px;flex:none;border-radius:var(--radius-sm);display:flex;
+           align-items:center;justify-content:center;background:var(--accent);color:#fff}
+.allbox b{display:block;font-size:13px;font-weight:700;line-height:1.3}
+.allbox span{display:block;font-size:11px;color:var(--text-muted);margin-top:1px}
+
+/* ── 효과 스와치 (font.html의 .fx-* 규칙. 패널이 좁아 4열) ── */
+.fx-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 7px}
+.fx-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.fx-chip{width:100%;height:38px;border-radius:9px;border:2px solid transparent;display:flex;
+         align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;
+         transition:box-shadow .15s,transform .1s}
+.fx-item:hover .fx-chip{transform:translateY(-1px);box-shadow:var(--shadow-hover)}
+.fx-item.active .fx-chip{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}
+.fx-item span{display:block;width:100%;text-align:center;font-size:9px;font-weight:700;
+              color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.fx-item.active span{color:var(--accent)}
+.fx-chip.none-chip{background:var(--bg-card);border:2px dashed var(--border);color:var(--text-muted)}
+/* 투명 GIF에서 팔레트를 넘기는 효과 — 고를 수는 있게 두되 흐리게 */
+.fx-item.dim{opacity:.34}
+.fx-item.dim:hover{opacity:.6}
+
+/* ── 배경 사진 ── */
+.drop{border:1.5px dashed var(--border-hover);border-radius:var(--radius-sm);padding:16px 12px;
+      text-align:center;font-size:12px;color:var(--text-muted);background:var(--bg-secondary);
+      cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
+.drop:hover{border-color:var(--accent);color:var(--accent)}
+.drop .ic{width:22px;height:22px}
+.photoOn .drop{border-style:solid}
+.slider{display:flex;align-items:center;gap:9px;margin-top:9px}
+.slider label{font-size:11.5px;color:var(--text-secondary);width:42px;flex:none}
+.slider input[type=range]{flex:1;accent-color:var(--accent);height:3px}
+.slider .val{font-family:var(--mono);font-size:11px;color:var(--text-muted);width:38px;text-align:right;flex:none}
+.disabled{opacity:.45;pointer-events:none}
+.thumb{width:100%;height:78px;object-fit:cover;border-radius:var(--radius-sm);
+       border:1px solid var(--border);display:block}
+
+/* ── 진행률 · 저장 오버레이 ── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:none;
+    align-items:center;justify-content:center;padding:20px}
+.ov.open{display:flex}
+.ovbox{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
+       width:100%;max-width:400px;padding:22px;box-shadow:var(--shadow-hover)}
+.ovbox h4{font-size:16px;font-weight:800;margin-bottom:6px}
+.ovbox p{font-size:12.5px;color:var(--text-secondary);line-height:1.6}
+.bar{height:6px;border-radius:3px;background:var(--bg-secondary);overflow:hidden;margin:14px 0 8px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.ovimg{width:100%;border-radius:var(--radius-sm);margin:12px 0;display:block;
+       background:repeating-conic-gradient(var(--bg-secondary) 0% 25%, transparent 0% 50%) 50%/20px 20px}
+.ovbtns{display:flex;gap:8px;margin-top:14px}
+.ovbtns .btn{flex:1}
+
+@media(max-width:1100px){ .panel{width:250px} .props{width:250px} }
+
+/* ── 모바일 ──
+   캔버스를 맨 위로 올려 화면에 붙여두고(작업 결과를 늘 보이게),
+   템플릿·문구·폰트·효과·사진 메뉴는 그 아래로 세로로 쌓는다. */
+@media(max-width:860px){
+  .work{flex-direction:column}
+  .stage{order:-1;position:sticky;top:0;z-index:20;
+         border-bottom:1px solid var(--border);background:var(--bg-card)}
+  .canvaswrap{padding:12px}
+  #cv{max-height:28vh}
+  .stagebar{padding:8px 12px;gap:8px}
+  .stagebar .seg button{padding:5px 9px;font-size:12px}
+  .timeline{padding:9px 12px 11px;gap:7px}
+  .tlmeta{font-size:11px;gap:10px}
+  .tlmeta span:last-child{margin-left:0;width:100%}
+  .panel,.props{width:100%;max-height:none;border:none;
+                border-bottom:1px solid var(--border);padding:16px 14px;gap:16px}
+  .tplgrid{grid-template-columns:repeat(3,1fr)}
+  .fx-grid{grid-template-columns:repeat(6,1fr)}
+  .fontlist{max-height:none}
+  .allbox{margin-top:4px}
+}
+@media(max-width:520px){
+  .tplgrid{grid-template-columns:repeat(2,1fr)}
+  .fx-grid{grid-template-columns:repeat(5,1fr)}
+  #cv{max-height:25vh}
+  .toolbar{padding:9px 14px;gap:9px}
+  .toolbar .note{display:none}
+  .toolbar>div:last-child{width:100%;margin-left:0}
+  .toolbar>div:last-child .btn{flex:1}
+}
+</style>
+</head>
+<body>
+
+<!--FFP_HEADER-->
+
+<div class="toolbar">
+  <div class="crumb">
+    <span>GIF 생성기</span>
+    <svg class="ic" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="m9 6 6 6-6 6"/></svg>
+    <b id="crumbTpl">불러오는 중…</b>
+  </div>
+  <span class="tag tag-out" id="saveTag">저장 안 됨</span>
+  <span class="note">
+    <svg class="ic" viewBox="0 0 24 24" style="width:13px;height:13px;color:var(--accent)"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14"/></svg>
+    서버 업로드 없이 브라우저에서 인코딩합니다
+  </span>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <button class="btn" id="pngBtn">PNG로 받기</button>
+    <button class="btn" id="mp4Btn">MP4로 받기</button>
+    <button class="btn btn-primary" id="gifBtn">GIF 내보내기</button>
+  </div>
+</div>
+
+<div class="work">
+  <!-- 템플릿 패널 -->
+  <div class="panel">
+    <div class="phead"><h3>GIF 템플릿</h3><span class="psub" id="tplCount">—</span></div>
+    <div class="seg" id="animFilter">
+      <button class="on" data-cat="all">전체</button>
+      <button data-cat="basic">기본</button>
+      <button data-cat="cinematic">시네마틱 ✦</button>
+      <button data-cat="dynamic">역동 ⚡</button>
+    </div>
+    <div class="tplgrid" id="tplGrid"></div>
+    <div class="psub" style="display:flex;align-items:center;gap:6px">
+      <span class="dots g">●●●</span> GIF 적합도 — 3점일수록 용량·색이 안정적
+    </div>
+
+    <!-- 편집 없이 그대로 쓰려는 사람을 위한 출구 -->
+    <a class="allbox" href="/gif/templates">
+      <div class="allbox-ic">
+        <svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M4 5h6v6H4zM14 5h6v6h-6zM4 13h6v6H4zM14 13h6v6h-6z"/></svg>
+      </div>
+      <div style="min-width:0">
+        <b>GIF 템플릿 전체보기</b>
+        <span>고르고 바로 받기 · 편집 없이</span>
+      </div>
+      <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px;flex:none;margin-left:auto;color:var(--text-muted)"><path d="m9 6 6 6-6 6"/></svg>
+    </a>
+  </div>
+
+  <!-- 캔버스 -->
+  <div class="stage">
+    <div class="stagebar">
+      <div class="seg" id="ratioSeg">
+        <button class="on" data-r="16:9">16:9</button>
+        <button data-r="1:1">1:1</button>
+        <button data-r="4:5">4:5</button>
+        <button data-r="9:16">9:16</button>
+      </div>
+      <span class="psub" id="ratioUse">블로그 · 썸네일</span>
+      <span class="vsep"></span>
+      <div class="chips" id="bgChips">
+        <button class="chip on" data-bg="none">투명</button>
+        <button class="chip" data-bg="photo">사진</button>
+      </div>
+      <span class="vsep"></span>
+      <span class="tag tag-acc" id="paletteTag">64색 · 투명 GIF</span>
+      <div style="margin-left:auto" class="psub" id="zoomLabel"></div>
+    </div>
+
+    <div class="canvaswrap">
+      <canvas id="cv" class="checker" width="800" height="450"></canvas>
+    </div>
+
+    <div class="timeline">
+      <div class="tlrow">
+        <button class="btn" id="playBtn" style="width:36px;height:34px;padding:0" aria-label="재생/일시정지">
+          <svg class="ic" id="playIcon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M7 5l12 7-12 7z"/></svg>
+        </button>
+        <span class="mono" id="tNow">0.00s</span>
+        <div class="scrub" id="scrub">
+          <div class="scrubfill" id="scrubFill" style="right:100%"></div>
+          <div class="scrubhead" id="scrubHead" style="left:0"></div>
+          <div class="ticks"><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+        <span class="mono" id="tEnd" style="color:var(--text-muted)">2.50s</span>
+      </div>
+      <div class="tlmeta">
+        <span id="mDur">길이 2.5s</span><span id="mFps">20fps</span><span id="mFrames">50프레임</span>
+        <span style="margin-left:auto;color:var(--accent);font-weight:600" id="mSize">— · 브라우저에서 바로 생성</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 속성 패널 -->
+  <div class="props">
+    <div>
+      <div class="lbl">문구 · 최대 2줄</div>
+      <textarea class="inp" id="txt" rows="2" spellcheck="false">이걸 몰랐다고?</textarea>
+      <div class="counter"><span id="cntLine">1줄 / 8자</span><span id="cntHint">글자수 ±20% 권장</span></div>
+      <div class="chips" id="phraseChips" style="margin-top:8px"></div>
+    </div>
+
+    <div>
+      <div class="lbl">폰트 · 용도별 추천</div>
+      <div class="chips" id="hubSeg"></div>
+      <div class="fontlist" id="fontList"><div class="empty">불러오는 중…</div></div>
+      <div class="chips" id="weightChips" style="margin-top:8px"></div>
+    </div>
+
+    <div>
+      <div class="lbl">효과 · 32종</div>
+      <div class="fx-grid" id="fxGrid"></div>
+    </div>
+
+    <div id="photoSec">
+      <div class="lbl">배경 사진 · 선택</div>
+      <input type="file" id="photoFile" accept="image/*" hidden>
+      <div class="drop" id="photoDrop">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M12 16V4m0 0 4 4m-4-4-4 4M5 20h14"/></svg>
+        <span>사진을 올리거나 클릭해서 고르세요</span>
+      </div>
+      <div id="photoCtl" class="disabled" style="margin-top:10px">
+        <img id="photoThumb" class="thumb" alt="" style="display:none">
+        <div class="slider"><label>가로</label><input type="range" id="pX" min="-100" max="100" value="0"><span class="val" id="pXv">0</span></div>
+        <div class="slider"><label>세로</label><input type="range" id="pY" min="-100" max="100" value="0"><span class="val" id="pYv">0</span></div>
+        <div class="slider"><label>어둡게</label><input type="range" id="pDim" min="0" max="80" value="35"><span class="val" id="pDimv">35%</span></div>
+        <button class="btn" id="photoClear" style="width:100%;margin-top:9px">사진 제거</button>
+      </div>
+      <div class="hint">
+        <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v5m0 3v.01"/></svg>
+        <span>사진 배경은 팔레트가 192색으로 늘어 용량이 3~4배 커집니다. 배경은 움직이지 않게 고정됩니다.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 진행률 / 저장 안내 -->
+<div class="ov" id="ov">
+  <div class="ovbox">
+    <h4 id="ovTitle">GIF 만드는 중</h4>
+    <p id="ovDesc">잠시만 기다려주세요.</p>
+    <div class="bar" id="ovBarWrap"><i id="ovBar"></i></div>
+    <img id="ovImg" class="ovimg" alt="저장할 GIF" style="display:none">
+    <div class="ovbtns" id="ovBtns" style="display:none">
+      <button class="btn" id="ovClose">닫기</button>
+      <button class="btn btn-primary" id="ovAction">파일로 저장</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/ffp-effects.js"></script>
+<script src="/static/gif-render.js"></script>
+<script src="/static/vendor/gifenc.js"></script>
+<script src="/static/gif-export.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   헤더 공통 (wisefont.html과 동일)
+══════════════════════════════════════════════════════════════ */
+function applyThemeIcons(){
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    || (!document.documentElement.hasAttribute('data-theme')
+        && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  var mMoon = document.getElementById('mThemeIconMoon'),
+      mSun  = document.getElementById('mThemeIconSun'),
+      mLabel= document.getElementById('mThemeLabel');
+  if(mMoon)  mMoon.style.display = isDark ? 'none' : '';
+  if(mSun)   mSun.style.display  = isDark ? '' : 'none';
+  if(mLabel) mLabel.textContent  = isDark ? '주간모드' : '야간모드';
+}
+function toggleTheme(){
+  var root = document.documentElement;
+  var cur = root.getAttribute('data-theme')
+    || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  var next = cur === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  try{ localStorage.setItem('ffp-theme', next); }catch(e){}
+  applyThemeIcons();
+}
+function closeMobileNav(){
+  var n = document.getElementById('mnav');
+  if(n){ n.hidden = true; n.classList.remove('open'); }
+}
+function navFindFont(e){ /* 이 페이지에선 기본 링크 이동 */ }
+applyThemeIcons();
+
+/* ══════════════════════════════════════════════════════════════
+   상태
+══════════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const R = FFPGif.createRenderer($('cv'));
+
+let TPLS = [];          // /api/gif-templates
+let HUBS = [];          // /api/gif-fonts
+let ui = {
+  tplNumber: null, hub: null, fontId: null, cat: 'all',
+  t: 0, playing: true, busy: false,
+};
+const AUTOSAVE_KEY = 'ffp-gif-draft';
+
+/* 밝은 글자색은 칩 위 'Aa'가 안 보여서 글자를 어둡게 뒤집는다 (font.html과 동일) */
+const LIGHT = ['#FFFFFF','#FBBF24','#FFD700','#BBE6FF','#7DD3FC','#FDE047','#E5E7EB','#5EEAD4','#C4B5FD','#FCD34D','#F9A8D4'];
+const dots = r => '●●●'.slice(0, r) || '—';
+
+function hubOf(slug){ return HUBS.find(h=>h.slug===slug) || HUBS[0] || null; }
+function fontOf(id){
+  for(const h of HUBS){ const f = h.fonts.find(x=>x.id===id); if(f) return f; }
+  return null;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   템플릿 목록
+══════════════════════════════════════════════════════════════ */
+function renderTpls(){
+  const list = TPLS.filter(t => ui.cat==='all' || t.anim_category===ui.cat);
+  $('tplCount').textContent = list.length ? list.length+'종' : '';
+  if(!list.length){
+    $('tplGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">해당하는 템플릿이 없어요</div>';
+    return;
+  }
+  $('tplGrid').innerHTML = list.map(t=>`
+    <button class="tplcell${t.number===ui.tplNumber?' on':''}" data-n="${t.number}">
+      <span class="tplspec">${esc((t.sample_text||'').replace(/\n/g,' '))}</span>
+      <span class="tplmeta"><span>${esc(t.number)} ${esc(animName(t.anim))}</span>
+        <span class="dots${t.gif_rating===3?' g':''}">${dots(t.gif_rating)}</span></span>
+    </button>`).join('');
+  $('tplGrid').querySelectorAll('.tplcell').forEach(b=>{
+    b.onclick = ()=>applyTemplate(b.dataset.n);
+  });
+}
+function animName(id){ const a = FFPGif.ANIM_BY_ID[id]; return a ? a.name : id; }
+function esc(s){ return String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+$('animFilter').onclick = e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  [...$('animFilter').children].forEach(x=>x.classList.toggle('on', x===b));
+  ui.cat = b.dataset.cat;
+  renderTpls();
+};
+
+async function applyTemplate(number){
+  const t = TPLS.find(x=>x.number===number);
+  if(!t) return;
+  ui.tplNumber = number;
+  R.applyConfig(t.config || {});
+  /* config에 폰트가 없거나 지금 목록에 없는 폰트면 허브 첫 폰트로 */
+  ui.hub = t.hub_slug || ui.hub;
+  const wanted = (t.config && t.config.font && t.config.font.id) || t.font_id;
+  const hub = hubOf(ui.hub);
+  const pick = fontOf(wanted) || (hub && hub.fonts[0]) || null;
+  await selectFont(pick, R.state.fontWeight);
+  $('txt').value = R.state.text;
+  $('crumbTpl').textContent = `${animName(R.state.anim)} · ${hub ? hub.title : ''}`;
+  ui.t = 0;
+  renderTpls(); renderHubs(); renderPhrases(); renderFx(); syncBar(); updateCounter(); saveDraft();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   허브 → 폰트 → 굵기
+══════════════════════════════════════════════════════════════ */
+function renderHubs(){
+  $('hubSeg').innerHTML = HUBS.map(h=>
+    `<button class="chip${h.slug===ui.hub?' on':''}" data-h="${esc(h.slug)}">${esc(h.title)}</button>`
+  ).join('');
+  $('hubSeg').querySelectorAll('.chip').forEach(c=>c.onclick=async()=>{
+    ui.hub = c.dataset.h;
+    const h = hubOf(ui.hub);
+    await selectFont(h && h.fonts[0]);
+    renderHubs(); renderPhrases();
+  });
+
+  const h = hubOf(ui.hub);
+  const fonts = h ? h.fonts : [];
+  $('fontList').innerHTML = fonts.length
+    ? fonts.map(f=>`
+      <button class="fontrow${f.id===ui.fontId?' on':''}" data-i="${f.id}">
+        <span class="nm">${esc(f.name)}</span><span class="lic">${esc(f.maker||'')}</span>
+      </button>`).join('')
+    : '<div class="empty">이 용도에 등록된 폰트가 없어요</div>';
+  $('fontList').querySelectorAll('.fontrow').forEach(b=>b.onclick=async()=>{
+    await selectFont(fontOf(+b.dataset.i));
+    renderHubs();
+  });
+
+  /* 굵기 — 파일이 여러 개인 폰트만 고를 수 있게 노출한다 */
+  const f = fontOf(ui.fontId);
+  const ws = (f && f.weights) || [];
+  $('weightChips').innerHTML = ws.length > 1
+    ? ws.map(w=>`<button class="chip${w===R.state.fontWeight?' on':''}" data-w="${w}">${w}</button>`).join('')
+    : '';
+  $('weightChips').querySelectorAll('.chip').forEach(c=>c.onclick=async()=>{
+    await selectFont(fontOf(ui.fontId), +c.dataset.w);
+    renderHubs();
+  });
+}
+
+async function selectFont(f, weight){
+  if(!f) return;
+  ui.fontId = f.id;
+  const ws = f.weights || [];
+  let w = weight || R.state.fontWeight || f.primary_weight;
+  if(ws.length && !ws.includes(w)){
+    /* 원하는 굵기가 없으면 가장 가까운 것으로 — 없는 굵기를 요청하면
+       서버가 대표 파일을 주고, 화면과 파일이 어긋나 보인다 */
+    w = ws.reduce((a,b)=>Math.abs(b-w)<Math.abs(a-w)?b:a, ws[0]);
+  }
+  R.setState({fontWeight:w, fontStack: ffpEffectiveStack(f, w)});
+  await R.ensureFont(f);      // 폰트가 실제로 로드될 때까지 기다린다
+  saveDraft();
+}
+
+function renderPhrases(){
+  const h = hubOf(ui.hub);
+  const list = (h && h.phrases) ? h.phrases.slice(0,4) : [];
+  $('phraseChips').innerHTML = list.map(p=>
+    `<button class="chip" data-p="${esc(p)}">${esc(p)}</button>`).join('');
+  $('phraseChips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
+    $('txt').value = c.dataset.p;
+    R.setState({text:c.dataset.p});
+    updateCounter(); saveDraft();
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   비율 · 배경 · 효과
+══════════════════════════════════════════════════════════════ */
+$('ratioSeg').onclick = e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  [...$('ratioSeg').children].forEach(x=>x.classList.toggle('on', x===b));
+  R.setState({ratio:b.dataset.r});
+  const r = FFPGif.RATIOS[b.dataset.r];
+  $('ratioUse').textContent = r ? r.desc : '';
+  syncBar(); saveDraft();
+};
+
+$('bgChips').onclick = e=>{
+  const c = e.target.closest('.chip'); if(!c) return;
+  if(c.dataset.bg==='photo' && !R.state.photo){ $('photoFile').click(); return; }
+  setBg(c.dataset.bg);
+};
+function setBg(key){
+  if(key==='none') R.setState({photo:null});
+  [...$('bgChips').children].forEach(x=>x.classList.toggle('on', x.dataset.bg===key));
+  $('paletteTag').textContent = key==='photo' ? '192색 · 사진 배경' : '64색 · 투명 GIF';
+  renderFx(); syncBar();
+}
+
+function renderFx(){
+  const transparent = !R.state.photo;
+  $('fxGrid').innerHTML = FFP_EFFECTS.map(e=>{
+    const r = FFP_GIF_RATING[e.id] ?? 2;
+    const style = e.id==='none' ? '' :
+      `background:${e.gradient?`linear-gradient(135deg,${e.gradient.join(',')})`:e.color};`
+      + (LIGHT.includes(e.color)?'color:rgba(0,0,0,.55);':'');
+    /* 투명 GIF에서 팔레트 64색을 넘기는 효과는 흐리게 표시한다 */
+    const dim = transparent && r===0 ? ' dim' : '';
+    const title = r===0 ? `${e.name} — 투명 GIF에서 색이 뭉갤 수 있어요`
+                : r===1 ? `${e.name} — 용량이 커집니다` : e.name;
+    return `<div class="fx-item${e.id===R.state.effect?' active':''}${dim}" data-id="${e.id}" title="${esc(title)}">
+      <div class="fx-chip${e.id==='none'?' none-chip':''}" style="${style}">Aa</div><span>${esc(e.name)}</span>
+    </div>`;
+  }).join('');
+  $('fxGrid').querySelectorAll('.fx-item').forEach(el=>el.onclick=()=>{
+    R.setState({effect:el.dataset.id});
+    renderFx(); syncBar(); saveDraft();
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   배경 사진 — 사용자가 올린 파일만 쓴다.
+   서버 호스팅 이미지를 그리면 내보내기 때 getImageData가 CORS로 막힌다.
+══════════════════════════════════════════════════════════════ */
+async function loadPhoto(file){
+  if(!file || !file.type.startsWith('image/')) return;
+  try{
+    const bmp = await createImageBitmap(file, {imageOrientation:'from-image'});
+    R.setState({photo:bmp});
+    $('photoThumb').src = URL.createObjectURL(file);
+    $('photoThumb').style.display = 'block';
+    $('photoCtl').classList.remove('disabled');
+    $('photoSec').classList.add('photoOn');
+    $('photoDrop').querySelector('span').textContent = '다른 사진으로 바꾸기';
+    setBg('photo');
+  }catch(e){
+    alert('이 사진은 읽지 못했어요.\n아이폰 HEIC이면 JPG로 바꿔서 올려주세요.');
+  }
+}
+$('photoDrop').onclick = ()=>$('photoFile').click();
+$('photoFile').onchange = e=>loadPhoto(e.target.files[0]);
+['dragover','dragleave','drop'].forEach(ev=>$('photoDrop').addEventListener(ev, e=>{
+  e.preventDefault();
+  $('photoDrop').style.borderColor = ev==='dragover' ? 'var(--accent)' : '';
+  if(ev==='drop' && e.dataTransfer.files[0]) loadPhoto(e.dataTransfer.files[0]);
+}));
+$('photoClear').onclick = ()=>{
+  $('photoThumb').style.display='none';
+  $('photoCtl').classList.add('disabled');
+  $('photoSec').classList.remove('photoOn');
+  $('photoFile').value = '';
+  $('photoDrop').querySelector('span').textContent='사진을 올리거나 클릭해서 고르세요';
+  setBg('none');
+};
+[['pX','photoX','',1],['pY','photoY','',1],['pDim','dim','%',1]].forEach(([id,key,unit])=>{
+  $(id).oninput = ()=>{
+    R.setState({[key]: +$(id).value});
+    $(id+'v').textContent = $(id).value + unit;
+    syncBar();
+  };
+});
+
+/* ══════════════════════════════════════════════════════════════
+   문구
+══════════════════════════════════════════════════════════════ */
+function updateCounter(){
+  const v = $('txt').value;
+  const rows = v.split('\n').filter(x=>x.trim()).length;
+  const n = v.replace(/\s/g,'').length;
+  $('cntLine').textContent = `${rows||1}줄 / ${n}자`;
+  const over = rows > 2;
+  $('cntHint').textContent = over ? '3줄부터는 표시되지 않아요' : '글자수 ±20% 권장';
+  $('cntHint').className = over ? 'warn' : '';
+}
+$('txt').oninput = ()=>{ R.setState({text:$('txt').value}); updateCounter(); saveDraft(); };
+
+/* ══════════════════════════════════════════════════════════════
+   타임라인 · 프레임 정보
+══════════════════════════════════════════════════════════════ */
+function syncBar(){
+  const est = R.estimate();
+  $('mDur').textContent = `길이 ${R.state.total.toFixed(1)}s`;
+  $('mFps').textContent = Math.round(est.frames/R.state.total) + 'fps';
+  $('mFrames').textContent = est.frames + '프레임';
+  $('tEnd').textContent = R.state.total.toFixed(2) + 's';
+  /* 정확한 값을 알 수 없어 범위로 쓴다. 하나의 숫자로 적으면 실제 파일이
+     그보다 크게 나왔을 때 사용자가 바로 틀린 걸 알아챈다. */
+  const kb = n => n>=1024 ? (n/1024).toFixed(1)+'MB' : Math.round(n/10)*10+'KB';
+  $('mSize').textContent =
+    `예상 용량 ${kb(est.gifKBLow)}~${kb(est.gifKBHigh)} · 브라우저에서 바로 생성`;
+  $('mSize').style.color = est.heavy ? '#C2410C' : 'var(--accent)';
+  requestAnimationFrame(()=>{
+    const shown = $('cv').getBoundingClientRect().width;
+    if(shown) $('zoomLabel').textContent = Math.round(shown/R.width*100)+'%';
+  });
+}
+addEventListener('resize', syncBar);
+
+$('playBtn').onclick = ()=>{
+  ui.playing = !ui.playing;
+  $('playIcon').innerHTML = ui.playing
+    ? '<path d="M7 5l12 7-12 7z"/>'
+    : '<path d="M8 5v14M16 5v14"/>';
+};
+(function(){
+  const el = $('scrub');
+  const seek = ev=>{
+    const r = el.getBoundingClientRect();
+    ui.t = Math.max(0, Math.min(1, (ev.clientX-r.left)/r.width));
+    ui.playing = false;
+    $('playIcon').innerHTML = '<path d="M7 5l12 7-12 7z"/>';
+  };
+  el.addEventListener('pointerdown', e=>{
+    seek(e); el.setPointerCapture(e.pointerId);
+    const mv = ev=>seek(ev);
+    const up = ()=>{ el.removeEventListener('pointermove',mv); el.removeEventListener('pointerup',up); };
+    el.addEventListener('pointermove', mv);
+    el.addEventListener('pointerup', up);
+  });
+})();
+
+let last = performance.now();
+function loop(now){
+  const dt = (now-last)/1000; last = now;
+  if(ui.playing && !ui.busy) ui.t = (ui.t + dt/R.state.total) % 1;
+  if(!ui.busy) R.render(ui.t);
+  $('tNow').textContent = (ui.t*R.state.total).toFixed(2)+'s';
+  $('scrubFill').style.right = (100-ui.t*100)+'%';
+  $('scrubHead').style.left = (ui.t*100)+'%';
+  requestAnimationFrame(loop);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   임시 저장 — 계정이 없으므로 브라우저에만 남긴다
+══════════════════════════════════════════════════════════════ */
+let _saveTimer = null;
+function saveDraft(){
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(()=>{
+    try{
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
+        tpl: ui.tplNumber, hub: ui.hub, cfg: R.snapshot(),
+      }));
+      $('saveTag').textContent = '이 브라우저에 저장됨';
+      $('saveTag').className = 'tag tag-acc';
+    }catch(e){}
+  }, 600);
+}
+function loadDraft(){
+  try{
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){ return null; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   내보내기
+══════════════════════════════════════════════════════════════ */
+function ovOpen(title, desc){
+  $('ovTitle').textContent = title;
+  $('ovDesc').textContent = desc;
+  $('ovBar').style.width = '0%';
+  $('ovBarWrap').style.display = '';
+  $('ovImg').style.display = 'none';
+  $('ovBtns').style.display = 'none';
+  $('ov').classList.add('open');
+}
+function ovClose(){ $('ov').classList.remove('open'); }
+$('ovClose').onclick = ovClose;
+$('ov').addEventListener('click', e=>{ if(e.target===$('ov') && !ui.busy) ovClose(); });
+
+function ovProgress(p, msg){
+  $('ovBar').style.width = Math.round(p*100)+'%';
+  $('ovDesc').textContent = msg;
+}
+
+/* 인앱 브라우저 — 이미지를 띄우고 길게 눌러 저장하게 한다 */
+function ovLongPress(url, blob, filename){
+  $('ovBarWrap').style.display = 'none';
+  $('ovImg').src = url;
+  $('ovImg').style.display = 'block';
+  $('ovTitle').textContent = '길게 눌러 저장해주세요';
+  $('ovDesc').textContent = '이 브라우저는 바로 저장을 지원하지 않아요. 위 이미지를 길게 누른 뒤 「사진에 저장」을 선택하세요.';
+  $('ovBtns').style.display = 'flex';
+  $('ovAction').onclick = ()=>FFPExport.downloadBlob(blob, filename);
+}
+
+async function runExport(kind){
+  if(ui.busy) return;
+  const f = fontOf(ui.fontId);
+  ui.busy = true;
+  const wasPlaying = ui.playing;
+  ui.playing = false;
+  [...document.querySelectorAll('.toolbar .btn')].forEach(b=>b.disabled=true);
+
+  try{
+    /* 폰트가 실제로 준비될 때까지 기다린다.
+       이걸 빼면 첫 방문에서 전체 프레임이 대체 폰트로 저장된다. */
+    ovOpen('폰트 준비 중', '잠시만 기다려주세요.');
+    await R.ensureFont(f);
+
+    let blob, filename;
+    if(kind==='png'){
+      ovOpen('PNG 만드는 중', '한 장을 그리고 있어요.');
+      blob = await FFPExport.exportPNG(R);
+      filename = FFPExport.safeName(R.state.text, 'png');
+    } else if(kind==='gif'){
+      ovOpen('GIF 만드는 중', '프레임을 인코딩하고 있어요.');
+      blob = await FFPExport.exportGIF(R, ovProgress);
+      filename = FFPExport.safeName(R.state.text, 'gif');
+    } else {
+      if(!R.state.photo && !confirm('투명 배경은 MP4에 담기지 않아 검은 배경이 됩니다.\n그래도 저장할까요?')){
+        throw {cancelled:true};
+      }
+      ovOpen('MP4 만드는 중', '인코더를 준비하고 있어요.');
+      blob = await FFPExport.exportMP4(R, ovProgress);
+      filename = FFPExport.safeName(R.state.text, 'mp4');
+    }
+
+    const kb = blob.size/1024;
+    const sizeTxt = kb>=1024 ? (kb/1024).toFixed(2)+'MB' : Math.round(kb)+'KB';
+    ovProgress(1, `완료 · ${sizeTxt}`);
+
+    const result = await FFPExport.saveBlob(blob, filename, {
+      onLongPress: url=>ovLongPress(url, blob, filename),
+    });
+    if(result !== 'longpress'){
+      $('ovTitle').textContent = '저장했어요';
+      $('ovDesc').textContent = `${filename} · ${sizeTxt}`;
+      setTimeout(ovClose, 1600);
+    }
+  }catch(err){
+    if(err && err.cancelled){ ovClose(); }
+    else{
+      $('ovTitle').textContent = '만들지 못했어요';
+      $('ovDesc').textContent = (err && err.message) ? err.message : String(err);
+      $('ovBarWrap').style.display = 'none';
+      $('ovBtns').style.display = 'flex';
+      $('ovAction').style.display = 'none';
+    }
+  }finally{
+    ui.busy = false;
+    ui.playing = wasPlaying;
+    [...document.querySelectorAll('.toolbar .btn')].forEach(b=>b.disabled=false);
+    if(!FFPExport.mp4Supported()) $('mp4Btn').disabled = true;
+  }
+}
+$('pngBtn').onclick = ()=>runExport('png');
+$('gifBtn').onclick = ()=>runExport('gif');
+$('mp4Btn').onclick = ()=>runExport('mp4');
+
+/* ══════════════════════════════════════════════════════════════
+   시작
+══════════════════════════════════════════════════════════════ */
+async function boot(){
+  /* WebCodecs가 없는 브라우저에서는 MP4 버튼을 미리 잠근다 —
+     눌러본 뒤 안 된다고 알려주는 것보다 낫다 */
+  if(!FFPExport.mp4Supported()){
+    $('mp4Btn').disabled = true;
+    $('mp4Btn').title = '이 브라우저는 MP4 저장을 지원하지 않아요';
+  }
+
+  const [tplRes, fontRes] = await Promise.all([
+    fetch('/api/gif-templates').then(r=>r.json()).catch(()=>[]),
+    fetch('/api/gif-fonts').then(r=>r.json()).catch(()=>({hubs:[]})),
+  ]);
+  TPLS = Array.isArray(tplRes) ? tplRes : [];
+  HUBS = (fontRes && fontRes.hubs) || [];
+  ui.hub = HUBS.length ? HUBS[0].slug : null;
+
+  /* 갤러리에서 /gif?t=017 로 들어온 경우 — 임시 저장본보다 우선한다.
+     방금 고른 템플릿이 아니라 지난주 작업이 뜨면 고른 게 무시된 것처럼 보인다. */
+  const want = new URLSearchParams(location.search).get('t');
+  const draft = want ? null : loadDraft();
+  if(want && TPLS.some(t=>t.number===want)){
+    await applyTemplate(want);
+  } else if(draft && draft.cfg){
+    /* 이어서 작업 — 마지막 상태를 복원한다. 사진은 저장하지 않으므로 빠진다. */
+    ui.tplNumber = draft.tpl || null;
+    ui.hub = draft.hub || ui.hub;
+    R.applyConfig(draft.cfg);
+    const f = fontOf(R.state.fontId) || (hubOf(ui.hub) && hubOf(ui.hub).fonts[0]);
+    await selectFont(f, R.state.fontWeight);
+    $('saveTag').textContent = '이 브라우저에 저장됨';
+    $('saveTag').className = 'tag tag-acc';
+    $('crumbTpl').textContent = `${animName(R.state.anim)} · ${hubOf(ui.hub) ? hubOf(ui.hub).title : ''}`;
+  } else if(TPLS.length){
+    await applyTemplate(TPLS[0].number);
+  } else {
+    /* 템플릿이 아직 없어도 편집기는 동작해야 한다 */
+    const f = hubOf(ui.hub) && hubOf(ui.hub).fonts[0];
+    await selectFont(f);
+    $('crumbTpl').textContent = '직접 만들기';
+  }
+
+  $('txt').value = R.state.text;
+  [...$('ratioSeg').children].forEach(x=>x.classList.toggle('on', x.dataset.r===R.state.ratio));
+  const r = FFPGif.RATIOS[R.state.ratio];
+  if(r) $('ratioUse').textContent = r.desc;
+
+  renderTpls(); renderHubs(); renderPhrases(); renderFx();
+  updateCounter(); syncBar();
+  requestAnimationFrame(loop);
+}
+boot();
+</script>
+</body>
+</html>
