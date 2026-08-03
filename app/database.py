@@ -12,10 +12,26 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 
+def _force_sqlite() -> bool:
+    """MySQL 환경변수가 있어도 SQLite를 계속 쓰게 하는 스위치.
+
+    2026-08, 카페24가 이 프로젝트에 MySQL을 자동 주입하기 시작하면서 앱이
+    빈 MySQL로 갈아탔다. 그때까지 SQLite(/app/user_data/freefontpick.db)에
+    쌓아온 폰트 191종·페어링 268개·공지·미리보기 문구가 통째로 안 보이게 됐다.
+    DB 자격증명은 플랫폼이 주입하는 값이라 프로젝트 환경변수에서 지울 수 없어,
+    앱 쪽에서 무시할 수단이 필요했다.
+
+    데이터를 MySQL로 이관하기 전까지 FORCE_SQLITE=1로 둔다.
+    이관이 끝나면 이 환경변수만 지우면 자동으로 MySQL을 쓴다.
+    """
+    return os.getenv("FORCE_SQLITE", "").strip().lower() in ("1", "true", "yes", "on")
+
+
 def get_database_url() -> str:
     """환경변수에서 DB URL을 만들어 반환.
 
-    카페24가 주입하는 env가 없으면 영구 보존되는 SQLite로 fallback.
+    카페24가 주입하는 env가 없거나 FORCE_SQLITE가 켜져 있으면
+    영구 보존되는 SQLite를 쓴다.
     """
     db_host = os.getenv("DB_HOST")
     db_user = os.getenv("DB_USER")
@@ -23,7 +39,7 @@ def get_database_url() -> str:
     db_name = os.getenv("DB_NAME")
     db_port = os.getenv("DB_PORT", "3306")
 
-    if all([db_host, db_user, db_password, db_name]):
+    if all([db_host, db_user, db_password, db_name]) and not _force_sqlite():
         return (
             f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
             f"?charset=utf8mb4"
@@ -43,6 +59,14 @@ def get_database_url() -> str:
 
 
 DATABASE_URL = get_database_url()
+
+# 어느 DB를 잡았는지 배포 로그에 남긴다. 비밀번호는 찍지 않는다.
+# (MySQL/SQLite가 조용히 바뀌면 데이터가 통째로 안 보이는 사고로 이어진다)
+if DATABASE_URL.startswith("sqlite"):
+    print(f"[db] SQLite 사용: {DATABASE_URL}"
+          f"{' (FORCE_SQLITE=on — MySQL 무시)' if _force_sqlite() else ''}")
+else:
+    print(f"[db] MySQL 사용: {os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}")
 
 # MySQL은 pool_pre_ping으로 죽은 커넥션 자동 감지
 engine_kwargs = {"pool_pre_ping": True, "pool_recycle": 3600}

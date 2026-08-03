@@ -307,3 +307,56 @@ class UseCasePhrase(Base):
     __table_args__ = (
         Index("idx_ucp_use_case", "use_case_id"),
     )
+
+
+class GifTemplate(Base):
+    """GIF 생성기 템플릿.
+
+    사용자는 이 템플릿을 고르고 문구·폰트·효과만 바꿔 GIF를 받는다.
+    렌더링·인코딩은 전부 브라우저에서 일어나므로 서버는 이 정의만 서빙한다.
+
+    JSON 한 덩어리로 두지 않고 일부를 컬럼으로 뽑은 이유
+    -------------------------------------------------
+    - font_id: 폰트를 지웠을 때 깨지는 템플릿을 찾으려면 실제 컬럼이어야 한다.
+      JSON 안에 두면 전 행을 파이썬에서 역직렬화해야 한다. ondelete는 SET NULL —
+      폰트가 사라졌다고 조용히 템플릿까지 지우면 안 되고, 어드민이 보고 고쳐야 한다.
+    - hub_slug / anim_category / ratio / gif_rating: 갤러리 필터가 쓰는 값이라
+      DB에서 걸러야 한다.
+
+    나머지(길이·fps·등장시간·매트·하이라이트·사진 위치)는 config에 둔다.
+    제작툴의 snapshot() 출력과 같은 모양이다.
+    """
+    __tablename__ = "gif_templates"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    # 화면에 보이는 번호이자 가져오기(import) 시 중복 판단 기준. '001' 같은 문자열.
+    number = Column(String(8), nullable=False, unique=True)
+    title = Column(String(80), nullable=False, default="")
+
+    # 용도 허브 slug (use_cases.slug). FK로 묶지 않는 이유는 허브 시드가
+    # 버전이 오르면 통째로 지웠다 다시 넣기 때문 — 그때 템플릿이 끌려가면 안 된다.
+    hub_slug = Column(String(30), nullable=False, default="")
+
+    anim = Column(String(30), nullable=False, default="typewriter")
+    anim_category = Column(String(20), nullable=False, default="basic")  # basic|extended|cinematic|dynamic
+    effect = Column(String(30), nullable=False, default="none")
+    ratio = Column(String(10), nullable=False, default="16:9")
+    gif_rating = Column(Integer, nullable=False, default=2, server_default="2")
+
+    font_id = Column(Integer, ForeignKey("fonts.id", ondelete="SET NULL"), nullable=True)
+    font_weight = Column(Integer, nullable=False, default=700, server_default="700")
+    sample_text = Column(String(100), nullable=False, default="")
+
+    config = Column(JSON, default=dict)
+
+    is_active = Column(Boolean, nullable=False, default=True, server_default="1")
+    sort_order = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    font = relationship("Font", lazy="joined")
+
+    __table_args__ = (
+        Index("idx_gif_tpl_sort", "sort_order"),
+        Index("idx_gif_tpl_hub", "hub_slug"),
+    )
