@@ -200,6 +200,17 @@ select.inp{appearance:none;cursor:pointer}
   border-radius:6px;background:none;cursor:pointer;display:none}
 #bgColorInput.on{display:block}
 
+/* 배경색 팔레트 — 8칸씩 8줄, 무채색 한 줄 + 색상 일곱 줄 */
+.bgpop{position:fixed;z-index:60;display:none;flex-direction:column;
+       width:296px;background:var(--bg-card);border:1px solid var(--border);
+       border-radius:var(--radius-md);box-shadow:var(--shadow-hover);padding:13px}
+.bgpop.open{display:flex}
+.bggrid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.bggrid button{aspect-ratio:1;border-radius:5px;border:1px solid var(--border);padding:0;
+               cursor:pointer;transition:transform .1s}
+.bggrid button:hover{transform:scale(1.14)}
+.bggrid button.on{box-shadow:0 0 0 2px var(--accent);transform:scale(1.14)}
+
 /* 효과 열기 버튼 — 지금 고른 효과의 색을 점으로 미리 보여준다 */
 /* 효과 고르기 — 드롭다운과 같은 상자·같은 화살표로 맞춘다.
    background 단축 속성을 쓰면 .opener의 화살표(background-image)까지 지워진다. */
@@ -207,6 +218,8 @@ select.inp{appearance:none;cursor:pointer}
        background-color:var(--bg-secondary);font-weight:400;font-size:14px;text-align:left}
 .fxbtn:hover:not(:disabled){background-color:var(--bg-secondary);border-color:var(--border-hover)}
 .fxdot{width:18px;height:18px;border-radius:5px;flex:none;border:1px solid var(--border)}
+/* 두 번째 점(외곽선)은 첫 점에 살짝 겹쳐 '이 색 + 이 테두리'로 읽히게 한다 */
+#fxDot2{margin-left:-9px}
 .fxbtn .fxmore{margin-left:auto;font-size:11px;color:var(--text-muted);font-weight:400}
 .hint{display:flex;align-items:flex-start;gap:6px;font-size:11px;line-height:1.5;
       color:var(--text-muted);margin-top:8px}
@@ -223,21 +236,34 @@ select.inp{appearance:none;cursor:pointer}
 .allbox b{display:block;font-size:13px;font-weight:700;line-height:1.3}
 .allbox span{display:block;font-size:11px;color:var(--text-muted);margin-top:1px}
 
-/* ── 효과 스와치 (font.html의 .fx-* 규칙. 패널이 좁아 4열) ── */
-.fx-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 7px}
-.fx-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
-.fx-chip{width:100%;height:38px;border-radius:9px;border:2px solid transparent;display:flex;
-         align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;
-         transition:box-shadow .15s,transform .1s}
-.fx-item:hover .fx-chip{transform:translateY(-1px);box-shadow:var(--shadow-hover)}
-.fx-item.active .fx-chip{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}
-.fx-item span{display:block;width:100%;text-align:center;font-size:9px;font-weight:700;
-              color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
-.fx-item.active span{color:var(--accent)}
-.fx-chip.none-chip{background:var(--bg-card);border:2px dashed var(--border);color:var(--text-muted)}
-/* 투명 GIF에서 팔레트를 넘기는 효과 — 고를 수는 있게 두되 흐리게 */
-.fx-item.dim{opacity:.34}
-.fx-item.dim:hover{opacity:.6}
+/* ── 글자색 · 외곽선 고르기 ── */
+.inkgrp{margin-bottom:14px}
+.inkgrp:last-of-type{margin-bottom:6px}
+.inklbl{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted);
+        font-weight:700;margin-bottom:7px}
+.inkhint{text-transform:none;letter-spacing:0;font-weight:400;font-size:10px;margin-left:6px}
+
+.swgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(28px,1fr));gap:6px}
+.sw{height:28px;border-radius:7px;border:1px solid var(--border);padding:0;cursor:pointer;
+    position:relative;transition:transform .1s}
+.sw:hover{transform:translateY(-1px)}
+.sw.on{box-shadow:0 0 0 2px var(--accent)}
+/* '없음'(외곽선 끄기) — 색이 아니라 상태라 점선으로 구분한다 */
+.sw.none{background:var(--bg-card);border:1.5px dashed var(--border-hover);
+         font-size:9px;font-weight:700;color:var(--text-muted)}
+
+.grgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px}
+.gr{height:30px;border-radius:7px;border:1px solid var(--border);cursor:pointer;padding:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:9.5px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.gr.on{box-shadow:0 0 0 2px var(--accent)}
+.gr.off{background:var(--bg-card);border:1.5px dashed var(--border-hover);
+        color:var(--text-muted);text-shadow:none}
+
+.inkrow{display:flex;align-items:center;gap:8px;margin-top:8px;
+        font-size:11.5px;color:var(--text-secondary);cursor:pointer}
+.inkcolor{margin-left:auto;width:44px;height:26px;padding:0;border:1px solid var(--border);
+          border-radius:6px;background:none;cursor:pointer}
 
 /* ── 배경 사진 ── */
 .drop{border:1.5px dashed var(--border-hover);border-radius:var(--radius-sm);padding:16px 12px;
@@ -285,14 +311,13 @@ select.inp{appearance:none;cursor:pointer}
 .fxpop.open{display:flex}
 .fxpop .fxhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .fxpop h4{margin:0;font-size:14px;font-weight:800}
-.fxpop .fxcount{font-size:11px;color:var(--text-muted)}
 .fxpop .fxclose{margin-left:auto;border:none;background:transparent;color:var(--text-muted);
                 font-size:19px;line-height:1;padding:1px 6px;border-radius:6px}
 .fxpop .fxclose:hover{background:var(--bg-secondary);color:var(--text-primary)}
-/* 폭이 패널을 따라가므로 열 수를 고정하지 않는다 — 좁으면 4열, 넓으면 5열 */
-.fxpop .fx-grid{grid-template-columns:repeat(auto-fill,minmax(44px,1fr));
-                overflow-y:auto;padding:2px;flex:1;min-height:0}
-.fxpop .fxnote{margin-top:10px;font-size:10.5px;color:var(--text-muted);line-height:1.5}
+/* 내용이 길어 팝오버 안에서 스크롤된다 */
+.fxpop .inkgrp{flex:none}
+.fxpop .fxnote{margin-top:4px;font-size:10.5px;color:var(--text-muted);line-height:1.5;flex:none}
+.fxpop .slider{margin-top:9px}
 
 /* 캔버스가 620px, 좌우 패널이 340px씩이면 1300px 아래에서 캔버스가 눌린다.
    패널을 줄이는 대신 두 단계로 나눠 좁힌다 — 한 번에 250px로 떨어뜨리면
@@ -317,13 +342,11 @@ select.inp{appearance:none;cursor:pointer}
   .panel,.props{width:100%;max-height:none;border:none;
                 border-bottom:1px solid var(--border);padding:16px 14px;gap:16px}
   .tplgrid{grid-template-columns:repeat(3,1fr)}
-  .fx-grid{grid-template-columns:repeat(6,1fr)}
   .fontlist{max-height:none}
   .allbox{margin-top:4px}
 }
 @media(max-width:520px){
   .tplgrid{grid-template-columns:repeat(2,1fr)}
-  .fx-grid{grid-template-columns:repeat(5,1fr)}
   #cv{max-height:25vh}
   .toolbar{padding:9px 14px;gap:9px}
   .toolbar .note{display:none}
@@ -440,11 +463,12 @@ select.inp{appearance:none;cursor:pointer}
     </div>
 
     <div>
-      <div class="lbl">효과</div>
+      <div class="lbl">글자색 · 외곽선</div>
       <button class="btn fxbtn opener" id="fxOpen" aria-expanded="false">
         <i class="fxdot" id="fxDot"></i>
-        <span id="fxName">굵은외곽선</span>
-        <span class="fxmore" id="fxMore">32종</span>
+        <i class="fxdot" id="fxDot2"></i>
+        <span id="fxName">흰색</span>
+        <span class="fxmore" id="fxMore">외곽선 있음</span>
       </button>
     </div>
 
@@ -506,15 +530,53 @@ select.inp{appearance:none;cursor:pointer}
   </div>
 </div>
 
-<!-- 효과 고르기 — 「효과 보기」 버튼 옆에 붙는다 (캔버스를 가리지 않음) -->
+<!-- 배경색 64색 -->
+<div class="fxback" id="bgBack"></div>
+<div class="bgpop" id="bgPop">
+  <div class="fxhead">
+    <h4>배경색 고르기</h4>
+    <button class="fxclose" id="bgCloseBtn" aria-label="닫기">×</button>
+  </div>
+  <div class="bggrid" id="bgGrid"></div>
+  <div class="fxnote">고른 뒤 옆의 색 상자로 더 세밀하게 바꿀 수 있어요.</div>
+</div>
+
+<!-- 글자색 · 외곽선 — 버튼 옆에 붙는다 (캔버스를 가리지 않음) -->
 <div class="fxback" id="fxBack"></div>
 <div class="fxpop" id="fxPop">
   <div class="fxhead">
-    <h4>효과 고르기</h4>
-    <span class="fxcount" id="fxCount">32종</span>
+    <h4>글자색 · 외곽선</h4>
     <button class="fxclose" id="fxCloseBtn" aria-label="닫기">×</button>
   </div>
-  <div class="fx-grid" id="fxGrid"></div>
+
+  <div class="inkgrp">
+    <div class="inklbl">글자색</div>
+    <div class="swgrid" id="colorSw"></div>
+    <label class="inkrow">
+      <span>직접 고르기</span>
+      <input type="color" id="colorPick" class="inkcolor">
+    </label>
+  </div>
+
+  <div class="inkgrp">
+    <div class="inklbl">여러 색 <span class="inkhint">글자에 색이 흐르듯 채워집니다</span></div>
+    <div class="grgrid" id="gradSw"></div>
+  </div>
+
+  <div class="inkgrp">
+    <div class="inklbl">외곽선</div>
+    <div class="swgrid" id="lineSw"></div>
+    <label class="inkrow">
+      <span>직접 고르기</span>
+      <input type="color" id="linePick" class="inkcolor">
+    </label>
+    <div class="slider" id="lineWRow">
+      <label>두께</label>
+      <input type="range" id="lineW" min="0" max="24" value="12">
+      <span class="val" id="lineWV">12</span>
+    </div>
+  </div>
+
   <div class="fxnote" id="fxNote"></div>
 </div>
 
@@ -591,7 +653,7 @@ function renderTpls(){
     <button class="tplcell${t.number===ui.tplNumber?' on':''}" data-n="${t.number}">
       <span class="tplspec">${esc((t.sample_text||'').replace(/\n/g,' '))}</span>
       <span class="tplmeta"><span>${esc(t.number)} ${esc(animName(t.anim))}</span>
-        <span class="dots${t.gif_rating===3?' g':''}">${dots(t.gif_rating)}</span></span>
+        <span class="dots${ratingOf(t)===3?' g':''}">${dots(ratingOf(t))}</span></span>
     </button>`).join('');
   $('tplGrid').querySelectorAll('.tplcell').forEach(b=>{
     b.onclick = ()=>applyTemplate(b.dataset.n);
@@ -625,6 +687,14 @@ function renderTplHubs(){
     used.map(s=>`<option value="${esc(s)}"${s===ui.tplHub?' selected':''}>${esc(name(s))}</option>`).join('');
 }
 $('tplHubSel').onchange = ()=>{ ui.tplHub = $('tplHubSel').value; renderTpls(); };
+
+/* GIF 적합도 — DB의 gif_rating을 믿지 않고 실제 색에서 다시 뽑는다.
+   저 컬럼에는 효과 프리셋 시절의 값이 남아 있어, 색 모델을 바꾼 지금은
+   화면에 뜨는 점(●●●)과 실제 용량이 어긋난다. */
+function ratingOf(t){
+  const cfg = t.config || {};
+  return FFPGif.inkRating(cfg.ink || FFPGif.inkFromEffectId(cfg.effect));
+}
 
 function animName(id){ const a = FFPGif.ANIM_BY_ID[id]; return a ? a.name : id; }
 function esc(s){ return String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -722,9 +792,87 @@ $('ratioSeg').onclick = e=>{
   syncBar(); syncPhotoSliders(); saveDraft();
 };
 
+/* ── 배경색 64색 ──
+   무채색 8칸 + 색상 7계열 × 8단계. 손으로 적으면 밝기가 들쭉날쭉해지므로
+   HSL에서 계산해 뽑는다. 배경은 글자 뒤에 깔리는 넓은 면이라
+   중간 밝기 단계가 촘촘해야 쓸 만한 색이 나온다. */
+const BG_PALETTE = (function(){
+  function hsl2hex(h, s, l){
+    s/=100; l/=100;
+    const k = n => (n + h/30) % 12;
+    const a = s * Math.min(l, 1-l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n)-3, Math.min(9-k(n), 1)));
+    const to = v => Math.round(v*255).toString(16).padStart(2,'0').toUpperCase();
+    return '#' + to(f(0)) + to(f(8)) + to(f(4));
+  }
+  const out = ['#FFFFFF','#F5F5F3','#E0E0DC','#B8B8B2','#8A8A84','#5C5C58','#33332F','#000000'];
+  [0, 25, 45, 150, 195, 225, 285].forEach(h=>{
+    [88, 76, 64, 52, 42, 33, 25, 18].forEach(l=>{
+      out.push(hsl2hex(h, l > 70 ? 72 : l > 40 ? 66 : 56, l));
+    });
+  });
+  return out;   // 8 + 56 = 64
+})();
+
+/* 팔레트를 여는 순간의 배경 — 고르지 않고 닫으면 여기로 되돌린다 */
+let bgBefore = null;
+
+function renderBgGrid(){
+  const cur = String(R.state.bgColor||'').toUpperCase();
+  $('bgGrid').innerHTML = BG_PALETTE.map(c=>
+    `<button data-c="${c}" style="background:${c}" title="${c}"${c===cur?' class="on"':''}></button>`).join('');
+  $('bgGrid').querySelectorAll('button').forEach(b=>{
+    /* 올려놓기만 해도 캔버스에 바로 칠해본다.
+       팔레트가 캔버스를 3분의 1쯤 가리는데, 미리보기가 없으면
+       색을 짐작으로 고르고 닫아서 확인하기를 반복하게 된다. */
+    b.onmouseenter = ()=>R.setState({photo:null, bgColor:b.dataset.c});
+    b.onclick = ()=>{
+      $('bgColorInput').value = b.dataset.c;
+      R.setState({photo:null, bgColor:b.dataset.c});
+      bgBefore = null;                  // 골랐으니 되돌릴 것이 없다
+      setBg('color');
+      closeBgPop();
+    };
+  });
+  /* 격자 밖으로 나가면 원래 배경으로 */
+  $('bgGrid').onmouseleave = ()=>{ if(bgBefore) R.setState(bgBefore); };
+}
+function openBgPop(){
+  bgBefore = {photo:R.state.photo, bgColor:R.state.bgColor};
+  renderBgGrid();
+  $('bgBack').classList.add('open');
+  $('bgPop').classList.add('open');
+  placeBgPop();
+}
+function closeBgPop(){
+  if(bgBefore){ R.setState(bgBefore); bgBefore = null; syncBar(); }
+  $('bgBack').classList.remove('open');
+  $('bgPop').classList.remove('open');
+}
+/* 배경색 칩 아래에 붙이되 화면 밖으로 나가지 않게 당긴다 */
+function placeBgPop(){
+  const pop = $('bgPop');
+  const b = $('bgChips').querySelector('[data-bg="color"]').getBoundingClientRect();
+  const w = pop.offsetWidth || 296, h = pop.offsetHeight || 300;
+  pop.style.left = Math.round(Math.max(6, Math.min(b.left, innerWidth - w - 6))) + 'px';
+  pop.style.top  = Math.round(b.bottom + 6 + h > innerHeight - 6
+    ? Math.max(6, b.top - h - 6) : b.bottom + 6) + 'px';
+}
+$('bgCloseBtn').onclick = closeBgPop;
+$('bgBack').onclick = closeBgPop;
+addEventListener('resize', ()=>{ if($('bgPop').classList.contains('open')) placeBgPop(); });
+
 $('bgChips').onclick = e=>{
   const c = e.target.closest('.chip'); if(!c) return;
   if(c.dataset.bg==='photo' && !R.state.photo){ $('photoFile').click(); return; }
+  /* 배경색은 누르자마자 색이 들어가지 않는다 — 64색에서 먼저 고르게 한다.
+     이미 고른 색이 있으면 그 색을 유지한 채 팔레트만 다시 연다. */
+  if(c.dataset.bg==='color'){
+    if(R.state.bgColor) setBg('color');
+    openBgPop();
+    return;
+  }
+  closeBgPop();
   setBg(c.dataset.bg);
 };
 $('bgColorInput').oninput = ()=>{
@@ -747,46 +895,95 @@ function setBg(key){
 }
 
 function renderFx(){
-  /* 단색 배경도 불투명이다 — 사진만 보면 배경색을 골랐을 때 안내가 틀린다 */
-  const transparent = !R.isOpaque();
-  $('fxGrid').innerHTML = FFP_EFFECTS.map(e=>{
-    const r = FFP_GIF_RATING[e.id] ?? 2;
-    const style = e.id==='none' ? '' :
-      `background:${e.gradient?`linear-gradient(135deg,${e.gradient.join(',')})`:e.color};`
-      + (LIGHT.includes(e.color)?'color:rgba(0,0,0,.55);':'');
-    /* 투명 GIF에서 팔레트 64색을 넘기는 효과는 흐리게 표시한다 */
-    const dim = transparent && r===0 ? ' dim' : '';
-    const title = r===0 ? `${e.name} — 투명 GIF에서 색이 뭉갤 수 있어요`
-                : r===1 ? `${e.name} — 용량이 커집니다` : e.name;
-    return `<div class="fx-item${e.id===R.state.effect?' active':''}${dim}" data-id="${e.id}" title="${esc(title)}">
-      <div class="fx-chip${e.id==='none'?' none-chip':''}" style="${style}">Aa</div><span>${esc(e.name)}</span>
-    </div>`;
-  }).join('');
-  $('fxGrid').querySelectorAll('.fx-item').forEach(el=>el.onclick=()=>{
-    R.setState({effect:el.dataset.id});
-    renderFx(); syncBar(); syncAdvNotes(); saveDraft();
+  const st = R.state;
+  const grad = c => `linear-gradient(90deg,${c.join(',')})`;
+
+  /* ── 글자색 ── */
+  $('colorSw').innerHTML = FFPGif.INK_SWATCHES.map(c=>
+    `<button class="sw${(!st.gradient && sameColor(c, st.color))?' on':''}" data-c="${c}"
+             style="background:${c}" title="${c}"></button>`).join('');
+  $('colorSw').querySelectorAll('.sw').forEach(b=>b.onclick=()=>setInk({color:b.dataset.c, gradient:null}));
+  $('colorPick').value = normHex(st.color);
+
+  /* ── 여러 색 ── */
+  const curG = st.gradient ? st.gradient.join(',') : '';
+  $('gradSw').innerHTML =
+    `<button class="gr off${st.gradient?'':' on'}" data-g="">안 씀</button>` +
+    FFPGif.INK_GRADIENTS.map(g=>
+      `<button class="gr${curG===g.colors.join(',')?' on':''}" data-g="${g.id}"
+               style="background:${grad(g.colors)}">${esc(g.name)}</button>`).join('');
+  $('gradSw').querySelectorAll('.gr').forEach(b=>b.onclick=()=>{
+    const g = FFPGif.INK_GRADIENTS.find(x=>x.id===b.dataset.g);
+    setInk({gradient: g ? g.colors.slice() : null});
   });
 
-  /* 패널의 버튼도 함께 갱신 — 팝업을 닫아도 뭘 골랐는지 보여야 한다 */
-  const cur = FFP_EFFECT_BY_ID[R.state.effect] || FFP_EFFECTS[0];
-  $('fxName').textContent = cur.name;
-  /* 효과 개수는 ffp-effects.js가 정한다 — 33번째가 생겨도 화면이 따라온다 */
-  $('fxMore').textContent = $('fxCount').textContent = FFP_EFFECTS.length + '종';
-  $('fxDot').style.background = cur.id==='none' ? 'transparent'
-    : (cur.gradient ? `linear-gradient(135deg,${cur.gradient.join(',')})` : cur.color);
-  $('fxDot').style.borderStyle = cur.id==='none' ? 'dashed' : 'solid';
+  /* ── 외곽선 ── */
+  const noLine = !st.outline || !st.outlineW;
+  $('lineSw').innerHTML =
+    `<button class="sw none${noLine?' on':''}" data-c="">없음</button>` +
+    FFPGif.INK_SWATCHES.map(c=>
+      `<button class="sw${(!noLine && sameColor(c, st.outline))?' on':''}" data-c="${c}"
+               style="background:${c}" title="${c}"></button>`).join('');
+  $('lineSw').querySelectorAll('.sw').forEach(b=>b.onclick=()=>{
+    const c = b.dataset.c;
+    setInk(c ? {outline:c, outlineW: st.outlineW || 12} : {outline:null, outlineW:0});
+  });
+  $('linePick').value = normHex(st.outline || '#000000');
+  $('lineW').value = noLine ? 0 : st.outlineW;
+  $('lineWV').textContent = noLine ? '없음' : st.outlineW;
+  $('lineWRow').classList.toggle('disabled', noLine);
 
-  const rating = FFP_GIF_RATING[R.state.effect] ?? 2;
-  /* 투명 GIF는 알파가 1비트라 부드러운 번짐(그림자·네온 글로우)을 담지 못한다.
-     화면에는 보이는데 파일에는 안 담기므로, 고르기 전에 미리 알려준다. */
-  const soft = cur.shadow==='glow' || cur.shadow==='blur' || cur.shadow==='strong' || cur.shadow==='gray';
-  $('fxNote').innerHTML = !transparent
-    ? '사진·단색 배경에서는 그림자와 네온 번짐이 그대로 담깁니다.'
-    : soft
-      ? `<b>${esc(cur.name)}</b>의 번짐은 투명 GIF에 담기지 않아요. 배경을 <b>단색이나 사진</b>으로 바꾸면 그대로 나옵니다.`
-      : rating===0 ? '지금 고른 효과는 투명 GIF에서 색이 뭉갤 수 있어요. 흐리게 표시된 것들이 그렇습니다.'
-      : rating===1 ? '지금 고른 효과는 용량이 커집니다. 색이 많이 필요한 계열이에요.'
-      : '흐리게 표시된 효과는 투명 GIF에서 색이 뭉갤 수 있어요.';
+  syncInkButton();
+  syncInkNote();
+}
+
+/* 색 두 개가 같은가 — 스와치는 대문자 6자리, 사용자가 고른 값은 소문자로 온다 */
+function sameColor(a, b){ return String(a||'').toUpperCase() === String(b||'').toUpperCase(); }
+function normHex(c){
+  const m = String(c||'').match(/^#([0-9a-f]{6})$/i);
+  return m ? '#' + m[1].toLowerCase() : '#000000';
+}
+
+function setInk(patch){
+  R.setState(patch);
+  renderFx(); syncBar(); syncAdvNotes(); saveDraft();
+}
+
+/* 패널의 버튼 — 팝업을 닫아도 지금 색이 뭔지 보여야 한다 */
+function syncInkButton(){
+  const st = R.state;
+  const fill = st.gradient ? `linear-gradient(90deg,${st.gradient.join(',')})` : st.color;
+  $('fxDot').style.background = fill;
+  $('fxDot').style.borderStyle = 'solid';
+  $('fxDot2').style.background = (st.outline && st.outlineW) ? st.outline : 'transparent';
+  $('fxDot2').style.borderStyle = (st.outline && st.outlineW) ? 'solid' : 'dashed';
+  const gname = st.gradient
+    ? (FFPGif.INK_GRADIENTS.find(g=>g.colors.join(',')===st.gradient.join(','))||{}).name || '여러 색'
+    : null;
+  $('fxName').textContent = gname || colorName(st.color);
+  $('fxMore').textContent = (st.outline && st.outlineW) ? '외곽선 있음' : '외곽선 없음';
+}
+
+const COLOR_NAMES = {
+  '#000000':'검정', '#FFFFFF':'흰색', '#4B5563':'회색', '#DC2626':'빨강', '#EA580C':'주황',
+  '#F59E0B':'호박', '#FDE047':'노랑', '#16A34A':'초록', '#5EEAD4':'민트', '#0EA5E9':'하늘',
+  '#1E3A8A':'남색', '#7C3AED':'보라', '#EC4899':'분홍', '#F9A8D4':'연분홍',
+  '#D4A574':'베이지', '#78350F':'갈색',
+};
+function colorName(c){ return COLOR_NAMES[String(c||'').toUpperCase()] || '직접 고른 색'; }
+
+/* 용량·품질 안내 */
+function syncInkNote(){
+  const st = R.state;
+  const transparent = !R.isOpaque();
+  const n = st.gradient ? st.gradient.length : 1;
+  const noLine = !st.outline || !st.outlineW;
+  const parts = [];
+  if(n >= 5) parts.push('색이 여섯 갈래라 <b>용량이 가장 큽니다</b>. 가볍게 하려면 색을 두세 갈래로 줄여보세요.');
+  else if(n > 1) parts.push('색이 여러 갈래여도 용량은 크게 늘지 않습니다.');
+  if(transparent && noLine) parts.push('투명 배경에서는 외곽선이 있어야 어떤 화면에 올려도 글자가 또렷합니다.');
+  $('fxNote').innerHTML = parts.join(' ') ||
+    '단색·외곽선 조합이 가장 또렷하고 가볍습니다.';
 }
 
 /* ── 효과 팝오버 ──
@@ -844,10 +1041,19 @@ function fxClose(){
   $('fxPop').classList.remove('open');
   $('fxBack').classList.remove('open');
 }
+$('lineW').oninput = ()=>{
+  const w = +$('lineW').value;
+  /* 두께 0은 '외곽선 없음'과 같은 뜻이다 — 두 상태를 따로 두면
+     0으로 내려놓고 왜 색이 안 먹냐고 묻게 된다. */
+  setInk(w ? {outline: R.state.outline || '#000000', outlineW: w} : {outline:null, outlineW:0});
+};
+$('colorPick').oninput = ()=>setInk({color:$('colorPick').value, gradient:null});
+$('linePick').oninput = ()=>setInk({outline:$('linePick').value, outlineW: R.state.outlineW || 12});
+
 $('fxOpen').onclick = ()=>{ $('fxPop').classList.contains('open') ? fxClose() : fxOpen(); };
 $('fxCloseBtn').onclick = fxClose;
 $('fxBack').onclick = fxClose;
-addEventListener('keydown', e=>{ if(e.key==='Escape') fxClose(); });
+addEventListener('keydown', e=>{ if(e.key==='Escape'){ fxClose(); closeBgPop(); } });
 addEventListener('resize', ()=>{ if($('fxPop').classList.contains('open')) placeFxPop(); });
 /* 패널을 스크롤하면 버튼이 움직이므로 팝오버도 따라가야 한다 */
 document.querySelector('.props').addEventListener('scroll', ()=>{
@@ -998,7 +1204,7 @@ function syncAdvNotes(){
   $('matteColor').value = /^#[0-9a-f]{6}$/i.test(m) ? m : '#000000';
   $('hlSw').querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.c===R.state.hl));
 
-  const eff = FFP_EFFECT_BY_ID[R.state.effect] || FFP_EFFECTS[0];
+  const eff = R.effect();
   const hasOutline = eff.outline && eff.outlineW>0;
   const fg = eff.gradient ? eff.gradient[0] : eff.color;
   const L = lum(fg);

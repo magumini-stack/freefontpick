@@ -101,15 +101,24 @@ select.inp{padding:8px 8px}
                  font-size:11.5px;font-weight:600;padding:7px 4px;border-radius:var(--radius-sm)}
 .animgrid button.on{border-color:var(--accent);background:var(--accent);color:#fff}
 
-.fx-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px 6px}
-.fx-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
-.fx-chip{width:100%;height:34px;border-radius:8px;border:2px solid transparent;display:flex;
-         align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff}
-.fx-item.active .fx-chip{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}
-.fx-item span{font-size:8.5px;font-weight:700;color:var(--text-muted);white-space:nowrap;
-              overflow:hidden;text-overflow:ellipsis;width:100%;text-align:center}
-.fx-item.active span{color:var(--accent)}
-.fx-chip.none-chip{background:var(--bg-card);border:2px dashed var(--border);color:var(--text-muted)}
+.inklbl{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);
+        font-weight:700;margin-bottom:6px}
+.swgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(26px,1fr));gap:5px}
+.sw{height:26px;border-radius:6px;border:1px solid var(--border);padding:0;cursor:pointer}
+.sw.on{box-shadow:0 0 0 2px var(--accent)}
+.sw.none{background:var(--bg-card);border:1.5px dashed var(--border-hover);
+         font-size:9px;font-weight:700;color:var(--text-muted)}
+.grgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:5px}
+.gr{height:28px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:0;
+    font-size:9.5px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.gr.on{box-shadow:0 0 0 2px var(--accent)}
+.gr.off{background:var(--bg-card);border:1.5px dashed var(--border-hover);
+        color:var(--text-muted);text-shadow:none}
+.inkrow{display:flex;align-items:center;gap:8px;margin-top:7px;
+        font-size:11.5px;color:var(--text-secondary);cursor:pointer}
+.inkcolor{margin-left:auto;width:44px;height:24px;padding:0;border:1px solid var(--border);
+          border-radius:6px;background:none;cursor:pointer}
+.disabled{opacity:.45;pointer-events:none}
 
 /* ── 캔버스 ── */
 .stagebar{display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap;
@@ -254,8 +263,23 @@ select.inp{padding:8px 8px}
     </div>
 
     <div class="sec">
-      <h3>4 · 효과</h3>
-      <div class="fx-grid" id="fxGrid"></div>
+      <h3>4 · 글자색 · 외곽선</h3>
+      <div class="inklbl">글자색</div>
+      <div class="swgrid" id="colorSw"></div>
+      <label class="inkrow"><span>직접 고르기</span>
+        <input type="color" id="colorPick" class="inkcolor"></label>
+
+      <div class="inklbl" style="margin-top:13px">여러 색</div>
+      <div class="grgrid" id="gradSw"></div>
+
+      <div class="inklbl" style="margin-top:13px">외곽선</div>
+      <div class="swgrid" id="lineSw"></div>
+      <label class="inkrow"><span>직접 고르기</span>
+        <input type="color" id="linePick" class="inkcolor"></label>
+      <div class="slider" id="lineWRow">
+        <label>두께</label><input type="range" id="lineW" min="0" max="24" value="12">
+        <span class="val" id="lineWV">12</span>
+      </div>
     </div>
   </div>
 
@@ -474,23 +498,45 @@ function renderAnims(){
     `권장 ${d.total}초 · ${d.fps}fps · 등장 ${d.inDur}초 — 애니메이션을 바꾸면 자동으로 적용됩니다.`;
 }
 
-const LIGHT = ['#FFFFFF','#FBBF24','#FFD700','#BBE6FF','#7DD3FC','#FDE047','#E5E7EB','#5EEAD4','#C4B5FD','#FCD34D','#F9A8D4'];
 function renderFx(){
-  $('fxGrid').innerHTML = FFP_EFFECTS.map(e=>{
-    const r = FFP_GIF_RATING[e.id] ?? 2;
-    const style = e.id==='none' ? '' :
-      `background:${e.gradient?`linear-gradient(135deg,${e.gradient.join(',')})`:e.color};`
-      + (LIGHT.includes(e.color)?'color:rgba(0,0,0,.55);':'');
-    return `<div class="fx-item${e.id===R.state.effect?' active':''}" data-id="${e.id}"
-      title="${esc(e.name)} · GIF 적합도 ${r}">
-      <div class="fx-chip${e.id==='none'?' none-chip':''}" style="${style}">Aa</div>
-      <span>${esc(e.name)}</span></div>`;
-  }).join('');
-  $('fxGrid').querySelectorAll('.fx-item').forEach(el=>el.onclick=()=>{
-    R.setState({effect:el.dataset.id});
-    renderFx(); syncMeta();
+  const st = R.state;
+  const sameColor = (a,b)=>String(a||'').toUpperCase()===String(b||'').toUpperCase();
+  const normHex = c=>{ const m=String(c||'').match(/^#([0-9a-f]{6})$/i); return m?'#'+m[1].toLowerCase():'#000000'; };
+
+  $('colorSw').innerHTML = FFPGif.INK_SWATCHES.map(c=>
+    `<button class="sw${(!st.gradient && sameColor(c,st.color))?' on':''}" data-c="${c}"
+             style="background:${c}" title="${c}"></button>`).join('');
+  $('colorSw').querySelectorAll('.sw').forEach(b=>b.onclick=()=>setInk({color:b.dataset.c, gradient:null}));
+  $('colorPick').value = normHex(st.color);
+
+  const curG = st.gradient ? st.gradient.join(',') : '';
+  $('gradSw').innerHTML =
+    `<button class="gr off${st.gradient?'':' on'}" data-g="">안 씀</button>` +
+    FFPGif.INK_GRADIENTS.map(g=>
+      `<button class="gr${curG===g.colors.join(',')?' on':''}" data-g="${g.id}"
+               style="background:linear-gradient(90deg,${g.colors.join(',')})">${esc(g.name)}</button>`).join('');
+  $('gradSw').querySelectorAll('.gr').forEach(b=>b.onclick=()=>{
+    const g = FFPGif.INK_GRADIENTS.find(x=>x.id===b.dataset.g);
+    setInk({gradient: g ? g.colors.slice() : null});
   });
+
+  const noLine = !st.outline || !st.outlineW;
+  $('lineSw').innerHTML =
+    `<button class="sw none${noLine?' on':''}" data-c="">없음</button>` +
+    FFPGif.INK_SWATCHES.map(c=>
+      `<button class="sw${(!noLine && sameColor(c,st.outline))?' on':''}" data-c="${c}"
+               style="background:${c}" title="${c}"></button>`).join('');
+  $('lineSw').querySelectorAll('.sw').forEach(b=>b.onclick=()=>{
+    const c=b.dataset.c;
+    setInk(c ? {outline:c, outlineW: st.outlineW || 12} : {outline:null, outlineW:0});
+  });
+  $('linePick').value = normHex(st.outline || '#000000');
+  $('lineW').value = noLine ? 0 : st.outlineW;
+  $('lineWV').textContent = noLine ? '없음' : st.outlineW;
+  $('lineWRow').classList.toggle('disabled', noLine);
 }
+
+function setInk(patch){ R.setState(patch); renderFx(); syncMeta(); }
 
 function renderRatios(){
   $('ratioChips').innerHTML = Object.keys(FFPGif.RATIOS).map(k=>
@@ -602,9 +648,11 @@ function payload(){
     hub_slug: ui.hub || '',
     anim: R.state.anim,
     anim_category: anim.cat,
-    effect: R.state.effect,
+    /* effect 컬럼은 옛 이름표 자리다. 이제 색은 config.ink에 값으로 들어가고,
+       여기에는 목록에서 알아보기 쉬우라고 대표 색만 적어둔다. */
+    effect: R.state.gradient ? 'gradient' : (R.state.color || 'none'),
     ratio: R.state.ratio,
-    gif_rating: FFP_GIF_RATING[R.state.effect] ?? 2,
+    gif_rating: FFPGif.inkRating(R.effect()),
     font_id: ui.fontId,
     font_weight: R.state.fontWeight,
     sample_text: R.state.text,

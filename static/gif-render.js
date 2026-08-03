@@ -89,6 +89,61 @@ const E = {
 };
 const cl = v => v<0?0:v>1?1:v;
 
+/* ══════════════════════════════════════════════════════════════════
+   글자색 · 외곽선
+
+   GIF 생성기에는 그림자도 네온도 없다.
+   -----------------------------------
+   투명 GIF의 알파는 1비트다 — 있거나 없거나. 그림자와 네온은 본질이
+   '점점 옅어지는 번짐'이라 여기에 담기지 않는다. 화면에서는 멀쩡하다가
+   내려받으면 글자 주변이 톱니처럼 뭉개져 나갔다. 색과 외곽선만 남기면
+   경계가 또렷해서 1비트 알파로도 손실이 없다.
+
+   (font.html의 '디자인하기'는 PNG로 저장하므로 그림자 효과 32종을
+    그대로 쓴다. ffp-effects.js는 건드리지 않는다.)
+══════════════════════════════════════════════════════════════════ */
+
+/* 글자색·외곽선 공용 색 견본 */
+const INK_SWATCHES = [
+  '#000000', '#FFFFFF', '#4B5563', '#DC2626', '#EA580C', '#F59E0B',
+  '#FDE047', '#16A34A', '#5EEAD4', '#0EA5E9', '#1E3A8A', '#7C3AED',
+  '#EC4899', '#F9A8D4', '#D4A574', '#78350F',
+];
+
+/* 여러 색(그라데이션) 프리셋 — 왼쪽에서 오른쪽으로 흐른다 */
+const INK_GRADIENTS = [
+  {id:'rainbow', name:'무지개', colors:['#EF4444','#F59E0B','#FDE047','#22C55E','#0EA5E9','#7C3AED']},
+  {id:'gold',    name:'골드',   colors:['#FEF3C7','#FCD34D','#D97706']},
+  {id:'silver',  name:'실버',   colors:['#F8FAFC','#CBD5E1','#64748B']},
+  {id:'sunset',  name:'노을',   colors:['#FDE047','#FB923C','#DC2626']},
+  {id:'ocean',   name:'바다',   colors:['#67E8F9','#0EA5E9','#1E3A8A']},
+  {id:'candy',   name:'사탕',   colors:['#F9A8D4','#C084FC','#818CF8']},
+  {id:'mint',    name:'민트',   colors:['#A7F3D0','#5EEAD4','#0F766E']},
+  {id:'berry',   name:'베리',   colors:['#FBCFE8','#EC4899','#831843']},
+];
+
+/* 옛 효과 id → 색·외곽선.
+   템플릿 50종의 config에는 아직 effect:'classic-black' 같은 값이 들어 있다.
+   그림자만 떼고 색과 외곽선을 그대로 옮긴다. */
+function inkFromEffectId(id){
+  const e = (typeof FFP_EFFECT_BY_ID !== 'undefined' && FFP_EFFECT_BY_ID[id]) || null;
+  if(!e) return {color:'#111111', gradient:null, outline:null, outlineW:0};
+  return {
+    color: e.color || '#111111',
+    gradient: e.gradient ? e.gradient.slice() : null,
+    outline: e.outline || null,
+    outlineW: e.outline ? (e.outlineW || 0) : 0,
+  };
+}
+
+/* GIF 적합도 — 색이 많을수록 팔레트를 많이 먹고 용량이 커진다.
+   3점이 가장 안정적. 예전에는 효과별로 손으로 매겨둔 표를 썼는데,
+   이제 실제로 쓰는 색 개수에서 바로 뽑는다. */
+function inkRating(ink){
+  if(!ink || !ink.gradient) return 3;
+  return ink.gradient.length >= 5 ? 1 : 2;
+}
+
 /* ── 기본 상태 ────────────────────────────────────────────────── */
 function defaultState(){
   return {
@@ -101,7 +156,10 @@ function defaultState(){
     baseH: 450,            // 〃 높이
     lh: 1.3,
     posY: 0.5,
-    effect: 'bold-outline',
+    color: '#FFFFFF',      // 글자색
+    gradient: null,        // ['#a','#b',…] — 있으면 색 대신 이걸로 채운다
+    outline: '#000000',    // null이면 외곽선 없음
+    outlineW: 12,
     anim: 'typewriter',
     total: 2.5,
     fps: 20,
@@ -150,7 +208,15 @@ function createRenderer(canvas, initial, opts){
     return S.size * Math.min(W / (S.baseW || 800), H / (S.baseH || 450));
   }
 
-  function effect(){ return FFP_EFFECT_BY_ID[S.effect] || FFP_EFFECTS[0]; }
+  /* 그리기에 쓰는 색 묶음. 예전 effect() 자리를 그대로 대신한다. */
+  function effect(){
+    return {
+      color: S.color || '#111111',
+      gradient: (S.gradient && S.gradient.length > 1) ? S.gradient : null,
+      outline: S.outline || null,
+      outlineW: S.outline ? (S.outlineW || 0) : 0,
+    };
+  }
 
   function offCanvas(){
     if(!_off) _off = document.createElement('canvas');
@@ -202,7 +268,9 @@ function createRenderer(canvas, initial, opts){
       eff.gradient.forEach((cc,i)=>g.addColorStop(i/(eff.gradient.length-1), cc));
       fill = g;
     }
-    ffpApplyShadow(c, eff, eff.gradient ? eff.gradient[0] : eff.color);
+    /* 그림자는 쓰지 않는다. 앞 글자에서 남은 설정이 넘어오지 않게 확실히 끈다. */
+    c.shadowColor = 'transparent'; c.shadowBlur = 0;
+    c.shadowOffsetX = 0; c.shadowOffsetY = 0;
 
     if(eff.outline && eff.outlineW>0 && !opt.forceColor){
       c.lineJoin='round'; c.strokeStyle=eff.outline; c.lineWidth=eff.outlineW;
@@ -440,7 +508,7 @@ function createRenderer(canvas, initial, opts){
 
       /* 슬릿 높이는 실제 줄 배치에서 계산한다.
          고정값을 쓰면 2줄 + 넓은 줄간격에서 글자가 잘린다. */
-      const padV = (eff.outlineW||0) + (eff.shadow==='glow' ? 28 : 10);
+      const padV = (eff.outlineW||0) + 10;
       const topY = lines[0].y - sz*0.72 - padV;
       const botY = lines[lines.length-1].y + sz*0.72 + padV;
       const fullH = Math.max(4, botY - topY);
@@ -647,7 +715,7 @@ function createRenderer(canvas, initial, opts){
   function estimate(){
     const n = frameCount();
     const px = W*H/(800*450);
-    const rating = FFP_GIF_RATING[S.effect] ?? 2;
+    const rating = inkRating(effect());
     const colorFactor = [1.9, 1.45, 1.15, 1.0][rating] ?? 1.2;
     const gifKB = S.photo
       ? Math.round((110 + (n-1)*22) * px * colorFactor)
@@ -660,7 +728,15 @@ function createRenderer(canvas, initial, opts){
     };
   }
 
-  function currentMatte(){ return S.matteAuto ? ffpAutoMatte(effect()) : S.matte; }
+  /* 매트(경계 보정) 색 — 외곽선이 있으면 그 색, 없으면 글자색.
+     ffpAutoMatte 대신 여기서 정하는 이유: 그림자가 사라져 규칙이 단순해졌다. */
+  function autoMatte(){
+    const e = effect();
+    if(e.outline && e.outlineW > 0) return e.outline;
+    if(e.gradient) return e.gradient[Math.floor(e.gradient.length/2)];
+    return e.color;
+  }
+  function currentMatte(){ return S.matteAuto ? autoMatte() : S.matte; }
 
   /* 배경이 불투명한가. 불투명하면 GIF에 투명 처리도 매트도 필요 없다. */
   function isOpaque(){ return !!(S.photo || S.bgColor); }
@@ -683,7 +759,10 @@ function createRenderer(canvas, initial, opts){
       sampleText: S.text,
       canvas: {w:W, h:H, ratio:S.ratio},
       font: {id:S.fontId, weight:S.fontWeight, size:S.size, baseW:S.baseW, baseH:S.baseH, lineHeight:S.lh},
-      effect: S.effect,
+      /* 색은 이름표(effect:'classic-black')가 아니라 값으로 저장한다.
+         이름표로 두면 나중에 프리셋 표를 손볼 때 이미 저장된 템플릿의
+         색이 조용히 따라 바뀐다. */
+      ink: {color:S.color, gradient:S.gradient, outline:S.outline, outlineW:S.outlineW},
       animation: {type:S.anim, inDuration:S.inDur, total:S.total, fps:S.fps},
       bg: S.photo ? 'photo' : (S.bgColor ? 'color' : null),
       bgColor: S.bgColor,
@@ -707,7 +786,15 @@ function createRenderer(canvas, initial, opts){
     S.baseW = f.baseW || cv.w || RATIOS[S.ratio].w;
     S.baseH = f.baseH || cv.h || RATIOS[S.ratio].h;
     if(f.lineHeight) S.lh = f.lineHeight;
-    if(cfg.effect && FFP_EFFECT_BY_ID[cfg.effect]) S.effect = cfg.effect;
+    /* 색 — 새 형식(ink)이 있으면 그걸 쓰고, 없으면 옛 effect 이름표에서 옮긴다.
+       템플릿 50종의 config에는 아직 effect:'classic-black' 같은 값만 들어 있다. */
+    const ink = cfg.ink || (cfg.effect ? inkFromEffectId(cfg.effect) : null);
+    if(ink){
+      if(ink.color) S.color = ink.color;
+      S.gradient = (ink.gradient && ink.gradient.length > 1) ? ink.gradient.slice() : null;
+      S.outline  = ink.outline || null;
+      S.outlineW = S.outline ? (ink.outlineW ?? 6) : 0;
+    }
     if(an.type) S.anim = an.type;
     if(an.inDuration) S.inDur = an.inDuration;
     if(an.total) S.total = an.total;
@@ -731,7 +818,7 @@ function createRenderer(canvas, initial, opts){
     get height(){ return H; },
     render, setState, setAnim, applyConfig, snapshot,
     frameCount, estimate, ensureFont, currentMatte, isOpaque,
-    sizePx, effect,
+    sizePx, effect, autoMatte,
   };
   return api;
 }
@@ -739,6 +826,7 @@ function createRenderer(canvas, initial, opts){
 global.FFPGif = {
   RATIOS, ANIMS, ANIM_BY_ID, ANIM_DEFAULTS, animDefaults,
   HL_PRESETS, MAX_FRAMES, defaultState, createRenderer, easing:E, clamp:cl,
+  INK_SWATCHES, INK_GRADIENTS, inkFromEffectId, inkRating,
 };
 
 })(window);

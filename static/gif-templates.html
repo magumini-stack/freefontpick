@@ -216,6 +216,14 @@ let TPLS = [], HUB_NAME = {};
 let filt = {hub:'all'};
 const dots = r => '●●●'.slice(0, r) || '—';
 const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* GIF 적합도 — DB의 gif_rating을 믿지 않고 실제 색에서 다시 뽑는다.
+   저 컬럼에는 효과 프리셋 시절의 값이 남아 있어, 색 모델을 바꾼 지금은
+   화면에 뜨는 점(●●●)과 실제 용량이 어긋난다. */
+function ratingOf(t){
+  const cfg = t.config || {};
+  return FFPGif.inkRating(cfg.ink || FFPGif.inkFromEffectId(cfg.effect));
+}
+
 const animName = id => (FFPGif.ANIM_BY_ID[id] || {}).name || id;
 
 /* 카드마다 렌더러 하나. 화면에 보이는 카드만 애니메이션을 돌린다 —
@@ -244,7 +252,7 @@ function render(){
           <span class="cname">${esc(t.title || animName(t.anim))}</span></div>
         <div class="cmeta">
           <span class="pill">${esc(HUB_NAME[t.hub_slug] || t.hub_slug || '기타')}</span>
-          <span class="dots${t.gif_rating===3?' g':''}" title="GIF 적합도">${dots(t.gif_rating)}</span>
+          <span class="dots${ratingOf(t)===3?' g':''}" title="GIF 적합도">${dots(ratingOf(t))}</span>
         </div>
         <div class="cact">
           <a class="btn" href="/gif?t=${encodeURIComponent(t.number)}">편집</a>
