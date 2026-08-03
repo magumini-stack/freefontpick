@@ -112,6 +112,7 @@ function defaultState(){
     matte: '#000000',
     photo: null,           // ImageBitmap
     photoX: 0, photoY: 0, dim: 35,
+    bgColor: null,         // 단색 배경. null이면 투명 (사진이 있으면 사진이 이긴다)
     ratio: '16:9',
   };
 }
@@ -608,6 +609,7 @@ function createRenderer(canvas, initial, opts){
       ctx.globalAlpha = 1;
       ctx.clearRect(0,0,W,H);
       if(S.photo) drawPhoto();
+      else if(S.bgColor){ ctx.fillStyle = S.bgColor; ctx.fillRect(0,0,W,H); }
       renderText(cl(Number.isFinite(t) ? t : 0));
     }catch(err){
       /* 프레임 하나가 실패해도 루프는 멈추지 않는다 */
@@ -660,6 +662,9 @@ function createRenderer(canvas, initial, opts){
 
   function currentMatte(){ return S.matteAuto ? ffpAutoMatte(effect()) : S.matte; }
 
+  /* 배경이 불투명한가. 불투명하면 GIF에 투명 처리도 매트도 필요 없다. */
+  function isOpaque(){ return !!(S.photo || S.bgColor); }
+
   /* 폰트가 실제로 준비될 때까지 기다린다.
      내보내기 직전에 반드시 부를 것 — 안 그러면 50프레임이 통째로
      대체 폰트로 저장된다. */
@@ -680,7 +685,8 @@ function createRenderer(canvas, initial, opts){
       font: {id:S.fontId, weight:S.fontWeight, size:S.size, baseW:S.baseW, baseH:S.baseH, lineHeight:S.lh},
       effect: S.effect,
       animation: {type:S.anim, inDuration:S.inDur, total:S.total, fps:S.fps},
-      bg: S.photo ? 'photo' : null,
+      bg: S.photo ? 'photo' : (S.bgColor ? 'color' : null),
+      bgColor: S.bgColor,
       photo: S.photo ? {x:S.photoX, y:S.photoY, dim:S.dim} : null,
       matteAuto: S.matteAuto,
       matte: currentMatte(),
@@ -710,6 +716,7 @@ function createRenderer(canvas, initial, opts){
     if(cfg.matte) S.matte = cfg.matte;
     S.hlOn = !!cfg.highlight;
     if(cfg.highlight) S.hl = cfg.highlight;
+    S.bgColor = cfg.bg === 'color' ? (cfg.bgColor || '#1E3A8A') : null;
     if(cfg.photo){ S.photoX = cfg.photo.x ?? 0; S.photoY = cfg.photo.y ?? 0; S.dim = cfg.photo.dim ?? 35; }
     if(cfg.layout && cfg.layout.posY !== undefined) S.posY = cfg.layout.posY;
     applyRatio();
@@ -723,7 +730,7 @@ function createRenderer(canvas, initial, opts){
     get width(){ return W; },
     get height(){ return H; },
     render, setState, setAnim, applyConfig, snapshot,
-    frameCount, estimate, ensureFont, currentMatte,
+    frameCount, estimate, ensureFont, currentMatte, isOpaque,
     sizePx, effect,
   };
   return api;

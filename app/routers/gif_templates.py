@@ -28,7 +28,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import AppMeta, Font, FontWeight, GifTemplate, UseCase
+from ..models import AppMeta, Font, FontWeight, GifTemplate, Tag, UseCase
 from ..auth import require_password_changed
 
 router = APIRouter(prefix="/api", tags=["gif-templates"])
@@ -36,6 +36,13 @@ router = APIRouter(prefix="/api", tags=["gif-templates"])
 # 편집기 폰트 선택에 노출할 용도 허브. 전체 10개를 다 보여주면
 # 목록이 길어지고, GIF로 만들 일이 거의 없는 허브(보고서·UI)가 섞인다.
 GIF_HUBS = ["thumbnail", "vlog", "card", "wedding", "quote", "goods"]
+
+# GIF 생성기에서 뺄 폰트.
+# 84 조선일보명조체: woff2 파일을 브라우저가 거부한다(Invalid font data).
+#   글리프 36,889자 · 압축 해제 시 21.9MB로, 크롬의 폰트 검사기를 통과하지
+#   못한다. 목록에 두면 고른 사람에게는 다른 폰트로 그려진 GIF가 나간다.
+#   파일을 웹용으로 줄여 다시 올리면 이 줄에서 84를 빼면 된다.
+GIF_FONT_EXCLUDE = {84}
 
 # 애니메이션 → 갤러리 필터 분류. static/gif-render.js의 ANIMS와 같은 값이다.
 # 여기서 서버가 다시 계산하는 이유: 분류를 클라이언트가 보내주길 기대하면
@@ -203,6 +210,13 @@ def list_gif_fonts(db: Session = Depends(get_db)) -> dict:
     파일이 없는 폰트(has_file=False, 웹폰트도 아님)는 캔버스에 그릴 수 없으니
     아예 내려보내지 않는다. 목록에 떠 있는데 고르면 대체 폰트로 나오는 것이
     가장 나쁘다.
+
+    태그 폰트까지 포함하는 이유
+    --------------------------
+    썸네일·브이로그·카드뉴스 허브는 큐레이션 링크가 4개뿐이고 나머지는
+    태그(예: '유튜브 썸네일 추천')로 붙어 있다. 링크만 읽으면 이 세 허브만
+    4종으로 나와 다른 허브(12종)와 어긋난다. /use/{slug} 페이지가 picks+more로
+    합쳐 보여주는 것과 같은 구성을 여기서도 만든다.
     """
     ucs = {
         uc.slug: uc
@@ -230,7 +244,24 @@ def list_gif_fonts(db: Session = Depends(get_db)) -> dict:
         }
 
     def usable(f: Font) -> bool:
+        if f.id in GIF_FONT_EXCLUDE:
+            return False
         return bool(f.has_file) or bool(f.webfont_family)
+
+    # 허브가 가리키는 태그의 폰트를 한 번에 모아 둔다 (허브마다 조회하면 N+1)
+    tag_ids = {uc.tag_id for uc in ucs.values() if uc.tag_id}
+    tag_fonts: Dict[int, List[Font]] = {}
+    if tag_ids:
+        q = (db.query(Tag.id, Font)
+               .join(Font.tags)
+               .filter(Tag.id.in_(tag_ids))
+               .order_by(Font.sort_order, Font.id))
+        for tid, f in q.all():
+            tag_fonts.setdefault(tid, []).append(f)
+
+    # 허브당 상한. 큐레이션 허브가 12종이라 태그 허브도 12종으로 맞춘다 —
+    # 허브마다 개수가 들쭉날쭉하면 고르는 사람이 왜 여긴 적은지 궁금해진다.
+    PER_HUB = 12
 
     hubs = []
     for slug in GIF_HUBS:
@@ -238,12 +269,14 @@ def list_gif_fonts(db: Session = Depends(get_db)) -> dict:
         if uc is None:
             continue
         seen, fonts = set(), []
-        for link in uc.fonts:
-            f = link.font
+        # 큐레이션으로 직접 지목한 폰트가 먼저, 그 다음이 태그 폰트
+        for f in [l.font for l in uc.fonts] + tag_fonts.get(uc.tag_id, []):
             if f is None or f.id in seen or not usable(f):
                 continue
             seen.add(f.id)
             fonts.append(font_out(f))
+            if len(fonts) >= PER_HUB:
+                break
         hubs.append({
             "slug": uc.slug,
             "title": uc.title,

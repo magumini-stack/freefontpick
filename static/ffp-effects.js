@@ -158,9 +158,13 @@ function ffpRegisterFace(font, weight){
   if(!_ffpFaces.has(key)){
     _ffpFaces.add(key);
     const url = w ? `/api/fonts/${font.id}/file?weight=${w}` : `/api/fonts/${font.id}/file`;
+    /* font-display:swap — 폰트가 오기 전에는 기본 글꼴로 보여준다.
+       block으로 두면 목록의 문구 칸이 몇 초간 빈칸으로 보인다.
+       캔버스는 ffpEnsureFontReady로 로드를 기다린 뒤에 그리므로,
+       swap이라고 해서 대체 글꼴로 저장될 일은 없다. */
     _ffpStyleEl.appendChild(document.createTextNode(
       `@font-face{font-family:'${family}';src:url('${url}') format('woff2');`
-      + `font-display:block;font-weight:normal;font-style:normal}`
+      + `font-display:swap;font-weight:normal;font-style:normal}`
     ));
   }
   return family;

@@ -89,28 +89,46 @@ async function exportGIF(renderer, onProgress){
   const fps = total / S.total;                 // 프레임 상한에 걸렸을 수 있다
   const delay = Math.round(1000/fps);
   const gif = GIFEncoder();
-  const usePhoto = !!S.photo;
+  /* 배경이 불투명하면(사진·단색) 투명 처리도 매트도 필요 없다.
+     팔레트는 사진만 넉넉히 준다 — 단색 배경은 색이 하나 늘 뿐이라 64색으로 충분하다. */
+  const opaque = renderer.isOpaque ? renderer.isOpaque() : !!S.photo;
+  const colors = S.photo ? 192 : 64;
   const [mr, mg, mb] = hexRgb(renderer.currentMatte());
 
   for(let i=0; i<total; i++){
     renderer.render(i/total);
     const img = ctx.getImageData(0,0,W,H), d = img.data;
 
-    if(usePhoto){
-      /* 사진 배경은 불투명 — 매트가 필요 없고, 색이 많아 팔레트를 넉넉히 준다 */
-      const palette = quantize(d, 192);
+    if(opaque){
+      const palette = quantize(d, colors);
       const index = applyPalette(d, palette);
       gif.writeFrame(index, W, H, {palette, delay});
     }else{
-      /* 투명 배경 — GIF의 알파는 1비트뿐이라 반투명 가장자리를 담지 못한다.
-         매트색과 미리 섞어 톱니를 완화한다. */
+      /* 투명 배경 — GIF의 알파는 1비트(있다/없다)뿐이다.
+         남길 픽셀은 매트색과 미리 섞어 톱니를 완화하고, 버릴 픽셀은
+         완전히 0으로 지운다.
+
+         지우는 게 왜 중요한가
+         --------------------
+         soft/gray/glow 그림자는 알파 1~10짜리 꼬리를 넓게 남긴다. 화면에서는
+         안 보이지만, 이걸 매트색과 섞어두면 (흰색, 알파 1) 같은 픽셀이 된다.
+         applyPalette는 알파까지 포함해 '가장 가까운 팔레트 색'을 찾는데,
+         이 픽셀은 투명(0,0,0,0)보다 불투명 흰색(255,255,255,255)에 더 가까워서
+         결국 또렷한 흰 덩어리로 찍힌다 — 하이라이트 바 아래가 뭉개져 보이던 원인.
+         버릴 픽셀은 RGB까지 0으로 만들어야 투명 팔레트 항목과 정확히 맞는다.
+
+         기준값 128은 gifenc의 oneBitAlpha 기본 임계값과 같다. 팔레트를 만들 때와
+         픽셀을 매핑할 때 기준이 다르면 경계에서 다시 어긋난다. */
+      const ALPHA_CUT = 128;
       for(let j=0;j<d.length;j+=4){
         const a = d[j+3];
-        if(a===0 || a===255) continue;
+        if(a === 255) continue;
+        if(a < ALPHA_CUT){ d[j] = d[j+1] = d[j+2] = d[j+3] = 0; continue; }
         const k = a/255;
         d[j]   = Math.round(d[j]  *k + mr*(1-k));
         d[j+1] = Math.round(d[j+1]*k + mg*(1-k));
         d[j+2] = Math.round(d[j+2]*k + mb*(1-k));
+        d[j+3] = 255;              // 남기기로 했으면 완전 불투명으로
       }
       const palette = quantize(d, 64, {
         format:'rgba4444', oneBitAlpha:true, clearAlpha:true, clearAlphaThreshold:0,
@@ -195,7 +213,8 @@ async function exportMP4(renderer, onProgress){
     renderer.render(i/total);
     /* MP4는 알파를 담지 못한다 — 투명 배경이면 글자 뒤에 검정을 깔아준다.
        destination-over라 이미 그린 글자는 건드리지 않는다. */
-    if(!S.photo){
+    const bgOpaque = renderer.isOpaque ? renderer.isOpaque() : !!S.photo;
+    if(!bgOpaque){
       ctx.save();
       ctx.globalCompositeOperation = 'destination-over';
       ctx.fillStyle = '#000';

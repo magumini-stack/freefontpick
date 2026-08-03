@@ -106,7 +106,10 @@ button{font-family:inherit;cursor:pointer}
          padding:0;overflow:hidden;display:flex;flex-direction:column;height:98px;text-align:left}
 .tplcell:hover{border-color:var(--border-hover)}
 .tplcell.on{border-color:var(--accent);background:var(--accent-light)}
-.tplspec{flex:1;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;
+/* 문구는 그 템플릿의 실제 폰트로 보여준다 (효과·애니메이션은 캔버스에서만).
+   font-weight를 주지 않는 이유: 굵기별로 다른 파일을 @font-face에 등록하므로
+   여기서 굵게 하면 브라우저가 가짜 볼드를 덧씌워 실제 폰트 모양이 뭉갠다. */
+.tplspec{flex:1;display:flex;align-items:center;justify-content:center;font-size:12.6px;
          color:var(--text-primary);padding:4px;text-align:center;line-height:1.15;word-break:keep-all;
          overflow:hidden}
 .tplmeta{display:flex;justify-content:space-between;align-items:center;gap:4px;font-size:10.5px;
@@ -148,15 +151,42 @@ button{font-family:inherit;cursor:pointer}
 .inp:focus{outline:none;border-color:var(--accent)}
 .counter{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:5px}
 .counter .warn{color:#C2410C;font-weight:700}
-.fontlist{margin-top:8px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;
-          max-height:216px;overflow-y:auto}
-.fontrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;
-         font-size:13px;color:var(--text-secondary);border:none;background:none;width:100%;text-align:left}
-.fontrow+.fontrow{border-top:1px solid var(--border)}
-.fontrow:hover{background:var(--bg-secondary)}
-.fontrow.on{background:var(--accent-light);color:var(--accent);font-weight:700}
-.fontrow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lic{font-size:10.5px;color:var(--text-muted);flex:none}
+select.inp{appearance:none;cursor:pointer;padding-right:30px;
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239A9A9A' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 9px center;background-size:15px}
+
+/* ── 세부 조정 (접이식) ──
+   제작툴에 있던 크기·길이·형광 바·매트를 여기서도 만질 수 있게 두되,
+   기본은 접어둔다. 대부분은 템플릿 그대로 쓰고 문구만 바꾼다. */
+.adv{border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-secondary)}
+.adv>summary{list-style:none;cursor:pointer;padding:9px 11px;font-size:12.5px;font-weight:700;
+             display:flex;align-items:center;gap:8px;user-select:none}
+.adv>summary::-webkit-details-marker{display:none}
+.adv>summary::after{content:'▾';margin-left:auto;color:var(--text-muted);font-size:11px;transition:transform .15s}
+.adv[open]>summary::after{transform:rotate(180deg)}
+.adv>summary:hover{background:var(--bg-card)}
+.advhint{font-weight:500;font-size:11px;color:var(--text-muted)}
+.advbody{padding:4px 11px 12px;border-top:1px solid var(--border)}
+.advsep{border:none;border-top:1px solid var(--border);margin:11px 0 7px}
+.advchk{display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;margin-top:4px}
+.advchk input{accent-color:var(--accent)}
+.advhint2{margin-left:auto;font-size:10.5px;color:var(--text-muted);font-family:var(--mono)}
+.swrow{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.swrow button{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);padding:0}
+.swrow button.on{box-shadow:0 0 0 2px var(--accent)}
+.mattecolor{width:100%;height:28px;margin-top:8px;border:1px solid var(--border);
+            border-radius:var(--radius-sm);background:none;padding:2px;cursor:pointer}
+.advnote{margin-top:9px;font-size:10.5px;line-height:1.6;color:var(--text-muted)}
+.advnote b{color:var(--text-secondary)}
+
+#bgColorInput{width:26px;height:26px;padding:0;border:1px solid var(--border);
+  border-radius:6px;background:none;cursor:pointer;display:none}
+#bgColorInput.on{display:block}
+
+/* 효과 열기 버튼 — 지금 고른 효과의 색을 점으로 미리 보여준다 */
+.fxbtn{width:100%;justify-content:flex-start;gap:9px;padding:9px 11px}
+.fxdot{width:18px;height:18px;border-radius:5px;flex:none;border:1px solid var(--border)}
+.fxbtn .fxmore{margin-left:auto;font-size:11.5px;color:var(--text-muted);font-weight:600}
 .hint{display:flex;align-items:flex-start;gap:6px;font-size:11px;line-height:1.5;
       color:var(--text-muted);margin-top:8px}
 .hint .ic{width:13px;height:13px;flex:none;margin-top:2px;color:var(--accent)}
@@ -218,6 +248,27 @@ button{font-family:inherit;cursor:pointer}
 .ovbtns{display:flex;gap:8px;margin-top:14px}
 .ovbtns .btn{flex:1}
 
+/* 효과 고르기 — 32종을 패널에 늘어놓으면 스크롤이 길어져 문구·폰트가
+   화면 밖으로 밀린다. 그렇다고 화면 한가운데 띄우면 캔버스를 가려서
+   효과를 바꿔도 결과가 안 보인다. 그래서 버튼 옆에 붙는 팝오버로 둔다.
+   캔버스는 가리지 않으므로 고르는 즉시 반영되는 걸 볼 수 있다. */
+.fxback{position:fixed;inset:0;z-index:59;display:none}   /* 바깥 클릭 감지용 — 화면을 덮지 않는다 */
+.fxback.open{display:block}
+.fxpop{position:fixed;z-index:60;display:none;flex-direction:column;
+       width:340px;background:var(--bg-card);border:1px solid var(--border);
+       border-radius:var(--radius-md);box-shadow:var(--shadow-hover);padding:13px}
+.fxpop.open{display:flex}
+.fxpop .fxhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.fxpop h4{margin:0;font-size:14px;font-weight:800}
+.fxpop .fxcount{font-size:11px;color:var(--text-muted)}
+.fxpop .fxclose{margin-left:auto;border:none;background:transparent;color:var(--text-muted);
+                font-size:19px;line-height:1;padding:1px 6px;border-radius:6px}
+.fxpop .fxclose:hover{background:var(--bg-secondary);color:var(--text-primary)}
+/* 폭이 패널을 따라가므로 열 수를 고정하지 않는다 — 좁으면 4열, 넓으면 5열 */
+.fxpop .fx-grid{grid-template-columns:repeat(auto-fill,minmax(44px,1fr));
+                overflow-y:auto;padding:2px;flex:1;min-height:0}
+.fxpop .fxnote{margin-top:10px;font-size:10.5px;color:var(--text-muted);line-height:1.5}
+
 @media(max-width:1100px){ .panel{width:250px} .props{width:250px} }
 
 /* ── 모바일 ──
@@ -278,6 +329,7 @@ button{font-family:inherit;cursor:pointer}
   <!-- 템플릿 패널 -->
   <div class="panel">
     <div class="phead"><h3>GIF 템플릿</h3><span class="psub" id="tplCount">—</span></div>
+    <select class="inp" id="tplHubSel" aria-label="용도별 템플릿"></select>
     <div class="seg" id="animFilter">
       <button class="on" data-cat="all">전체</button>
       <button data-cat="basic">기본</button>
@@ -315,7 +367,9 @@ button{font-family:inherit;cursor:pointer}
       <span class="vsep"></span>
       <div class="chips" id="bgChips">
         <button class="chip on" data-bg="none">투명</button>
+        <button class="chip" data-bg="color">배경색</button>
         <button class="chip" data-bg="photo">사진</button>
+        <input type="color" id="bgColorInput" value="#1E3A8A" title="배경색 고르기">
       </div>
       <span class="vsep"></span>
       <span class="tag tag-acc" id="paletteTag">64색 · 투명 GIF</span>
@@ -352,20 +406,44 @@ button{font-family:inherit;cursor:pointer}
       <div class="lbl">문구 · 최대 2줄</div>
       <textarea class="inp" id="txt" rows="2" spellcheck="false">이걸 몰랐다고?</textarea>
       <div class="counter"><span id="cntLine">1줄 / 8자</span><span id="cntHint">글자수 ±20% 권장</span></div>
-      <div class="chips" id="phraseChips" style="margin-top:8px"></div>
     </div>
 
     <div>
-      <div class="lbl">폰트 · 용도별 추천</div>
-      <div class="chips" id="hubSeg"></div>
-      <div class="fontlist" id="fontList"><div class="empty">불러오는 중…</div></div>
+      <div class="lbl">폰트</div>
+      <select class="inp" id="hubSel" aria-label="용도"></select>
+      <select class="inp" id="fontSel" style="margin-top:7px" aria-label="폰트"></select>
       <div class="chips" id="weightChips" style="margin-top:8px"></div>
     </div>
 
     <div>
-      <div class="lbl">효과 · 32종</div>
-      <div class="fx-grid" id="fxGrid"></div>
+      <div class="lbl">효과</div>
+      <button class="btn fxbtn" id="fxOpen">
+        <i class="fxdot" id="fxDot"></i>
+        <span id="fxName">굵은외곽선</span>
+        <span class="fxmore">효과 보기</span>
+      </button>
     </div>
+
+    <!-- 세부 조정 — 접어둔다. 슬라이더 6개를 펼쳐두면 문구·폰트가 화면 밖으로 밀린다. -->
+    <details class="adv" id="advBox">
+      <summary>세부 조정<span class="advhint">크기 · 길이 · 형광 바</span></summary>
+      <div class="advbody">
+        <div class="slider"><label>글자 크기</label><input type="range" id="sSize" min="16" max="200" value="64"><span class="val" id="sSizeV">64</span></div>
+        <div class="slider"><label>줄 간격</label><input type="range" id="sLh" min="90" max="200" value="130"><span class="val" id="sLhV">1.30</span></div>
+        <div class="slider"><label>세로 위치</label><input type="range" id="sPos" min="10" max="90" value="50"><span class="val" id="sPosV">50%</span></div>
+        <hr class="advsep">
+        <div class="slider"><label>전체 길이</label><input type="range" id="sTotal" min="10" max="60" value="25"><span class="val" id="sTotalV">2.5s</span></div>
+        <div class="slider"><label>등장 시간</label><input type="range" id="sIn" min="3" max="40" value="15"><span class="val" id="sInV">1.5s</span></div>
+        <div class="slider"><label>프레임레이트</label><input type="range" id="sFps" min="8" max="30" value="20"><span class="val" id="sFpsV">20fps</span></div>
+        <hr class="advsep">
+        <label class="advchk"><input type="checkbox" id="hlOn"> 형광 바 사용<span class="advhint2">하이라이트 전용</span></label>
+        <div class="swrow" id="hlSw"></div>
+        <hr class="advsep">
+        <label class="advchk"><input type="checkbox" id="matteAuto" checked> 매트 색 자동<span class="advhint2" id="matteShow">#000000</span></label>
+        <input type="color" class="mattecolor" id="matteColor" value="#000000">
+        <div class="advnote" id="matteNote"></div>
+      </div>
+    </details>
 
     <div id="photoSec">
       <div class="lbl">배경 사진 · 선택</div>
@@ -379,6 +457,7 @@ button{font-family:inherit;cursor:pointer}
         <div class="slider"><label>가로</label><input type="range" id="pX" min="-100" max="100" value="0"><span class="val" id="pXv">0</span></div>
         <div class="slider"><label>세로</label><input type="range" id="pY" min="-100" max="100" value="0"><span class="val" id="pYv">0</span></div>
         <div class="slider"><label>어둡게</label><input type="range" id="pDim" min="0" max="80" value="35"><span class="val" id="pDimv">35%</span></div>
+        <div class="advnote" id="photoAxisNote"></div>
         <button class="btn" id="photoClear" style="width:100%;margin-top:9px">사진 제거</button>
       </div>
       <div class="hint">
@@ -401,6 +480,18 @@ button{font-family:inherit;cursor:pointer}
       <button class="btn btn-primary" id="ovAction">파일로 저장</button>
     </div>
   </div>
+</div>
+
+<!-- 효과 고르기 — 「효과 보기」 버튼 옆에 붙는다 (캔버스를 가리지 않음) -->
+<div class="fxback" id="fxBack"></div>
+<div class="fxpop" id="fxPop">
+  <div class="fxhead">
+    <h4>효과 고르기</h4>
+    <span class="fxcount">32종</span>
+    <button class="fxclose" id="fxCloseBtn" aria-label="닫기">×</button>
+  </div>
+  <div class="fx-grid" id="fxGrid"></div>
+  <div class="fxnote" id="fxNote"></div>
 </div>
 
 <script src="/static/ffp-effects.js"></script>
@@ -447,7 +538,7 @@ const R = FFPGif.createRenderer($('cv'));
 let TPLS = [];          // /api/gif-templates
 let HUBS = [];          // /api/gif-fonts
 let ui = {
-  tplNumber: null, hub: null, fontId: null, cat: 'all',
+  tplNumber: null, hub: null, fontId: null, cat: 'all', tplHub: 'all',
   t: 0, playing: true, busy: false,
 };
 const AUTOSAVE_KEY = 'ffp-gif-draft';
@@ -466,7 +557,9 @@ function fontOf(id){
    템플릿 목록
 ══════════════════════════════════════════════════════════════ */
 function renderTpls(){
-  const list = TPLS.filter(t => ui.cat==='all' || t.anim_category===ui.cat);
+  const list = TPLS.filter(t =>
+    (ui.cat==='all' || t.anim_category===ui.cat) &&
+    (ui.tplHub==='all' || t.hub_slug===ui.tplHub));
   $('tplCount').textContent = list.length ? list.length+'종' : '';
   if(!list.length){
     $('tplGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">해당하는 템플릿이 없어요</div>';
@@ -481,7 +574,36 @@ function renderTpls(){
   $('tplGrid').querySelectorAll('.tplcell').forEach(b=>{
     b.onclick = ()=>applyTemplate(b.dataset.n);
   });
+  observeTplFonts();
 }
+
+/* 목록의 문구를 그 템플릿의 실제 폰트로 보여준다.
+   48개를 한꺼번에 불러오면 폰트 파일만 20MB가 넘으므로,
+   화면에 들어온 칸의 폰트만 그때 등록한다. 한 번 등록하면 캐시되고,
+   사용자가 그 폰트를 고를 때 다시 받지 않는다. */
+let _tplFontIO = null;
+function observeTplFonts(){
+  if(_tplFontIO) _tplFontIO.disconnect();
+  _tplFontIO = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      _tplFontIO.unobserve(e.target);
+      const t = TPLS.find(x => x.number === e.target.parentElement.dataset.n);
+      if(t && t.font) e.target.style.fontFamily = ffpEffectiveStack(t.font, t.font_weight);
+    });
+  }, {rootMargin: '200px'});
+  $('tplGrid').querySelectorAll('.tplspec').forEach(el=>_tplFontIO.observe(el));
+}
+/* 템플릿 용도 필터 — 실제로 템플릿이 있는 용도만 넣는다 */
+function renderTplHubs(){
+  const used = [...new Set(TPLS.map(t=>t.hub_slug).filter(Boolean))];
+  const name = s => (HUBS.find(h=>h.slug===s)||{}).title || s;
+  $('tplHubSel').innerHTML =
+    `<option value="all">모든 용도</option>` +
+    used.map(s=>`<option value="${esc(s)}"${s===ui.tplHub?' selected':''}>${esc(name(s))}</option>`).join('');
+}
+$('tplHubSel').onchange = ()=>{ ui.tplHub = $('tplHubSel').value; renderTpls(); };
+
 function animName(id){ const a = FFPGif.ANIM_BY_ID[id]; return a ? a.name : id; }
 function esc(s){ return String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -506,35 +628,26 @@ async function applyTemplate(number){
   $('txt').value = R.state.text;
   $('crumbTpl').textContent = `${animName(R.state.anim)} · ${hub ? hub.title : ''}`;
   ui.t = 0;
-  renderTpls(); renderHubs(); renderPhrases(); renderFx(); syncBar(); updateCounter(); saveDraft();
+  renderTpls(); renderHubs(); renderFx(); syncBar(); syncAdv(); syncPhotoSliders(); updateCounter(); saveDraft();
 }
 
 /* ══════════════════════════════════════════════════════════════
    허브 → 폰트 → 굵기
 ══════════════════════════════════════════════════════════════ */
+/* 용도·폰트는 펼침 폼으로 둔다. 칩으로 늘어놓으면 6개 용도 + 폰트 12종이
+   패널 높이를 다 먹어서, 정작 자주 만지는 문구와 효과가 화면 밖으로 밀린다. */
 function renderHubs(){
-  $('hubSeg').innerHTML = HUBS.map(h=>
-    `<button class="chip${h.slug===ui.hub?' on':''}" data-h="${esc(h.slug)}">${esc(h.title)}</button>`
+  $('hubSel').innerHTML = HUBS.map(h=>
+    `<option value="${esc(h.slug)}"${h.slug===ui.hub?' selected':''}>${esc(h.title)}</option>`
   ).join('');
-  $('hubSeg').querySelectorAll('.chip').forEach(c=>c.onclick=async()=>{
-    ui.hub = c.dataset.h;
-    const h = hubOf(ui.hub);
-    await selectFont(h && h.fonts[0]);
-    renderHubs(); renderPhrases();
-  });
 
   const h = hubOf(ui.hub);
   const fonts = h ? h.fonts : [];
-  $('fontList').innerHTML = fonts.length
-    ? fonts.map(f=>`
-      <button class="fontrow${f.id===ui.fontId?' on':''}" data-i="${f.id}">
-        <span class="nm">${esc(f.name)}</span><span class="lic">${esc(f.maker||'')}</span>
-      </button>`).join('')
-    : '<div class="empty">이 용도에 등록된 폰트가 없어요</div>';
-  $('fontList').querySelectorAll('.fontrow').forEach(b=>b.onclick=async()=>{
-    await selectFont(fontOf(+b.dataset.i));
-    renderHubs();
-  });
+  $('fontSel').innerHTML = fonts.length
+    ? fonts.map(f=>
+        `<option value="${f.id}"${f.id===ui.fontId?' selected':''}>${esc(f.name)}</option>`
+      ).join('')
+    : '<option value="">이 용도에 등록된 폰트가 없어요</option>';
 
   /* 굵기 — 파일이 여러 개인 폰트만 고를 수 있게 노출한다 */
   const f = fontOf(ui.fontId);
@@ -547,6 +660,17 @@ function renderHubs(){
     renderHubs();
   });
 }
+
+$('hubSel').onchange = async ()=>{
+  ui.hub = $('hubSel').value;
+  const h = hubOf(ui.hub);
+  await selectFont(h && h.fonts[0]);
+  renderHubs();
+};
+$('fontSel').onchange = async ()=>{
+  await selectFont(fontOf(+$('fontSel').value));
+  renderHubs();
+};
 
 async function selectFont(f, weight){
   if(!f) return;
@@ -563,18 +687,6 @@ async function selectFont(f, weight){
   saveDraft();
 }
 
-function renderPhrases(){
-  const h = hubOf(ui.hub);
-  const list = (h && h.phrases) ? h.phrases.slice(0,4) : [];
-  $('phraseChips').innerHTML = list.map(p=>
-    `<button class="chip" data-p="${esc(p)}">${esc(p)}</button>`).join('');
-  $('phraseChips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
-    $('txt').value = c.dataset.p;
-    R.setState({text:c.dataset.p});
-    updateCounter(); saveDraft();
-  });
-}
-
 /* ══════════════════════════════════════════════════════════════
    비율 · 배경 · 효과
 ══════════════════════════════════════════════════════════════ */
@@ -584,7 +696,7 @@ $('ratioSeg').onclick = e=>{
   R.setState({ratio:b.dataset.r});
   const r = FFPGif.RATIOS[b.dataset.r];
   $('ratioUse').textContent = r ? r.desc : '';
-  syncBar(); saveDraft();
+  syncBar(); syncPhotoSliders(); saveDraft();
 };
 
 $('bgChips').onclick = e=>{
@@ -592,15 +704,28 @@ $('bgChips').onclick = e=>{
   if(c.dataset.bg==='photo' && !R.state.photo){ $('photoFile').click(); return; }
   setBg(c.dataset.bg);
 };
+$('bgColorInput').oninput = ()=>{
+  R.setState({photo:null, bgColor:$('bgColorInput').value});
+  setBg('color');
+};
 function setBg(key){
-  if(key==='none') R.setState({photo:null});
-  [...$('bgChips').children].forEach(x=>x.classList.toggle('on', x.dataset.bg===key));
-  $('paletteTag').textContent = key==='photo' ? '192색 · 사진 배경' : '64색 · 투명 GIF';
-  renderFx(); syncBar();
+  /* 상태를 명확히 둔다 — 사진과 단색이 동시에 켜져 있으면
+     사진을 지웠을 때 무엇이 남는지 예측할 수 없다. */
+  if(key==='none')  R.setState({photo:null, bgColor:null});
+  if(key==='color') R.setState({photo:null, bgColor:$('bgColorInput').value});
+  if(key==='photo') R.setState({bgColor:null});
+
+  [...$('bgChips').querySelectorAll('.chip')].forEach(x=>x.classList.toggle('on', x.dataset.bg===key));
+  $('bgColorInput').classList.toggle('on', key==='color');
+  $('paletteTag').textContent = key==='photo' ? '192색 · 사진 배경'
+                             : key==='color'  ? '64색 · 단색 배경'
+                             : '64색 · 투명 GIF';
+  renderFx(); syncBar(); syncAdvNotes(); saveDraft();
 }
 
 function renderFx(){
-  const transparent = !R.state.photo;
+  /* 단색 배경도 불투명이다 — 사진만 보면 배경색을 골랐을 때 안내가 틀린다 */
+  const transparent = !R.isOpaque();
   $('fxGrid').innerHTML = FFP_EFFECTS.map(e=>{
     const r = FFP_GIF_RATING[e.id] ?? 2;
     const style = e.id==='none' ? '' :
@@ -616,9 +741,92 @@ function renderFx(){
   }).join('');
   $('fxGrid').querySelectorAll('.fx-item').forEach(el=>el.onclick=()=>{
     R.setState({effect:el.dataset.id});
-    renderFx(); syncBar(); saveDraft();
+    renderFx(); syncBar(); syncAdvNotes(); saveDraft();
   });
+
+  /* 패널의 버튼도 함께 갱신 — 팝업을 닫아도 뭘 골랐는지 보여야 한다 */
+  const cur = FFP_EFFECT_BY_ID[R.state.effect] || FFP_EFFECTS[0];
+  $('fxName').textContent = cur.name;
+  $('fxDot').style.background = cur.id==='none' ? 'transparent'
+    : (cur.gradient ? `linear-gradient(135deg,${cur.gradient.join(',')})` : cur.color);
+  $('fxDot').style.borderStyle = cur.id==='none' ? 'dashed' : 'solid';
+
+  const rating = FFP_GIF_RATING[R.state.effect] ?? 2;
+  /* 투명 GIF는 알파가 1비트라 부드러운 번짐(그림자·네온 글로우)을 담지 못한다.
+     화면에는 보이는데 파일에는 안 담기므로, 고르기 전에 미리 알려준다. */
+  const soft = cur.shadow==='glow' || cur.shadow==='blur' || cur.shadow==='strong' || cur.shadow==='gray';
+  $('fxNote').innerHTML = !transparent
+    ? '사진·단색 배경에서는 그림자와 네온 번짐이 그대로 담깁니다.'
+    : soft
+      ? `<b>${esc(cur.name)}</b>의 번짐은 투명 GIF에 담기지 않아요. 배경을 <b>단색이나 사진</b>으로 바꾸면 그대로 나옵니다.`
+      : rating===0 ? '지금 고른 효과는 투명 GIF에서 색이 뭉갤 수 있어요. 흐리게 표시된 것들이 그렇습니다.'
+      : rating===1 ? '지금 고른 효과는 용량이 커집니다. 색이 많이 필요한 계열이에요.'
+      : '흐리게 표시된 효과는 투명 GIF에서 색이 뭉갤 수 있어요.';
 }
+
+/* ── 효과 팝오버 ──
+   버튼 기준으로 자리를 잡되, 화면 밖으로 나가면 안쪽으로 당긴다.
+   position:fixed라 패널의 overflow에 잘리지 않는다. */
+function placeFxPop(){
+  const pop = $('fxPop'), btn = $('fxOpen');
+  const b = btn.getBoundingClientRect();
+  const panel = document.querySelector('.props').getBoundingClientRect();
+  const gap = 6;
+
+  /* 가로: 오른쪽 패널 폭에 맞춘다. 패널보다 넓게 잡으면 캔버스를 덮는데,
+     효과를 바꿨을 때 결과가 안 보이면 고르는 의미가 없다. */
+  const w = Math.max(212, Math.min(panel.width - 2, innerWidth - 16));
+  pop.style.width = w + 'px';
+  /* 패널 왼쪽 경계를 넘지 않게 잡아둔다 — 넘으면 캔버스 오른쪽 끝을 살짝 덮는다 */
+  pop.style.left = Math.round(
+    Math.max(Math.max(4, panel.left), Math.min(b.right - w, innerWidth - w - 4))
+  ) + 'px';
+
+  /* 세로: 버튼 아래를 우선하고, 자리가 없으면 위로 올린다.
+     패널 밖(위쪽 툴바·헤더)까지 넘어가지 않도록 패널 범위 안에서만 움직인다.
+     모바일에서는 캔버스가 화면 위에 고정(sticky)돼 있고 패널이 그 아래로
+     내려오므로, 팝오버가 캔버스와 가로로 겹치면 캔버스 아래에서만 연다. */
+  const stage = document.querySelector('.stage').getBoundingClientRect();
+  const popLeft = parseFloat(pop.style.left);
+  const overlapsStage = Math.min(popLeft + w, stage.right) - Math.max(popLeft, stage.left) > 0;
+
+  const top = Math.max(panel.top, 4, overlapsStage ? stage.bottom + 4 : 0);
+  const bottom = Math.min(panel.bottom, innerHeight - 4);
+  const below = bottom - b.bottom - gap;
+  const above = b.top - top - gap;
+  const maxH = Math.max(180, Math.min(430, Math.max(below, above)));
+  pop.style.maxHeight = maxH + 'px';
+
+  const h = Math.min(pop.offsetHeight || maxH, maxH);
+  pop.style.top = Math.round(
+    below >= h ? b.bottom + gap
+    : above >= h ? b.top - h - gap
+    : Math.max(top, bottom - h)
+  ) + 'px';
+}
+function fxOpen(){
+  renderFx();
+  $('fxBack').classList.add('open');
+  $('fxPop').classList.add('open');
+  placeFxPop();
+  requestAnimationFrame(placeFxPop);   // 내용이 채워진 뒤 실제 높이로 다시 잡는다
+}
+function fxClose(){
+  $('fxPop').classList.remove('open');
+  $('fxBack').classList.remove('open');
+}
+$('fxOpen').onclick = ()=>{ $('fxPop').classList.contains('open') ? fxClose() : fxOpen(); };
+$('fxCloseBtn').onclick = fxClose;
+$('fxBack').onclick = fxClose;
+addEventListener('keydown', e=>{ if(e.key==='Escape') fxClose(); });
+addEventListener('resize', ()=>{ if($('fxPop').classList.contains('open')) placeFxPop(); });
+/* 패널을 스크롤하면 버튼이 움직이므로 팝오버도 따라가야 한다 */
+document.querySelector('.props').addEventListener('scroll', ()=>{
+  if($('fxPop').classList.contains('open')) placeFxPop();
+}, {passive:true});
+addEventListener('scroll', ()=>{
+  if($('fxPop').classList.contains('open')) placeFxPop();
+}, {passive:true});
 
 /* ══════════════════════════════════════════════════════════════
    배경 사진 — 사용자가 올린 파일만 쓴다.
@@ -635,6 +843,7 @@ async function loadPhoto(file){
     $('photoSec').classList.add('photoOn');
     $('photoDrop').querySelector('span').textContent = '다른 사진으로 바꾸기';
     setBg('photo');
+    syncPhotoSliders();
   }catch(e){
     alert('이 사진은 읽지 못했어요.\n아이폰 HEIC이면 JPG로 바꿔서 올려주세요.');
   }
@@ -653,14 +862,136 @@ $('photoClear').onclick = ()=>{
   $('photoFile').value = '';
   $('photoDrop').querySelector('span').textContent='사진을 올리거나 클릭해서 고르세요';
   setBg('none');
+  syncPhotoSliders();
 };
-[['pX','photoX','',1],['pY','photoY','',1],['pDim','dim','%',1]].forEach(([id,key,unit])=>{
+[['pX','photoX',''],['pY','photoY',''],['pDim','dim','%']].forEach(([id,key,unit])=>{
   $(id).oninput = ()=>{
     R.setState({[key]: +$(id).value});
     $(id+'v').textContent = $(id).value + unit;
     syncBar();
   };
 });
+
+/* 사진 위치 슬라이더 켜고 끄기.
+   사진은 캔버스를 꽉 채우게(cover) 맞추므로, 남는 쪽은 한 방향뿐이다.
+   가로로 넘치면 세로로는 넘칠 게 없고 그 반대도 마찬가지다.
+   움직일 수 없는 축을 그대로 두면 "슬라이더가 고장났다"로 보이므로
+   끄고 이유를 적는다. */
+function syncPhotoSliders(){
+  const im = R.state.photo;
+  const row = id => $(id).closest('.slider');
+  if(!im){
+    ['pX','pY'].forEach(id=>{ $(id).disabled = false; row(id).style.opacity = ''; row(id).title = ''; });
+    $('photoAxisNote').textContent = '';
+    return;
+  }
+  const sc = Math.max(R.width/im.width, R.height/im.height);
+  const room = {pX: im.width*sc - R.width, pY: im.height*sc - R.height};
+  ['pX','pY'].forEach(id=>{
+    const dead = room[id] < 1;
+    $(id).disabled = dead;
+    row(id).style.opacity = dead ? '.4' : '';
+    row(id).title = dead ? '이 방향은 사진이 캔버스에 딱 맞아 움직일 여백이 없어요' : '';
+  });
+  const moving = room.pX >= 1 ? '가로' : room.pY >= 1 ? '세로' : null;
+  $('photoAxisNote').textContent = moving
+    ? `사진이 ${moving}로 넘쳐서 ${moving} 위치만 조절할 수 있어요.`
+    : '사진 비율이 캔버스와 같아 옮길 여백이 없어요.';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   세부 조정 — 크기·타이밍·형광 바·매트
+══════════════════════════════════════════════════════════════ */
+function bindAdv(){
+  const set = (patch, after)=>{ R.setState(patch); if(after) after(); saveDraft(); };
+
+  /* 크기를 바꾸면 기준 캔버스도 지금 크기로 갱신한다.
+     안 그러면 비율을 바꿨을 때 방금 정한 크기가 다시 환산되어 어긋난다. */
+  $('sSize').oninput = ()=>{
+    set({size:+$('sSize').value, baseW:R.width, baseH:R.height});
+    $('sSizeV').textContent = $('sSize').value;
+  };
+  $('sLh').oninput = ()=>{
+    set({lh:+$('sLh').value/100});
+    $('sLhV').textContent = (+$('sLh').value/100).toFixed(2);
+  };
+  $('sPos').oninput = ()=>{
+    set({posY:+$('sPos').value/100});
+    $('sPosV').textContent = $('sPos').value+'%';
+  };
+  $('sTotal').oninput = ()=>{
+    set({total:+$('sTotal').value/10}, syncBar);
+    $('sTotalV').textContent = (+$('sTotal').value/10).toFixed(1)+'s';
+  };
+  $('sIn').oninput = ()=>{
+    set({inDur:+$('sIn').value/10});
+    $('sInV').textContent = (+$('sIn').value/10).toFixed(1)+'s';
+  };
+  $('sFps').oninput = ()=>{
+    set({fps:+$('sFps').value}, syncBar);
+    $('sFpsV').textContent = $('sFps').value+'fps';
+  };
+
+  /* 형광 바 — '하이라이트' 애니메이션은 자체 바가 있어 이 설정과 무관하다 */
+  $('hlOn').onchange = ()=>{ set({hlOn:$('hlOn').checked}); syncAdvNotes(); };
+  $('hlSw').innerHTML = FFPGif.HL_PRESETS.map(c=>
+    `<button data-c="${c}" style="background:${c}" aria-label="형광색 ${c}"></button>`).join('');
+  $('hlSw').onclick = e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    set({hl:b.dataset.c, hlOn:true});
+    $('hlOn').checked = true;
+    syncAdvNotes();
+  };
+
+  /* 매트 — 투명 GIF의 반투명 가장자리에 미리 섞을 색 */
+  $('matteAuto').onchange = ()=>{
+    /* 자동을 끌 때는 지금 쓰이던 색을 그대로 물려준다.
+       안 그러면 예전에 저장된 값으로 튀어 색이 갑자기 바뀐 것처럼 보인다. */
+    const patch = {matteAuto: $('matteAuto').checked};
+    if(!patch.matteAuto) patch.matte = R.currentMatte();
+    set(patch); syncAdvNotes();
+  };
+  $('matteColor').oninput = ()=>{ set({matte:$('matteColor').value, matteAuto:false});
+    $('matteAuto').checked = false; syncAdvNotes(); };
+}
+
+function lum(hex){
+  const c = String(hex||'#000').replace('#','');
+  const r = parseInt(c.substr(0,2),16)||0, g = parseInt(c.substr(2,2),16)||0, b = parseInt(c.substr(4,2),16)||0;
+  return (.299*r + .587*g + .114*b)/255;
+}
+
+/* 매트 안내 — 어떤 배경 위에 올려야 읽히는지 알려준다.
+   투명 GIF는 올릴 배경을 우리가 모르므로 이 판단이 사용자 몫이다. */
+function syncAdvNotes(){
+  const m = R.currentMatte();
+  $('matteShow').textContent = m;
+  $('matteColor').value = /^#[0-9a-f]{6}$/i.test(m) ? m : '#000000';
+  $('hlSw').querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.c===R.state.hl));
+
+  const eff = FFP_EFFECT_BY_ID[R.state.effect] || FFP_EFFECTS[0];
+  const hasOutline = eff.outline && eff.outlineW>0;
+  const fg = eff.gradient ? eff.gradient[0] : eff.color;
+  const L = lum(fg);
+  const msg = L>0.85 ? '글자가 <b>매우 밝아요</b>. 흰 배경에 올리면 안 보입니다.'
+            : L<0.15 ? '글자가 <b>매우 어두워요</b>. 검은 배경에 올리면 안 보입니다.'
+            : '명도가 중간이라 <b>밝은 배경·어두운 배경 모두</b>에서 읽힙니다.';
+  $('matteNote').innerHTML =
+    `매트 <b>${esc(m)}</b> — ${hasOutline?'외곽선':'글자'} 색 기준<br>${msg}`;
+}
+
+function syncAdv(){
+  const S = R.state;
+  $('sSize').value = S.size;        $('sSizeV').textContent = S.size;
+  $('sLh').value = S.lh*100;        $('sLhV').textContent = S.lh.toFixed(2);
+  $('sPos').value = S.posY*100;     $('sPosV').textContent = Math.round(S.posY*100)+'%';
+  $('sTotal').value = S.total*10;   $('sTotalV').textContent = S.total.toFixed(1)+'s';
+  $('sIn').value = S.inDur*10;      $('sInV').textContent = S.inDur.toFixed(1)+'s';
+  $('sFps').value = S.fps;          $('sFpsV').textContent = S.fps+'fps';
+  $('hlOn').checked = S.hlOn;
+  $('matteAuto').checked = S.matteAuto;
+  syncAdvNotes();
+}
 
 /* ══════════════════════════════════════════════════════════════
    문구
@@ -698,19 +1029,22 @@ function syncBar(){
 }
 addEventListener('resize', syncBar);
 
-$('playBtn').onclick = ()=>{
-  ui.playing = !ui.playing;
-  $('playIcon').innerHTML = ui.playing
-    ? '<path d="M7 5l12 7-12 7z"/>'
-    : '<path d="M8 5v14M16 5v14"/>';
-};
+/* 버튼은 '지금 누르면 일어날 일'을 보여준다 —
+   재생 중이면 멈춤(❚❚), 멈춰 있으면 재생(▶). */
+const ICON_PLAY  = '<path d="M7 5l12 7-12 7z"/>';
+const ICON_PAUSE = '<path d="M8 5v14M16 5v14"/>';
+function syncPlayIcon(){
+  $('playIcon').innerHTML = ui.playing ? ICON_PAUSE : ICON_PLAY;
+  $('playBtn').setAttribute('aria-label', ui.playing ? '일시정지' : '재생');
+}
+$('playBtn').onclick = ()=>{ ui.playing = !ui.playing; syncPlayIcon(); };
 (function(){
   const el = $('scrub');
   const seek = ev=>{
     const r = el.getBoundingClientRect();
     ui.t = Math.max(0, Math.min(1, (ev.clientX-r.left)/r.width));
     ui.playing = false;
-    $('playIcon').innerHTML = '<path d="M7 5l12 7-12 7z"/>';
+    syncPlayIcon();
   };
   el.addEventListener('pointerdown', e=>{
     seek(e); el.setPointerCapture(e.pointerId);
@@ -812,7 +1146,7 @@ async function runExport(kind){
       blob = await FFPExport.exportGIF(R, ovProgress);
       filename = FFPExport.safeName(R.state.text, 'gif');
     } else {
-      if(!R.state.photo && !confirm('투명 배경은 MP4에 담기지 않아 검은 배경이 됩니다.\n그래도 저장할까요?')){
+      if(!R.isOpaque() && !confirm('투명 배경은 MP4에 담기지 않아 검은 배경이 됩니다.\n그래도 저장할까요?')){
         throw {cancelled:true};
       }
       ovOpen('MP4 만드는 중', '인코더를 준비하고 있어요.');
@@ -844,6 +1178,7 @@ async function runExport(kind){
   }finally{
     ui.busy = false;
     ui.playing = wasPlaying;
+    syncPlayIcon();
     [...document.querySelectorAll('.toolbar .btn')].forEach(b=>b.disabled=false);
     if(!FFPExport.mp4Supported()) $('mp4Btn').disabled = true;
   }
@@ -901,8 +1236,9 @@ async function boot(){
   const r = FFPGif.RATIOS[R.state.ratio];
   if(r) $('ratioUse').textContent = r.desc;
 
-  renderTpls(); renderHubs(); renderPhrases(); renderFx();
-  updateCounter(); syncBar();
+  bindAdv();
+  renderTplHubs(); renderTpls(); renderHubs(); renderFx();
+  updateCounter(); syncBar(); syncAdv(); syncPhotoSliders(); syncPlayIcon();
   requestAnimationFrame(loop);
 }
 boot();
