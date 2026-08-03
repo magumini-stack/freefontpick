@@ -3100,40 +3100,44 @@ async function init(){
    - #notice → 공지사항 목록
    - #notice/123 → 공지사항 상세 (id=123)
 ════════════════════════════════════════════ */
+/* 헤더 메뉴 활성 표시.
+   메뉴 구성은 app/header.py가 정하므로 여기 있는 링크가 없을 수도 있다
+   (예: '폰트 찾기'를 메뉴에서 뺐지만 /find-font 페이지는 그대로 살아 있다).
+   없는 엘리먼트에 classList를 부르면 라우팅 전체가 죽으므로 반드시 건너뛴다. */
+function setMenuActive(state){
+  const map = {
+    notice: ['noticeMenuLink', 'mNoticeMenuLink'],
+    submit: ['submitMenuLink', 'mSubmitMenuLink'],
+  };
+  for(const key in map){
+    for(const id of map[key]){
+      const el = document.getElementById(id);
+      if(el) el.classList.toggle('active', !!state[key]);
+    }
+  }
+}
+
 async function route(){
   /* 고유 경로 라우팅: /find-font → 폰트 찾아주세요 게시판 */
   if(location.pathname === '/find-font'){
     showSubmitView();
-    document.getElementById('noticeMenuLink').classList.remove('active');
-    document.getElementById('submitMenuLink').classList.add('active');
-    document.getElementById('mNoticeMenuLink').classList.remove('active');
-    document.getElementById('mSubmitMenuLink').classList.add('active');
+    setMenuActive({notice:false, submit:true});
     await renderSubmitList();
     window.scrollTo({top:0});
     return;
   }
   const hash = location.hash;
-  const noticeMenu = document.getElementById('noticeMenuLink');
-  const submitMenu = document.getElementById('submitMenuLink');
-  const mNoticeMenu = document.getElementById('mNoticeMenuLink');
-  const mSubmitMenu = document.getElementById('mSubmitMenuLink');
 
   if(hash === '#notice'){
     showNoticeView();
-    noticeMenu.classList.add('active');
-    submitMenu.classList.remove('active');
-    mNoticeMenu.classList.add('active');
-    mSubmitMenu.classList.remove('active');
+    setMenuActive({notice:true, submit:false});
     await renderNoticeList();
     showNoticePanel('list');
     window.scrollTo({top:0});
   } else if(hash.startsWith('#notice/')){
     const id = parseInt(hash.split('/')[1], 10);
     showNoticeView();
-    noticeMenu.classList.add('active');
-    submitMenu.classList.remove('active');
-    mNoticeMenu.classList.add('active');
-    mSubmitMenu.classList.remove('active');
+    setMenuActive({notice:true, submit:false});
     await renderNoticeDetail(id);
     showNoticePanel('detail');
     window.scrollTo({top:0});
@@ -3143,18 +3147,12 @@ async function route(){
     return route();
   } else if(false){
     showSubmitView();
-    noticeMenu.classList.remove('active');
-    submitMenu.classList.add('active');
-    mNoticeMenu.classList.remove('active');
-    mSubmitMenu.classList.add('active');
+    setMenuActive({notice:false, submit:true});
     await renderSubmitList();
     window.scrollTo({top:0});
   } else if(hash.startsWith('#search/')){
     showHomeView();
-    noticeMenu.classList.remove('active');
-    submitMenu.classList.remove('active');
-    mNoticeMenu.classList.remove('active');
-    mSubmitMenu.classList.remove('active');
+    setMenuActive({notice:false, submit:false});
     // hash로부터 검색어 복원
     const query = decodeURIComponent(hash.slice('#search/'.length));
     applySearch(query, /*pushHash*/ false);
@@ -3162,18 +3160,12 @@ async function route(){
   } else if(hash.startsWith('#tag/')){
     // 뒤로/앞으로가기로 카테고리 상태 복원
     showHomeView();
-    noticeMenu.classList.remove('active');
-    submitMenu.classList.remove('active');
-    mNoticeMenu.classList.remove('active');
-    mSubmitMenu.classList.remove('active');
+    setMenuActive({notice:false, submit:false});
     const tagName = decodeURIComponent(hash.slice('#tag/'.length));
     setTag(tagName, null, /*pushHash*/ false);
   } else {
     showHomeView();
-    noticeMenu.classList.remove('active');
-    submitMenu.classList.remove('active');
-    mNoticeMenu.classList.remove('active');
-    mSubmitMenu.classList.remove('active');
+    setMenuActive({notice:false, submit:false});
     // 홈으로 돌아온 경우: 검색·태그 초기화
     clearSearchAndFilter();
   }

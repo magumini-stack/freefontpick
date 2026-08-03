@@ -92,7 +92,10 @@ _CACHE_EXEMPT_SUFFIXES = ("/og-image.png", "/file", "/sample-image")
 # 파일이 바뀔 때마다 주소가 달라져 캐시가 비켜간다. 주소가 그대로인
 # 동안에는 10년 캐시가 그대로 살아 있어 속도 손해도 없다.
 # ══════════════════════════════════════════════════════════════
-_ASSET_REF = re.compile(r'(src|href)="(/static/[^"?]+\.(?:js|css))"')
+# /static/x.js 와 /header.css(루트로도 서빙된다) 둘 다 잡는다.
+# 홈·소개·FAQ·폰트 상세는 header.css를 루트 경로로 부르고 있어서
+# /static/ 만 보면 정작 손봐야 할 페이지들이 통째로 빠진다.
+_ASSET_REF = re.compile(r'(src|href)="(/(?:static/)?[\w./-]+\.(?:js|css))"')
 _asset_versions: dict = {}
 
 
@@ -107,21 +110,22 @@ def _asset_version(url_path: str) -> str:
     정적 파일은 재배포(=새 컨테이너)로만 바뀐다. 실제로 참조된 파일만
     읽으므로 시작이 느려지지도 않는다.
     """
-    hit = _asset_versions.get(url_path)
-    if hit:
-        return hit
+    if url_path in _asset_versions:
+        return _asset_versions[url_path]
+    rel = url_path[len("/static/"):] if url_path.startswith("/static/") else url_path[1:]
     try:
-        data = (STATIC_DIR / url_path[len("/static/"):]).read_bytes()
-        v = hashlib.md5(data).hexdigest()[:8]
+        v = hashlib.md5((STATIC_DIR / rel).read_bytes()).hexdigest()[:8]
     except OSError:
-        v = "0"          # 파일이 없으면 주소를 건드리지 않는 편이 안전하다
+        v = ""           # 실제 파일이 아니면 주소를 건드리지 않는다 (라우트일 수 있다)
     _asset_versions[url_path] = v
     return v
 
 
 def _stamp_assets(html: str) -> str:
-    return _ASSET_REF.sub(
-        lambda m: f'{m.group(1)}="{m.group(2)}?v={_asset_version(m.group(2))}"', html)
+    def rep(m):
+        v = _asset_version(m.group(2))
+        return f'{m.group(1)}="{m.group(2)}?v={v}"' if v else m.group(0)
+    return _ASSET_REF.sub(rep, html)
 
 
 @app.middleware("http")

@@ -191,6 +191,10 @@ select.inp{appearance:none;cursor:pointer}
 .swrow{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
 .swrow button{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);padding:0}
 .swrow button.on{box-shadow:0 0 0 2px var(--accent)}
+.mattseg{margin-top:7px;width:100%}
+.mattseg button{flex:1;padding:5px 4px;font-size:11px}
+.lnk{border:none;background:none;padding:0;color:var(--accent);font:inherit;
+     font-weight:700;text-decoration:underline;cursor:pointer}
 .mattecolor{width:100%;height:28px;margin-top:8px;border:1px solid var(--border);
             border-radius:var(--radius-sm);background:none;padding:2px;cursor:pointer}
 .advnote{margin-top:9px;font-size:10.5px;line-height:1.6;color:var(--text-muted)}
@@ -487,7 +491,13 @@ select.inp{appearance:none;cursor:pointer}
         <label class="advchk"><input type="checkbox" id="hlOn"> 형광 바 사용<span class="advhint2">하이라이트 전용</span></label>
         <div class="swrow" id="hlSw"></div>
         <hr class="advsep">
-        <label class="advchk"><input type="checkbox" id="matteAuto" checked> 매트 색 자동<span class="advhint2" id="matteShow">#000000</span></label>
+        <div class="advchk" style="cursor:default">가장자리 보정<span class="advhint2" id="matteShow">#000000</span></div>
+        <div class="seg mattseg" id="matteSeg">
+          <button data-m="auto" class="on">자동</button>
+          <button data-m="light">밝은 배경</button>
+          <button data-m="dark">어두운 배경</button>
+          <button data-m="custom">직접</button>
+        </div>
         <input type="color" class="mattecolor" id="matteColor" value="#000000">
         <div class="advnote" id="matteNote"></div>
       </div>
@@ -970,7 +980,37 @@ const COLOR_NAMES = {
   '#1E3A8A':'남색', '#7C3AED':'보라', '#EC4899':'분홍', '#F9A8D4':'연분홍',
   '#D4A574':'베이지', '#78350F':'갈색',
 };
-function colorName(c){ return COLOR_NAMES[String(c||'').toUpperCase()] || '직접 고른 색'; }
+/* 견본에 없는 색도 이름으로 부른다.
+   예전에는 '직접 고른 색'이라고만 떴는데, 어드민에서 색을 손본 템플릿은
+   견본 16색에 없는 값이라 거의 항상 그 문구가 나왔다.
+   색상환 위치와 밝기로 이름을 만들어 견본 색과 똑같이 읽히게 한다. */
+const HUE_NAMES = [
+  [15,'빨강'], [40,'주황'], [65,'노랑'], [90,'연두'], [150,'초록'], [190,'청록'],
+  [215,'하늘'], [250,'파랑'], [265,'남색'], [300,'보라'], [330,'자주'], [360,'분홍'],
+];
+function colorName(c){
+  const hex = String(c||'').toUpperCase();
+  if(COLOR_NAMES[hex]) return COLOR_NAMES[hex];
+  const m = hex.match(/^#([0-9A-F]{6})$/);
+  if(!m) return '색';
+  const r=parseInt(m[1].substr(0,2),16)/255, g=parseInt(m[1].substr(2,2),16)/255, b=parseInt(m[1].substr(4,2),16)/255;
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b), l=(mx+mn)/2, d=mx-mn;
+
+  /* 색이 거의 없으면 무채색. 채도(S)만 보면 흰색에 가까운 색이
+     0.9 같은 값으로 튀어 '연파랑'이 되므로 원시 차이(d)로 먼저 거른다. */
+  if(d < 0.10){
+    return l>0.93 ? '흰색' : l>0.72 ? '밝은 회색' : l>0.35 ? '회색' : l>0.12 ? '어두운 회색' : '검정';
+  }
+  let h = mx===r ? ((g-b)/d + (g<b?6:0))
+        : mx===g ? ((b-r)/d + 2)
+        :          ((r-g)/d + 4);
+  h = (h*60 + 360) % 360;
+  const base = (HUE_NAMES.find(([lim])=>h < lim) || HUE_NAMES[HUE_NAMES.length-1])[1];
+
+  const sat = d / (1 - Math.abs(2*l - 1) || 1);
+  if(sat < 0.32) return '흐린' + base;          // 탁한 색은 밝기보다 이쪽이 먼저 읽힌다
+  return (l>0.72 ? '연' : l<0.38 ? '진' : '') + base;
+}
 
 /* 용량·품질 안내 */
 function syncInkNote(){
@@ -1178,16 +1218,20 @@ function bindAdv(){
     syncAdvNotes();
   };
 
-  /* 매트 — 투명 GIF의 반투명 가장자리에 미리 섞을 색 */
-  $('matteAuto').onchange = ()=>{
-    /* 자동을 끌 때는 지금 쓰이던 색을 그대로 물려준다.
-       안 그러면 예전에 저장된 값으로 튀어 색이 갑자기 바뀐 것처럼 보인다. */
-    const patch = {matteAuto: $('matteAuto').checked};
-    if(!patch.matteAuto) patch.matte = R.currentMatte();
-    set(patch); syncAdvNotes();
+  /* 가장자리 보정(매트) — 투명 GIF의 반투명 가장자리에 미리 섞을 색.
+     '어느 색이냐'가 아니라 '어디에 올릴 거냐'를 묻는다. 색 자체는
+     사용자가 판단할 수 있는 정보가 아니고, 실제로 정해야 하는 건
+     이 GIF를 밝은 곳에 붙일지 어두운 곳에 붙일지다. */
+  $('matteSeg').onclick = e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    const m = b.dataset.m;
+    if(m==='auto')   set({matteAuto:true});
+    if(m==='light')  set({matteAuto:false, matte:'#FFFFFF'});
+    if(m==='dark')   set({matteAuto:false, matte:'#000000'});
+    if(m==='custom') set({matteAuto:false, matte:R.currentMatte()});
+    syncAdvNotes();
   };
-  $('matteColor').oninput = ()=>{ set({matte:$('matteColor').value, matteAuto:false});
-    $('matteAuto').checked = false; syncAdvNotes(); };
+  $('matteColor').oninput = ()=>{ set({matte:$('matteColor').value, matteAuto:false}); syncAdvNotes(); };
 }
 
 function lum(hex){
@@ -1199,20 +1243,41 @@ function lum(hex){
 /* 매트 안내 — 어떤 배경 위에 올려야 읽히는지 알려준다.
    투명 GIF는 올릴 배경을 우리가 모르므로 이 판단이 사용자 몫이다. */
 function syncAdvNotes(){
-  const m = R.currentMatte();
+  const S = R.state, m = R.currentMatte();
   $('matteShow').textContent = m;
   $('matteColor').value = /^#[0-9a-f]{6}$/i.test(m) ? m : '#000000';
-  $('hlSw').querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.c===R.state.hl));
+  $('matteColor').style.display = S.matteAuto ? 'none' : 'block';
+  $('hlSw').querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.c===S.hl));
+
+  const mode = S.matteAuto ? 'auto'
+             : m.toUpperCase()==='#FFFFFF' ? 'light'
+             : m.toUpperCase()==='#000000' ? 'dark' : 'custom';
+  $('matteSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.m===mode));
 
   const eff = R.effect();
-  const hasOutline = eff.outline && eff.outlineW>0;
-  const fg = eff.gradient ? eff.gradient[0] : eff.color;
-  const L = lum(fg);
-  const msg = L>0.85 ? '글자가 <b>매우 밝아요</b>. 흰 배경에 올리면 안 보입니다.'
-            : L<0.15 ? '글자가 <b>매우 어두워요</b>. 검은 배경에 올리면 안 보입니다.'
-            : '명도가 중간이라 <b>밝은 배경·어두운 배경 모두</b>에서 읽힙니다.';
-  $('matteNote').innerHTML =
-    `매트 <b>${esc(m)}</b> — ${hasOutline?'외곽선':'글자'} 색 기준<br>${msg}`;
+  const thick = eff.outline && eff.outlineW >= 8;
+  const L = lum(eff.gradient ? eff.gradient[0] : eff.color);
+  const read = L>0.85 ? '글자가 <b>매우 밝아요</b> — 흰 배경에 올리면 안 보입니다.'
+             : L<0.15 ? '글자가 <b>매우 어두워요</b> — 검은 배경에 올리면 안 보입니다.'
+             : '명도가 중간이라 <b>밝은 배경·어두운 배경 모두</b>에서 읽힙니다.';
+
+  /* 투명 GIF의 한계를 숨기지 않는다. GIF의 투명은 '있다/없다' 두 값뿐이라
+     가장자리를 부드럽게 담을 방법이 없다 — 매트 색을 뭘로 하든 마찬가지다.
+     (실측: 매트를 검정·흰색·회색으로 바꿔봐도 최대 오차 127로 동일.
+      배경색을 넣으면 최대 오차 11로 떨어진다.) */
+  const rough = !R.isOpaque() && thick
+    ? `<br><b>투명 배경에서는 두꺼운 외곽선의 가장자리가 계단처럼 끊깁니다.</b>
+       GIF의 투명은 '있다/없다' 두 값뿐이라 어떤 매트 색으로도 매끄러워지지 않아요.
+       올릴 곳의 색을 아신다면 <button type="button" class="lnk" id="toBgWhite">배경색을 넣는 편</button>이
+       훨씬 깨끗합니다.`
+    : '';
+  $('matteNote').innerHTML = `가장자리 <b>${esc(m)}</b> — ${read}${rough}`;
+  const btn = $('toBgWhite');
+  if(btn) btn.onclick = ()=>{
+    $('bgColorInput').value = '#ffffff';
+    R.setState({photo:null, bgColor:'#FFFFFF'});
+    setBg('color');
+  };
 }
 
 function syncAdv(){
@@ -1224,7 +1289,6 @@ function syncAdv(){
   $('sIn').value = S.inDur*10;      $('sInV').textContent = S.inDur.toFixed(1)+'s';
   $('sFps').value = S.fps;          $('sFpsV').textContent = S.fps+'fps';
   $('hlOn').checked = S.hlOn;
-  $('matteAuto').checked = S.matteAuto;
   syncAdvNotes();
 }
 

@@ -18,7 +18,8 @@ NAV_ITEMS = [
     ("about", "/about.html", "폰트픽 소개", None, None),
     ("notice", "/#notice", "공지사항", "noticeMenuLink", "mNoticeMenuLink"),
     ("faq", "/faq.html", "자주 묻는 질문", None, None),
-    ("findfont", "/find-font", "폰트 찾기", "submitMenuLink", "mSubmitMenuLink"),
+    # gif 라우터가 inject_header(html, "gif")로 넘기는 키와 같아야 활성 표시가 붙는다
+    ("gif", "/gif", "GIF 생성기", None, None),
 ]
 
 
@@ -38,7 +39,10 @@ def _nav_links(active: str, indent: str, mobile: bool) -> str:
 
 
 def render_header(active: str = "") -> str:
-    """active: 'about' | 'notice' | 'faq' | 'findfont' | '' (해당 없음, 예: 폰트 상세페이지)"""
+    """active: 'about' | 'notice' | 'faq' | 'gif' | '' (해당 없음, 예: 폰트 상세페이지)
+
+    '폰트 찾기'(/find-font)는 메뉴에서 뺐지만 페이지와 라우트는 그대로다 —
+    공지사항 본문과 검색 결과에서 계속 링크된다."""
     nav_desktop = _nav_links(active, "      ", mobile=False)
     nav_mobile = _nav_links(active, "    ", mobile=True)
 
