@@ -20,16 +20,54 @@ database.py의 FORCE_SQLITE 스위치로 껐고, 이 모듈은 그 데이터를 
 4. **미리보기(dry-run)가 기본.** 실제로 쓰려면 confirm=대상DB이름 을 넘겨야 한다.
 """
 import os
+import secrets
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from sqlalchemy import create_engine, select, text
 
-from ..auth import require_password_changed
+from ..auth import get_current_admin
 from ..database import Base, engine as dst_engine, DATABASE_URL
 
 router = APIRouter(prefix="/api/admin", tags=["db-migrate"])
+
+
+def require_admin_or_token(
+    request: Request,
+    x_migrate_token: Optional[str] = Header(None, alias="X-Migrate-Token"),
+):
+    """관리자 세션 또는 일회용 토큰 중 하나면 통과.
+
+    토큰을 둔 이유
+    --------------
+    이관은 브라우저 없이 서버에서 한 번만 실행하면 되는 작업인데, 그러자고
+    관리자 비밀번호를 다른 사람 손에 넘길 수는 없다. MIGRATE_TOKEN 환경변수를
+    쓰면 자격증명을 노출하지 않고 실행할 수 있고, 끝나면 환경변수만 지우면
+    엔드포인트가 다시 잠긴다.
+
+    MIGRATE_TOKEN이 비어 있으면 토큰 경로는 아예 동작하지 않는다 — 즉 평소에는
+    관리자 세션만 통한다.
+    """
+    env_token = os.getenv("MIGRATE_TOKEN", "").strip()
+    if env_token and x_migrate_token and secrets.compare_digest(x_migrate_token, env_token):
+        return "token"
+    # 토큰이 없으면 기존 관리자 세션 검사로 넘어간다
+    try:
+        return get_current_admin(request, next(_db_gen()))
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="인증이 필요합니다")
+
+
+def _db_gen():
+    from ..database import SessionLocal
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 SQLITE_PATH = os.getenv("MIGRATE_SQLITE_PATH", "/app/user_data/freefontpick.db")
 
@@ -77,7 +115,7 @@ def _ordered_tables():
 
 
 @router.get("/db-compare")
-def db_compare(_admin=Depends(require_password_changed)) -> dict:
+def db_compare(_auth=Depends(require_admin_or_token)) -> dict:
     """SQLite와 현재 DB의 테이블별 행 수를 나란히 보여준다. 아무것도 바꾸지 않는다."""
     src = _src_engine()
     rows = {}
@@ -99,7 +137,7 @@ def db_compare(_admin=Depends(require_password_changed)) -> dict:
 @router.post("/db-migrate")
 def db_migrate(
     confirm: str = Query("", description="실행하려면 'mysql'을 넘긴다. 비우면 미리보기."),
-    _admin=Depends(require_password_changed),
+    _auth=Depends(require_admin_or_token),
 ) -> dict:
     """SQLite의 모든 테이블을 현재 DB(MySQL)로 복사한다.
 
