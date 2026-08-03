@@ -154,9 +154,6 @@ button{font-family:inherit;cursor:pointer}
     <div class="frow">
       <span class="flabel">용도</span>
       <div class="chips" id="hubF"></div>
-      <div class="chips" style="margin-left:auto">
-        <button class="chip" id="ratioF">모든 비율</button>
-      </div>
     </div>
   </div>
 </div>
@@ -216,7 +213,7 @@ applyThemeIcons();
 ══════════════════════════════════════════════════════════════ */
 const $ = id => document.getElementById(id);
 let TPLS = [], HUB_NAME = {};
-let filt = {hub:'all', ratio:'all'};
+let filt = {hub:'all'};
 const dots = r => '●●●'.slice(0, r) || '—';
 const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const animName = id => (FFPGif.ANIM_BY_ID[id] || {}).name || id;
@@ -227,9 +224,7 @@ const cards = new Map();   // number -> {renderer, tpl, visible, t, raf}
 let io = null;
 
 function filtered(){
-  return TPLS.filter(t =>
-    (filt.hub==='all'   || t.hub_slug===filt.hub) &&
-    (filt.ratio==='all' || t.ratio===filt.ratio));
+  return TPLS.filter(t => filt.hub==='all' || t.hub_slug===filt.hub);
 }
 
 function render(){
@@ -397,16 +392,6 @@ function bindChips(containerId, key, attr){
     render();
   };
 }
-
-const RORDER = ['all','16:9','1:1','4:5','9:16'];
-const RLABEL = {all:'모든 비율','16:9':'16:9 가로','1:1':'1:1 정사각','4:5':'4:5 세로','9:16':'9:16 세로'};
-$('ratioF').onclick = e=>{
-  const next = RORDER[(RORDER.indexOf(filt.ratio)+1) % RORDER.length];
-  filt.ratio = next;
-  e.target.textContent = RLABEL[next];
-  e.target.classList.toggle('on', next!=='all');
-  render();
-};
 
 /* ══════════════════════════════════════════════════════════════
    시작
