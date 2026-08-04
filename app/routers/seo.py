@@ -92,16 +92,36 @@ def sitemap(db: Session = Depends(get_db)):
                     headers={"Cache-Control": "public, max-age=3600"})
 
 
+# 해지한 애드센스 게시자 ID. 이 문자열이 든 ads.txt는 내보내지 않는다.
+RETIRED_ADS_PUBLISHER = "pub-3337261318293302"
+ADS_TXT_PATH = Path(__file__).resolve().parent.parent.parent / "static" / "ads.txt"
+
+
 @router.get("/ads.txt", include_in_schema=False)
 def ads_txt():
-    """광고를 접었으므로 ads.txt는 없다.
+    """옛 게시자 ID가 든 ads.txt만 막고, 새 파일은 그대로 서빙한다.
 
     저장소에서 static/ads.txt를 지웠는데도 운영에서 계속 나갔다 —
     배포가 파일을 덮어쓰기만 하고 '없어진 파일'은 지우지 않기 때문이다.
-    (컨테이너에 예전 파일이 그대로 남아 광고주 ID를 계속 노출하고 있었다.)
-    파일이 남아 있든 말든 여기서 404로 끊는다. catch-all보다 먼저 잡힌다.
+    (컨테이너에 예전 파일이 남아 해지한 광고주 ID를 계속 노출하고 있었다.)
+    카페24 쪽에 파일을 지우는 수단이 없어서 이 라우트로 끊는다 —
+    catch-all보다 먼저 잡힌다.
+
+    광고는 계속 하고 계정만 바꾸실 예정이므로, 무조건 404를 내면 안 된다.
+    새 계정 ads.txt를 올리는 순간 애드센스가 '파일 없음'으로 보고 수익을
+    제한하기 때문이다. 그래서 '파일이 있는가'가 아니라 '옛 ID가 들어
+    있는가'로 판단한다. 새 ads.txt를 저장소에 넣고 배포하면 배포가
+    낡은 파일을 덮어쓰고, 이 라우트는 그대로 통과시킨다 — 코드를 다시
+    고칠 필요가 없다. (새 ID를 받으면 위 상수는 지워도 된다.)
     """
-    raise HTTPException(status_code=404)
+    try:
+        body = ADS_TXT_PATH.read_text(encoding="utf-8")
+    except OSError:
+        raise HTTPException(status_code=404)
+    if RETIRED_ADS_PUBLISHER in body:
+        raise HTTPException(status_code=404)
+    return Response(content=body, media_type="text/plain",
+                    headers={"Cache-Control": "public, max-age=3600"})
 
 
 @router.get("/robots.txt", include_in_schema=False)
