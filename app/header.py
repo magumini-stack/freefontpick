@@ -40,6 +40,32 @@ def _nav_links(active: str, indent: str, mobile: bool) -> str:
     return "\n".join(lines)
 
 
+# 구글 애널리틱스(GA4) + 구글 애즈 태그.
+#
+# 예전에는 index.html과 font.html에만 스니펫을 복사해 넣어서, /gif · /gif/templates ·
+# /use/{slug} · /about · /faq · /wisefont 는 조회수가 통째로 안 잡혔다. 페이지를
+# 새로 만들 때마다 사람이 기억해서 붙여야 하는 구조라 반드시 또 빠진다.
+# 헤더와 같은 이유로 여기 한 곳에만 둔다 — 헤더가 들어가는 페이지는 자동으로 측정된다.
+#
+# 어드민(admin.html / admin-gif.html)에는 <!--FFP_HEADER--> 마커가 없어서
+# 그대로 제외된다. 운영자 트래픽이 통계에 섞이지 않는 게 맞다.
+GA_MEASUREMENT_ID = "G-WK73M3QQVP"   # 애널리틱스
+ADS_CONVERSION_ID = "AW-18302402783"  # 구글 애즈
+
+
+def _analytics() -> str:
+    return f'''<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id={ADS_CONVERSION_ID}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){{dataLayer.push(arguments);}}
+  gtag('js', new Date());
+  gtag('config', '{ADS_CONVERSION_ID}');
+  gtag('config', '{GA_MEASUREMENT_ID}');
+</script>
+'''
+
+
 def render_header(active: str = "") -> str:
     """active: 'about' | 'notice' | 'faq' | 'gif' | '' (해당 없음, 예: 폰트 상세페이지)
 
@@ -48,7 +74,7 @@ def render_header(active: str = "") -> str:
     nav_desktop = _nav_links(active, "      ", mobile=False)
     nav_mobile = _nav_links(active, "    ", mobile=True)
 
-    return f'''<header class="header">
+    return f'''{_analytics()}<header class="header">
   <div class="header-inner">
     <a href="/" class="logo" id="ffpLogoLink" aria-label="폰트픽 홈으로">폰트픽<span class="logo-dot"></span></a>
     <nav>
