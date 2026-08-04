@@ -4,7 +4,7 @@ import sys
 import traceback
 from datetime import datetime
 from pathlib import Path
-from fastapi import APIRouter, UploadFile, File, Request, Depends
+from fastapi import APIRouter, UploadFile, File, Request, Depends, HTTPException
 from fastapi.responses import Response, JSONResponse
 from sqlalchemy.orm import Session
 
@@ -90,6 +90,18 @@ def sitemap(db: Session = Depends(get_db)):
     )
     return Response(content=xml, media_type="application/xml",
                     headers={"Cache-Control": "public, max-age=3600"})
+
+
+@router.get("/ads.txt", include_in_schema=False)
+def ads_txt():
+    """광고를 접었으므로 ads.txt는 없다.
+
+    저장소에서 static/ads.txt를 지웠는데도 운영에서 계속 나갔다 —
+    배포가 파일을 덮어쓰기만 하고 '없어진 파일'은 지우지 않기 때문이다.
+    (컨테이너에 예전 파일이 그대로 남아 광고주 ID를 계속 노출하고 있었다.)
+    파일이 남아 있든 말든 여기서 404로 끊는다. catch-all보다 먼저 잡힌다.
+    """
+    raise HTTPException(status_code=404)
 
 
 @router.get("/robots.txt", include_in_schema=False)
