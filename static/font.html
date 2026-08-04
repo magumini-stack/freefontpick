@@ -52,13 +52,11 @@
 <meta property="og:image:height" content="630">
 {{FFP_JSONLD}}
 <link rel="icon" type="image/png" href="/favicon.png">
-<meta name="google-adsense-account" content="ca-pub-3337261318293302">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Pen+Script&family=Nanum+Square:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Brush+Script&family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Gugi&family=Hi+Melody&family=Noto+Sans+KR:wght@100..900&family=Anton&family=Bangers&family=Lobster&family=Monoton&family=Raleway:wght@400;700&family=Press+Start+2P&family=Dancing+Script:wght@400;700&family=Kaushan+Script&family=Cinzel+Decorative:wght@400;700&family=Bona+Nova:ital,wght@0,400;0,700;1,400&family=Bungee&family=Petrona:wght@400;700&family=Pavanam&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.44.0/tabler-icons.min.css">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3337261318293302" crossorigin="anonymous"></script>
 <style>
   :root{
     --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
@@ -371,7 +369,6 @@
     .dhl-dot{width:100%;aspect-ratio:1;border-radius:7px;border:2px solid var(--border);cursor:pointer}
     .dhl-dot.active{border-color:var(--text-primary)}
     .designer-footer{padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:10px}
-    .designer-adslot{border:1.5px dashed var(--border);border-radius:12px;padding:12px;text-align:center;font-size:11px;color:var(--text-muted);background:var(--bg-secondary);line-height:1.5}
     /* 우측 여백 스카이스크래퍼 — 넓은 화면(1600px+)에서만, 스크롤해도 고정 위치 유지 */
     .skyscraper-ad{
       display:none;
@@ -1156,10 +1153,6 @@ window.addEventListener('pageshow', function(e){
         </div>
 
         <div class="designer-footer">
-          <div class="designer-adslot" id="designerAdSlot" style="display:none">
-            <!-- AdSense 승인 후 이 자리에 배너 ins 태그 삽입 -->
-            광고 영역
-          </div>
           <a class="ds-promo-banner" href="https://tosto.re/ktext" target="_blank" rel="noopener">
             <img src="data:image/png;base64,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" alt="글씨사진관 앱 아이콘">
             <div class="ds-promo-text">

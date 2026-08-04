@@ -18,8 +18,10 @@ NAV_ITEMS = [
     ("about", "/about.html", "폰트픽 소개", None, None),
     ("notice", "/#notice", "공지사항", "noticeMenuLink", "mNoticeMenuLink"),
     ("faq", "/faq.html", "자주 묻는 질문", None, None),
-    # gif 라우터가 inject_header(html, "gif")로 넘기는 키와 같아야 활성 표시가 붙는다
-    ("gif", "/gif", "GIF 생성기", None, None),
+    # gif 라우터가 inject_header(html, "gif")로 넘기는 키와 같아야 활성 표시가 붙는다.
+    # 링크는 편집기(/gif)가 아니라 템플릿 목록으로 보낸다 — 빈 편집기부터 만나면
+    # 뭘 만들 수 있는 곳인지 알기 어렵다. 목록에서 하나 고르면 편집기로 넘어간다.
+    ("gif", "/gif/templates", "GIF 생성기", None, None),
 ]
 
 

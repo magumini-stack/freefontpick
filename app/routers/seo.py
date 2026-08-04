@@ -28,8 +28,10 @@ def sitemap(db: Session = Depends(get_db)):
         {"loc": f"{SITE_URL}/faq.html", "priority": "0.5", "changefreq": "monthly"},
         # GIF 생성기는 페이지 2개뿐이다. 템플릿별 URL을 만들지 않은 이유는
         # gif.py 주석 참고 — 페이로드만 다른 페이지 48개는 중복 색인 판정을 부른다.
-        {"loc": f"{SITE_URL}/gif", "priority": "0.8", "changefreq": "weekly"},
-        {"loc": f"{SITE_URL}/gif/templates", "priority": "0.7", "changefreq": "weekly"},
+        # 템플릿 목록이 위다 — 헤더 메뉴도 여기로 보내는 대표 페이지이고,
+        # 빈 편집기보다 '무엇을 만들 수 있는지'가 검색 결과에 더 맞는다.
+        {"loc": f"{SITE_URL}/gif/templates", "priority": "0.8", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/gif", "priority": "0.7", "changefreq": "weekly"},
         {"loc": f"{SITE_URL}/policy.html", "priority": "0.3", "changefreq": "yearly"},
     ]
     # 폰트별 상세페이지 (핵심 SEO 자산)
