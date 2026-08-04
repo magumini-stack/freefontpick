@@ -234,13 +234,41 @@ _SHAPE_BACKFILL = {
 }
 
 
+TAG_AXIS_MIGRATION_KEY = "tag_axis_migrated"
+
+
 def _migrate_tag_axes(db: Session):
-    """태그 3축 분리 마이그레이션 (멱등).
+    """태그 3축 분리 마이그레이션 — DB당 딱 한 번만 실행된다.
 
     ① 태그 개명/병합(_TAG_RENAMES) ② axis 부여(_TAG_AXIS)
     ③ 모양 태그 고아 폰트 보완(_SHAPE_BACKFILL — 이미 모양 태그가 있으면 건너뜀)
+
+    ⚠ 예전엔 부팅할 때마다 돌았다. 위 세 표가 전부 '태그 이름' 기준이라,
+    어드민에서 카테고리 이름을 바꾸면 다음 배포에서 이 함수가 되돌려 놨다:
+      · 바꾼 이름이 _TAG_RENAMES의 구 이름이면 ①이 그대로 개명해 버리고,
+      · 모양 태그(손글씨·디스플레이 등)를 바꾸면 ③이 그 이름을 못 찾아
+        같은 이름의 태그를 새로 만들어 붙였다 — 지운 이름이 매번 되살아났다.
+    한 번 적용되면 끝인 일회성 정리 작업이므로 app_meta에 표시하고 다시는
+    손대지 않는다. 운영 DB에서 강제로 다시 돌리려면 그 행을 지우면 된다.
     """
+    from sqlalchemy import text as _sql_text
     from .models import Tag, Font
+
+    done = db.query(AppMeta).filter(AppMeta.key == TAG_AXIS_MIGRATION_KEY).first()
+    if done and done.value == "1":
+        return
+
+    # 이미 적용된 DB(= axis가 하나라도 채워져 있음)라면 표시만 남기고 건너뛴다.
+    # 여기서 한 번 더 돌리면 지금 어드민에 걸려 있는 이름 변경을 마지막으로
+    # 한 번 되돌리게 된다 — 그럴 이유가 없다.
+    already = db.execute(
+        _sql_text("SELECT COUNT(*) FROM tags WHERE axis IS NOT NULL")
+    ).scalar() or 0
+    if already:
+        db.add(AppMeta(key=TAG_AXIS_MIGRATION_KEY, value="1"))
+        db.commit()
+        print("[migrate] 태그 3축 분리 — 이미 적용된 DB로 판단, 이후 실행하지 않음")
+        return
 
     # ① 개명 또는 병합
     for old, new in _TAG_RENAMES.items():
@@ -299,6 +327,7 @@ def _migrate_tag_axes(db: Session):
     if fixed:
         print(f"[migrate] 모양 고아 보완: {fixed}건")
 
+    db.add(AppMeta(key=TAG_AXIS_MIGRATION_KEY, value="1"))
     db.commit()
 
 
