@@ -38,6 +38,8 @@ from ..models import Font
 from .files import FONT_RESOLUTION, font_path, bundled_font_path
 
 router = APIRouter(prefix="/api/fonts", tags=["og-image"])
+# 용도 허브 카드는 경로가 달라 라우터를 하나 더 둔다 (main.py에서 함께 등록).
+hub_router = APIRouter(prefix="/api/use-cases", tags=["og-image"])
 
 CACHE_DIR = Path(os.getenv("OGIMAGE_CACHE_DIR", "/app/user_data/og_cache"))
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -56,6 +58,9 @@ _UI_FONT_ID = 10
 
 # 레이아웃/렌더링 로직이 바뀔 때마다 올려서 기존 캐시를 무효화한다.
 _CACHE_VERSION = 5
+# 허브 카드는 폰트 카드와 레이아웃이 달라 버전을 따로 둔다 — 한쪽을 손봤다고
+# 다른 쪽 캐시 수백 장을 통째로 버릴 이유가 없다.
+_HUB_CACHE_VERSION = 1
 
 
 def _resolve_font_file(font_id: int) -> Path | None:
@@ -261,6 +266,181 @@ def _generate(font: Font) -> bytes:
     return out.getvalue()
 
 
+def _font_covers(path: Path, text: str) -> bool:
+    """폰트가 text의 모든 글자를 갖고 있는지 cmap으로 확인.
+
+    허브 제목을 추천 1순위 폰트로 렌더링하는데, 그 폰트에 없는 글자가 하나라도
+    있으면 두부(.notdef)가 찍힌다. 한글 폰트에 가운뎃점(·)이 없는 경우가 흔하고
+    ('인스타 · 카드뉴스'), 영문 전용 폰트는 한글이 통째로 없다. 미리 확인해서
+    하나라도 빠지면 UI 폰트로 통째 폴백한다 — 반쯤 깨진 이미지보다 낫다.
+    """
+    from fontTools.ttLib import TTFont
+
+    try:
+        tt = TTFont(str(path), fontNumber=0, lazy=True)
+        try:
+            cmap = tt.getBestCmap()
+        finally:
+            tt.close()
+    except Exception:
+        return False
+    return all(ord(ch) in cmap for ch in text if not ch.isspace())
+
+
+def _generate_hub(title: str, subtitle: str, total: int, lead_font_id: int | None) -> bytes:
+    """용도 허브 og:image.
+
+    폰트 카드(_generate)와 같은 배경·카드·로고마크를 쓰되, 허브임을 알 수 있게
+    윗줄 라벨과 종수 배지를 둔다. 제목은 그 허브의 추천 1순위 폰트로 렌더링한다 —
+    허브 10개가 서로 다른 서체로 보여서 타임라인에서 구분되고, 폰트 사이트답게
+    이미지 자체가 그 폰트의 견본이 된다.
+    """
+    from PIL import Image, ImageDraw, ImageFont
+
+    img = Image.new("RGB", (W, H), BG)
+    d = ImageDraw.Draw(img)
+
+    pad = 60
+    d.rounded_rectangle([pad, pad, W - pad, H - pad], radius=28,
+                        fill=CARD_BG, outline=BORDER, width=2)
+
+    ui_bytes = None
+    ui_file = _resolve_font_file(_UI_FONT_ID)
+    if ui_file:
+        try:
+            ui_bytes = _woff2_to_fontobject(ui_file)
+        except Exception:
+            ui_bytes = None
+
+    def ui_font(size):
+        if ui_bytes is not None:
+            ui_bytes.seek(0)
+            try:
+                return ImageFont.truetype(ui_bytes, size)
+            except Exception:
+                pass
+        return ImageFont.load_default()
+
+    # 제목용 폰트 — 커버리지가 확인된 경우에만 추천 1순위 폰트를 쓴다
+    title_bytes = None
+    if lead_font_id:
+        lead_file = _resolve_font_file(lead_font_id)
+        if lead_file and _font_covers(lead_file, title):
+            try:
+                title_bytes = _subset_font_to_fontobject(lead_file, title)
+            except Exception:
+                title_bytes = None
+
+    def title_font(size):
+        if title_bytes is not None:
+            title_bytes.seek(0)
+            try:
+                return ImageFont.truetype(title_bytes, int(size))
+            except Exception:
+                pass
+        return ui_font(int(size))
+
+    cx = W // 2
+
+    def center(y, text, font, fill):
+        l, t, r, b = d.textbbox((0, 0), text, font=font)
+        d.text((cx - (r - l) / 2 - l, y - t), text, font=font, fill=fill)
+        return b - t
+
+    def height(text, font):
+        l, t, r, b = d.textbbox((0, 0), text, font=font)
+        return b - t
+
+    def fit(text, target_w, make_font, hi=150):
+        """target_w 안에 들어가는 최대 글자 크기를 이분탐색으로 찾는다."""
+        lo = 10
+        for _ in range(22):
+            mid = (lo + hi) / 2
+            l, _t, r, _b = d.textbbox((0, 0), text, font=make_font(mid))
+            if (r - l) < target_w:
+                lo = mid
+            else:
+                hi = mid
+        return make_font(max(int(lo), 10))
+
+    # 제목은 정사각형(630x630) 크롭을 기준으로 맞춘다. 카드 폭(1080)에 맞추면
+    # 카카오톡처럼 가운데를 정사각형으로 잘라 쓰는 곳에서 '인스타 · 카드뉴스'의
+    # 양끝이 잘려 나간다 — 폰트 카드가 같은 이유로 쓰는 기준(_generate)이다.
+    square_w = min(W, H) * 0.9
+    tfont = fit(title, square_w, title_font)
+
+    f_eyebrow = ui_font(28)
+    f_badge = ui_font(26)
+    # 부제는 30px 고정이되, 카드를 넘칠 만큼 길면 줄인다 (어드민에서 길게 쓸 수 있다)
+    f_sub = ui_font(30)
+    if subtitle:
+        l, _t, r, _b = d.textbbox((0, 0), subtitle, font=f_sub)
+        if (r - l) > (W - pad * 2) * 0.86:
+            f_sub = fit(subtitle, (W - pad * 2) * 0.86, ui_font, hi=30)
+
+    eyebrow = "무료 한글 폰트 추천"
+    badge = f"{total}종 · 상업적 이용 가능"
+
+    GAP1, GAP2, GAP3 = 34, 40, 34
+    badge_pad_y = 14
+    badge_h = height(badge, f_badge) + badge_pad_y * 2
+
+    block = (height(eyebrow, f_eyebrow) + GAP1 + height(title, tfont)
+             + GAP2 + height(subtitle, f_sub) + GAP3 + badge_h)
+
+    # 하단 로고마크 자리를 뺀 카드 안쪽에서 수직 가운데
+    watermark_reserved = 90
+    y = pad + ((H - pad - watermark_reserved) - pad - block) / 2
+
+    y += center(y, eyebrow, f_eyebrow, ACCENT) + GAP1
+    y += center(y, title, tfont, TEXT_COLOR) + GAP2
+    y += center(y, subtitle, f_sub, MUTED) + GAP3
+
+    l, t, r, b = d.textbbox((0, 0), badge, font=f_badge)
+    bw = r - l
+    x0 = cx - (bw + 52) / 2
+    d.rounded_rectangle([x0, y, x0 + bw + 52, y + badge_h],
+                        radius=badge_h / 2, fill=ACCENT)
+    d.text((x0 + 26 - l, y + badge_pad_y - t), badge, font=f_badge, fill="#FFFFFF")
+
+    # 하단 로고 마크 — 폰트 카드와 동일 (사이트 좌상단 로고 스타일)
+    logo_size = 32
+    lf = ui_font(logo_size)
+    l, t, r, b = d.textbbox((0, 0), "폰트픽", font=lf)
+    tw, th = r - l, b - t
+    dot = round(logo_size * 0.35)
+    gap = round(logo_size * 0.28)
+    ly = H - pad - 62
+    sx = cx - (tw + gap + dot) / 2
+    d.text((sx - l, ly), "폰트픽", font=lf, fill=TEXT_COLOR)
+    dx = sx + tw + gap
+    dy = ly + th - dot - round(logo_size * 0.06)
+    d.rounded_rectangle([dx, dy, dx + dot, dy + dot], radius=2, fill=ACCENT)
+
+    out = io.BytesIO()
+    img.save(out, format="PNG", optimize=True)
+    return out.getvalue()
+
+
+def _hub_cache_key(slug: str, title: str, subtitle: str, total: int,
+                   lead_font_id: int | None) -> str:
+    """허브 캐시 키 — 그림에 들어가는 값이 하나라도 바뀌면 키가 바뀐다.
+
+    어드민에서 제목·문구를 고치거나 폰트가 늘어 종수가 변하면 새로 만들어야 한다.
+    1순위 폰트 파일이 교체되는 경우도 있어 mtime까지 포함한다.
+    """
+    import hashlib
+
+    mtime = 0
+    if lead_font_id:
+        p = _resolve_font_file(lead_font_id)
+        if p:
+            mtime = int(p.stat().st_mtime)
+    sig = f"{title}|{subtitle}|{total}|{lead_font_id}|{mtime}"
+    h = hashlib.md5(sig.encode("utf-8")).hexdigest()[:10]
+    return f"hub-{slug}-v{_HUB_CACHE_VERSION}-{h}.png"
+
+
 def _cache_key(font: Font) -> str:
     font_file = _resolve_font_file(font.id)
     mtime = int(font_file.stat().st_mtime) if font_file else 0
@@ -320,6 +500,50 @@ def get_og_image(font_id: int, db: Session = Depends(get_db)):
     if cache_path.exists():
         return FileResponse(cache_path, media_type="image/png", headers=headers)
     return Response(content=fallback or b"", media_type="image/png", headers=headers)
+
+
+@hub_router.get("/{slug}/og-image.png")
+def get_hub_og_image(slug: str, db: Session = Depends(get_db)):
+    """용도 허브 og:image — /use/{slug}를 공유했을 때 뜨는 카드."""
+    from fastapi.responses import Response
+    from ..models import UseCase
+    from .use_case_route import PICK_CARD_LIMIT, hub_font_total
+
+    uc = db.query(UseCase).filter(UseCase.slug == slug).first()
+    if uc is None or not uc.is_active:
+        raise HTTPException(status_code=404, detail="허브를 찾을 수 없습니다")
+
+    picks = [f for f in uc.fonts if f.font is not None][:PICK_CARD_LIMIT]
+    lead_font_id = picks[0].font_id if picks else None
+    total = hub_font_total(db, uc)
+
+    cache_path = CACHE_DIR / _hub_cache_key(
+        slug, uc.title, uc.subtitle or "", total, lead_font_id
+    )
+    headers = {"Cache-Control": "public, max-age=86400"}
+    if cache_path.exists():
+        return FileResponse(cache_path, media_type="image/png", headers=headers)
+
+    # 폰트 카드와 같은 락을 공유한다 — 메모리 스파이크를 막는 게 목적이라
+    # 종류별로 락을 나누면 동시에 두 건이 돌아 의미가 없어진다.
+    try:
+        with _GEN_LOCK:
+            if cache_path.exists():
+                return FileResponse(cache_path, media_type="image/png", headers=headers)
+            try:
+                data = _generate_hub(uc.title, uc.subtitle or "", total, lead_font_id)
+                try:
+                    cache_path.write_bytes(data)
+                except Exception:
+                    return Response(content=data, media_type="image/png", headers=headers)
+            finally:
+                gc.collect()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"이미지 생성 실패: {e}")
+
+    return FileResponse(cache_path, media_type="image/png", headers=headers)
 
 
 @router.post("/og-warm")

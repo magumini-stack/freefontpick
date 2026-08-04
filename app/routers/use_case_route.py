@@ -32,6 +32,27 @@ def _esc(s) -> str:
     return _html.escape(str(s or ""))
 
 
+# 1~4위만 추천 이유를 단 카드로 노출하고, 5위 이후는 목록으로 내려간다.
+PICK_CARD_LIMIT = 4
+
+
+def hub_font_total(db: Session, uc: UseCase) -> int:
+    """허브가 '몇 종'이라고 말하는 그 숫자.
+
+    페이지 제목·설명과 og:image 배지가 같은 값을 써야 한다. 두 곳에서 따로
+    세면 반드시 어긋나고, 어긋난 쪽이 공유 카드라 눈에 잘 안 띈다.
+    """
+    linked = [f for f in uc.fonts if f.font is not None]
+    total = len(linked)
+    if uc.tag_id:
+        q = db.query(Font).join(Font.tags).filter(Tag.id == uc.tag_id)
+        linked_ids = {f.font_id for f in linked}
+        if linked_ids:
+            q = q.filter(~Font.id.in_(linked_ids))
+        total += q.count()
+    return total
+
+
 @router.get("/use/{slug}", response_class=HTMLResponse)
 def use_case_page(slug: str, db: Session = Depends(get_db)):
     uc = db.query(UseCase).filter(UseCase.slug == slug).first()
@@ -39,20 +60,10 @@ def use_case_page(slug: str, db: Session = Depends(get_db)):
         # 없는 허브는 홈으로 — soft 404 방지 (wisefont.py와 동일한 처리)
         return RedirectResponse(url="/", status_code=302)
 
-    # 1~4위만 추천 이유를 단 카드로 노출하고, 5위 이후는 목록으로 내려간다.
-    PICK_CARD_LIMIT = 4
     linked = [f for f in uc.fonts if f.font is not None]
     picks = linked[:PICK_CARD_LIMIT]
     rest = linked[PICK_CARD_LIMIT:]
-    linked_ids = {f.font_id for f in linked}
-
-    more_count = len(rest)
-    if uc.tag_id:
-        q = db.query(Font).join(Font.tags).filter(Tag.id == uc.tag_id)
-        if linked_ids:
-            q = q.filter(~Font.id.in_(linked_ids))
-        more_count += q.count()
-    total = len(picks) + more_count
+    total = hub_font_total(db, uc)
 
     url = f"{BASE_URL}/use/{slug}"
     title = f"{uc.title} 무료폰트 추천 {total}종 - 상업적 이용 가능 | 폰트픽"
@@ -60,11 +71,10 @@ def use_case_page(slug: str, db: Session = Depends(get_db)):
         f"{uc.title}에 어울리는 무료 한글 폰트 {total}종을 골랐습니다. "
         f"{uc.subtitle}. 선정 기준과 활용 방법까지 함께 확인하세요."
     )
-    # 추천 1순위 폰트의 OG 이미지를 대표로 쓴다 (이미 디스크 캐시된 자산).
-    # 없을 경우에만 사이트 기본 이미지로 폴백.
-    og_image = f"{BASE_URL}/og-image-v3.png"
-    if picks:
-        og_image = f"{BASE_URL}/api/fonts/{picks[0].font_id}/og-image.png"
+    # 허브 전용 og:image. 예전엔 추천 1순위 폰트의 카드를 그대로 썼는데,
+    # 허브 링크를 공유하면 폰트 이름만 큼지막하게 뜨고 어느 허브인지 알 수 없었다.
+    # (1순위가 같은 허브끼리는 아예 같은 그림이 나왔다.)
+    og_image = f"{BASE_URL}/api/use-cases/{slug}/og-image.png"
 
     # ── JSON-LD: 추천 4종을 ItemList로 노출 ──────────────────
     json_ld = json.dumps({

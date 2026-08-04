@@ -177,6 +177,7 @@ app.include_router(use_cases.router)
 app.include_router(use_cases_admin.router)
 app.include_router(sample_image.router)
 app.include_router(og_image.router)
+app.include_router(og_image.hub_router)
 app.include_router(gif_templates.router)
 # SQLite → MySQL 일회용 이관 도구 (관리자 전용). 이관이 끝나면 지워도 된다.
 app.include_router(db_migrate.router)
