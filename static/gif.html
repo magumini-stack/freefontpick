@@ -676,6 +676,11 @@ let HUBS = [];          // /api/gif-fonts
 let ui = {
   tplNumber: null, hub: null, fontId: null, tplHub: 'all',
   t: 0, playing: true, busy: false,
+  /* 사용자가 비율을 직접 고른 적이 있으면 그 값. 템플릿을 바꿔도 유지한다.
+     비율은 '어디에 올릴 것인가'(인스타 · 릴스 · 블로그)라서 템플릿보다
+     오래 가는 선택이다. 인스타용 1:1로 맞춰놓고 애니메이션을 골라보는
+     동안 계속 16:9로 되돌아가면 고를 수가 없다. */
+  ratio: null,
 };
 const AUTOSAVE_KEY = 'ffp-gif-draft';
 
@@ -754,6 +759,11 @@ async function applyTemplate(number){
   if(!t) return;
   ui.tplNumber = number;
   R.applyConfig(t.config || {});
+  /* 사용자가 고른 비율은 템플릿보다 우선한다. applyConfig가 템플릿의
+     비율(대부분 16:9)로 덮어쓴 것을 여기서 되돌린다. 글자 크기는
+     baseW/baseH 기준으로 렌더 시점에 다시 스케일되므로 그대로 맞는다. */
+  if(ui.ratio) R.setState({ratio:ui.ratio});
+  syncRatio();
   /* config에 폰트가 없거나 지금 목록에 없는 폰트면 허브 첫 폰트로 */
   ui.hub = t.hub_slug || ui.hub;
   const wanted = (t.config && t.config.font && t.config.font.id) || t.font_id;
@@ -835,12 +845,19 @@ async function selectFont(f, weight){
 ══════════════════════════════════════════════════════════════ */
 $('ratioSeg').onclick = e=>{
   const b = e.target.closest('button'); if(!b) return;
-  [...$('ratioSeg').children].forEach(x=>x.classList.toggle('on', x===b));
+  ui.ratio = b.dataset.r;          // 이 뒤로는 템플릿이 비율을 못 바꾼다
   R.setState({ratio:b.dataset.r});
-  const r = FFPGif.RATIOS[b.dataset.r];
-  $('ratioUse').textContent = r ? r.desc : '';
+  syncRatio();
   syncBar(); syncPhotoSliders(); saveDraft();
 };
+
+/* 비율 세그먼트와 설명을 렌더러의 실제 상태에 맞춘다.
+   버튼만 켜고 끄면 컨트롤과 캔버스가 어긋난다 — 실제로 그 버그가 있었다. */
+function syncRatio(){
+  [...$('ratioSeg').children].forEach(x=>x.classList.toggle('on', x.dataset.r===R.state.ratio));
+  const r = FFPGif.RATIOS[R.state.ratio];
+  if(r) $('ratioUse').textContent = r.desc;
+}
 
 /* ── 배경색 64색 ──
    무채색 8칸 + 색상 7계열 × 8단계. 손으로 적으면 밝기가 들쭉날쭉해지므로
@@ -1414,7 +1431,7 @@ function saveDraft(){
   _saveTimer = setTimeout(()=>{
     try{
       localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
-        tpl: ui.tplNumber, hub: ui.hub, cfg: R.snapshot(),
+        tpl: ui.tplNumber, hub: ui.hub, ratio: ui.ratio, cfg: R.snapshot(),
       }));
       $('saveTag').textContent = '이 브라우저에 저장됨';
       $('saveTag').className = 'tag tag-acc';
@@ -1555,6 +1572,7 @@ async function boot(){
     /* 이어서 작업 — 마지막 상태를 복원한다. 사진은 저장하지 않으므로 빠진다. */
     ui.tplNumber = draft.tpl || null;
     ui.hub = draft.hub || ui.hub;
+    ui.ratio = draft.ratio || null;   // 직접 고른 비율은 다음 방문에도 유지
     R.applyConfig(draft.cfg);
     const f = fontOf(R.state.fontId) || (hubOf(ui.hub) && hubOf(ui.hub).fonts[0]);
     await selectFont(f, R.state.fontWeight);
@@ -1571,9 +1589,7 @@ async function boot(){
   }
 
   $('txt').value = R.state.text;
-  [...$('ratioSeg').children].forEach(x=>x.classList.toggle('on', x.dataset.r===R.state.ratio));
-  const r = FFPGif.RATIOS[R.state.ratio];
-  if(r) $('ratioUse').textContent = r.desc;
+  syncRatio();
 
   bindAdv();
   renderTplHubs(); renderTpls(); renderHubs(); renderFx();
