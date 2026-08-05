@@ -681,6 +681,9 @@ let ui = {
      오래 가는 선택이다. 인스타용 1:1로 맞춰놓고 애니메이션을 골라보는
      동안 계속 16:9로 되돌아가면 고를 수가 없다. */
   ratio: null,
+  /* 가장자리 보정에서 사용자가 고른 모드(auto|light|dark|custom).
+     null이면 템플릿이 정한 색에서 역산한다. */
+  matteMode: null,
 };
 const AUTOSAVE_KEY = 'ffp-gif-draft';
 
@@ -764,6 +767,9 @@ async function applyTemplate(number){
      baseW/baseH 기준으로 렌더 시점에 다시 스케일되므로 그대로 맞는다. */
   if(ui.ratio) R.setState({ratio:ui.ratio});
   syncRatio();
+  /* 매트는 템플릿마다 값이 다르므로 앞 템플릿에서 고른 모드를 물려주지 않는다.
+     (비율과 반대다 — 비율은 '어디에 올릴 것인가'라 템플릿보다 오래 간다.) */
+  ui.matteMode = null;
   /* config에 폰트가 없거나 지금 목록에 없는 폰트면 허브 첫 폰트로 */
   ui.hub = t.hub_slug || ui.hub;
   const wanted = (t.config && t.config.font && t.config.font.id) || t.font_id;
@@ -1282,13 +1288,22 @@ function bindAdv(){
   $('matteSeg').onclick = e=>{
     const b = e.target.closest('button'); if(!b) return;
     const m = b.dataset.m;
+    /* 고른 모드를 기억한다. 예전에는 색값에서 역산했는데, '직접'을 눌러도
+       색이 마침 #FFFFFF면 '밝은 배경'이 켜져서 버튼이 아예 안 눌리는 것처럼
+       보였다. 흰색·검정을 직접 고르는 건 지극히 정상이라 역산으로는 못 푼다. */
+    ui.matteMode = m;
     if(m==='auto')   set({matteAuto:true});
     if(m==='light')  set({matteAuto:false, matte:'#FFFFFF'});
     if(m==='dark')   set({matteAuto:false, matte:'#000000'});
     if(m==='custom') set({matteAuto:false, matte:R.currentMatte()});
     syncAdvNotes();
   };
-  $('matteColor').oninput = ()=>{ set({matte:$('matteColor').value, matteAuto:false}); syncAdvNotes(); };
+  /* 색을 직접 만졌다는 건 '직접' 모드라는 뜻이다 */
+  $('matteColor').oninput = ()=>{
+    ui.matteMode = 'custom';
+    set({matte:$('matteColor').value, matteAuto:false});
+    syncAdvNotes();
+  };
 }
 
 function lum(hex){
@@ -1297,26 +1312,53 @@ function lum(hex){
   return (.299*r + .587*g + .114*b)/255;
 }
 
+/* 글자가 실제로 화면에 내보이는 명도들.
+   외곽선을 빠뜨리면 안 된다 — 이 글자가 어떤 배경에서 보이느냐를 정하는 건
+   대개 외곽선이다. 흰 글자에 검은 외곽선(bold-outline)은 흰 배경에서도
+   또렷하고, 검은 글자에 흰 외곽선(classic-black)은 검은 배경에서도 또렷하다.
+   예전에는 글자색만 봐서 이 둘을 정반대로 안내했다.
+   외곽선이 1px 수준이면 배경 대비를 살려주지 못하므로 세지 않는다. */
+function inkTones(eff){
+  const t = (eff.gradient && eff.gradient.length > 1 ? eff.gradient : [eff.color]).map(lum);
+  if(eff.outline && eff.outlineW >= 2) t.push(lum(eff.outline));
+  return t;
+}
+
+/* 어떤 배경에 올려야 읽히는지 한 줄로. 배경이 들어 있는 GIF는 애초에
+   올릴 곳을 탈 일이 없으므로 다른 문장을 쓴다. */
+function readNote(eff){
+  if(R.isOpaque()){
+    return '배경이 들어 있어 <b>어디에 올려도</b> 그대로 보입니다.';
+  }
+  const t = inkTones(eff);
+  if(t.every(x => x > 0.85)) return '밝은 요소만 있어 <b>흰 배경에서는 잘 안 보입니다</b> — 어두운 배경에 올리세요.';
+  if(t.every(x => x < 0.15)) return '어두운 요소만 있어 <b>검은 배경에서는 잘 안 보입니다</b> — 밝은 배경에 올리세요.';
+  return (eff.outline && eff.outlineW >= 2)
+    ? '외곽선이 있어 <b>밝은 배경·어두운 배경 모두</b>에서 읽힙니다.'
+    : '명도가 중간이라 <b>밝은 배경·어두운 배경 모두</b>에서 읽힙니다.';
+}
+
 /* 매트 안내 — 어떤 배경 위에 올려야 읽히는지 알려준다.
    투명 GIF는 올릴 배경을 우리가 모르므로 이 판단이 사용자 몫이다. */
 function syncAdvNotes(){
   const S = R.state, m = R.currentMatte();
   $('matteShow').textContent = m;
   $('matteColor').value = /^#[0-9a-f]{6}$/i.test(m) ? m : '#000000';
-  $('matteColor').style.display = S.matteAuto ? 'none' : 'block';
   $('hlSw').querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.c===S.hl));
 
-  const mode = S.matteAuto ? 'auto'
+  /* 사용자가 세그먼트로 고른 모드가 있으면 그걸 따르고, 없으면(템플릿을 막
+     불러온 직후 등) 색값에서 역산한다. */
+  const mode = ui.matteMode || (S.matteAuto ? 'auto'
              : m.toUpperCase()==='#FFFFFF' ? 'light'
-             : m.toUpperCase()==='#000000' ? 'dark' : 'custom';
+             : m.toUpperCase()==='#000000' ? 'dark' : 'custom');
   $('matteSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.m===mode));
+  /* 색 선택기는 '직접'일 때만 띄운다. 밝은 배경/어두운 배경은 색이 이미
+     정해진 모드인데 선택기가 같이 떠 있으면 무엇이 적용 중인지 헷갈린다. */
+  $('matteColor').style.display = mode==='custom' ? 'block' : 'none';
 
   const eff = R.effect();
   const thick = eff.outline && eff.outlineW >= 8;
-  const L = lum(eff.gradient ? eff.gradient[0] : eff.color);
-  const read = L>0.85 ? '글자가 <b>매우 밝아요</b> — 흰 배경에 올리면 안 보입니다.'
-             : L<0.15 ? '글자가 <b>매우 어두워요</b> — 검은 배경에 올리면 안 보입니다.'
-             : '명도가 중간이라 <b>밝은 배경·어두운 배경 모두</b>에서 읽힙니다.';
+  const read = readNote(eff);
 
   /* 투명 GIF의 한계를 숨기지 않는다. GIF의 투명은 '있다/없다' 두 값뿐이라
      가장자리를 부드럽게 담을 방법이 없다 — 매트 색을 뭘로 하든 마찬가지다.
