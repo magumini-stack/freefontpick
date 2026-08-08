@@ -817,8 +817,18 @@
     loaded[id] = true;
   }
 
+  /* 한글이 섞여 있는지 — 한글 음절·자모 모두 본다 */
+  function hasHangul(s){ return /[\uAC00-\uD7A3\u3131-\u318E]/.test(s || ''); }
+
   function previewDefault(){
-    return carried || (FONT && FONT.is_english ? DEFAULT_TEXT_EN : DEFAULT_TEXT);
+    if (FONT && FONT.is_english){
+      // 영문 전용 폰트에는 한글 문구를 넣지 않는다.
+      // carried는 sessionStorage에 남아 있는 값이라, 직전에 본 한글 폰트의
+      // 문구가 영문 폰트 페이지까지 따라온다. 그러면 글자가 전부 대체 폰트로
+      // 그려져서 "폰트가 안 나온다"로 보인다.
+      return (carried && !hasHangul(carried)) ? carried : DEFAULT_TEXT_EN;
+    }
+    return carried || DEFAULT_TEXT;
   }
 
   function renderPreviewRows(){
@@ -930,7 +940,9 @@
       document.getElementById('weightsLabel').textContent = f.weights || '1종';
 
       var input = document.getElementById('tryInput');
-      if (carried && carried !== DEFAULT_TEXT && carried !== DEFAULT_TEXT_EN) input.value = carried;
+      // 입력창 초기값도 같은 규칙 — 영문 폰트에 한글 문구를 미리 채우지 않는다
+      if (carried && carried !== DEFAULT_TEXT && carried !== DEFAULT_TEXT_EN
+          && !(FONT && FONT.is_english && hasHangul(carried))) input.value = carried;
       input.addEventListener('input', applyText);
       renderPreviewRows();
 
