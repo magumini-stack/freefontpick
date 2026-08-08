@@ -2758,7 +2758,11 @@ function ensureFontLoaded(id){
   if(_fontLoaded.has(id)) return;
   _fontLoaded.add(id);
   const f = FONTS.find(x => x.id === id);
-  if(f && f.webfontFamily){
+  // 어드민이 직접 올린 파일(fileSource==='user')은 웹폰트 설정보다 앞선다.
+  // 파일을 올렸다는 행위 자체가 "이 파일을 쓰겠다"는 뜻이다. 예전에는 웹폰트
+  // 필드에 값이 하나라도 있으면 여기서 return해버려서, 파일을 올려도 화면이
+  // 그대로였다 (웹폰트를 시험해 본 폰트에서 특히 자주 걸렸다).
+  if(f && f.webfontFamily && f.fileSource !== 'user'){
     // 웹폰트 CDN 소스 (Google Fonts 등) — 로컬 파일 @font-face 불필요
     if(f.webfontCssUrl && !_webfontLoaded.has(f.webfontCssUrl)){
       _webfontLoaded.add(f.webfontCssUrl);
@@ -2822,7 +2826,9 @@ function cardNavigate(e, id){
 }
 function getEffectiveStack(f){
   if(!f) return "'Nanum Gothic',sans-serif";
-  if(f.webfontFamily) return `'${f.webfontFamily}',` + (f.stack || "'Nanum Gothic',sans-serif");
+  // ensureFontLoaded와 같은 우선순위를 써야 한다 — 한쪽만 바꾸면
+  // @font-face는 등록되는데 font-family가 웹폰트를 가리키는 어긋남이 생긴다.
+  if(f.webfontFamily && f.fileSource !== 'user') return `'${f.webfontFamily}',` + (f.stack || "'Nanum Gothic',sans-serif");
   const baseStack = f.stack || "'Nanum Gothic',sans-serif";
   if(!f.hasFile) return baseStack;
   const family = `FFP-${String(f.id).padStart(3,'0')}`;
