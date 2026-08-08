@@ -493,8 +493,8 @@
       /* 헤더가 position:fixed(높이 60px)라 그만큼 내려야 첫 칸이 안 가린다.
          60 + 여백 16 = 76px. 헤더 높이를 바꾸면 이 값도 같이 바꿔야 한다. */
       top:76px;z-index:10;opacity:0;transform:translateX(-10px);pointer-events:none;
-      /* 허브 10개 + 모양 카테고리를 합치면 세로가 화면을 넘긴다.
-         레일 안에서만 스크롤시켜야 아래쪽 항목이 잘리지 않는다. */
+      /* 허브가 늘어나면 레일 세로가 화면을 넘길 수 있다.
+         스티키 컬럼이 화면보다 길면 아래쪽 항목에 영영 닿지 못한다. */
       max-height:calc(100vh - 92px);overflow-y:auto;scrollbar-width:thin;
       transition:opacity .25s ease,transform .25s ease}
     .hub-rail.show{opacity:1;transform:none;pointer-events:auto}
@@ -511,16 +511,6 @@
       overflow:hidden;text-overflow:ellipsis;line-height:1.3}
     /* '12종' — 숫자는 모노, 종은 OS 고딕으로 갈라지던 자리 */
     .rail-ct{font-size:11px;color:var(--text-muted);margin-top:3px;display:block}
-    /* 모양 카테고리 — 위 용도 허브가 이미 박스라, 여기까지 박스를 두면
-       두 목록의 위계가 같아 보인다. 텍스트만 세로로 쌓는다. */
-    .rail-h2-sub{margin-top:22px}
-    .rail-tags{display:flex;flex-direction:column;align-items:stretch}
-    .rail-tag{border:none;background:none;width:100%;text-align:left;
-      padding:5px 2px;font-family:inherit;font-size:12.5px;font-weight:500;
-      color:var(--text-secondary);line-height:1.4;cursor:pointer;
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .15s}
-    .rail-tag:hover{color:var(--text-primary)}
-    .rail-tag.active{color:var(--accent);font-weight:700}
     @media(max-width:1000px){
       .body-cols{grid-template-columns:1fr;gap:0;margin-left:0}
       .hub-rail{display:none}
@@ -862,8 +852,6 @@
     <aside class="hub-rail" id="hubRail" aria-label="용도별 바로가기">
       <h2>용도별 추천</h2>
       <div class="rail-boxes" id="hubRailNav"></div>
-      <h2 class="rail-h2-sub">모양별 찾기</h2>
-      <div class="rail-tags" id="hubRailTags"></div>
     </aside>
     <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
   </div>
@@ -1180,28 +1168,27 @@ function applyGalleryView(){
 
    대신 5개를 랜덤으로 돌린다 — 하나로 고정하면 재방문자가 늘 같은 화면을 본다.
 
-톤은 시·감성글. 길이 35자 내외 — 어디서든 말줄임을 전제로 한다.
+톤은 시·감성글. 길이 22~25자.
 
    한글은 정사각 자면이라 글자 폭이 거의 글자 크기와 같다. 실측:
-     한 줄 보기 데스크톱 3열 : 918px / 42px → 한 줄 약 23자  → 12자가 잘린다
-     한 줄 보기 모바일 390px : 428px / 42px → 한 줄 약 10자  → 25자가 잘린다
-     격자 보기 데스크톱 3열  : 열 266px / 26px → 2줄 약 21자 → 14자가 잘린다
-   전부 의도된 잘림이다. 서체 판단은 앞 10~15자에서 끝나고, 뒤는 문구의
-   분위기를 위해 둔다는 결정. 잘림 위치가 모든 카드에서 같으므로
-   격자 행 높이는 어긋나지 않는다 (오히려 2줄로 고정된다).
+     한 줄 보기 데스크톱 3열 : 918px / 42px → 한 줄 약 23자
+     한 줄 보기 모바일 390px : 428px / 24px → 한 줄 약 18자
+     격자 보기 데스크톱 3열  : 열 266px / 26px → 2줄 약 21자
+   데스크톱 한 줄 보기는 거의 다 보이고, 모바일·격자는 뒤쪽 몇 자가
+   말줄임된다. 잘림 위치가 모든 카드에서 같으므로 행 높이는 어긋나지 않는다.
 
    ko/en은 같은 인덱스로 짝지어 함께 돈다 (영문 전용 폰트는 한글을 못 그린다). */
 const SAMPLE_PHRASES = [
-  { ko: '우리는 서로의 안부가 되어 그 겨울을 아주 오래 걸어갔습니다',
-    en: 'We walked through that long winter, keeping each other safe' },
-  { ko: '밤이 깊을수록 별은 더 또렷해진다고 당신이 조용히 말해주었다',
-    en: 'You quietly said the deeper the night, the clearer the stars' },
-  { ko: '그해 여름의 빛이 아직 손끝에 남아 조용히 반짝이고 있습니다',
-    en: 'That summer light still rests on my hands and quietly shines' },
-  { ko: '괜찮아요, 조금 늦어도 봄은 결국 우리에게 찾아오고 말 거예요',
-    en: 'It is alright, spring will find its way to us however late' },
-  { ko: '잊었다고 믿었던 것들이 문득 창가에 앉아 나를 바라보고 있었다',
-    en: 'What I believed forgotten sat by the window, looking back' },
+  { ko: '우리는 서로의 안부가 되어 그 겨울을 걸었다',
+    en: 'We walked that winter, keeping each other safe' },
+  { ko: '밤이 깊을수록 별은 더 또렷해진다고 말했다',
+    en: 'You said the deeper the night, the clearer stars' },
+  { ko: '그해 여름의 빛이 아직 손끝에 남아 반짝인다',
+    en: 'That summer light still shines on my fingertips' },
+  { ko: '괜찮아요, 조금 늦어도 봄은 결국 옵니다',
+    en: 'It is alright, spring comes however late it is' },
+  { ko: '잊었다고 믿었던 것들이 문득 창가에 앉아 있다',
+    en: 'What I thought forgotten sits by the window now' },
 ];
 let _sampleIdx = Math.floor(Math.random() * SAMPLE_PHRASES.length);
 function currentSample(){ return SAMPLE_PHRASES[_sampleIdx]; }
@@ -1425,7 +1412,6 @@ function setTag(tag, el, pushHash){
     const btn = [...document.querySelectorAll('.tag')].find(t => t.textContent === label);
     if(btn) btn.classList.add('active');
   }
-  syncRailTagActive();
   // 카테고리 클릭 시: 검색창 클리어
   const input = document.getElementById('globalSearch');
   if(input && input.value){
@@ -3004,22 +2990,6 @@ document.addEventListener('keydown',function(e){
    같은 줄에 용도와 형태가 섞여 있으면 사용자는 두 축을 하나로 착각한다.
    axis 값은 /api/tags 가 내려주므로 여기서 직접 받아온다
    (TagStore.getAll()은 이름 배열만 주고 axis를 잃어버린다). */
-/* 좌측 레일의 모양 카테고리 — 상단 태그 레일과 같은 데이터를 쓴다.
-   따로 fetch하면 두 목록이 어긋날 수 있어 renderTagsBar가 받은 걸 넘겨받는다. */
-function renderRailTags(tags){
-  const box = document.getElementById('hubRailTags');
-  if(!box || !Array.isArray(tags)) return;
-  box.innerHTML =
-    `<button type="button" class="rail-tag" data-tag="all" onclick="setTag('all',null)">전체</button>` +
-    tags.map(t => `<button type="button" class="rail-tag" data-tag="${escapeHtml(t)}" onclick="setTag(this.dataset.tag,null)">${escapeHtml(t)}</button>`).join('');
-  syncRailTagActive();
-}
-function syncRailTagActive(){
-  document.querySelectorAll('#hubRailTags .rail-tag').forEach(b => {
-    b.classList.toggle('active', b.dataset.tag === currentTag);
-  });
-}
-
 async function renderTagsBar(){
   let tags;
   try {
@@ -3031,7 +3001,6 @@ async function renderTagsBar(){
     console.warn('태그 로딩 실패 — 전체 태그로 폴백', e);
     tags = await TagStore.getAll();
   }
-  renderRailTags(tags);
   const bar = document.getElementById('tagsBar');
   // 현재 활성 태그가 목록에서 빠졌다면 'all'로 리셋
   if(currentTag !== 'all' && !tags.includes(currentTag)){

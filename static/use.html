@@ -242,7 +242,14 @@ footer{border-top:1px solid var(--border);margin-top:60px;padding:24px 0;text-al
     });
   }
 
-  var currentPhrase = null;
+  /* 기본 미리보기 문구 = 문구 칩 3번째.
+     null로 시작하면 견본 자리에 폰트 이름이 들어가, 카드마다 그리는 글자가
+     달라서 서체 비교가 안 된다. 견본은 모든 카드가 같은 글자여야 한다.
+     칩이 3개 미만인 허브를 대비해 마지막 칩으로 떨어뜨린다. */
+  var _chips = Array.prototype.slice.call(document.querySelectorAll('#phrases .chip'));
+  var _defChip = _chips[2] || _chips[_chips.length - 1] || null;
+  var currentPhrase = _defChip ? _defChip.getAttribute('data-text') : null;
+  if (_defChip) _defChip.classList.add('on');
   var picksData = [], moreData = [];
 
   function renderPicks(){
