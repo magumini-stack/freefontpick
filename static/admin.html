@@ -541,6 +541,13 @@
         <label>제작자 <span class="req">*</span></label>
         <input type="text" id="fmMaker" placeholder="예: 네이버, 또는 개인 제작자명">
       </div>
+      <div class="field" style="display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:6px;padding:10px 14px">
+        <input type="checkbox" id="fmIsEnglish" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+        <label for="fmIsEnglish" style="margin:0;cursor:pointer;display:flex;flex-direction:column;gap:2px">
+          <span style="font-weight:700">영문 전용 폰트</span>
+          <span class="field-hint" style="margin:0">한글 글리프가 없는 폰트는 반드시 켜세요. 켜면 갤러리·상세페이지 미리보기 문구가 영어로 바뀝니다. 끄면 한글 문구가 들어가 대체 폰트로 그려집니다.</span>
+        </label>
+      </div>
       <div class="field" style="display:flex;align-items:center;gap:8px;background:var(--accent-light,#EEF2FB);border:1px solid var(--accent);border-radius:6px;padding:10px 14px">
         <input type="checkbox" id="fmIsPick" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
         <label for="fmIsPick" style="margin:0;cursor:pointer;display:flex;flex-direction:column;gap:2px">
@@ -1560,6 +1567,7 @@ function openFontModal(){
   document.getElementById('fmMaker').value = '';
   document.getElementById('fmWeights').value = '1종';
   document.getElementById('fmPrimaryWeight').value = '400';
+  document.getElementById('fmIsEnglish').checked = false;
   document.getElementById('fmIsPick').checked = false;
   document.getElementById('fmUrl').value = '';
   document.getElementById('fmPreviewText').value = '';
@@ -1596,6 +1604,7 @@ function editFont(id){
   document.getElementById('fmMaker').value = f.maker;
   document.getElementById('fmWeights').value = f.weights;
   document.getElementById('fmPrimaryWeight').value = String(f.primaryWeight || 400);
+  document.getElementById('fmIsEnglish').checked = !!f.isEnglish;
   document.getElementById('fmIsPick').checked = !!f.isPick;
   document.getElementById('fmUrl').value = f.url || '';
   document.getElementById('fmPreviewText').value = (f.meta && f.meta.preview_text) || '';
@@ -2113,6 +2122,12 @@ async function saveFont(){
   const stack = "'Nanum Gothic',sans-serif";
 
   // 웹폰트 CDN 연결 (선택)
+  // 영문 전용 여부 — 이 값이 갤러리·상세페이지의 미리보기 문구를 한글/영문 중
+  // 어느 쪽으로 넣을지 결정한다. 카테고리('디자인 영어')는 분류일 뿐 이 판단에
+  // 쓰이지 않는다. 예전엔 어드민에 이 스위치가 아예 없어서, 어드민으로 추가한
+  // 영문 폰트는 한글 문구를 받아 대체 폰트로 그려졌다.
+  const isEnglish = document.getElementById('fmIsEnglish').checked;
+
   const webfontFamily = document.getElementById('fmWebfontName').value.trim();
   const webfontCssUrl = document.getElementById('fmWebfontCssUrl').value.trim();
   const webfontWeights = getCheckedWebfontWeights();
@@ -2120,11 +2135,11 @@ async function saveFont(){
   let saved;
   try {
     if(editingId){
-      saved = await FontStore.update(editingId, {name,maker,weights,url,tags,meta,primaryWeight,isPick,
+      saved = await FontStore.update(editingId, {name,maker,weights,url,tags,meta,primaryWeight,isPick,isEnglish,
         webfontFamily, webfontCssUrl, webfontWeights,
         hasFile: pendingFile ? true : undefined});
     } else {
-      saved = await FontStore.add({name,maker,weights,url,stack,tags,meta,primaryWeight,isPick,
+      saved = await FontStore.add({name,maker,weights,url,stack,tags,meta,primaryWeight,isPick,isEnglish,
         webfontFamily, webfontCssUrl, webfontWeights,
         hasFile: !!pendingFile});
     }
