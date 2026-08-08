@@ -24,6 +24,17 @@
     파일 업로드 없이도 _merged_weights()에 "webfont" 소스로 노출된다.
     실제 폰트 로딩은 프론트엔드가 webfont_css_url을 <link>로 로드하고
     webfont_family를 font-family로 사용하는 방식이라, 이 굵기들은 로컬 파일이 없다.
+
+⚠️ 2026-08 수정: 파일 출처(file_source_of) 노출 + 캐시 정책 분리.
+  - "어드민에서 폰트 파일을 올렸는데 페이지가 그 폰트를 안 읽어온다"는 증상의
+    원인이 둘이었다.
+    (1) 프론트가 webfont_family가 있으면 업로드 파일을 아예 건너뛰었다.
+        → file_source_of()로 'user' 여부를 내려줘, 프론트가 업로드 파일을
+          웹폰트보다 우선하도록 판단할 수 있게 했다.
+    (2) /file 응답이 max-age=31536000, immutable 인데 주소에 버전 키가 없어서
+        파일을 교체해도 브라우저·CDN이 1년 내내 옛 바이트를 돌려줬다.
+        → 어드민이 올린 파일만 ETag 재검증(max-age=0, must-revalidate)으로 바꿨다.
+          번들 폰트는 재배포로만 바뀌므로 immutable 유지.
 """
 import os
 import traceback
@@ -253,6 +264,20 @@ def weight_file_path(font_id: int, weight: int) -> Path:
     return FONTS_DIR / f"font-{font_id:03d}-w{weight}.woff2"
 
 
+def file_source_of(font_id: int) -> str:
+    """이 폰트 파일의 출처. 'user'면 어드민이 직접 올린 파일이다.
+
+    FONT_RESOLUTION은 기동 시 build_font_resolution이 채우고,
+    업로드/삭제 때 갱신된다.
+
+    프론트엔드가 이 값으로 '업로드 파일 vs 웹폰트' 우선순위를 정한다.
+    'user'인데 웹폰트 설정도 남아 있으면 업로드 파일이 이긴다 —
+    파일을 올렸다는 행위 자체가 그 파일을 쓰겠다는 뜻이기 때문이다.
+    """
+    r = FONT_RESOLUTION.get(font_id)
+    return r[1] if r else ""
+
+
 def _ffp_family(font_id: int) -> str:
     return f"FFP-{font_id:03d}"
 
@@ -337,6 +362,8 @@ async def upload_font_file(
             detail=f"파일은 저장됐지만 DB 업데이트 실패: {e}",
         )
 
+    # 이 폰트는 이제 '어드민 업로드'가 된다. 이후 /file 응답이 재검증 헤더로
+    # 나가야 교체가 즉시 반영되므로, 여기서 반드시 갱신해 둔다.
     FONT_RESOLUTION[font_id] = (str(out_path), "user")
 
     size = len(content)
@@ -518,31 +545,48 @@ def delete_font_weight(
     db.commit()
 
 
+# 번들 폰트는 재배포로만 바뀌므로 1년 immutable이 맞다.
+#
+# 어드민이 올린 파일은 다르다. 파일을 교체해도 주소(/api/fonts/{id}/file)가
+# 그대로라, immutable로 두면 브라우저와 CDN이 1년 내내 옛 바이트를 돌려준다.
+# "어드민에서 폰트를 올렸는데 페이지가 안 바뀐다"의 실제 원인이었다.
+# ETag 재검증으로 바꾼다 — 안 바뀌었으면 304라서 트래픽은 거의 같고,
+# 바뀌면 즉시 반영된다. (no-store로 하면 190종을 매 방문마다 다시 받는다)
+_CACHE_IMMUTABLE = {
+    "Cache-Control": "public, max-age=31536000, immutable",
+    "Access-Control-Allow-Origin": "*",
+}
+_CACHE_REVALIDATE = {
+    "Cache-Control": "public, max-age=0, must-revalidate",
+    "Access-Control-Allow-Origin": "*",
+}
+
+
 @router.get("/{font_id}/file")
 def download_font_file(font_id: int, weight: int = 0, db: Session = Depends(get_db)):
-    _headers = {
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "Access-Control-Allow-Origin": "*",
-    }
+    _headers = _CACHE_REVALIDATE if file_source_of(font_id) == "user" else _CACHE_IMMUTABLE
     if weight:
         # 1순위: 어드민이 개별 등록한 굵기 파일
         wp = weight_file_path(font_id, weight)
         if wp.exists():
-            return FileResponse(path=wp, media_type="font/woff2", headers=_headers)
-        # 2순위: 매니페스트 기반 굵기 파일
+            # 굵기 파일도 어드민 업로드다. 대표 파일이 번들이라 해서 이 파일까지
+            # immutable로 내리면, 굵기 파일을 교체해도 반영되지 않는다.
+            return FileResponse(path=wp, media_type="font/woff2", headers=_CACHE_REVALIDATE)
+        # 2순위: 매니페스트 기반 굵기 파일 (저장소에 묶여 배포되므로 immutable)
         for w in WEIGHT_RESOLUTION.get(font_id, []):
             if w["weight"] == weight and Path(w["path"]).exists():
-                return FileResponse(path=w["path"], media_type="font/woff2", headers=_headers)
+                return FileResponse(path=w["path"], media_type="font/woff2", headers=_CACHE_IMMUTABLE)
     resolved = FONT_RESOLUTION.get(font_id)
     if resolved and Path(resolved[0]).exists():
         return FileResponse(path=resolved[0], media_type="font/woff2", headers=_headers)
     p = font_path(font_id)
     if p.exists():
         FONT_RESOLUTION[font_id] = (str(p), "user")
-        return FileResponse(path=p, media_type="font/woff2", headers=_headers)
+        # 방금 'user'로 밝혀졌으므로 재검증 헤더로 내린다
+        return FileResponse(path=p, media_type="font/woff2", headers=_CACHE_REVALIDATE)
     bp = bundled_font_path(font_id)
     if bp.exists():
-        return FileResponse(path=bp, media_type="font/woff2", headers=_headers)
+        return FileResponse(path=bp, media_type="font/woff2", headers=_CACHE_IMMUTABLE)
     raise HTTPException(status_code=404, detail="폰트 파일이 없습니다")
 
 
