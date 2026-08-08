@@ -213,7 +213,8 @@ footer{border-top:1px solid var(--border);margin-top:60px;padding:24px 0;text-al
   /* 폰트 미리보기 로딩 — font.html의 방식을 그대로 따른다.
      웹폰트 CDN 소스가 있으면 CSS를 링크하고, 없으면 로컬 woff2를 @font-face로 등록. */
   function stackOf(f){
-    if (f.webfont_family && f.webfont_css_url){
+    // 어드민 업로드 파일(file_source==='user')이 웹폰트보다 우선한다
+    if (f.webfont_family && f.webfont_css_url && f.file_source !== 'user'){
       if (!loadedCss[f.webfont_css_url]){
         loadedCss[f.webfont_css_url] = true;
         var l = document.createElement('link');
