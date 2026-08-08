@@ -49,6 +49,15 @@ def _has_sample(font_id: int) -> bool:
         return False
 
 
+def _file_source(font_id: int) -> str:
+    """파일 출처('user' 등). 순환 임포트를 피해 함수 안에서 늦게 임포트한다."""
+    try:
+        from .files import file_source_of
+        return file_source_of(font_id)
+    except Exception:
+        return ""
+
+
 def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
     return FontOut(
         has_pairing=font.id in paired_ids,
@@ -70,6 +79,7 @@ def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
         meta=font.meta or {},
         like_count=font.like_count or 0,
         has_sample=_has_sample(font.id),
+        file_source=_file_source(font.id),
     )
 
 
