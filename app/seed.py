@@ -43,6 +43,7 @@ def init_db():
         _migrate_tag_axes(db)
         _seed_pairings(db)
         _seed_use_cases(db)
+        _migrate_impact_hub(db)
         _seed_gif_use_cases(db)
         _seed_gif_templates(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
@@ -235,6 +236,120 @@ _SHAPE_BACKFILL = {
 
 
 TAG_AXIS_MIGRATION_KEY = "tag_axis_migrated"
+
+
+# ═══════════════════════════════════════════════════════════
+# 청첩장 허브 → '임팩트가 필요할 때!' 교체 (2026-08, 일회성)
+# ═══════════════════════════════════════════════════════════
+IMPACT_HUB_MIGRATION_KEY = "impact_hub_migration_v1"
+
+# 상위픽은 썸네일 허브(여기어때 잘난체·검은고딕·열정도체·SB어그로체)와
+# 일부러 겹치지 않게 골랐다. 상위 4종이 3개 이상 겹치면 사용자에게는
+# 두 허브가 같은 페이지로 보인다 (use_case_data.py 상단 주석 참조).
+_IMPACT_PICKS = [
+    (71, "원스토어 모바일고딕 제목체",
+     "네모틀을 꽉 채우는 제목체라 한 단어만 얹어도 화면을 장악합니다."),
+    (76, "이사만루체",
+     "획이 두껍고 각이 살아 있어 스포츠·이벤트처럼 기세가 필요한 자리에 맞습니다."),
+    (96, "태나다체",
+     "굵기에 개성이 얹혀 있어 비슷비슷한 굵은 제목들 사이에서 구분됩니다."),
+    (41, "배달의민족 을지로체",
+     "간판 글씨에서 온 서체라 레트로한 강조가 필요할 때 분위기까지 같이 잡힙니다."),
+]
+
+_IMPACT_PHRASES = [
+    "지금 아니면 안 돼",
+    "단 하루, 오늘만",
+    "이건 진짜 봐야 합니다",
+    "올해 마지막 기회입니다",
+]
+
+_IMPACT_TIPS = [
+    ["크기·굵기", "본문의 2.5배 이상. 임팩트는 굵기가 아니라 '본문과의 차이'에서 나옵니다."],
+    ["글자 수", "한 줄 8자 이내. 길어지면 강조가 아니라 그냥 큰 글씨가 됩니다."],
+    ["주의", "한 화면에 강조는 하나만. 둘 이상이면 서로 힘을 깎아먹습니다."],
+]
+
+
+def _migrate_impact_hub(db: Session):
+    """청첩장 허브를 감추고 '임팩트가 필요할 때!' 허브를 그 자리에 만든다.
+
+    ⚠ 시드 재실행이 아니라 해당 행만 손대는 일회성 작업이다.
+    어드민에서 편집한 다른 허브는 건드리지 않는다 (use_case_admin_edited
+    플래그 때문에 시드는 이미 통째로 건너뛰는 상태다).
+
+    app_meta에 표시해 두 번 실행되지 않게 한다. 되돌리려면 그 행을 지우고
+    새로 만든 impact 허브를 삭제하면 된다.
+    """
+    from .models import UseCase, UseCaseFont, UseCasePhrase, Tag
+
+    done = db.query(AppMeta).filter(AppMeta.key == IMPACT_HUB_MIGRATION_KEY).first()
+    if done and done.value == "1":
+        return
+
+    tag = db.query(Tag).filter(Tag.name == "시선을 끄는 제목용").first()
+    if tag is None:
+        # 태그 이름이 바뀌었다면 함부로 만들지 않는다 — 같은 뜻의 태그가
+        # 두 개 생기면 폰트가 양쪽으로 갈린다. 표시도 남기지 않고 다음 기동에 재시도.
+        print("[migrate] 임팩트 허브 건너뜀 — '시선을 끄는 제목용' 태그를 찾지 못했습니다")
+        return
+
+    # ① 청첩장 허브 숨기기 (삭제하지 않는다 — 되돌릴 수 있어야 한다)
+    wedding = db.query(UseCase).filter(UseCase.slug == "wedding").first()
+    slot = wedding.sort_order if wedding else 0
+    if wedding is not None and wedding.is_active:
+        wedding.is_active = False
+        print("[migrate] 청첩장 허브 비활성화 (데이터는 보존)")
+
+    # ② 임팩트 허브 생성 — 청첩장이 있던 자리(sort_order)를 그대로 물려받아
+    #    그리드 10칸이 유지된다.
+    uc = db.query(UseCase).filter(UseCase.slug == "impact").first()
+    if uc is None:
+        uc = UseCase(slug="impact", sort_order=slot)
+        db.add(uc)
+    uc.title = "임팩트가 필요할 때!"
+    uc.subtitle = "한 단어로 시선을 붙잡는 강한 제목용"
+    uc.tag_id = tag.id
+    uc.criteria = (
+        "강조는 굵기만으로 만들어지지 않습니다. 획이 굵어도 글자통이 작으면 "
+        "옆의 본문에 묻힙니다. 네모틀을 꽉 채우거나 형태에 개성이 있어 "
+        "짧은 문구 하나로 화면을 잡아채는 서체만 골랐습니다."
+    )
+    uc.howto = (
+        "본문의 2.5배 이상 크기로, 한 줄 8자 이내로 씁니다. "
+        "한 화면에 강조는 하나만 두세요."
+    )
+    uc.tips = _IMPACT_TIPS
+    uc.is_active = True
+    db.flush()
+
+    # ③ 상위픽 4종 — 폰트가 없으면 그 줄만 건너뛴다 (경고만 남긴다)
+    db.query(UseCaseFont).filter(UseCaseFont.use_case_id == uc.id).delete()
+    rank = 0
+    missing = []
+    for font_id, name, reason in _IMPACT_PICKS:
+        f = db.query(Font).filter(Font.id == font_id).first()
+        if f is None:
+            missing.append(f"id={font_id}({name})")
+            continue
+        if f.name != name:
+            print(f"[migrate] 임팩트 허브 폰트명 불일치 id={font_id}: DB='{f.name}' 기대='{name}'")
+        rank += 1
+        db.add(UseCaseFont(use_case_id=uc.id, font_id=font_id, rank=rank, reason=reason))
+    if missing:
+        print(f"[migrate] 임팩트 허브 폰트 미발견: {', '.join(missing)}")
+
+    # ④ 문구 칩
+    db.query(UseCasePhrase).filter(UseCasePhrase.use_case_id == uc.id).delete()
+    for i, text_ in enumerate(_IMPACT_PHRASES):
+        db.add(UseCasePhrase(use_case_id=uc.id, text=text_, sort_order=(i + 1) * 10))
+
+    if done is None:
+        db.add(AppMeta(key=IMPACT_HUB_MIGRATION_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+    print(f"[migrate] '임팩트가 필요할 때!' 허브 생성 완료 (상위픽 {rank}종, 태그 '{tag.name}')")
 
 
 def _migrate_tag_axes(db: Session):
