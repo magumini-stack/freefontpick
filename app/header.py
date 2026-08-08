@@ -28,7 +28,18 @@ NAV_ITEMS = [
 def _nav_links(active: str, indent: str, mobile: bool) -> str:
     lines = []
     for key, href, label, id_d, id_m in NAV_ITEMS:
-        cls = ' class="active"' if key == active else ""
+        # 클래스는 여러 개가 붙을 수 있으므로 목록으로 모아 한 번에 쓴다.
+        # 예전처럼 'active' 하나만 문자열로 박아두면 다른 표식을 붙일 때
+        # class 속성이 두 개 생겨 뒤엣것이 무시된다.
+        classes = []
+        if key == active:
+            classes.append("active")
+        if key == "gif":
+            # GIF 생성기는 메뉴에서 유일하게 '만드는' 기능이다.
+            # 나머지 항목(소개·공지·FAQ)은 읽는 페이지라, 같은 무게로 두면 묻힌다.
+            # 실제 강조는 header.css의 .nav-gif가 담당한다.
+            classes.append("nav-gif")
+        cls = f' class="{" ".join(classes)}"' if classes else ""
         elid = id_m if mobile else id_d
         id_attr = f' id="{elid}"' if elid else ""
         onclick = ' onclick="navFindFont(event)"' if key == "findfont" else ""
