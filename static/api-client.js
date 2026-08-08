@@ -58,6 +58,8 @@ const FontStore = {
       webfontCssUrl: f.webfont_css_url || '',
       webfontWeights: f.webfont_weights || [],
       hasFile: f.has_file,
+      // 'user'면 어드민이 직접 올린 파일 — 프론트에서 웹폰트보다 우선한다
+      fileSource: f.file_source || '',
       hasSample: !!f.has_sample,
       hasPairing: !!f.has_pairing,
       sort_order: f.sort_order,
@@ -160,6 +162,10 @@ function _fromServer(f) {
     webfontCssUrl: f.webfont_css_url || '',
     webfontWeights: f.webfont_weights || [],
     hasFile: f.has_file,
+    // getAll과 같은 필드를 실어야 한다. 빠뜨리면 저장 직후 반환된 객체만
+    // fileSource가 undefined라, 어드민이 저장하자마자 미리보기를 그릴 때
+    // 업로드 파일 대신 웹폰트로 떨어진다.
+    fileSource: f.file_source || '',
     hasSample: !!f.has_sample,
     hasPairing: !!f.has_pairing,
     sort_order: f.sort_order,
