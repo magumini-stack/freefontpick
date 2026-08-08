@@ -149,7 +149,7 @@
 
     /* HERO */
     .hero{max-width:1240px;margin:0 auto;padding:40px 24px 26px}
-    .hero-kicker{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:13px;color:var(--accent);font-weight:700;margin-bottom:14px}
+    .hero-kicker{font-size:13px;color:var(--accent);font-weight:700;margin-bottom:14px}
     /* 히어로 타이틀은 본문과 같은 고딕(Noto Sans KR)을 그대로 쓴다.
        v7 시안은 명조였지만, 사이트 전체가 고딕이라 여기만 세리프면 겉돈다. */
     .hero-title{font-size:clamp(21px,3.1vw,32px);font-weight:800;color:var(--text-primary);line-height:1.32;letter-spacing:-.8px;word-break:keep-all}
@@ -307,7 +307,7 @@
     #heroPicksWrap{overflow:hidden;max-height:2000px;transition:max-height .32s ease,opacity .28s ease;opacity:1}
     #heroPicksWrap.collapsed{max-height:0;opacity:0;pointer-events:none}
     html[data-hero-collapsed="1"] #heroPicksWrap{max-height:0;opacity:0;transition:none}
-    .collapse-toggle{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;max-width:1240px;margin:0 auto;padding:9px 24px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;color:var(--text-muted);font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:11.5px;letter-spacing:.3px;transition:color .15s}
+    .collapse-toggle{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;max-width:1240px;margin:0 auto;padding:9px 24px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;color:var(--text-muted);font-size:11.5px;letter-spacing:.3px;transition:color .15s}
     .collapse-toggle:hover{color:var(--accent)}
     .collapse-toggle .ct-icon{width:15px;height:15px;transition:transform .25s}
     .collapse-toggle.is-collapsed .ct-icon{transform:rotate(180deg)}
@@ -426,7 +426,7 @@
       mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);
       -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
     .tags-bar::-webkit-scrollbar{display:none}
-    .tag{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:11.5px;padding:5px 9px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500;flex:0 0 auto}
+    .tag{font-size:11.5px;padding:5px 9px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500;flex:0 0 auto}
     .tag:hover{border-color:var(--text-primary);color:var(--text-primary)}
     .tag.active{color:var(--accent);border-color:var(--accent);font-weight:700;background:none}
 
@@ -474,7 +474,8 @@
       .font-grid[data-view="list"] .font-meta{padding-right:0;flex-wrap:wrap}
       .font-grid[data-view="list"] .font-preview{padding-right:0}
       .font-grid[data-view="list"] .font-actions{top:12px}
-      .font-grid[data-view="list"] .font-preview-text{-webkit-line-clamp:2}
+      /* 한 줄 보기는 화면 폭과 무관하게 1줄 — 모바일에서도 줄바꿈하지 않는다 */
+      .font-grid[data-view="list"] .font-preview-text{-webkit-line-clamp:1}
     }
 
     /* ── 좌측 용도 레일 ──
@@ -492,10 +493,15 @@
       /* 헤더가 position:fixed(높이 60px)라 그만큼 내려야 첫 칸이 안 가린다.
          60 + 여백 16 = 76px. 헤더 높이를 바꾸면 이 값도 같이 바꿔야 한다. */
       top:76px;z-index:10;opacity:0;transform:translateX(-10px);pointer-events:none;
+      /* 허브 10개 + 모양 카테고리를 합치면 세로가 화면을 넘긴다.
+         레일 안에서만 스크롤시켜야 아래쪽 항목이 잘리지 않는다. */
+      max-height:calc(100vh - 92px);overflow-y:auto;scrollbar-width:thin;
       transition:opacity .25s ease,transform .25s ease}
     .hub-rail.show{opacity:1;transform:none;pointer-events:auto}
-    .hub-rail h2{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10px;
-      color:var(--text-muted);letter-spacing:.08em;margin-bottom:8px;padding-left:2px}
+    /* 모노 스택에는 한글 글리프가 없어 '용도별 추천'이 OS 기본 고딕으로 떨어졌다.
+       본문 서체를 그대로 쓴다. 자간 .08em도 라틴 대문자 레이블용 값이라 한글엔 과했다. */
+    .hub-rail h2{font-size:12.5px;font-weight:700;
+      color:var(--text-secondary);letter-spacing:-.02em;margin-bottom:8px;padding-left:2px}
     .rail-boxes{display:grid;grid-template-columns:1fr;gap:1px;background:var(--border);
       border:1px solid var(--border)}
     .rail-cell{background:var(--bg-card);padding:11px 13px;text-decoration:none;display:block;
@@ -503,8 +509,18 @@
     .rail-cell:hover{background:var(--accent-light)}
     .rail-nm{font-size:14px;font-weight:700;letter-spacing:-.03em;display:block;white-space:nowrap;
       overflow:hidden;text-overflow:ellipsis;line-height:1.3}
-    .rail-ct{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:9.5px;
-      color:var(--text-muted);margin-top:3px;display:block}
+    /* '12종' — 숫자는 모노, 종은 OS 고딕으로 갈라지던 자리 */
+    .rail-ct{font-size:11px;color:var(--text-muted);margin-top:3px;display:block}
+    /* 모양 카테고리 — 위 용도 허브가 이미 박스라, 여기까지 박스를 두면
+       두 목록의 위계가 같아 보인다. 텍스트만 세로로 쌓는다. */
+    .rail-h2-sub{margin-top:22px}
+    .rail-tags{display:flex;flex-direction:column;align-items:stretch}
+    .rail-tag{border:none;background:none;width:100%;text-align:left;
+      padding:5px 2px;font-family:inherit;font-size:12.5px;font-weight:500;
+      color:var(--text-secondary);line-height:1.4;cursor:pointer;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .15s}
+    .rail-tag:hover{color:var(--text-primary)}
+    .rail-tag.active{color:var(--accent);font-weight:700}
     @media(max-width:1000px){
       .body-cols{grid-template-columns:1fr;gap:0;margin-left:0}
       .hub-rail{display:none}
@@ -568,23 +584,29 @@
        격자는 열 폭이 1/3이라 긴 폰트명이 오면 제작자가 통째로 잘린다.
        기본 .font-meta 배치(좌: 이름+제작자 2줄 / 우: 종수)를 그대로 쓰고
        순서만 위로 올린다. */
-    .font-grid[data-view="grid"] .font-card{min-height:216px;padding-right:34px}
+    /* 카드 높이 = 위여백24 + 정보줄35 + 간격20 + 견본 2줄69 + 아래여백20 ≈ 168.
+       문구가 35자라 어떤 서체든 2줄을 넘긴다 → 클램프 2줄에 항상 걸린다.
+       즉 견본 높이가 서체와 무관하게 고정이라, 예전처럼 3줄분을 비워둘
+       필요가 없다. 176px은 최소 여유분. */
+    .font-grid[data-view="grid"] .font-card{min-height:176px;padding-right:34px}
     .font-grid[data-view="grid"] .font-bottom{display:contents}
-    .font-grid[data-view="grid"] .font-meta{order:1;margin-bottom:14px}
+    /* 정보줄과 견본 사이 간격. 14px이면 이름에 견본이 달라붙어 한 덩어리로 읽힌다. */
+    .font-grid[data-view="grid"] .font-meta{order:1;margin-bottom:20px}
     /* 구분선은 정보가 아래에 있을 때 견본과 갈라주던 것. 위로 올라오면
        카드 상단을 가로지르는 줄이 되어 카드 경계선과 헷갈린다. */
     .font-grid[data-view="grid"] .card-divider{display:none}
-    /* 견본은 남은 높이를 채우되 위에서부터 시작한다.
-       세로 가운데 정렬이면 문구 길이에 따라 카드마다 첫 줄 높이가 달라진다. */
-    .font-grid[data-view="grid"] .font-preview{order:2;flex:1 1 auto;min-height:0;
-      margin-bottom:0;align-items:flex-start}
+    /* 견본은 남은 높이 안에서 세로 가운데 (.font-preview 기본값 align-items:center).
+       한때 위쪽 정렬로 못박았던 건 폰트마다 다른 문구를 쓰던 때의 잔재다.
+       문구를 전부 같게 바꾼 뒤로는 줄 수가 거의 같아서 가운데 정렬이 안전하고,
+       위쪽 정렬은 남는 높이를 전부 아래로 몰아 카드 밑이 비어 보인다. */
+    .font-grid[data-view="grid"] .font-preview{order:2;flex:1 1 auto;min-height:0;margin-bottom:0}
     .font-preview{min-height:64px;display:flex;align-items:center;margin-bottom:14px}
     .font-preview-text{color:var(--text-primary);line-height:1.32;word-break:keep-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;-webkit-user-select:none;user-select:none}
     .card-divider{height:1px;background:var(--border);margin-bottom:12px}
     .font-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;min-width:0}
     .font-name{font-size:13.5px;font-weight:700;color:var(--text-primary);margin-bottom:2px;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .font-maker{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .font-weights{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10.5px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+    .font-maker{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .font-weights{font-size:11px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
     .font-tags-row{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
     .font-tags-row:empty{display:none}
     .font-tag-pill{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10px;padding:2px 7px;border-radius:2px;border:1px solid var(--border);color:var(--text-muted);font-weight:500}
@@ -840,6 +862,8 @@
     <aside class="hub-rail" id="hubRail" aria-label="용도별 바로가기">
       <h2>용도별 추천</h2>
       <div class="rail-boxes" id="hubRailNav"></div>
+      <h2 class="rail-h2-sub">모양별 찾기</h2>
+      <div class="rail-tags" id="hubRailTags"></div>
     </aside>
     <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
   </div>
@@ -1111,7 +1135,25 @@ let currentFontSize=26;
    한 줄 보기는 자리가 넓으므로 견본 글자를 키워야 의미가 있다. */
 let currentView = 'list';   // 기본은 한 줄 보기
 try { const v = localStorage.getItem('ffp-gallery-view'); if(v==='list'||v==='grid') currentView = v; } catch(e){}
-function previewSizeFor(){ return currentView==='list' ? Math.round(currentFontSize*1.6) : currentFontSize; }
+/* 한 줄 보기는 화면 폭과 무관하게 1줄이라, 글자가 크면 그만큼 덜 보인다.
+   데스크톱은 폭이 넓어 42px에서도 23자가 들어가지만 모바일은 10자에서 끊긴다.
+   좁은 화면에서만 배율을 낮춰 18자까지 보이게 한다 (26px 기준 24px). */
+function isNarrowView(){
+  try { return window.matchMedia('(max-width:900px)').matches; } catch(e){ return false; }
+}
+function previewSizeFor(){
+  if(currentView !== 'list') return currentFontSize;
+  return Math.round(currentFontSize * (isNarrowView() ? 0.92 : 1.6));
+}
+/* 폭이 900px 경계를 넘나들면 견본 크기 기준이 바뀌므로 다시 그린다 */
+let _wasNarrowView = isNarrowView();
+window.addEventListener('resize', () => {
+  const n = isNarrowView();
+  if(n !== _wasNarrowView){
+    _wasNarrowView = n;
+    if(currentView === 'list') renderFonts();
+  }
+});
 function setGalleryView(v){
   if(v!=='list' && v!=='grid') return;
   currentView = v;
@@ -1138,24 +1180,28 @@ function applyGalleryView(){
 
    대신 5개를 랜덤으로 돌린다 — 하나로 고정하면 재방문자가 늘 같은 화면을 본다.
 
-   톤은 시·감성글. 길이는 20자, 상한 22자.
+톤은 시·감성글. 길이 35자 내외 — 어디서든 말줄임을 전제로 한다.
 
-   길이를 정하는 건 데스크톱이 아니라 모바일이다. 한글은 정사각 자면이라
-   글자 폭이 거의 글자 크기와 같다.
-     모바일(390px) 한 줄 보기 : 42px → 한 줄 9~10자, 클램프 2줄 = 약 19자  ← 여기가 상한
-     데스크톱 3열 한 줄 보기   : 918px / 42px → 약 23자
-     데스크톱 3열 격자 보기    : 열 266px / 26px → 한 줄 10자, 2줄 = 약 21자
-   클램프를 늘려 긴 문구를 담을 수도 있지만, 그러면 좁은 서체는 3줄
-   넓은 서체는 4줄로 감겨 카드 높이가 폰트마다 달라진다. 문구가 전부
-   같아서 카드 높이가 맞아떨어지는 지금 구조가 깨진다.
+   한글은 정사각 자면이라 글자 폭이 거의 글자 크기와 같다. 실측:
+     한 줄 보기 데스크톱 3열 : 918px / 42px → 한 줄 약 23자  → 12자가 잘린다
+     한 줄 보기 모바일 390px : 428px / 42px → 한 줄 약 10자  → 25자가 잘린다
+     격자 보기 데스크톱 3열  : 열 266px / 26px → 2줄 약 21자 → 14자가 잘린다
+   전부 의도된 잘림이다. 서체 판단은 앞 10~15자에서 끝나고, 뒤는 문구의
+   분위기를 위해 둔다는 결정. 잘림 위치가 모든 카드에서 같으므로
+   격자 행 높이는 어긋나지 않는다 (오히려 2줄로 고정된다).
 
    ko/en은 같은 인덱스로 짝지어 함께 돈다 (영문 전용 폰트는 한글을 못 그린다). */
 const SAMPLE_PHRASES = [
-  { ko: '우리는 서로의 안부가 되어 오래 걸었다', en: 'We walked long, keeping each other safe' },
-  { ko: '밤이 깊을수록 별은 더 또렷해집니다',   en: 'The deeper the night, the clearer the stars' },
-  { ko: '그해 여름의 빛이 손끝에 남아 있다',    en: 'That summer light still rests on my hands' },
-  { ko: '괜찮아요, 천천히 와도 봄은 옵니다',    en: 'It is alright, spring comes even if slow' },
-  { ko: '잊었다 믿은 것들이 문득 창가에 앉아',  en: 'What I thought forgotten sits by the window' },
+  { ko: '우리는 서로의 안부가 되어 그 겨울을 아주 오래 걸어갔습니다',
+    en: 'We walked through that long winter, keeping each other safe' },
+  { ko: '밤이 깊을수록 별은 더 또렷해진다고 당신이 조용히 말해주었다',
+    en: 'You quietly said the deeper the night, the clearer the stars' },
+  { ko: '그해 여름의 빛이 아직 손끝에 남아 조용히 반짝이고 있습니다',
+    en: 'That summer light still rests on my hands and quietly shines' },
+  { ko: '괜찮아요, 조금 늦어도 봄은 결국 우리에게 찾아오고 말 거예요',
+    en: 'It is alright, spring will find its way to us however late' },
+  { ko: '잊었다고 믿었던 것들이 문득 창가에 앉아 나를 바라보고 있었다',
+    en: 'What I believed forgotten sat by the window, looking back' },
 ];
 let _sampleIdx = Math.floor(Math.random() * SAMPLE_PHRASES.length);
 function currentSample(){ return SAMPLE_PHRASES[_sampleIdx]; }
@@ -1214,7 +1260,10 @@ function updatePreviews(){
 function updateFontSize(v){
   currentFontSize=parseInt(v);
   document.getElementById('fontSizeVal').textContent=v+'px';
-  document.querySelectorAll('.font-preview-text').forEach(el=>el.style.fontSize=v+'px');
+  // previewSizeFor()를 거쳐야 한다. 원값을 그대로 꽂으면 한 줄 보기에서
+  // 슬라이더를 건드리는 순간 1.6배 배율이 사라져 견본이 갑자기 작아진다.
+  const px = previewSizeFor();
+  document.querySelectorAll('.font-preview-text').forEach(el=>el.style.fontSize=px+'px');
 }
 
 /* ── 문구 미리보기로 추천 받기 (탭+프리셋, 어드민 등록 데이터 기반) ── */
@@ -1376,6 +1425,7 @@ function setTag(tag, el, pushHash){
     const btn = [...document.querySelectorAll('.tag')].find(t => t.textContent === label);
     if(btn) btn.classList.add('active');
   }
+  syncRailTagActive();
   // 카테고리 클릭 시: 검색창 클리어
   const input = document.getElementById('globalSearch');
   if(input && input.value){
@@ -2954,6 +3004,22 @@ document.addEventListener('keydown',function(e){
    같은 줄에 용도와 형태가 섞여 있으면 사용자는 두 축을 하나로 착각한다.
    axis 값은 /api/tags 가 내려주므로 여기서 직접 받아온다
    (TagStore.getAll()은 이름 배열만 주고 axis를 잃어버린다). */
+/* 좌측 레일의 모양 카테고리 — 상단 태그 레일과 같은 데이터를 쓴다.
+   따로 fetch하면 두 목록이 어긋날 수 있어 renderTagsBar가 받은 걸 넘겨받는다. */
+function renderRailTags(tags){
+  const box = document.getElementById('hubRailTags');
+  if(!box || !Array.isArray(tags)) return;
+  box.innerHTML =
+    `<button type="button" class="rail-tag" data-tag="all" onclick="setTag('all',null)">전체</button>` +
+    tags.map(t => `<button type="button" class="rail-tag" data-tag="${escapeHtml(t)}" onclick="setTag(this.dataset.tag,null)">${escapeHtml(t)}</button>`).join('');
+  syncRailTagActive();
+}
+function syncRailTagActive(){
+  document.querySelectorAll('#hubRailTags .rail-tag').forEach(b => {
+    b.classList.toggle('active', b.dataset.tag === currentTag);
+  });
+}
+
 async function renderTagsBar(){
   let tags;
   try {
@@ -2965,6 +3031,7 @@ async function renderTagsBar(){
     console.warn('태그 로딩 실패 — 전체 태그로 폴백', e);
     tags = await TagStore.getAll();
   }
+  renderRailTags(tags);
   const bar = document.getElementById('tagsBar');
   // 현재 활성 태그가 목록에서 빠졌다면 'all'로 리셋
   if(currentTag !== 'all' && !tags.includes(currentTag)){
