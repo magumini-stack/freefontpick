@@ -2728,9 +2728,14 @@ function showMoreRecommendations(){
       _dsWeightDone[id] = true;
       const fam = 'FFP-' + String(id).padStart(3,'0');
       list.forEach(w=>{
-        _dsWeightStyle.appendChild(document.createTextNode(
-          `@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file?weight=${w.weight}') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`
-        ));
+        try{
+          const sh = _dsWeightStyle.sheet;
+          sh.insertRule(`@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file?weight=${w.weight}') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`, sh.cssRules.length);
+        }catch(e){
+          _dsWeightStyle.appendChild(document.createTextNode(
+            `@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file?weight=${w.weight}') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`
+          ));
+        }
       });
     }
     function webfontOf(name){
@@ -2753,6 +2758,22 @@ const _fontStyleEl = (() => {           // 모든 @font-face 규칙을 담을 �
 })();
 
 const _webfontLoaded = new Set();  // 로드된 웹폰트 CSS URL
+
+/* @font-face 규칙 한 줄을 끼워 넣는다.
+   ⚠ <style>에 텍스트 노드를 append하면 브라우저가 그 스타일시트를 통째로
+   다시 파싱한다. 스크롤하며 190종을 하나씩 붙이면 파싱이 190번 반복되고,
+   그때마다 문서 전체 스타일이 무효화돼 갤러리가 전부 다시 그려진다 —
+   "샘플 문구가 깜박인다"의 원인이 이것이었다(로딩 속도 문제가 아니다).
+   insertRule은 규칙 하나만 추가해 재파싱이 일어나지 않는다.
+   sheet 접근이 막히는 환경(구형/보안정책)만 예전 방식으로 떨어진다. */
+function addFontFaceRule(rule){
+  try{
+    const sheet = _fontStyleEl.sheet;
+    sheet.insertRule(rule, sheet.cssRules.length);
+  }catch(e){
+    _fontStyleEl.appendChild(document.createTextNode(rule));
+  }
+}
 
 function ensureFontLoaded(id){
   if(_fontLoaded.has(id)) return;
@@ -2784,9 +2805,9 @@ function ensureFontLoaded(id){
   const url = pw ? `/api/fonts/${id}/file?weight=${pw}` : `/api/fonts/${id}/file`;
   // 받아온 파일을 'normal'로 선언해 둔다. 화면 요소는 기본 굵기로 그려지므로
   // 합성 없이 이 파일이 그대로 쓰인다.
-  _fontStyleEl.appendChild(document.createTextNode(
+  addFontFaceRule(
     `@font-face{font-family:'${family}';src:url('${url}') format('woff2');font-display:swap;font-weight:normal;font-style:normal}`
-  ));
+  );
 }
 
 /* 폰트의 stack을 사용 가능한 형태로 정규화.
@@ -2844,7 +2865,11 @@ const _fontObserver = new IntersectionObserver((entries) => {
     if(!isNaN(id)) ensureFontLoaded(id);
     _fontObserver.unobserve(entry.target);
   });
-}, { rootMargin: '200px 0px' }); // 화면 200px 전부터 미리 로드
+}, { rootMargin: '1200px 0px' });
+/* 200px에서 1200px로 넓혔다. 카드 높이가 176~200px이라 200px은 겨우 한 줄 앞이고,
+   평균 308KB짜리 폰트를 받는 동안 카드가 이미 화면에 들어와 있다. 그래서
+   대체 폰트로 그려졌다가 교체되는 순간(FOUT)이 사용자 눈에 그대로 보였다.
+   6줄쯤 앞서 받기 시작하면 교체가 화면 밖에서 끝난다. */
 
 function observeFontCards(scope){
   const root = scope || document;
