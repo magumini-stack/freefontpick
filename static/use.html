@@ -237,6 +237,15 @@ footer{border-top:1px solid var(--border);margin-top:60px;padding:24px 0;text-al
     return "'Nanum Gothic',sans-serif";
   }
 
+  /* 허브 문구는 전부 한글이다(썸네일·청첩장 등 용도별 문구).
+     영문 전용 폰트에 그대로 넣으면 글자가 전부 대체 폰트로 그려진다.
+     허브마다 영문 문구를 따로 두는 건 과하므로 공통 문구 하나로 대체한다. */
+  var SAMPLE_EN = 'Typography sets the tone before words are read';
+  function sampleFor(f){
+    if (f && f.is_english) return SAMPLE_EN;
+    return currentPhrase || f.name;
+  }
+
   function esc(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
@@ -257,7 +266,7 @@ footer{border-top:1px solid var(--border);margin-top:60px;padding:24px 0;text-al
     var el = document.getElementById('picks');
     el.innerHTML = picksData.map(function(p){
       var f = p.font;
-      var sample = currentPhrase || f.name;
+      var sample = sampleFor(f);
       return '<a class="pick" href="/font/' + f.id + '">' +
         '<div class="pick-top">' +
           '<span class="rank">' + p.rank + '</span>' +
@@ -276,7 +285,7 @@ footer{border-top:1px solid var(--border);margin-top:60px;padding:24px 0;text-al
     if (!moreData.length) return;
     document.getElementById('moreCount').textContent = moreData.length + '종';
     document.getElementById('moreGrid').innerHTML = moreData.map(function(f){
-      var sample = currentPhrase || f.name;
+      var sample = sampleFor(f);
       return '<a class="more-card" href="/font/' + f.id + '">' +
         '<div class="more-name">' + esc(f.name) + '</div>' +
         '<div class="more-preview" style="font-family:' + stackOf(f) + '">' + esc(sample) + '</div>' +
