@@ -150,7 +150,14 @@
   padding:8px 12px;border-top:1px solid var(--border);background:var(--bg-card,#fff)}
 .sample-credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .sample-credit a:hover{color:var(--accent)}
-.w-sample{flex:1;min-width:0;font-size:clamp(26px,4.4vw,40px);line-height:1.25;letter-spacing:-.3px;color:var(--text-primary);word-break:break-word}
+/* 굵기별 견본 한 줄.
+   크기는 이전(26~40px) 대비 10% 축소 — 서체 판단에는 충분하고, 한 줄에
+   더 많은 글자가 들어간다.
+   줄바꿈을 막는 이유: 굵기가 여러 개인 폰트는 행이 그만큼 쌓이는데, 문구가
+   길어 어떤 행만 두 줄이 되면 행 높이가 제각각이 되어 굵기 비교가 안 된다.
+   높이를 고정하고 넘치는 글자는 말줄임 처리한다. */
+.w-sample{flex:1;min-width:0;font-size:clamp(23.4px,3.96vw,36px);line-height:1.25;letter-spacing:-.3px;color:var(--text-primary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   /* ── USAGE ── */
   .u-cap{font-family:var(--mono);font-size:11px;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
