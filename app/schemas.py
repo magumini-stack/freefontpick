@@ -75,6 +75,10 @@ class FontOut(FontBase):
     # 상세페이지 '글자 견본' 자리를 대체하는 샘플 이미지 보유 여부.
     # 실제 이미지는 GET /api/fonts/{id}/sample-image 로 받는다.
     has_sample: bool = False
+    # 이 폰트의 파일이 어디서 왔는지: 'user'(어드민 업로드) | 'weights' | 'bundled-by-name' | ''
+    # 프론트가 '업로드 파일 vs 웹폰트' 우선순위를 판단하는 데 쓴다. 어드민이 직접 올린
+    # 파일은 웹폰트 설정보다 앞선다 — 올렸다는 행위 자체가 그 파일을 쓰겠다는 뜻이다.
+    file_source: str = ""
     # 웹폰트 등록값 검증 결과. 생성/수정 응답에서만 채워지고 목록 조회에서는 항상 비어 있다
     # (목록마다 외부 CSS를 받아오면 느려지므로).
     webfont_errors: List[str] = Field(default_factory=list)
