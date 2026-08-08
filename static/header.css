@@ -38,11 +38,19 @@ nav a.active{color:var(--accent);background:var(--accent-light);font-weight:700}
   animation:ffpGifFlow 6s linear infinite}
 @keyframes ffpGifFlow{to{background-position:300% 0}}
 
-/* hover·active에서도 그라데이션을 유지한다.
-   nav a:hover(0,1,2)보다 선택자 가중치가 높아야 이긴다 → nav a.nav-gif:hover(0,2,2) */
-nav a.nav-gif:hover,nav a.nav-gif.active,
-.mobile-nav a.nav-gif,.mobile-nav a.nav-gif.active{
-  background-image:var(--gif-grad);background-color:transparent;
+/* hover·active에서도 같은 모습을 유지한다.
+   ⚠ background-image만 되살리면 안 된다. nav a:hover와 nav a.active가 쓰는
+   `background:` 는 단축 속성이라 background-clip을 border-box로,
+   background-size를 auto로 되돌린다. 그러면 그라데이션이 글자 모양이 아니라
+   버튼 박스 전체를 칠하고, 글자는 투명이라 색 덩어리만 남는다.
+   (실제로 /gif/templates·/gif 활성 상태에서 이렇게 깨졌다.)
+   그래서 단축으로 한 번 깔끔히 덮은 뒤 필요한 롱핸드를 다시 선언한다.
+   가중치: nav a:hover(0,1,2) < nav a.nav-gif:hover(0,2,2) */
+nav a.nav-gif,nav a.nav-gif:hover,nav a.nav-gif.active,
+.mobile-nav a.nav-gif,.mobile-nav a.nav-gif:hover,.mobile-nav a.nav-gif.active{
+  background:var(--gif-grad);
+  background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent}
 /* 활성 표시는 배경 칩 대신 밑줄로 준다 — 칩 배경을 깔면 글자 그라데이션이 덮인다 */
 nav a.nav-gif.active{box-shadow:inset 0 -2px 0 #B5179E}
