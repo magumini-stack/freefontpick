@@ -325,6 +325,14 @@
     .preview-label{font-size:12px;color:var(--text-muted);white-space:nowrap;display:flex;align-items:center;gap:4px}
     .preview-input{flex:1;border:none;outline:none;font-size:15px;background:transparent;color:var(--text-primary);font-family:inherit;min-width:0}
     .preview-input::placeholder{color:var(--text-muted)}
+    /* 샘플 문구 새로고침 — 입력창 오른쪽 끝 */
+    .preview-roll{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+      width:28px;height:28px;padding:0;border:none;background:none;border-radius:4px;
+      color:var(--text-muted);font-size:15px;cursor:pointer;transition:color .15s,background .15s}
+    .preview-roll:hover{color:var(--accent);background:var(--accent-light)}
+    .preview-roll i{display:block;line-height:1}
+    .preview-roll.spin i{animation:ffpRoll .45s ease}
+    @keyframes ffpRoll{from{transform:rotate(0)}to{transform:rotate(360deg)}}
     .preview-divider{width:1px;height:20px;background:var(--border);flex-shrink:0}
     .size-wrap{display:flex;align-items:center;gap:7px;flex-shrink:0}
     .size-wrap label{font-size:12px;color:var(--text-muted)}
@@ -552,23 +560,26 @@
       border-radius:6px;
       pointer-events:none;
     }
-    /* 격자 보기 — 견본 영역과 정보 영역의 세로 비율을 2:1로 고정.
-       반반이면 견본이 좁아 폰트 형태 판단이 어렵고, 이름 길이에 따라
-       카드마다 견본 크기가 들쭉날쭉해진다. */
+    /* ── 격자 보기 ──
+       한 줄 보기와 같은 구도: 1행 정보, 2행 견본.
+       두 보기에서 폰트명 위치가 달라지면 토글할 때마다 시선이 위아래로 튄다.
+
+       다만 한 줄 보기처럼 '이름·제작자·종수'를 가로 한 줄에 늘어놓지는 않는다.
+       격자는 열 폭이 1/3이라 긴 폰트명이 오면 제작자가 통째로 잘린다.
+       기본 .font-meta 배치(좌: 이름+제작자 2줄 / 우: 종수)를 그대로 쓰고
+       순서만 위로 올린다. */
     .font-grid[data-view="grid"] .font-card{min-height:216px;padding-right:34px}
-    .font-grid[data-view="grid"] .font-preview{flex:2 1 0;min-height:0;margin-bottom:0}
-    /* 아이콘을 우상단으로 빼면서 하단 흐름에서 버튼이 사라졌다.
-       그 높이를 그대로 비워둬야 폰트명 줄 위치가 유지된다. */
-    .font-grid[data-view="grid"] .font-bottom{flex:1 1 0;display:flex;flex-direction:column;
-      justify-content:flex-end;padding-bottom:22px}
-    /* 한 줄 보기에서는 래퍼가 없는 것처럼 동작해야 meta·actions가 좌우로 갈라진다 */
-    .font-grid[data-view="list"] .font-bottom{display:contents}
+    .font-grid[data-view="grid"] .font-bottom{display:contents}
+    .font-grid[data-view="grid"] .font-meta{order:1;margin-bottom:14px}
+    /* 구분선은 정보가 아래에 있을 때 견본과 갈라주던 것. 위로 올라오면
+       카드 상단을 가로지르는 줄이 되어 카드 경계선과 헷갈린다. */
+    .font-grid[data-view="grid"] .card-divider{display:none}
+    /* 견본은 남은 높이를 채우되 위에서부터 시작한다.
+       세로 가운데 정렬이면 문구 길이에 따라 카드마다 첫 줄 높이가 달라진다. */
+    .font-grid[data-view="grid"] .font-preview{order:2;flex:1 1 auto;min-height:0;
+      margin-bottom:0;align-items:flex-start}
     .font-preview{min-height:64px;display:flex;align-items:center;margin-bottom:14px}
-    .font-preview-text{color:var(--text-primary);line-height:1.32;word-break:keep-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;cursor:text;outline:none;border-radius:4px;transition:background-color .15s}
-    .font-preview-text:hover{background:var(--bg-secondary)}
-    .font-preview-text:focus{background:var(--bg-secondary);-webkit-line-clamp:unset;display:block;overflow:visible}
-    .font-preview-text.is-custom{background:linear-gradient(to right, transparent 0, transparent calc(100% - 36px), var(--accent-light) calc(100% - 36px), var(--accent-light) 100%);position:relative}
-    .font-preview-text.is-custom::after{content:'✎';position:absolute;top:2px;right:6px;font-size:11px;color:var(--accent);font-weight:700;pointer-events:none}
+    .font-preview-text{color:var(--text-primary);line-height:1.32;word-break:keep-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;-webkit-user-select:none;user-select:none}
     .card-divider{height:1px;background:var(--border);margin-bottom:12px}
     .font-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;min-width:0}
     .font-name{font-size:13.5px;font-weight:700;color:var(--text-primary);margin-bottom:2px;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -754,7 +765,7 @@
       .preview-toggle{padding:7px;border-radius:50%}
       .preview-toggle-text{display:none}
     }
-    @media(prefers-reduced-motion:reduce){.font-card{animation:none}*{transition:none!important}}
+    @media(prefers-reduced-motion:reduce){.font-card,.preview-roll.spin i{animation:none}*{transition:none!important}}
   </style>
 </head>
 <body>
@@ -799,7 +810,11 @@
     <p class="gallery-tools-hint">쓰려는 문구를 넣어 <b>아래 전체 폰트</b>를 한 번에 비교해 보세요.</p>
     <div class="preview-bar">
       <span class="preview-label"><i class="ti ti-eye" style="font-size:14px" aria-hidden="true"></i> 미리보기</span>
-      <input class="preview-input" id="previewText" type="text" value="" placeholder="미리보기 문구 입력" aria-label="폰트 미리보기 문구" oninput="updatePreviews(); clearPresetActive()">
+      <input class="preview-input" id="previewText" type="text" value="" placeholder="" aria-label="폰트 미리보기 문구"
+             oninput="updatePreviews(); syncSamplePlaceholder(); clearPresetActive()"
+             onfocus="syncSamplePlaceholder()" onblur="syncSamplePlaceholder()">
+      <button type="button" class="preview-roll" id="previewRoll" onclick="rollSamplePhrase()"
+              title="다른 문구로 바꾸기" aria-label="다른 미리보기 문구 보기"><i class="ti ti-refresh" aria-hidden="true"></i></button>
       <!-- [비활성 2026-08] "문구로 폰트 찾기" 프리셋 추천.
            용도 그리드(위)가 같은 역할을 하게 되어 진입로를 하나로 정리함.
            미리보기 입력창과 크기 조절은 그대로 유지 — 자기 문구로 갤러리를 훑는 건 그쪽이 담당한다.
@@ -1116,92 +1131,81 @@ function applyGalleryView(){
   }
 }
 
+/* ── 갤러리 미리보기 샘플 문구 ──
+   예전에는 폰트마다 다른 문구를 뿌렸다. 그러면 갤러리를 훑을 때 '글자가 달라서
+   다르게 보이는 것'인지 '서체가 달라서 다르게 보이는 것'인지 구분이 안 된다.
+   비교가 목적인 화면이므로 문구는 전부 같아야 한다.
+
+   대신 5개를 랜덤으로 돌린다 — 하나로 고정하면 재방문자가 늘 같은 화면을 본다.
+
+   톤은 시·감성글. 길이는 20자, 상한 22자.
+
+   길이를 정하는 건 데스크톱이 아니라 모바일이다. 한글은 정사각 자면이라
+   글자 폭이 거의 글자 크기와 같다.
+     모바일(390px) 한 줄 보기 : 42px → 한 줄 9~10자, 클램프 2줄 = 약 19자  ← 여기가 상한
+     데스크톱 3열 한 줄 보기   : 918px / 42px → 약 23자
+     데스크톱 3열 격자 보기    : 열 266px / 26px → 한 줄 10자, 2줄 = 약 21자
+   클램프를 늘려 긴 문구를 담을 수도 있지만, 그러면 좁은 서체는 3줄
+   넓은 서체는 4줄로 감겨 카드 높이가 폰트마다 달라진다. 문구가 전부
+   같아서 카드 높이가 맞아떨어지는 지금 구조가 깨진다.
+
+   ko/en은 같은 인덱스로 짝지어 함께 돈다 (영문 전용 폰트는 한글을 못 그린다). */
+const SAMPLE_PHRASES = [
+  { ko: '우리는 서로의 안부가 되어 오래 걸었다', en: 'We walked long, keeping each other safe' },
+  { ko: '밤이 깊을수록 별은 더 또렷해집니다',   en: 'The deeper the night, the clearer the stars' },
+  { ko: '그해 여름의 빛이 손끝에 남아 있다',    en: 'That summer light still rests on my hands' },
+  { ko: '괜찮아요, 천천히 와도 봄은 옵니다',    en: 'It is alright, spring comes even if slow' },
+  { ko: '잊었다 믿은 것들이 문득 창가에 앉아',  en: 'What I thought forgotten sits by the window' },
+];
+let _sampleIdx = Math.floor(Math.random() * SAMPLE_PHRASES.length);
+function currentSample(){ return SAMPLE_PHRASES[_sampleIdx]; }
+
+/* 회색 샘플은 placeholder로 넣는다. value에 넣으면 사용자가 글을 쓰려고
+   클릭했을 때 남의 문구를 지우는 일부터 해야 한다.
+   다만 크롬은 포커스만으로 placeholder를 지우지 않으므로 직접 비운다. */
+function syncSamplePlaceholder(){
+  const input = document.getElementById('previewText');
+  if(!input) return;
+  const focused = (document.activeElement === input);
+  input.placeholder = (focused || input.value) ? '' : currentSample().ko;
+}
+
+/* 새로고침: 직전과 다른 문구가 나오도록 한 번 더 굴린다.
+   순수 랜덤이면 1/5 확률로 같은 문구가 나오는데, 사용자는 그걸
+   '안 눌렸다'로 읽는다. */
+function rollSamplePhrase(){
+  if(SAMPLE_PHRASES.length > 1){
+    let n = _sampleIdx;
+    while(n === _sampleIdx) n = Math.floor(Math.random() * SAMPLE_PHRASES.length);
+    _sampleIdx = n;
+  }
+  const input = document.getElementById('previewText');
+  if(input) input.value = '';   // 입력해 둔 문구가 있어도 샘플로 되돌린다
+  syncSamplePlaceholder();
+  const btn = document.getElementById('previewRoll');
+  if(btn){ btn.classList.remove('spin'); void btn.offsetWidth; btn.classList.add('spin'); }
+  updatePreviews();
+}
+
 function getPreviewText(){
-  return document.getElementById('previewText').value.trim() || DEFAULT_PREVIEW;
+  return document.getElementById('previewText').value.trim() || currentSample().ko;
 }
-const DEFAULT_PREVIEW = '기적처럼 내게 왔으니 별처럼 빛나주세요';
-/* 사용자가 미리보기 입력창에 직접 문구를 입력했는지 (기본값 그대로면 false) */
+/* 사용자가 직접 문구를 입력했는지 */
 function isCustomPreview(){
-  const v = document.getElementById('previewText').value.trim();
-  return v !== '' && v !== DEFAULT_PREVIEW;
+  return document.getElementById('previewText').value.trim() !== '';
 }
 
-/* ── 폰트별 고유 미리보기 문구 풀 ──
-   사용자가 문구를 직접 입력하기 전에는 폰트마다 서로 다른 문구가 표시됨.
-   admin에서 폰트별 문구(meta.preview_text)를 지정하면 그것이 최우선. */
-const KO_PREVIEW_POOL = [
-  '오늘도 좋은 하루가 시작되었어요','골목 끝 작은 서점의 오후 세 시','따뜻한 커피 한 잔의 여유로운 아침',
-  '창밖으로 첫눈이 소복소복 내려요','바다가 보이는 창가 자리로 주세요','봄바람에 실려 온 벚꽃 향기처럼',
-  '너의 하루는 오늘도 반짝였을까','한 걸음씩 천천히 가도 괜찮아요','달빛 아래 고요히 흐르는 강물처럼',
-  '지금 이 순간이 가장 빛나는 시간','읽고 싶은 책이 쌓여가는 즐거움','여행은 언제나 옳다, 떠나자 지금',
-  '갓 구운 빵 냄새 가득한 골목길','초록이 짙어지는 유월의 숲속에서','손편지에 꾹꾹 눌러 담은 진심',
-  '별이 쏟아지는 밤하늘을 담아서','매일 조금씩 자라나는 마음의 키','고양이와 함께하는 나른한 일요일',
-  '빗소리를 들으며 잠드는 밤이 좋아','네가 웃으면 나도 따라 웃게 돼','오래된 노래가 문득 생각나는 밤',
-  '가을 하늘은 눈부시게 높고 파랗다','포근한 이불 속 세상에서 제일 행복','시작이 반이다, 오늘 바로 시작해요',
-  '천천히 우려낸 차 한 잔의 온기','반짝이는 윤슬을 바라보던 그 여름','내일의 나에게 보내는 응원 한마디',
-  '작은 습관이 모여 큰 변화가 된다','골목마다 숨어있는 맛집을 찾아서','흐린 날에도 마음만은 맑음이기를',
-  '노을이 물드는 하늘을 함께 봐요','좋아하는 일을 오래 하고 싶어요','새벽 공기를 가르며 달리는 기분',
-  '단골 카페의 늘 앉던 그 자리','꽃 한 송이로 충분히 행복한 날','겨울밤엔 역시 귤과 따뜻한 코코아',
-  '수고했어요, 오늘도 정말 애썼어요','마음이 머무는 곳이 곧 집이에요','파도 소리를 배경음악 삼아 낮잠을',
-  '첫 페이지를 넘기는 설레는 기분','당신의 취향이 가장 정확한 답이다','늦은 밤 라면은 언제나 진리입니다',
-  '캠핑장의 모닥불이 타닥타닥 타요','기록은 기억보다 오래 남는 법이죠','휴일 아침 늦잠만큼 달콤한 게 있을까',
-  '설레는 마음을 안고 떠나는 첫차','우리 동네 산책 코스를 소개합니다','할 수 있다고 믿으면 이미 절반은 성공',
-  '반가워요, 처음 뵙겠습니다 잘 부탁해요','좋은 글은 마음을 오래 붙잡아둔다','한여름 밤의 시원한 수박 한 조각',
-  '지친 하루 끝엔 맥주 한 캔의 위로','책갈피 사이에 끼워둔 네잎클로버','내 방 창가에서 키우는 작은 화분',
-  '아무것도 안 하는 날도 필요해요','스무 살의 나에게 해주고 싶은 말','단풍잎을 주워 책 사이에 끼웠다',
-  '눈 오는 날엔 어묵 국물이 최고죠','목표를 적으면 이루어질 확률이 커진다','오늘의 플레이리스트를 공유합니다',
-  '느리게 걸어야 보이는 것들이 있다','정성껏 차린 집밥 한 상의 감동','매주 금요일 저녁이 기다려지는 이유',
-  '빛나는 청춘의 한가운데를 지나며','다정한 말 한마디가 하루를 바꾼다','새 노트 첫 장에 쓰는 다짐 한 줄',
-  '비 온 뒤 땅이 더 단단해지듯이','주말 아침 시장 구경 가실 분 여기','달리기를 시작한 지 백 일째 되는 날',
-  '커튼 사이로 스며드는 아침 햇살','실패는 성공으로 가는 계단일 뿐','제주 바다색을 닮은 하늘색 원피스',
-  '퇴근길 버스 창가 자리의 행복','뜨끈한 국밥 한 그릇이면 충분해','흔들리며 피지 않는 꽃이 어디 있으랴',
-  '오늘 밤 주인공은 바로 당신입니다','같이 걷는 길이라서 더 좋았어요','도서관 특유의 종이 냄새가 좋다',
-  '한 뼘 더 자란 마음을 발견한 날','겨울 바다는 여름보다 낭만적이다','시간을 달리는 소년의 모험 이야기',
-  '엄마의 김치찌개는 세상에서 제일','너무 애쓰지 않아도 괜찮은 하루','불 꺼진 방에서 듣는 새벽 감성 음악',
-  '어제보다 나은 오늘이면 충분하다','우산 속 두 사람의 어깨가 닿았다','첫 월급으로 부모님께 선물을 샀다',
-  '숲속 오두막에서 보내는 일주일','디저트는 언제나 배부른 뒤에 시작','반짝이는 아이디어가 떠오른 순간',
-  '골목 어귀 포장마차의 붕어빵 냄새','일단 저지르고 수습은 나중에 하자','네 꿈을 응원해, 언제나 네 편이야',
-  '보고 싶다는 말 대신 안부를 묻는다','한 장의 사진이 천 마디를 말한다','일요일 오후 네 시의 낮잠 예찬',
-  '초심을 잃지 않는 사람이 되고 싶다','밤하늘 별자리 이름을 외우던 시절','따끈한 찐빵을 호호 불며 먹는 겨울',
-  '내가 좋아하는 것들을 모아둔 상자','천 리 길도 한 걸음부터 시작된다'
-];
-const EN_PREVIEW_POOL = [
-  'Coffee first, then we can talk about it','Stay curious and keep exploring the world',
-  'Good design is honest and speaks clearly','A little progress each day adds up big',
-  'Sunset drives and open roads ahead of us','Make it simple, but make it significant',
-  'Books, rain, and a warm cup of tea','Dream big, start small, act right now',
-  'The best view comes after the hardest climb','Collect moments, not things, my friend',
-  'Creativity takes courage and lots of coffee','Do more of what makes you truly happy',
-  'Every day is a fresh new beginning','Kindness is free, sprinkle it everywhere',
-  'Adventure awaits just beyond your comfort zone','Slow mornings and quiet cups of coffee',
-  'Typography is what language looks like','Small steps every day lead to big change',
-  'Chase the light wherever it may lead you','Less noise, more meaningful conversations',
-  'Weekend plans: nothing, and lots of it','Great things never come from comfort zones',
-  'Handwritten letters never go out of style','The ocean breeze fixes almost everything',
-  'Design is thinking made beautifully visible','Take the scenic route home tonight',
-  'Fresh bread, old books, and slow Sundays','Your only limit is your imagination',
-  'Music sounds better on rainy evenings','Bloom where you are planted, always'
-];
-
-/* 폰트별 문구 결정: ① admin 지정(meta.preview_text) → ② 풀에서 id 기반 자동 배정 */
-function fontOwnPreview(f){
-  if(f && f.meta && f.meta.preview_text) return f.meta.preview_text;
-  const pool = (f && f.isEnglish) ? EN_PREVIEW_POOL : KO_PREVIEW_POOL;
-  return pool[(f ? f.id : 0) % pool.length];
-}
-
-/* 영문 폰트는 영문 미리보기 문구 사용 */
-const ENGLISH_PREVIEW = 'The quick brown fox jumps over the lazy dog';
+/* 카드에 그릴 문구 — 모든 폰트가 같은 문구를 쓴다. */
 function getPreviewTextFor(font){
-  /* 사용자가 문구를 직접 입력했다면 전체 카드에 그 문구 적용 (영문 폰트는 기존처럼 영문 유지) */
-  if(isCustomPreview()) return (font && font.isEnglish) ? ENGLISH_PREVIEW : getPreviewText();
-  /* 그 외에는 폰트마다 서로 다른 고유 문구 */
-  return fontOwnPreview(font);
+  const isEn = !!(font && font.isEnglish);
+  if(isCustomPreview()) return isEn ? currentSample().en : getPreviewText();
+  return isEn ? currentSample().en : currentSample().ko;
 }
+
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncSamplePlaceholder);
+else syncSamplePlaceholder();
 function updatePreviews(){
   document.querySelectorAll('.font-preview-text').forEach(el=>{
-    // 사용자가 직접 입력한 카드는 건드리지 않음
-    if(el.classList.contains('is-custom')) return;
     const card = el.closest('[data-font-id]');
     const f = card ? FONTS.find(x=>x.id===parseInt(card.dataset.fontId,10)) : null;
     el.textContent = getPreviewTextFor(f);
@@ -2756,8 +2760,7 @@ function stashPreviewText(id){
     // 문구가 화면에 그려지는 위치가 두 군데다.
     //   일반 카드   : .font-card  > .font-preview-text  (상단 입력창에서 온 문구)
     //   큐레이터 픽 : .pick-row   > .pick-specimen
-    // 예전에는 .font-card만 찾아서, 큐레이터 픽에서 상세로 들어가면 폰트 고유 문구가
-    // 아니라 DEFAULT_PREVIEW('기적처럼 내게 왔으니…')가 넘어갔다.
+    // 예전에는 .font-card만 찾아서 큐레이터 픽에서 상세로 들어갈 때 문구가 어긋났다.
     const el = document.querySelector(`.font-card[data-font-id="${id}"] .font-preview-text`)
             || document.querySelector(`.pick-row[data-font-id="${id}"] .pick-specimen`);
     let txt = el ? el.textContent.trim() : '';
