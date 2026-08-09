@@ -1474,8 +1474,21 @@ function setTag(tag, el, pushHash){
      scroll-margin-top으로 바 높이만큼 띄운다. */
   if(pushHash){
     const grid = document.getElementById('fontGrid');
-    // 렌더가 끝난 뒤의 높이를 기준으로 잡아야 목적지가 어긋나지 않는다
-    if(grid) requestAnimationFrame(()=> grid.scrollIntoView({behavior:'smooth', block:'start'}));
+    const bar  = document.getElementById('tagsBar');
+    if(grid){
+      // 렌더가 끝난 뒤의 위치를 기준으로 잡아야 목적지가 어긋나지 않는다
+      requestAnimationFrame(()=>{
+        /* 고정 요소에 첫 줄이 가리지 않도록 헤더(60) + 모양 바 높이 + 여백만큼 뺀다.
+           바 높이를 실측하는 이유는, 칩 크기나 패딩을 손볼 때 이 숫자가
+           조용히 어긋나지 않게 하기 위해서다. */
+        const barH = bar ? bar.getBoundingClientRect().height : 56;
+        const y = window.scrollY + grid.getBoundingClientRect().top - (60 + barH + 8);
+        /* scrollIntoView 대신 window.scrollTo를 쓴다 — 이 페이지에서
+           실제로 동작이 확인된 방식이고(맨 위로 버튼·뷰 전환), 목적지를
+           직접 계산하므로 스크롤 컨테이너를 잘못 고를 여지가 없다. */
+        window.scrollTo({top: Math.max(0, y), behavior:'smooth'});
+      });
+    }
   }
 }
 
