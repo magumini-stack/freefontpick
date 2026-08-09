@@ -458,10 +458,10 @@
     /* 갤러리 — 카드마다 상자를 그리지 않는다.
        190개가 깔리면 테두리가 격자처럼 보여서 정작 폰트 형태가 안 읽힌다.
        구분은 여백과 아래쪽 얇은 선으로만 한다. */
-    /* 카테고리를 고르면 여기로 스크롤한다(setTag). 고정된 모양 필터 바
-       (헤더 60 + 바 약 56)에 첫 줄이 가리지 않도록 그만큼 띄운다. */
-    .font-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0 28px;grid-auto-flow:dense;
-      scroll-margin-top:124px}
+    /* 카테고리를 고르면 여기로 스크롤한다(setTag → scrollBelowFilter).
+       띄우는 양은 JS가 바 높이를 실측해 계산하므로 여기선 값을 두지 않는다 —
+       두 곳에 적어두면 한쪽만 고쳐져 어긋난다. */
+    .font-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0 28px;grid-auto-flow:dense}
     .font-card{cursor:pointer;background:none;border:none;border-bottom:1px solid var(--border);
       border-radius:0;padding:24px 2px 20px;transition:background-color .15s;position:relative;
       display:flex;flex-direction:column;min-width:0;animation:fadeUp .25s ease both}
@@ -1426,6 +1426,20 @@ function clearPresetActive(){
    문구는 상단 미리보기 입력창 하나로만 바꾸고, 카드는 통째로 상세페이지로 간다.
    편집과 이동이 한 자리에 섞이면 어느 쪽인지 매번 헷갈린다. */
 
+/* 대상을 고정된 모양 필터 바 바로 아래로 올려놓는다.
+   sticky 요소(#tagsBar) 자신에게 scrollIntoView를 쓰면 안 된다 —
+   이미 60px에 붙어 있으면 목표가 충족된 것으로 판정돼 아무 데도 가지 않는다.
+   검색 후 화면이 내려간 자리에 그대로 남아 결과 중간부터 보이던 원인이었다.
+   그래서 목적지를 직접 계산한다. 바 높이는 실측한다 — 칩 크기를 손볼 때
+   숫자가 조용히 어긋나지 않게. */
+function scrollBelowFilter(el){
+  if(!el) return;
+  const bar = document.getElementById('tagsBar');
+  const barH = bar ? bar.getBoundingClientRect().height : 56;
+  const y = window.scrollY + el.getBoundingClientRect().top - (60 + barH + 8);
+  window.scrollTo({top: Math.max(0, y), behavior:'smooth'});
+}
+
 function setTag(tag, el, pushHash){
   if(pushHash === undefined) pushHash = true;
   currentTag=tag;
@@ -1470,25 +1484,11 @@ function setTag(tag, el, pushHash){
      pushHash가 false인 경우(route()의 해시 복원, 뒤로가기)에는 움직이지 않는다.
      되돌아온 사용자를 원래 보던 자리에서 끌어내리면 안 된다.
 
-     스크롤 목적지는 .font-grid이고, 고정 바에 가리지 않도록
-     scroll-margin-top으로 바 높이만큼 띄운다. */
+     목적지는 갤러리(.font-grid) 첫 줄이다. 검색은 미리보기 바부터
+     보여줘야 해서 목적지가 다르지만, 띄우는 계산은 같은 함수를 쓴다. */
   if(pushHash){
-    const grid = document.getElementById('fontGrid');
-    const bar  = document.getElementById('tagsBar');
-    if(grid){
-      // 렌더가 끝난 뒤의 위치를 기준으로 잡아야 목적지가 어긋나지 않는다
-      requestAnimationFrame(()=>{
-        /* 고정 요소에 첫 줄이 가리지 않도록 헤더(60) + 모양 바 높이 + 여백만큼 뺀다.
-           바 높이를 실측하는 이유는, 칩 크기나 패딩을 손볼 때 이 숫자가
-           조용히 어긋나지 않게 하기 위해서다. */
-        const barH = bar ? bar.getBoundingClientRect().height : 56;
-        const y = window.scrollY + grid.getBoundingClientRect().top - (60 + barH + 8);
-        /* scrollIntoView 대신 window.scrollTo를 쓴다 — 이 페이지에서
-           실제로 동작이 확인된 방식이고(맨 위로 버튼·뷰 전환), 목적지를
-           직접 계산하므로 스크롤 컨테이너를 잘못 고를 여지가 없다. */
-        window.scrollTo({top: Math.max(0, y), behavior:'smooth'});
-      });
-    }
+    // 렌더가 끝난 뒤의 위치를 기준으로 잡아야 목적지가 어긋나지 않는다
+    requestAnimationFrame(()=> scrollBelowFilter(document.getElementById('fontGrid')));
   }
 }
 
@@ -3126,7 +3126,8 @@ document.getElementById('globalSearch')?.addEventListener('input', filterFonts);
 document.getElementById('globalSearch')?.addEventListener('keydown', function(e){
   if(e.key === 'Enter'){
     e.preventDefault();
-    document.getElementById('tagsBar')?.scrollIntoView({behavior:'smooth', block:'start'});
+    // 미리보기 바부터 보이게 — 여기서 결과 목록이 시작된다
+    requestAnimationFrame(()=> scrollBelowFilter(document.querySelector('.preview-bar-wrap')));
   }
 });
 
@@ -3276,7 +3277,7 @@ async function route(){
     // hash로부터 검색어 복원
     const query = decodeURIComponent(hash.slice('#search/'.length));
     applySearch(query, /*pushHash*/ false);
-    document.getElementById('tagsBar')?.scrollIntoView({behavior:'smooth', block:'start'});
+    requestAnimationFrame(()=> scrollBelowFilter(document.querySelector('.preview-bar-wrap')));
   } else if(hash.startsWith('#tag/')){
     // 뒤로/앞으로가기로 카테고리 상태 복원
     showHomeView();
