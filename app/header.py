@@ -64,6 +64,37 @@ GA_MEASUREMENT_ID = "G-WK73M3QQVP"   # 애널리틱스
 ADS_CONVERSION_ID = "AW-18302402783"  # 구글 애즈
 
 
+def _search_script() -> str:
+    """헤더 검색창의 Enter 처리.
+
+    입력창은 헤더가 만드는데 동작은 페이지마다 따로 붙이고 있었다. 그래서
+    /use/{slug} · /wisefont/{slug} · /gif · /gif/templates 에서는 검색창이
+    보이기만 하고 아무 반응이 없었다. 헤더가 만든 것은 헤더가 책임진다 —
+    새 페이지를 만들 때마다 사람이 기억해서 붙여야 하는 구조는 반드시 또 빠진다.
+
+    경로는 반드시 절대경로여야 한다. 예전 about/faq는 'index.html#search/'를
+    썼는데, 그건 /about.html에서만 우연히 맞고 /use/thumbnail 같은 하위 경로에서는
+    /use/index.html 로 풀려 깨진다.
+    """
+    return '''<script>
+(function(){
+  var el = document.getElementById('globalSearch');
+  if(!el) return;
+  el.addEventListener('keydown', function(e){
+    if(e.key !== 'Enter') return;
+    // 홈은 페이지 안에서 바로 걸러내는 자체 구현(applySearch)이 있다.
+    // 그쪽이 있으면 넘긴다 — 여기서 또 이동시키면 화면이 두 번 움직인다.
+    if(typeof window.applySearch === 'function') return;
+    var q = (el.value || '').trim();
+    if(!q) return;
+    e.preventDefault();
+    location.href = '/#search/' + encodeURIComponent(q);
+  });
+})();
+</script>
+'''
+
+
 def _analytics() -> str:
     return f'''<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id={ADS_CONVERSION_ID}"></script>
@@ -113,7 +144,8 @@ def render_header(active: str = "") -> str:
       <svg class="ti-moon" id="mThemeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg><svg class="ti-sun" id="mThemeIconSun" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg> <span id="mThemeLabel">야간모드</span>
     </button>
   </nav>
-</header>'''
+</header>
+{_search_script()}'''
 
 
 def inject_header(html: str, active: str = "") -> str:

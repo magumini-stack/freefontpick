@@ -600,15 +600,10 @@
     try{ localStorage.setItem('ffp-theme', next); }catch(e){}
     applyThemeIcons();
   };
-  window.goSearch = function(q){
-    q = (q||'').trim();
-    if(!q) return;
-    location.href = '/#search/' + encodeURIComponent(q);
-  };
+  // 헤더 검색창 Enter 처리는 app/header.py가 헤더와 함께 넣는다.
+  // 페이지마다 복사해두면 새 페이지에서 반드시 빠진다 — /use·/gif가 그랬다.
   // 공유 헤더의 "폰트 찾기" 링크가 호출하는 함수 — 이 페이지는 SPA가 아니므로 기본 이동만 허용
   window.navFindFont = window.navFindFont || function(){};
-  var _gsEl = document.getElementById('globalSearch');
-  if(_gsEl) _gsEl.addEventListener('keydown', function(e){ if(e.key === 'Enter') window.goSearch(e.target.value); });
   applyThemeIcons();
   if(window.matchMedia){
     var mq = window.matchMedia('(prefers-color-scheme: dark)');

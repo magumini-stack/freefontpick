@@ -223,14 +223,10 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothi
     try{ localStorage.setItem('ffp-theme', next); }catch(e){}
     applyThemeIcons();
   };
-  window.goSearch = function(q){
-    q = (q||'').trim();
-    if(!q) return;
-    location.href = 'index.html#search/' + encodeURIComponent(q);
-  };
+  // 헤더 검색창 Enter 처리는 app/header.py가 헤더와 함께 넣는다.
+  // 여기 두면 페이지마다 빠뜨리게 되고(실제로 /use·/gif가 그랬다),
+  // 상대경로 'index.html#search/'는 하위 경로 페이지에서 깨진다.
   window.navFindFont = window.navFindFont || function(){};
-  var _gsEl = document.getElementById('globalSearch');
-  if(_gsEl) _gsEl.addEventListener('keydown', function(e){ if(e.key === 'Enter') window.goSearch(e.target.value); });
   applyThemeIcons();
   if(window.matchMedia){
     var mq = window.matchMedia('(prefers-color-scheme: dark)');
