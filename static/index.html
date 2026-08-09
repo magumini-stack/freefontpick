@@ -413,22 +413,42 @@
     .preset-chip:hover{border-color:var(--text-primary);color:var(--text-primary)}
     .preset-chip.active{border-color:var(--accent);color:var(--accent);font-weight:700}
 
-    /* TAGS */
+    /* TAGS — 모양 카테고리 */
+    /* 헤더(position:fixed, height:60px)가 끝나는 자리에 붙인다.
+       갤러리가 아무리 길어도 필터가 화면에서 사라지지 않아야 한다.
+       z-index는 용도 레일(.hub-rail, 10)보다 크고 헤더(200)보다 작게 둔다.
+       레일은 top:124px로 이 바 바로 아래에서 시작한다 — 겹치면 레일 제목이 가린다. */
+    .tags-bar{position:sticky;top:60px;z-index:20;
+      display:flex;align-items:center;gap:10px;
+      /* 고정된 채 뒤로 카드가 지나가므로 배경은 반드시 불투명해야 한다 */
+      background:var(--bg);border-bottom:1px solid var(--border);
+      /* 고정되면 margin은 시각적으로 의미가 없어 padding으로 옮겼다 */
+      padding:10px 0;margin-bottom:16px;scroll-margin-top:60px}
+    .tags-label{font-size:13px;font-weight:700;color:var(--text-secondary);
+      letter-spacing:-.02em;flex:0 0 auto;white-space:nowrap}
     /* 형태 카테고리는 항상 한 줄로 둔다.
-       줄바꿈을 허용하면 태그가 늘 때마다 레일 높이가 들쭉날쭉해지고,
-       그만큼 갤러리가 아래로 밀린다. 대신 넘치면 가로 스크롤. */
-    .tags-bar{display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;
-      -webkit-overflow-scrolling:touch;margin-bottom:16px;scroll-margin-top:76px;
+       줄바꿈을 허용하면 태그가 늘 때마다 바 높이가 들쭉날쭉해지고,
+       고정 바라서 그 변화가 갤러리 전체를 흔든다. 대신 넘치면 가로 스크롤. */
+    .tags-scroll{display:flex;gap:4px;flex-wrap:nowrap;min-width:0;flex:1 1 auto;
+      overflow-x:auto;overscroll-behavior-x:contain;
+      -webkit-overflow-scrolling:touch;
       scrollbar-width:none;-ms-overflow-style:none;
-      /* 잘리는 쪽 끝을 흐리게 처리해 '더 있다'는 걸 알린다 */
+      /* 잘리는 쪽 끝을 흐리게 처리해 '더 있다'는 걸 알린다.
+         마스크를 바깥(.tags-bar)에 걸면 배경까지 투명해져 카드가 비친다. */
       padding-bottom:2px;
       -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);
       mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);
       -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
-    .tags-bar::-webkit-scrollbar{display:none}
-    .tag{font-size:11.5px;padding:5px 9px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500;flex:0 0 auto}
+    .tags-scroll::-webkit-scrollbar{display:none}
+    .tag{font-size:13px;padding:6px 11px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500;flex:0 0 auto}
     .tag:hover{border-color:var(--text-primary);color:var(--text-primary)}
     .tag.active{color:var(--accent);border-color:var(--accent);font-weight:700;background:none}
+    /* 좁은 화면에서는 라벨이 칩 자리를 너무 먹는다 */
+    @media(max-width:520px){
+      .tags-label{display:none}
+      .tags-bar{gap:0;padding:8px 0}
+      .tag{font-size:12.5px;padding:5px 10px}
+    }
 
     /* FILTER BAR */
     .count-label{font-size:13px;color:var(--text-secondary)}
@@ -490,12 +510,13 @@
       .body-cols{margin-left:-230px}
     }
     .hub-rail{position:sticky;
-      /* 헤더가 position:fixed(높이 60px)라 그만큼 내려야 첫 칸이 안 가린다.
-         60 + 여백 16 = 76px. 헤더 높이를 바꾸면 이 값도 같이 바꿔야 한다. */
-      top:76px;z-index:10;opacity:0;transform:translateX(-10px);pointer-events:none;
+      /* 헤더(fixed 60px) + 모양 필터 바(.tags-bar, 고정, 약 56px)를 지나야
+         레일 제목과 첫 칸이 안 가린다. 60 + 56 + 여백 8 = 124px.
+         헤더 높이나 필터 바 높이를 바꾸면 이 값도 같이 바꿔야 한다. */
+      top:124px;z-index:10;opacity:0;transform:translateX(-10px);pointer-events:none;
       /* 허브가 늘어나면 레일 세로가 화면을 넘길 수 있다.
          스티키 컬럼이 화면보다 길면 아래쪽 항목에 영영 닿지 못한다. */
-      max-height:calc(100vh - 92px);overflow-y:auto;scrollbar-width:thin;
+      max-height:calc(100vh - 140px);overflow-y:auto;scrollbar-width:thin;
       transition:opacity .25s ease,transform .25s ease}
     .hub-rail.show{opacity:1;transform:none;pointer-events:auto}
     /* 모노 스택에는 한글 글리프가 없어 '용도별 추천'이 OS 기본 고딕으로 떨어졌다.
@@ -814,7 +835,14 @@
 
 <!-- MAIN -->
 <main class="main">
-  <div class="tags-bar" id="tagsBar" role="group" aria-label="폰트 카테고리 필터"></div>
+  <!-- 모양 카테고리 — 갤러리를 훑는 내내 손이 닿아야 하므로 헤더 아래 고정한다.
+       바깥(.tags-bar)이 고정·배경·경계선을, 안쪽(.tags-scroll)이 가로 스크롤과
+       끝단 페이드를 맡는다. 한 요소에 몰면 mask-image가 배경까지 갉아먹어
+       고정된 바 오른쪽으로 폰트 카드가 비친다. -->
+  <div class="tags-bar" id="tagsBar">
+    <span class="tags-label">모양으로 찾기</span>
+    <div class="tags-scroll" id="tagsScroll" role="group" aria-label="폰트 모양 카테고리 필터"></div>
+  </div>
 
   <!-- [제거 2026-08] 정렬 드롭다운(추천순/최신순/이름순).
        기본값인 '추천순'(어드민이 정한 저장 순서)만 남긴다. -->
@@ -3032,7 +3060,9 @@ async function renderTagsBar(){
     console.warn('태그 로딩 실패 — 전체 태그로 폴백', e);
     tags = await TagStore.getAll();
   }
-  const bar = document.getElementById('tagsBar');
+  // 칩은 안쪽 스크롤 영역에 넣는다. 바깥(.tags-bar)은 고정·배경·라벨을 맡으므로
+  // 여기에 innerHTML을 쓰면 라벨이 지워진다.
+  const bar = document.getElementById('tagsScroll');
   // 현재 활성 태그가 목록에서 빠졌다면 'all'로 리셋
   if(currentTag !== 'all' && !tags.includes(currentTag)){
     currentTag = 'all';
