@@ -17,6 +17,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..font_metrics import metrics_of
 from ..models import Font, FontPairing
 from ..auth import require_password_changed
 from ..schemas import PairingCreate, PairingUpdate
@@ -675,6 +676,56 @@ def _pick_theme(title_font: Font, body_font: Font, profiles: dict, idf: dict,
     return random.choices([t for t, _ in candidates], weights=weights, k=1)[0]
 
 
+# ── 실측 조판 지표 기반 점수 ──────────────────────────────────────
+#
+# 여기 오기 전까지 점수는 전부 "사람이 손으로 넣은 메타(분위기·용도·업종)와
+# 태그"에서만 나왔다. 글자가 실제로 어떻게 생겼는지는 보지 않았다.
+# 그래서 조합 145건을 실측값으로 채점해 보면:
+#     본문이 제목보다 굵음(역전)   15%
+#     굵기 차이가 거의 없음        20%
+# 셋 중 하나가 제목과 본문의 위계가 없거나 뒤집혀 있었다. 눈으로 보면 바로
+# 이상한데(Bungee는 전체 6번째로 굵은 폰트인데 본문에 앉아 있었다) 메타
+# 태그만으로는 걸러낼 수가 없다.
+#
+# 조판의 원칙은 "굵기는 대비, 비율은 조화"다. 두 항목이 서로 당기게 둔다.
+
+_CONTRAST_LO = 0.12      # 이 아래는 제목/본문 구분이 안 된다
+_CONTRAST_HI = 0.45      # 이 위는 과해서 따로 논다
+
+
+def _contrast(title_font: Font, body_font: Font) -> float:
+    """제목이 본문보다 충분히 굵은가. 측정값이 없으면 0(감점 아님)."""
+    t = metrics_of(title_font.id)
+    b = metrics_of(body_font.id)
+    if not t or not b:
+        return 0.0
+    gap = t[2] - b[2]                      # 채움비율 차이
+    if gap < 0:
+        # 역전 — 본문이 더 굵다. 위계가 무너지므로 강하게 깎는다.
+        return max(-6.0, gap * 20.0)
+    if gap < _CONTRAST_LO:
+        # 차이가 없어 실수처럼 보인다
+        return (gap / _CONTRAST_LO) * 2.0 - 2.0
+    if gap <= _CONTRAST_HI:
+        return 3.0
+    # 과한 대비 — 나쁘진 않지만 최적은 아니다
+    return max(0.5, 3.0 - (gap - _CONTRAST_HI) * 6.0)
+
+
+def _harmony(title_font: Font, body_font: Font) -> float:
+    """비율(x-height·글자 폭)이 서로 닮았는가. 측정값이 없으면 0."""
+    t = metrics_of(title_font.id)
+    b = metrics_of(body_font.id)
+    if not t or not b:
+        return 0.0
+    dx = abs(t[0] - b[0])
+    dw = abs(t[1] - b[1]) if t[1] and b[1] else 0.0
+    # 0.12 / 0.20을 넘어서면 한 화면에서 크기가 따로 논다
+    sx = max(-2.0, 1.5 - (dx / 0.12) * 1.5)
+    sw = max(-2.0, 1.5 - (dw / 0.20) * 1.5)
+    return sx + sw
+
+
 def _pick_weight(font: Font, target: int) -> int:
     """폰트가 실제로 가진 굵기 중 target(700=제목용/400=본문용)에 가장 가까운 값."""
     from .files import _merged_weights
@@ -787,12 +838,16 @@ def auto_generate_pairings(
         pen = _popularity_penalty(other.id)
         other_is_english = _is_english_only(other)
 
+        # 조화는 방향과 무관하지만, 대비는 "누가 제목이냐"에 따라 부호가 뒤집힌다.
+        harmony = _harmony(anchor, other)
+
         if other_is_english != anchor_is_english:
             # 언어가 섞인 쌍은 방향이 하나로 정해진다 — 영문이 제목, 한글이 본문.
             # 영문 전용 폰트에 한글 본문을 맡길 수 없고, 문구 뱅크도 그 형태다.
             eng, kor = (anchor, other) if anchor_is_english else (other, anchor)
             score = (
                 _title_fit(eng) + _body_fit(kor) + cohesion
+                + _contrast(eng, kor) + harmony
                 - pen + random.uniform(-JITTER, JITTER)
             )
             scored.append((score, eng, kor))
@@ -800,12 +855,14 @@ def auto_generate_pairings(
 
         score_a_title = (
             _title_fit(anchor) + _body_fit(other) + cohesion
+            + _contrast(anchor, other) + harmony
             - pen + random.uniform(-JITTER, JITTER)
         )
         scored.append((score_a_title, anchor, other))
 
         score_a_body = (
             _title_fit(other) + _body_fit(anchor) + cohesion
+            + _contrast(other, anchor) + harmony
             - pen + random.uniform(-JITTER, JITTER)
         )
         scored.append((score_a_body, other, anchor))
