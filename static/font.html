@@ -247,6 +247,50 @@
   .pair-fonts b{color:var(--text-secondary);font-weight:600}
   .pair-fonts .plus{margin:0 5px;color:var(--text-muted)}
 
+  /* ── 폰트 조합 찾기 모달 ──
+     클래스명에 'overlay'가 들어가야 한다 — 뒤로가기(bfcache) 복구 핸들러가
+     [class*="overlay"]로 열린 오버레이를 닫는다. 빼면 되돌아왔을 때 굳는다. */
+  .fp-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;
+    align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+  .fp-overlay.open{display:flex}
+  .fp-sheet{background:var(--bg-card);border-radius:12px;max-width:920px;width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
+  .fp-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;
+    align-items:flex-start;justify-content:space-between;gap:16px}
+  .fp-head h2{font-size:19px;font-weight:800;letter-spacing:-.03em;margin:0 0 4px}
+  .fp-head p{margin:0;font-size:12.5px;color:var(--text-muted)}
+  .fp-x{border:none;background:none;font-size:24px;line-height:1;color:var(--text-muted);
+    cursor:pointer;padding:0 4px;flex:0 0 auto}
+  .fp-textbar{display:flex;gap:10px;padding:14px 24px;background:var(--bg-secondary);
+    border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .fp-field{flex:1 1 220px;min-width:0}
+  .fp-field label{display:block;font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:5px}
+  .fp-field input{width:100%;border:1px solid var(--border);border-radius:4px;padding:9px 11px;
+    font-size:13.5px;font-family:inherit;background:var(--bg-card);color:var(--text-primary)}
+  .fp-field input:focus{outline:none;border-color:var(--accent)}
+  .fp-body{padding:20px 24px}
+  /* .pairs는 340px 사이드바 전용(세로 1열)이라 모달에서만 격자로 덮는다 */
+  #fpModal .pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+  .fp-state{padding:38px 20px;text-align:center;color:var(--text-muted);font-size:13.5px}
+  .fp-actions{padding:4px 24px 20px;text-align:center}
+  .fp-reroll{border:1px solid var(--border-hover);background:var(--bg-card);color:var(--text-primary);
+    font-family:inherit;font-size:13px;font-weight:700;border-radius:22px;padding:10px 20px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px}
+  .fp-reroll:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+  .fp-reroll:disabled{opacity:.5;cursor:default}
+  .fp-foot{border-top:1px solid var(--border);padding:14px 24px;text-align:center}
+  .fp-foot a{font-size:13px;font-weight:700;color:var(--accent);text-decoration:none}
+  /* 조합이 없는 폰트(펜시 등)의 사이드바 대체 카드 */
+  .pair-teaser{border:1px dashed var(--border-hover);border-radius:4px;padding:20px 16px;text-align:center}
+  .pair-teaser p{margin:0 0 12px;font-size:12.5px;color:var(--text-secondary);line-height:1.5}
+  .pair-teaser button{border:1px solid var(--accent);background:var(--accent);color:#fff;font-family:inherit;
+    font-size:12.5px;font-weight:700;border-radius:3px;padding:9px 16px;cursor:pointer;width:100%}
+  @media(max-width:640px){
+    .fp-overlay{padding:0;align-items:flex-end}
+    .fp-sheet{border-radius:14px 14px 0 0;max-height:92vh;overflow-y:auto}
+    #fpModal .pairs{grid-template-columns:1fr}
+  }
+
   /* ── RELATED (사이드바) ── */
   .rel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
   .rel-card{border:1px solid var(--border);border-radius:3px;padding:16px 14px;transition:.18s;height:118px;min-width:0;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center}
@@ -456,7 +500,7 @@
       </div>
       <div class="title-actions">
         <button class="btn-dl" id="downloadBtn">⬇ 무료 다운로드</button>
-        <a class="btn-design" id="designBtnTop" href="#">이 폰트로 텍스트 디자인</a>
+        <a class="btn-design" id="designBtnTop" href="#pairings">폰트 조합 찾기</a>
       </div>
     </div>
 
@@ -873,29 +917,48 @@
     document.querySelectorAll('.w-sample').forEach(function(el){ el.textContent = v; });
   }
 
+  /* 카드 한 장의 HTML. 사이드바(#pairGrid)와 조합 찾기 모달이 함께 쓴다.
+     문구는 data-속성에 원본을 남겨둔다 — 모달에서 사용자가 자기 문구를
+     넣었다가 지우면 원래 예시로 되돌려야 하기 때문이다. */
+  function pairCardHtml(p){
+    var tw = p.title_weight || 700;
+    var bw = p.body_weight || 400;
+    var titleStack = ensureFontForPair(p.title_font, tw);
+    var bodyStack = ensureFontForPair(p.body_font, bw);
+    var partner = (p.title_font.id === fid) ? p.body_font : p.title_font;
+    return '<a class="pair-card" href="/font/' + partner.id + '">' +
+      '<div class="pair-stage">' +
+        '<div class="pair-title" data-orig="' + esc(p.sample_title) + '" style="font-family:' + titleStack + ';font-weight:' + tw + '">' + esc(p.sample_title) + '</div>' +
+        '<div class="pair-body" data-orig="' + esc(p.sample_body) + '" style="font-family:' + bodyStack + ';font-weight:' + bw + '">' + esc(p.sample_body) + '</div>' +
+      '</div>' +
+      '<div class="pair-meta">' +
+        '<span class="pair-theme">' + esc(p.theme) + '</span>' +
+        '<div class="pair-fonts"><b>' + esc(p.title_font.name) + '</b> 제목<span class="plus">+</span><b>' +
+          esc(p.body_font.name) + '</b> 본문</div>' +
+      '</div></a>';
+  }
+
   function renderPairings(list){
-    if (!list || !list.length) return;
     var sec = document.getElementById('pairingSec');
-    document.getElementById('pairingSub').textContent =
-      FONT.name + '이(가) 들어간 추천 페어링이에요. 카드를 누르면 상대 폰트 페이지로 이동합니다.';
+    var sub = document.getElementById('pairingSub');
     var grid = document.getElementById('pairGrid');
-    grid.innerHTML = list.slice(0, 6).map(function(p){
-      var tw = p.title_weight || 700;
-      var bw = p.body_weight || 400;
-      var titleStack = ensureFontForPair(p.title_font, tw);
-      var bodyStack = ensureFontForPair(p.body_font, bw);
-      var partner = (p.title_font.id === fid) ? p.body_font : p.title_font;
-      return '<a class="pair-card" href="/font/' + partner.id + '">' +
-        '<div class="pair-stage">' +
-          '<div class="pair-title" style="font-family:' + titleStack + ';font-weight:' + tw + '">' + esc(p.sample_title) + '</div>' +
-          '<div class="pair-body" style="font-family:' + bodyStack + ';font-weight:' + bw + '">' + esc(p.sample_body) + '</div>' +
-        '</div>' +
-        '<div class="pair-meta">' +
-          '<span class="pair-theme">' + esc(p.theme) + '</span>' +
-          '<div class="pair-fonts"><b>' + esc(p.title_font.name) + '</b> 제목<span class="plus">+</span><b>' +
-            esc(p.body_font.name) + '</b> 본문</div>' +
-        '</div></a>';
-    }).join('');
+
+    if (!list || !list.length){
+      /* 저장된 조합이 없는 폰트(펜시 계열 등)에서 섹션을 통째로 숨기면
+         "조합" 기능이 있는지조차 알 수 없다. 대신 모달 진입로를 둔다.
+         여기서 자동 생성을 미리 부르지는 않는다 — 수백 ms짜리 호출이
+         모든 상세페이지 조회에 붙게 된다. */
+      sub.textContent = '아직 정리된 조합이 없어요.';
+      grid.innerHTML =
+        '<div class="pair-teaser"><p>분위기와 용도가 맞는 폰트를<br>지금 찾아볼 수 있어요.</p>' +
+        '<button type="button" onclick="fpOpen()">조합 찾아보기</button></div>';
+      sec.classList.remove('hidden');
+      return;
+    }
+
+    sub.textContent =
+      FONT.name + '이(가) 들어간 추천 페어링이에요. 카드를 누르면 상대 폰트 페이지로 이동합니다.';
+    grid.innerHTML = list.slice(0, 6).map(pairCardHtml).join('');
     sec.classList.remove('hidden');
   }
 
@@ -1019,7 +1082,7 @@
           }
         }
       } catch(e){}
-      var _dtop = document.getElementById('designBtnTop'); if (_dtop){ _dtop.setAttribute('href', '/font/' + f.id + '/design'); _dtop.onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); }; }
+      var _dtop = document.getElementById('designBtnTop'); if (_dtop){ _dtop.onclick = function(ev){ ev.preventDefault(); fpOpen(); }; }
       fetchRelated(f);
 
       /* /font/{id}/design으로 직접 접속(또는 검색엔진 유입)한 경우: 상세페이지
@@ -1032,6 +1095,96 @@
     .then(function(r){ return r && r.ok ? r.json() : []; })
     .then(renderPairings)
     .catch(function(){ location.href = '/'; });
+
+  /* ══════════════════════════════════════════════════════
+     폰트 조합 찾기 모달
+
+     저장된 큐레이션이 아니라 매번 새로 생성한다. 그래야 "다른 조합 보기"가
+     의미를 갖는다(생성기는 호출마다 다른 결과를 낸다).
+     페이지 로드 시에는 부르지 않는다 — 이 API는 수백 ms가 걸려서 모든
+     상세페이지 조회에 붙이면 손해다. 버튼을 누른 순간에만 호출한다.
+  ══════════════════════════════════════════════════════ */
+  var fpBusy = false, fpBound = false;
+
+  /* 모달 마크업은 이 <script>보다 뒤에 있다. 파싱 시점에 바인딩하면 요소가
+     아직 없어 널 참조가 난다. 처음 열 때 한 번만 묶는다. */
+  function fpBind(){
+    if (fpBound) return;
+    fpBound = true;
+    document.getElementById('fpReroll').onclick = fpLoad;
+    document.getElementById('fpClose').onclick = fpClose;
+    document.getElementById('fpTitleInput').addEventListener('input', fpApplyText);
+    document.getElementById('fpBodyInput').addEventListener('input', fpApplyText);
+    document.getElementById('fpModal').addEventListener('click', function(e){
+      if (e.target === this) fpClose();          // 바깥 클릭으로 닫기
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape') fpClose();
+    });
+    document.getElementById('fpToDesign').onclick = function(ev){
+      ev.preventDefault();
+      fpClose();
+      if (FONT) dsOpenFor(FONT);
+    };
+  }
+
+  function fpOpen(){
+    fpBind();
+    document.getElementById('fpModal').classList.add('open');
+    var t = document.getElementById('fpTitle');
+    if (t && FONT) t.textContent = FONT.name + '과(와) 어울리는 조합';
+    if (!document.getElementById('fpGrid').children.length) fpLoad();
+  }
+  function fpClose(){ document.getElementById('fpModal').classList.remove('open'); }
+
+  function fpLoad(){
+    if (fpBusy) return;
+    fpBusy = true;
+    var btn = document.getElementById('fpReroll');
+    var grid = document.getElementById('fpGrid');
+    var state = document.getElementById('fpState');
+    if (btn) btn.disabled = true;
+    state.textContent = '어울리는 조합을 찾는 중…';
+    state.style.display = '';
+    grid.innerHTML = '';
+
+    fetch('/api/pairings/auto-generate?font_id=' + fid + '&top_n=6')
+      .then(function(r){ if(!r.ok) throw new Error('실패'); return r.json(); })
+      .then(function(list){
+        if (!list || !list.length){
+          state.textContent = '이 폰트와 묶을 만한 짝을 찾지 못했어요.';
+          return;
+        }
+        state.style.display = 'none';
+        grid.innerHTML = list.map(pairCardHtml).join('');
+        fpApplyText();
+      })
+      .catch(function(){
+        /* 여기서 location.href를 건드리면 안 된다 — 위 체인처럼 홈으로 튕기면
+           재시도 한 번 실패에 사용자가 페이지를 잃는다. */
+        state.textContent = '불러오지 못했어요. 다시 시도해 주세요.';
+      })
+      .then(function(){
+        fpBusy = false;
+        /* 연타로 서버를 두들기지 않도록 짧은 쿨다운 */
+        setTimeout(function(){ if (btn) btn.disabled = false; }, 600);
+      });
+  }
+
+  /* 사용자가 넣은 문구를 6장에 한 번에 적용. 비우면 원래 예시로 되돌린다. */
+  function fpApplyText(){
+    var t = (document.getElementById('fpTitleInput').value || '').trim();
+    var b = (document.getElementById('fpBodyInput').value || '').trim();
+    document.querySelectorAll('#fpGrid .pair-title').forEach(function(el){
+      el.textContent = t || el.getAttribute('data-orig') || '';
+    });
+    document.querySelectorAll('#fpGrid .pair-body').forEach(function(el){
+      el.textContent = b || el.getAttribute('data-orig') || '';
+    });
+  }
+
+  /* 조합이 없어 사이드바가 비는 폰트(펜시 등)의 대체 카드에서도 연다 */
+  window.fpOpen = fpOpen;
 })();
 
 /* 뒤로/앞으로가기 캐시(bfcache)로 이 상세페이지가 복원될 때, 직전 디자인 페이지에서
@@ -1046,6 +1199,41 @@ window.addEventListener('pageshow', function(e){
   document.body.style.position='';
 });
 </script>
+
+<!-- ══ 폰트 조합 찾기 모달 ══
+     클래스에 'overlay'가 들어가야 위 pageshow 핸들러가 뒤로가기 복구 시 닫아준다. -->
+<div class="fp-overlay" id="fpModal" role="dialog" aria-modal="true" aria-labelledby="fpTitle">
+  <div class="fp-sheet">
+    <div class="fp-head">
+      <div>
+        <h2 id="fpTitle">어울리는 조합</h2>
+        <p>제목·본문을 어떤 폰트와 짝지을지 골라보세요. 카드를 누르면 상대 폰트로 이동합니다.</p>
+      </div>
+      <button class="fp-x" id="fpClose" aria-label="닫기">&times;</button>
+    </div>
+
+    <div class="fp-textbar">
+      <div class="fp-field">
+        <label for="fpTitleInput">제목 문구</label>
+        <input id="fpTitleInput" maxlength="40" placeholder="비우면 예시 문구가 나와요">
+      </div>
+      <div class="fp-field">
+        <label for="fpBodyInput">본문 문구</label>
+        <input id="fpBodyInput" maxlength="90" placeholder="여기에 쓰면 아래 조합에 한 번에 적용돼요">
+      </div>
+    </div>
+
+    <div class="fp-body">
+      <div class="fp-state" id="fpState">어울리는 조합을 찾는 중…</div>
+      <div class="pairs" id="fpGrid"></div>
+    </div>
+    <div class="fp-actions">
+      <button class="fp-reroll" id="fpReroll" type="button">↻ 다른 조합 보기</button>
+    </div>
+
+    <div class="fp-foot"><a href="#" id="fpToDesign">이 폰트로 텍스트 디자인 →</a></div>
+  </div>
+</div>
 
 <!-- ══ 텍스트 디자인 모달 (index.html에서 이관) ══ -->
 <!-- TEXT DESIGNER MODAL -->

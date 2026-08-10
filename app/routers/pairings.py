@@ -29,7 +29,7 @@ router = APIRouter(prefix="/api", tags=["pairings"])
 
 
 def _font_brief(f: Font) -> dict:
-    from .files import _merged_weights
+    from .files import _merged_weights, file_source_of
     weights = _merged_weights(f)
     return {
         "id": f.id,
@@ -40,6 +40,10 @@ def _font_brief(f: Font) -> dict:
         "is_english": bool(f.is_english),
         "webfont_family": f.webfont_family or None,
         "webfont_css_url": f.webfont_css_url or None,
+        # 프론트의 resolveWebfont가 이 값으로 "어드민이 올린 파일이 웹폰트보다
+        # 우선"을 판단한다. 없으면 undefined !== 'user'가 항상 참이 되어
+        # 업로드된 파일을 두고 CDN 웹폰트로 렌더한다.
+        "file_source": file_source_of(f.id),
         "available_weights": [w["weight"] for w in weights],
     }
 
@@ -969,6 +973,10 @@ def _generate_for(anchor: Font, ctx: "_GenContext", top_n: int = 6) -> List[dict
             "sample_body": sample_body,
             "description": _describe(title_font, body_font, theme),
             "score": round(score, 1),
+            # 카드를 실제 폰트로 그리려면 stack/has_file/available_weights가 필요하다.
+            # 위 평면 필드(title_font_id 등)는 어드민 자동생성 모달이 쓰므로 유지한다.
+            "title_font": _font_brief(title_font),
+            "body_font": _font_brief(body_font),
         })
         if len(results) >= top_n:
             break
