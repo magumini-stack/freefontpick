@@ -334,6 +334,10 @@ const PairingStore = {
   async autoGenerate(fontId, topN) {
     return await apiFetch(`/pairings/auto-generate?font_id=${fontId}&top_n=${topN || 6}`);
   },
+  /** ⚠️ 전체 조합을 지금 알고리즘으로 다시 만들어 통째로 교체한다 (되돌릴 수 없음) */
+  async regenerateAll(topN) {
+    return await apiFetch(`/pairings/regenerate-all?top_n=${topN || 6}`, {method: 'POST'});
+  },
 };
 
 /* ════════════════════════════════════════

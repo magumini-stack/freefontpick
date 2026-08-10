@@ -3,9 +3,12 @@
 - GET /api/pairings                 : 전체 페어링 (테마별 정렬) — 공개
 - GET /api/fonts/{font_id}/pairings : 특정 폰트가 포함된 페어링 — 공개
 - GET /api/pairings/themes          : 전체 테마 이름 목록 — 공개 (어드민 드롭다운용)
+- GET /api/pairings/auto-generate   : 조합 자동 생성 (저장 안 함) — 공개
 - POST /api/pairings                : 페어링 생성 — 관리자
 - PATCH /api/pairings/{id}          : 페어링 수정 — 관리자
 - DELETE /api/pairings/{id}         : 페어링 삭제 — 관리자
+- POST /api/pairings/purge-orphans  : orphan 정리 — 관리자
+- POST /api/pairings/regenerate-all : 전체 재생성·교체 — 관리자
 """
 import math
 import random
@@ -774,6 +777,27 @@ def _describe(title_font: Font, body_font: Font, theme: str) -> str:
     )
 
 
+class _GenContext:
+    """전 폰트에 공통인 준비물. 한 번 만들어 여러 폰트에 재사용한다.
+
+    폰트 하나를 생성할 때마다 다시 만들면(테마 풀 + 프로파일 + 사용횟수)
+    FontPairing과 Font를 매번 전수 조회하게 된다. 낱개 호출에서는 문제가
+    없지만 전체 재생성처럼 200종을 도는 작업에서는 그것만 200번 반복된다.
+    """
+
+    def __init__(self, db: Session):
+        self.fonts = [f for f in db.query(Font).all() if not _is_excluded(f)]
+        self.theme_pool = _collect_theme_samples(db)
+        self.available_themes = list(self.theme_pool.keys())
+        self.profiles, self.idf, self.exposure = _build_theme_profiles(
+            db, self.available_themes)
+        counts: dict = {}
+        for (a, b) in db.query(FontPairing.title_font_id, FontPairing.body_font_id).all():
+            counts[a] = counts.get(a, 0) + 1
+            counts[b] = counts.get(b, 0) + 1
+        self.usage_counts = counts
+
+
 @router.get("/pairings/auto-generate")
 def auto_generate_pairings(
     font_id: int,
@@ -801,34 +825,29 @@ def auto_generate_pairings(
     anchor = db.query(Font).filter(Font.id == font_id).first()
     if not anchor:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
+    return _generate_for(anchor, _GenContext(db), top_n)
 
+
+def _generate_for(anchor: Font, ctx: "_GenContext", top_n: int = 6) -> List[dict]:
+    """앵커 하나에 대한 조합 후보. 공통 준비물(ctx)은 밖에서 만들어 넘긴다."""
     # 조합에서 완전히 빼는 폰트 (펜시 등) — 앵커 자신이면 결과가 없다.
     if _is_excluded(anchor):
         return []
 
     anchor_is_english = _is_english_only(anchor)
-    candidates = [
-        c for c in db.query(Font).filter(Font.id != font_id).all()
-        if not _is_excluded(c)
-    ]
+    candidates = [c for c in ctx.fonts if c.id != anchor.id]
     # 언어 조합 규칙:
     #   한글 앵커 → 한글 상대(일반 조합) + 영문 상대(영문 제목 + 한글 본문)
     #   영문 앵커 → 영문 상대 + 한글 상대(같은 형태를 뒤집은 것)
     # 예전에는 같은 언어권끼리만 붙였는데, 그러면 "한글 + 영문 조합" 테마가
     # 큐레이션에는 있는데 자동 생성으로는 도달할 수 없었다.
 
-    theme_pool = _collect_theme_samples(db)
-    available_themes = list(theme_pool.keys())
-    theme_profiles, theme_idf, theme_exposure = _build_theme_profiles(db, available_themes)
-
-    # B: 폰트별 기존 페어링 등장 횟수 (단골 폰트 노출 억제용)
-    usage_counts: dict = {}
-    for (a, b) in db.query(FontPairing.title_font_id, FontPairing.body_font_id).all():
-        usage_counts[a] = usage_counts.get(a, 0) + 1
-        usage_counts[b] = usage_counts.get(b, 0) + 1
+    theme_pool = ctx.theme_pool
+    available_themes = ctx.available_themes
+    theme_profiles, theme_idf, theme_exposure = ctx.profiles, ctx.idf, ctx.exposure
 
     def _popularity_penalty(fid: int) -> float:
-        return min(usage_counts.get(fid, 0) * 0.6, 4.0)
+        return min(ctx.usage_counts.get(fid, 0) * 0.6, 4.0)
 
     JITTER = 1.2  # C: 동점권 다양성용 무작위 폭
 
@@ -923,3 +942,59 @@ def auto_generate_pairings(
             break
 
     return results
+
+
+@router.post("/pairings/regenerate-all")
+def regenerate_all_pairings(
+    top_n: int = 6,
+    db: Session = Depends(get_db),
+    _admin = Depends(require_password_changed),
+):
+    """전체 폰트의 추천 조합을 지금 알고리즘으로 다시 만들어 통째로 교체한다.
+
+    ⚠️ 순서가 중요하다: **먼저 전부 생성하고, 그 다음에 지운다.**
+    생성기는 기존 페어링에서 테마를 학습한다(_collect_theme_samples,
+    _build_theme_profiles). 지우고 시작하면 테마 풀이 비어서 결과가 전부
+    "추천 조합" 하나에 같은 문구로 나온다.
+
+    공통 준비물(_GenContext)은 한 번만 만든다. 폰트마다 다시 만들면
+    FontPairing·Font 전수 조회를 폰트 수만큼 반복하게 된다.
+    """
+    ctx = _GenContext(db)
+    fonts = sorted(ctx.fonts, key=lambda f: f.id)
+
+    # ① 생성 (아직 DB는 건드리지 않는다)
+    rows = []
+    for f in fonts:
+        for p in _generate_for(f, ctx, top_n):
+            rows.append(p)
+
+    if not rows:
+        raise HTTPException(status_code=500, detail="생성 결과가 없어 교체하지 않았습니다")
+
+    # ② 교체 — 한 트랜잭션에서. 실패하면 통째로 롤백되어 기존 데이터가 남는다.
+    removed = db.query(FontPairing).delete()
+    for i, p in enumerate(rows):
+        db.add(FontPairing(
+            theme=p["theme"],
+            title_font_id=p["title_font_id"],
+            body_font_id=p["body_font_id"],
+            sample_title=p["sample_title"],
+            sample_body=p["sample_body"],
+            description=p["description"],
+            title_weight=p["title_weight"],
+            body_weight=p["body_weight"],
+            sort_order=(i + 1) * 10,
+        ))
+    db.commit()
+
+    themes: dict = {}
+    for p in rows:
+        themes[p["theme"]] = themes.get(p["theme"], 0) + 1
+    print(f"[pairings] 전체 재생성: {removed}건 삭제 → {len(rows)}건 생성")
+    return {
+        "removed": removed,
+        "created": len(rows),
+        "fonts": len(fonts),
+        "themes": dict(sorted(themes.items(), key=lambda kv: -kv[1])),
+    }

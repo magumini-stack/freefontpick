@@ -457,6 +457,7 @@
       </select>
       <button class="btn-primary" onclick="openPairingModal()"><i class="ti ti-plus" aria-hidden="true"></i> 새 조합 등록</button>
       <button class="btn-secondary" onclick="openAutoGenModal()"><i class="ti ti-sparkles" aria-hidden="true"></i> 자동 생성</button>
+      <button class="btn-secondary" onclick="regenerateAllPairings()" title="전체 조합을 지금 알고리즘으로 다시 만들어 교체합니다"><i class="ti ti-refresh" aria-hidden="true"></i> 전체 재생성</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -3030,6 +3031,27 @@ async function saveSelectedAutoPairings(){
   showToast(fail ? `${ok}개 저장, ${fail}개 실패` : `${ok}개 조합을 저장했어요`);
   closeAutoGenModal();
   await refreshPairings();
+}
+
+/* 전체 재생성 — 기존 조합을 전부 지우고 지금 알고리즘으로 다시 만든다.
+   되돌릴 수 없으므로 현재 건수를 보여주고 두 번 확인한다. */
+async function regenerateAllPairings(){
+  const now = (PAIRINGS || []).length;
+  if(!confirm(
+    `지금 등록된 조합 ${now}개를 모두 지우고,\n` +
+    `폰트마다 6개씩 새로 만들어 교체합니다.\n\n` +
+    `사람이 직접 쓴 문구도 함께 사라집니다.\n되돌릴 수 없습니다. 계속할까요?`
+  )) return;
+  if(!confirm('정말 진행할까요? 마지막 확인입니다.')) return;
+
+  showToast('재생성 중… 1~2분 걸릴 수 있어요');
+  try {
+    const r = await PairingStore.regenerateAll(6);
+    showToast(`${r.removed}개를 지우고 ${r.created}개를 새로 만들었어요 (폰트 ${r.fonts}종)`);
+    await refreshPairings();
+  } catch(e) {
+    showToast('재생성 실패: ' + (e.message || e));
+  }
 }
 
 /* ════════════════════════════════════════
