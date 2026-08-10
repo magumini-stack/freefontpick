@@ -33,6 +33,18 @@ THEME_ALIASES = {
     "포스터 · 배너": "포스터 · 안내문",
 }
 
+# 영문 전용 폰트끼리 붙는 조합에 쓰는 테마.
+#
+# 이게 없던 동안 영문+영문 조합 228건이 **전부 한글 문구**로 나왔다.
+# 뱅크 19종이 모두 한글 문구였고 영문이 들어간 "한글 + 영문 조합"조차
+# 본문은 한글이라, 어떤 테마가 걸려도 영문 폰트에 한글이 얹혔다.
+# (영문 전용 폰트는 한글 글리프가 없어 화면에서 통째로 깨져 보인다.)
+#
+# 영문 폰트 38종은 성격이 둘로 갈린다:
+#   장식·로고 계열 (Anton, Bungee, Lobster, Monoton, 스크립트체 등) — 짧고 강한 카피
+#   본문·에디토리얼 계열 (Montserrat, OpenSans, Roboto, Playfair Display 등) — 문장형
+ENGLISH_THEMES = ("영문 로고 · 캐치프레이즈", "영문 본문 · 에디토리얼")
+
 THEME_PHRASE_BANK = {
     "유튜브 썸네일": [
         ("조회수 터진 이유", "알고리즘이 좋아한 세 가지를 정리했어요"),
@@ -527,5 +539,57 @@ THEME_PHRASE_BANK = {
         ("주차 안내", "건물 뒤편 주차장을 이용하실 수 있습니다."),
         ("동반 입장 안내", "보호자 한 분까지 함께 오실 수 있습니다."),
         ("자주 묻는 질문", "많이 문의하신 내용을 모아 정리했습니다."),
+    ],
+    "영문 로고 · 캐치프레이즈": [
+        ("MADE TO LAST", "Built with care, meant to stay with you."),
+        ("SLOW MORNINGS", "Take the long way. There is no rush today."),
+        ("KEEP IT SIMPLE", "Fewer things, chosen better."),
+        ("THE DAILY EDIT", "A short list of what actually matters."),
+        ("OPEN TODAY", "Come in and stay as long as you like."),
+        ("FRESH BATCH", "Baked this morning, gone by evening."),
+        ("STUDIO NOTES", "Small updates from the workbench."),
+        ("SUMMER SET", "Light layers for warm afternoons."),
+        ("HAND FINISHED", "Every piece passes through two hands."),
+        ("GOOD COMPANY", "Better with someone across the table."),
+        ("NIGHT SHIFT", "The city sounds different after ten."),
+        ("FIRST LIGHT", "The quietest hour is the best one."),
+        ("LOCAL ONLY", "Sourced within an hour of the shop."),
+        ("NO SHORTCUTS", "It takes the time it takes."),
+        ("WEEKEND PLANS", "Nothing scheduled, everything possible."),
+        ("SMALL BATCH", "Thirty at a time, never more."),
+        ("PURE AND PLAIN", "Nothing added that does not belong."),
+        ("AFTER HOURS", "The door stays open a little longer."),
+        ("ROOM TO BREATHE", "Space is part of the design."),
+        ("WORTH THE WAIT", "Good things rarely arrive early."),
+        ("CLOSER LOOK", "The details are where it lives."),
+        ("ON REPEAT", "The one we keep coming back to."),
+        ("FROM SCRATCH", "Started with nothing but an idea."),
+        ("SEE YOU THERE", "Doors open at seven, sharp."),
+    ],
+    "영문 본문 · 에디토리얼": [
+        ("The Quiet Hour", "There is a stretch of the morning when the street has not woken up yet, and it belongs to whoever gets there first."),
+        ("On Making Things", "The hard part is never the idea. It is showing up on the days when the idea feels thin."),
+        ("A Shorter List", "We cut the range in half this season. What remains is what we would buy ourselves."),
+        ("Notes From the Road", "Three weeks, four cities, and a notebook that came back heavier than it left."),
+        ("What Stays", "Trends move quickly. The things people keep tend to be plain and well made."),
+        ("Learning Slowly", "Progress rarely announces itself. You notice it months later, looking back."),
+        ("The Second Draft", "The first version tells you what you meant. The second one says it properly."),
+        ("Small Rooms", "Limited space forces better decisions. Nothing sits there without earning its place."),
+        ("Working Alone", "Solitude is not the same as loneliness, and the difference matters more than it sounds."),
+        ("Before the Rush", "An hour of quiet at the start changes the shape of the whole day."),
+        ("On Repair", "Fixing something teaches you how it was made, which is a kind of respect."),
+        ("Long Walks", "No destination, no timer. The thinking sorts itself out on its own."),
+        ("Materials Matter", "Paper, wood, cloth. Things that age visibly tell you how they have been treated."),
+        ("Beginning Again", "Starting over is not failure. It is what you do with better information."),
+        ("The Middle Part", "Beginnings are easy and endings are clear. Everything difficult lives between them."),
+        ("Reading Twice", "The same page can mean something different a year later. You changed, not the page."),
+        ("Keeping Records", "One line a day is enough. The value shows up when you look back at the year."),
+        ("Enough Light", "A room needs less than you think, as long as it comes from the right direction."),
+        ("Plain Language", "Say it the way you would say it out loud. The rest is decoration."),
+        ("A Good Question", "Better than a quick answer, and harder to come by."),
+        ("Winter Reading", "The season lends itself to longer books and fewer plans."),
+        ("Making Room", "Deciding what to leave out is the whole job."),
+        ("Quiet Confidence", "The work that lasts rarely raises its voice."),
+        ("Coming Home", "Familiar things look different after time away, and mostly they look better."),
     ],
 }
