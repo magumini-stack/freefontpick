@@ -313,6 +313,20 @@ _FORMALITY_THEME_HINTS = {
 # 한글 폰트와의 자동 페어링에서 제외한다 (반대 방향도 마찬가지).
 _ENGLISH_ONLY_TAGS = {"디자인 영어", "디자이너 필수 영문"}
 
+# 조합 추천에서 아예 빼는 폰트의 태그.
+# '펜시'는 장식성이 매우 강해 제목으로도 본문으로도 다른 폰트와 붙이기 어렵다.
+# 실제로 어드민이 큐레이션한 285건에서 단 한 번도 쓰이지 않았다 — 사람이 이미
+# 내린 판단을 알고리즘에도 반영한다.
+_EXCLUDED_TAGS = {"펜시"}
+
+# 영문 전용 폰트가 한글 폰트와 붙을 때 쓰는 테마.
+# 이 테마의 문구 뱅크는 (영문 제목, 한글 본문) 형태라 그대로 들어맞는다.
+_MIXED_LANG_THEME = "한글 + 영문 조합"
+
+
+def _is_excluded(font: "Font") -> bool:
+    return bool({t.name for t in font.tags} & _EXCLUDED_TAGS)
+
 
 def _is_english_only(font: "Font") -> bool:
     """카테고리 태그로 이 폰트가 영문 전용인지 판별."""
@@ -670,6 +684,37 @@ def _pick_weight(font: Font, target: int) -> int:
     return min(weights, key=lambda w: abs(w - target))
 
 
+def _pick_body_weight(font: Font, title_weight: int) -> int:
+    """본문 굵기. 400 고정이 아니라 제목과의 대비를 보고 고른다.
+
+    예전에는 늘 400에 가장 가까운 값을 골라, 굵기를 여러 벌 가진 폰트인데도
+    본문이 전부 400으로 나왔다. 제목이 800~900으로 무거운 조합에서는 본문을
+    300이나 200으로 낮춰야 위계가 분명해지고, 긴 문장도 덜 답답하다.
+
+    제목이 무거울수록 더 가벼운 본문을 노린다.
+      제목 900+ → 300 선호,  800 → 300,  700 → 400,  그 아래 → 400
+    폰트가 그 굵기를 실제로 갖고 있지 않으면 가진 것 중 가장 가까운 값이 된다.
+    """
+    from .files import _merged_weights
+    weights = sorted({w["weight"] for w in _merged_weights(font)})
+    if not weights:
+        return int(font.primary_weight or 400)
+
+    target = 300 if title_weight >= 800 else 400
+    # 굵기를 3개 이상 가진 폰트에서는 한 단계 더 가벼운 쪽도 후보로 둔다.
+    # 늘 같은 값이 나오면 재생성해도 카드가 똑같아 보인다.
+    if len(weights) >= 3 and random.random() < 0.35:
+        target = max(200, target - 100)
+
+    body = min(weights, key=lambda w: abs(w - target))
+    # 본문이 제목보다 무거우면 위계가 뒤집힌다 — 더 가벼운 값이 있으면 그걸 쓴다.
+    if body >= title_weight:
+        lighter = [w for w in weights if w < title_weight]
+        if lighter:
+            body = max(lighter)
+    return body
+
+
 def _describe(title_font: Font, body_font: Font, theme: str) -> str:
     t_summary = (title_font.meta or {}).get("summary") or f"{title_font.name}"
     return (
@@ -706,10 +751,20 @@ def auto_generate_pairings(
     if not anchor:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
 
-    # 언어 필터: 한글 폰트끼리, 영문 폰트끼리만 페어링
+    # 조합에서 완전히 빼는 폰트 (펜시 등) — 앵커 자신이면 결과가 없다.
+    if _is_excluded(anchor):
+        return []
+
     anchor_is_english = _is_english_only(anchor)
-    candidates = db.query(Font).filter(Font.id != font_id).all()
-    candidates = [c for c in candidates if _is_english_only(c) == anchor_is_english]
+    candidates = [
+        c for c in db.query(Font).filter(Font.id != font_id).all()
+        if not _is_excluded(c)
+    ]
+    # 언어 조합 규칙:
+    #   한글 앵커 → 한글 상대(일반 조합) + 영문 상대(영문 제목 + 한글 본문)
+    #   영문 앵커 → 영문 상대 + 한글 상대(같은 형태를 뒤집은 것)
+    # 예전에는 같은 언어권끼리만 붙였는데, 그러면 "한글 + 영문 조합" 테마가
+    # 큐레이션에는 있는데 자동 생성으로는 도달할 수 없었다.
 
     theme_pool = _collect_theme_samples(db)
     available_themes = list(theme_pool.keys())
@@ -730,6 +785,18 @@ def auto_generate_pairings(
     for other in candidates:
         cohesion = _cohesion(anchor, other)
         pen = _popularity_penalty(other.id)
+        other_is_english = _is_english_only(other)
+
+        if other_is_english != anchor_is_english:
+            # 언어가 섞인 쌍은 방향이 하나로 정해진다 — 영문이 제목, 한글이 본문.
+            # 영문 전용 폰트에 한글 본문을 맡길 수 없고, 문구 뱅크도 그 형태다.
+            eng, kor = (anchor, other) if anchor_is_english else (other, anchor)
+            score = (
+                _title_fit(eng) + _body_fit(kor) + cohesion
+                - pen + random.uniform(-JITTER, JITTER)
+            )
+            scored.append((score, eng, kor))
+            continue
 
         score_a_title = (
             _title_fit(anchor) + _body_fit(other) + cohesion
@@ -755,12 +822,22 @@ def auto_generate_pairings(
         if partner in used_partners:
             continue
 
-        theme = _pick_theme(
-            title_font, body_font, theme_profiles, theme_idf,
-            theme_exposure, used_themes,
-        )
-        if not theme:
-            theme = next((t for t in available_themes if t not in used_themes), "추천 조합")
+        # 언어가 섞인 쌍은 테마가 정해져 있다. 이 테마의 문구만 (영문 제목,
+        # 한글 본문) 형태라, 다른 테마를 고르면 영문 폰트에 한글 제목이 얹혀
+        # 글자가 통째로 깨진다.
+        if _is_english_only(title_font) != _is_english_only(body_font):
+            # 그 테마가 없거나 이미 한 장 나갔으면 이 조합은 건너뛴다.
+            # 한 응답이 전부 "한글 + 영문 조합"으로 채워지면 탐색이 안 된다.
+            if _MIXED_LANG_THEME not in theme_pool or _MIXED_LANG_THEME in used_themes:
+                continue
+            theme = _MIXED_LANG_THEME
+        else:
+            theme = _pick_theme(
+                title_font, body_font, theme_profiles, theme_idf,
+                theme_exposure, used_themes,
+            )
+            if not theme:
+                theme = next((t for t in available_themes if t not in used_themes), "추천 조합")
 
         # 문구는 풀에서 무작위로 뽑되, 이번 응답에 이미 쓴 것과
         # 최근 응답들에 나갔던 것을 함께 피한다(_pick_sample).
@@ -771,14 +848,15 @@ def auto_generate_pairings(
         used_themes.add(theme)
         used_samples.add((sample_title, sample_body))
 
+        tw = _pick_weight(title_font, 700)
         results.append({
             "theme": theme,
             "title_font_id": title_font.id,
             "title_font_name": title_font.name,
             "body_font_id": body_font.id,
             "body_font_name": body_font.name,
-            "title_weight": _pick_weight(title_font, 700),
-            "body_weight": _pick_weight(body_font, 400),
+            "title_weight": tw,
+            "body_weight": _pick_body_weight(body_font, tw),
             "sample_title": sample_title,
             "sample_body": sample_body,
             "description": _describe(title_font, body_font, theme),
