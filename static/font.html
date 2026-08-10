@@ -251,34 +251,41 @@
      클래스명에 'overlay'가 들어가야 한다 — 뒤로가기(bfcache) 복구 핸들러가
      [class*="overlay"]로 열린 오버레이를 닫는다. 빼면 되돌아왔을 때 굳는다. */
   .fp-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;
-    align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+    align-items:flex-start;justify-content:center;padding:28px 24px;overflow-y:auto}
   .fp-overlay.open{display:flex}
-  .fp-sheet{background:var(--bg-card);border-radius:12px;max-width:920px;width:100%;
+  .fp-sheet{background:var(--bg-card);border-radius:12px;max-width:1180px;width:100%;
     box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
-  .fp-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;
+  .fp-head{padding:22px 28px 18px;border-bottom:1px solid var(--border);display:flex;
     align-items:flex-start;justify-content:space-between;gap:16px}
   .fp-head h2{font-size:19px;font-weight:800;letter-spacing:-.03em;margin:0 0 4px}
   .fp-head p{margin:0;font-size:12.5px;color:var(--text-muted)}
   .fp-x{border:none;background:none;font-size:24px;line-height:1;color:var(--text-muted);
     cursor:pointer;padding:0 4px;flex:0 0 auto}
-  .fp-textbar{display:flex;gap:10px;padding:14px 24px;background:var(--bg-secondary);
+  .fp-textbar{display:flex;gap:12px;padding:16px 28px;background:var(--bg-secondary);
     border-bottom:1px solid var(--border);flex-wrap:wrap}
   .fp-field{flex:1 1 220px;min-width:0}
   .fp-field label{display:block;font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:5px}
   .fp-field input{width:100%;border:1px solid var(--border);border-radius:4px;padding:9px 11px;
     font-size:13.5px;font-family:inherit;background:var(--bg-card);color:var(--text-primary)}
   .fp-field input:focus{outline:none;border-color:var(--accent)}
-  .fp-body{padding:20px 24px}
-  /* .pairs는 340px 사이드바 전용(세로 1열)이라 모달에서만 격자로 덮는다 */
-  #fpModal .pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+  .fp-body{padding:24px 28px}
+  /* .pairs는 340px 사이드바 전용(세로 1열)이라 모달에서만 격자로 덮는다.
+     카드 글자 크기도 같이 키운다 — .pair-title 23px / .pair-body 15px은
+     좁은 사이드바에 맞춘 값이라, 넓은 모달에서는 견본이 작아 답답해 보인다. */
+  #fpModal .pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+  #fpModal .pair-card{padding:22px 22px 18px}
+  #fpModal .pair-stage{margin-bottom:14px}
+  #fpModal .pair-title{font-size:28px;line-height:1.28}
+  #fpModal .pair-body{font-size:16.5px;margin-top:5px}
+  #fpModal .pair-meta{padding-top:12px}
   .fp-state{padding:38px 20px;text-align:center;color:var(--text-muted);font-size:13.5px}
-  .fp-actions{padding:4px 24px 20px;text-align:center}
+  .fp-actions{padding:4px 28px 24px;text-align:center}
   .fp-reroll{border:1px solid var(--border-hover);background:var(--bg-card);color:var(--text-primary);
     font-family:inherit;font-size:13px;font-weight:700;border-radius:22px;padding:10px 20px;cursor:pointer;
     display:inline-flex;align-items:center;gap:7px}
   .fp-reroll:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
   .fp-reroll:disabled{opacity:.5;cursor:default}
-  .fp-foot{border-top:1px solid var(--border);padding:14px 24px;text-align:center}
+  .fp-foot{border-top:1px solid var(--border);padding:16px 28px;text-align:center}
   .fp-foot a{font-size:13px;font-weight:700;color:var(--accent);text-decoration:none}
   /* 조합이 없는 폰트(펜시 등)의 사이드바 대체 카드 */
   .pair-teaser{border:1px dashed var(--border-hover);border-radius:4px;padding:20px 16px;text-align:center}
