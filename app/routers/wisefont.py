@@ -17,6 +17,7 @@ import json
 import re
 from pathlib import Path
 
+from urllib.parse import quote as _q
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 
@@ -277,6 +278,9 @@ def wisefont_page(slug: str):
         "{{WF_OG_IMAGE}}": thumb,
         "{{WF_JSONLD}}": f'<script type="application/ld+json">{json_ld}</script>',
         "{{WF_NAME}}": _esc(name),
+        # mailto 주소에 들어갈 폰트명은 HTML 이스케이프가 아니라 URL 인코딩이 필요하다.
+        # "카페 24 쑥쑥"처럼 공백이 있으면 주소가 거기서 끊겨 제목이 잘린다.
+        "{{WF_NAME_URL}}": _q(name),
         "{{WF_FULLNAME}}": _esc(font["full_name"]),
         "{{WF_FORMATS}}": _esc(font["formats"]),
         "{{WF_SPECS}}": spec_rows,
