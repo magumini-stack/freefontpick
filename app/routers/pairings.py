@@ -9,6 +9,7 @@
 """
 import math
 import random
+import re
 from collections import Counter
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -444,22 +445,45 @@ def _collect_theme_samples(db: Session) -> dict:
     예전에는 1)만 썼기 때문에 테마당 문구가 5~16개에 그쳤다. 뱅크를 합쳐
     테마마다 20개 이상의 후보를 확보해, 같은 폰트를 여러 번 조회해도 매번
     다른 문구가 나오도록 한다.
+
+    ⚠️ 문구에 특정 폰트 이름이 들어 있으면 제외한다.
+    문구 풀은 테마 단위로 공유되므로, A조합용으로 쓴 문장이 B조합 카드에 붙는다.
+    실제로 "나눔스퀘어의 각진 볼드가 … KoPub돋움이 정보를 전달합니다" 같은
+    문구가 전혀 다른 두 폰트 카드에 얹혀 사용자에게 틀린 정보를 주고 있었다.
+    (운영 DB 285건 중 3건 — 테마별 풀이 작아 첫 조회에서 바로 튀어나왔다.)
     """
     from ..pairing_phrases import THEME_PHRASE_BANK, THEME_ALIASES
 
     pool: dict = {}
 
+    # 폰트 이름 집합. 2글자 이하는 일반 단어와 겹쳐 오탐이 나므로 제외한다.
+    # 이름마다 `in`을 돌리면 문구 500개 × 폰트 200종 = 10만 번 스캔이라
+    # 이 함수 시간의 27%를 먹었다. 정규식 하나로 합쳐 문구당 한 번만 훑는다.
+    names = sorted(
+        (n.strip() for (n,) in db.query(Font.name).all() if n and len(n.strip()) >= 3),
+        key=len, reverse=True,
+    )
+    name_re = re.compile("|".join(re.escape(n) for n in names)) if names else None
+
+    def _names_a_font(text: str) -> bool:
+        return bool(name_re.search(text)) if name_re else False
+
     def _add(theme: str, st: str, sb: str):
         if not theme or (not st and not sb):
+            return
+        if _names_a_font(st) or _names_a_font(sb):
             return
         bucket = pool.setdefault(theme, [])
         if (st, sb) not in bucket:
             bucket.append((st, sb))
 
-    for p in db.query(FontPairing).all():
-        _add((p.theme or "").strip(),
-             (p.sample_title or "").strip(),
-             (p.sample_body or "").strip())
+    # 세 컬럼만 쓴다. FontPairing은 title_font/body_font가 lazy="joined"이고
+    # 그게 다시 tags/extra_weights 조인을 연쇄시켜, .all()로 받으면 문구 세 개를
+    # 얻으려고 4중 중첩 조인을 통째로 끌어온다.
+    for theme, st, sb in db.query(
+        FontPairing.theme, FontPairing.sample_title, FontPairing.sample_body
+    ):
+        _add((theme or "").strip(), (st or "").strip(), (sb or "").strip())
 
     # 뱅크 병합 — DB에 존재하는 테마에만 붙인다(쓰이지 않는 테마를 새로 만들지 않음).
     # 파편화된 테마명("SNS 카드뉴스" 등)은 정규 테마의 뱅크를 함께 쓴다.
@@ -471,6 +495,42 @@ def _collect_theme_samples(db: Session) -> dict:
     if not pool:
         pool["추천 조합"] = [("어울리는 조합을 찾았어요", "제목과 본문에 함께 써보세요")]
     return pool
+
+
+# ── 문구 고르기: 최근에 나간 것을 피한다 ────────────────────────────
+#
+# "다른 조합 보기"를 누르는 것이 이 기능의 핵심 동작인데, 테마당 문구 풀이
+# 24~35개뿐이라 무작위로만 뽑으면 재생성 두세 번 만에 같은 문구가 다시 나온다.
+# 사용자 입장에서는 새로 만든 것 같지 않다.
+#
+# 그래서 테마별로 최근에 내보낸 문구를 기억해 두고 그 밖에서 먼저 고른다.
+# 프로세스 메모리에만 두는 이유:
+#   - 문구 다양성은 "직전 몇 번"만 피하면 충분하고, 영속화할 가치가 없다.
+#   - 컨테이너가 여러 개여도 각자 자기 기록으로 잘 동작한다(최악이 현재 수준).
+# 풀보다 기억을 짧게 잡아야 후보가 0개가 되지 않는다 → maxlen을 풀 크기의 절반으로.
+_RECENT_SAMPLES: dict = {}
+_RECENT_RATIO = 0.5      # 풀의 이 비율만큼을 "최근"으로 보고 회피
+_RECENT_CAP = 16         # 풀이 커도 이 이상은 기억하지 않는다
+
+
+def _pick_sample(theme: str, samples: list, used_in_response: set) -> tuple:
+    """이번 응답에서 쓴 문구 + 최근 응답에 나간 문구를 피해서 하나 고른다."""
+    from collections import deque
+
+    recent = _RECENT_SAMPLES.get(theme)
+    want = max(1, min(_RECENT_CAP, int(len(samples) * _RECENT_RATIO)))
+    if recent is None or recent.maxlen != want:
+        # 풀 크기가 바뀌면(어드민이 페어링을 추가) 기억 길이도 다시 맞춘다
+        recent = deque(recent or [], maxlen=want)
+        _RECENT_SAMPLES[theme] = recent
+
+    fresh = [s for s in samples if s not in used_in_response and s not in recent]
+    if not fresh:
+        # 다 소진되면 이번 응답 중복만 피한다. 그것도 안 되면 아무거나.
+        fresh = [s for s in samples if s not in used_in_response] or samples
+    chosen = random.choice(fresh)
+    recent.append(chosen)
+    return chosen
 
 
 # ── 테마 선택: 기존 큐레이션에서 학습한 "테마 프로파일" 기반 ──────────
@@ -702,14 +762,10 @@ def auto_generate_pairings(
         if not theme:
             theme = next((t for t in available_themes if t not in used_themes), "추천 조합")
 
-        # 문구는 풀에서 무작위로 뽑는다. 예전에는 인덱스 0부터 순서대로 꺼냈는데,
-        # 인덱스가 요청마다 초기화돼서 테마별로 늘 같은 문구만 나왔다.
+        # 문구는 풀에서 무작위로 뽑되, 이번 응답에 이미 쓴 것과
+        # 최근 응답들에 나갔던 것을 함께 피한다(_pick_sample).
         samples = theme_pool.get(theme) or [("어울리는 조합을 찾았어요", "제목과 본문에 함께 써보세요")]
-        sample_title, sample_body = random.choice(samples)
-        tries = 0
-        while (sample_title, sample_body) in used_samples and tries < len(samples):
-            sample_title, sample_body = random.choice(samples)
-            tries += 1
+        sample_title, sample_body = _pick_sample(theme, samples, used_samples)
 
         used_partners.add(partner)
         used_themes.add(theme)
