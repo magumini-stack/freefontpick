@@ -327,6 +327,9 @@ _EXCLUDED_TAGS = {"펜시"}
 # 이 테마의 문구 뱅크는 (영문 제목, 한글 본문) 형태라 그대로 들어맞는다.
 _MIXED_LANG_THEME = "한글 + 영문 조합"
 
+# 영문끼리 붙을 때 쓰는 테마 (문구가 제목·본문 모두 영문).
+from ..pairing_phrases import ENGLISH_THEMES as _ENGLISH_THEMES
+
 
 def _is_excluded(font: "Font") -> bool:
     return bool({t.name for t in font.tags} & _EXCLUDED_TAGS)
@@ -472,6 +475,12 @@ def _collect_theme_samples(db: Session) -> dict:
     """
     from ..pairing_phrases import THEME_PHRASE_BANK, THEME_ALIASES
 
+    # 테마명은 여기서 정규화한다. 운영 DB에는 같은 성격의 테마가 두 표기로
+    # 갈려 있었다 ("포스터·배너" 86건 vs "포스터 · 안내문" 66건,
+    # "SNS 카드뉴스" 55건 vs "카드뉴스 · SNS" 52건). 예전에는 별칭을 문구 풀을
+    # 합칠 때만 썼기 때문에, 생성 결과에도 옛 표기가 그대로 따라붙어
+    # 어드민 테마 목록이 두 벌로 보였다. 풀의 키 자체를 정규명으로 두면
+    # 프로파일·선택·저장이 전부 정규명으로 흐른다.
     pool: dict = {}
 
     # 폰트 이름 집합. 2글자 이하는 일반 단어와 겹쳐 오탐이 나므로 제외한다.
@@ -491,6 +500,7 @@ def _collect_theme_samples(db: Session) -> dict:
             return
         if _names_a_font(st) or _names_a_font(sb):
             return
+        theme = THEME_ALIASES.get(theme, theme)      # 정규명으로 통일
         bucket = pool.setdefault(theme, [])
         if (st, sb) not in bucket:
             bucket.append((st, sb))
@@ -504,10 +514,17 @@ def _collect_theme_samples(db: Session) -> dict:
         _add((theme or "").strip(), (st or "").strip(), (sb or "").strip())
 
     # 뱅크 병합 — DB에 존재하는 테마에만 붙인다(쓰이지 않는 테마를 새로 만들지 않음).
-    # 파편화된 테마명("SNS 카드뉴스" 등)은 정규 테마의 뱅크를 함께 쓴다.
+    # 위에서 키를 이미 정규화했으므로 뱅크 이름과 그대로 맞는다.
     for theme in list(pool.keys()):
-        canon = THEME_ALIASES.get(theme, theme)
-        for st, sb in THEME_PHRASE_BANK.get(canon, []):
+        for st, sb in THEME_PHRASE_BANK.get(theme, []):
+            _add(theme, st, sb)
+
+    # 영문 테마는 DB에 없어도 항상 넣는다. 위 병합은 "DB에 이미 있는 테마"에만
+    # 뱅크를 붙이는데, 영문 테마는 신규라 DB에 한 건도 없어 그 규칙으로는
+    # 영원히 풀에 들어오지 못한다. 영문끼리 붙는 조합이 쓸 문구가 여기뿐이다.
+    from ..pairing_phrases import ENGLISH_THEMES
+    for theme in ENGLISH_THEMES:
+        for st, sb in THEME_PHRASE_BANK.get(theme, []):
             _add(theme, st, sb)
 
     if not pool:
@@ -625,11 +642,16 @@ def _cosine(a: dict, b: dict) -> float:
 
 def _build_theme_profiles(db: Session, available_themes: list):
     """(테마 → 프로파일 벡터), idf, 테마별 기존 페어링 수를 반환."""
+    from ..pairing_phrases import THEME_ALIASES
+
     raw = {t: Counter() for t in available_themes}
     sample_counts: Counter = Counter()
 
     for p in db.query(FontPairing).all():
+        # 저장된 이름이 옛 표기일 수 있다. 정규화하지 않으면 그 조합들이
+        # 프로파일 학습에서 통째로 빠진다(raw 키는 정규명이라 안 걸린다).
         theme = (p.theme or "").strip()
+        theme = THEME_ALIASES.get(theme, theme)
         if theme not in raw:
             continue
         for f in (p.title_font, p.body_font):
@@ -901,7 +923,17 @@ def _generate_for(anchor: Font, ctx: "_GenContext", top_n: int = 6) -> List[dict
         # 언어가 섞인 쌍은 테마가 정해져 있다. 이 테마의 문구만 (영문 제목,
         # 한글 본문) 형태라, 다른 테마를 고르면 영문 폰트에 한글 제목이 얹혀
         # 글자가 통째로 깨진다.
-        if _is_english_only(title_font) != _is_english_only(body_font):
+        t_eng, b_eng = _is_english_only(title_font), _is_english_only(body_font)
+        if t_eng and b_eng:
+            # 영문 폰트끼리는 반드시 영문 문구를 써야 한다. 한글 문구가 얹히면
+            # 한글 글리프가 없어 화면에서 통째로 깨진다.
+            cands = [t for t in _ENGLISH_THEMES if t in theme_pool and t not in used_themes]
+            if not cands:
+                cands = [t for t in _ENGLISH_THEMES if t in theme_pool]
+            if not cands:
+                continue
+            theme = random.choice(cands)
+        elif t_eng != b_eng:
             # 그 테마가 없거나 이미 한 장 나갔으면 이 조합은 건너뛴다.
             # 한 응답이 전부 "한글 + 영문 조합"으로 채워지면 탐색이 안 된다.
             if _MIXED_LANG_THEME not in theme_pool or _MIXED_LANG_THEME in used_themes:
