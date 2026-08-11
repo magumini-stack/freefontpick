@@ -123,10 +123,24 @@ def _resolve_tags(db: Session, tag_names: list) -> List[Tag]:
 # 공개 API
 @router.get("", response_model=List[FontOut])
 def list_fonts(db: Session = Depends(get_db)):
-    """모든 방문자가 호출. sort_order 순으로 정렬."""
+    """모든 방문자가 호출. sort_order 순으로 정렬.
+
+    meta.license는 응답에서 뺀다 — 라이선스 요약표는 상세페이지에서만 쓰는데
+    약관 원문이 길어 목록 응답의 35%(127KB)를 차지했다. 상세페이지는
+    GET /api/fonts/{id} 를 따로 부르므로 화면에 나오는 정보는 그대로다.
+    어드민 편집창도 폰트 하나를 다시 불러오도록 맞춰져 있다(static/admin.html).
+    """
     fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
     paired = _paired_font_ids(db)
-    return [_to_out(f, paired) for f in fonts]
+    out = []
+    for f in fonts:
+        item = _to_out(f, paired)
+        if item.meta and "license" in item.meta:
+            # font.meta를 직접 지우면 SQLAlchemy가 변경으로 보고 DB에 반영한다.
+            # 반드시 복사본에서 뺀다.
+            item.meta = {k: v for k, v in item.meta.items() if k != "license"}
+        out.append(item)
+    return out
 
 
 # ⚠️ 아래 두 경로는 반드시 `/{font_id}` 보다 먼저 선언해야 한다.

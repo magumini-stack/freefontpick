@@ -1644,9 +1644,23 @@ function openFontModal(){
   document.getElementById('fontModal').classList.add('open');
   document.body.style.overflow='hidden';
 }
-function editFont(id){
+async function editFont(id){
   const f = FONTS.find(x=>x.id===id);
   if(!f) return;
+  /* 목록 응답(/api/fonts)에는 meta.license가 빠져 있다(용량 절감).
+     그대로 폼을 열면 '확인 안 됨' 상태로 뜨고, 저장하는 순간 라이선스가 지워진다.
+     그래서 폰트 하나를 다시 불러와 meta 전체를 확보한 뒤에만 창을 연다.
+     실패하면 창을 열지 않는다 — 반쪽 데이터로 저장되는 게 최악이다. */
+  try {
+    const full = await fetch('/api/fonts/' + id).then(r => {
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+    f.meta = full.meta || {};
+  } catch(e){
+    showToast('폰트 정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요.');
+    return;
+  }
   editingId = id;
   pendingFile = null;
   fmSelectedTags = new Set(f.tags);
