@@ -845,17 +845,41 @@ def auto_generate_pairings(
       확률 추출이라 같은 폰트를 다시 조회해도 결과가 달라진다(_pick_theme).
       DB에 이미 많이 쌓인 테마는 감점해 적게 쓰인 테마도 기회를 갖는다.
     - F: 샘플 문구는 DB 문구 + 내장 문구 뱅크를 합친 풀에서 무작위로 뽑는다.
+    - G: 실측 조판 지표(대비·조화)를 점수에 반영한다.
+    - H: 최근에 이 폰트로 내보낸 파트너는 피한다 — "다른 조합 보기"를 눌렀을 때
+      실제로 다른 조합이 나오게 하는 장치다(_RECENT_PARTNERS).
 
     최소 3개 이상을 목표로 하되, 후보 폰트가 3개 미만이면 있는 만큼만 반환한다.
     """
     anchor = db.query(Font).filter(Font.id == font_id).first()
     if not anchor:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
-    return _generate_for(anchor, _GenContext(db), top_n)
+    return _generate_for(anchor, _GenContext(db), top_n, avoid_recent=True)
 
 
-def _generate_for(anchor: Font, ctx: "_GenContext", top_n: int = 6) -> List[dict]:
-    """앵커 하나에 대한 조합 후보. 공통 준비물(ctx)은 밖에서 만들어 넘긴다."""
+# ── "다른 조합 보기"용 최근 파트너 기억 ─────────────────────────────
+#
+# 대비·조화 점수를 넣은 뒤로 리롤이 무의미해졌다. 그 두 항목이 결정적이고
+# 크기 때문에(+3/−6, +3) 기존 지터(±1.2)로는 순위가 안 흔들린다.
+# 실측: 같은 폰트를 4번 조회했더니 1회차와 67~100% 겹치고, 등장한 파트너가
+# 8~9종뿐이었다(최대 24종). 사용자가 "같은 조합만 나온다"고 느낀 이유다.
+#
+# 지터를 키우면 순위가 흔들리지만 나쁜 조합도 같이 올라온다. 대신 최근에
+# 보여준 파트너를 피한다 — 점수 순서는 그대로 두고 이미 본 것만 건너뛰므로,
+# 리롤하면 "그다음으로 좋은 6개"가 나온다. 자연히 테마와 굵기도 달라져
+# 첫 6개와 다른 느낌이 된다.
+_RECENT_PARTNERS: dict = {}
+_RECENT_PARTNER_CAP = 18     # 6개씩 세 번까지는 안 겹친다
+
+
+def _generate_for(anchor: Font, ctx: "_GenContext", top_n: int = 6,
+                  avoid_recent: bool = False) -> List[dict]:
+    """앵커 하나에 대한 조합 후보. 공통 준비물(ctx)은 밖에서 만들어 넘긴다.
+
+    avoid_recent: 최근에 이 앵커로 내보낸 파트너를 피한다("다른 조합 보기"용).
+        전체 재생성처럼 폰트마다 한 번씩만 도는 작업에서는 꺼둔다 — 켜두면
+        먼저 처리된 폰트가 쓴 파트너를 뒤 폰트가 이유 없이 피하게 된다.
+    """
     # 조합에서 완전히 빼는 폰트 (펜시 등) — 앵커 자신이면 결과가 없다.
     if _is_excluded(anchor):
         return []
@@ -919,67 +943,84 @@ def _generate_for(anchor: Font, ctx: "_GenContext", top_n: int = 6) -> List[dict
     used_themes = set()      # 이미 배정한 테마 (한 응답 안에서 중복 방지)
     used_samples = set()     # 이미 배정한 (제목,본문) 문구
 
-    for score, title_font, body_font in scored:
-        partner = body_font.id if title_font.id == anchor.id else title_font.id
-        if partner in used_partners:
-            continue
+    recent = None
+    if avoid_recent:
+        from collections import deque
+        recent = _RECENT_PARTNERS.get(anchor.id)
+        if recent is None or recent.maxlen != _RECENT_PARTNER_CAP:
+            recent = deque(recent or [], maxlen=_RECENT_PARTNER_CAP)
+            _RECENT_PARTNERS[anchor.id] = recent
 
-        # 언어가 섞인 쌍은 테마가 정해져 있다. 이 테마의 문구만 (영문 제목,
-        # 한글 본문) 형태라, 다른 테마를 고르면 영문 폰트에 한글 제목이 얹혀
-        # 글자가 통째로 깨진다.
-        t_eng, b_eng = _is_english_only(title_font), _is_english_only(body_font)
-        if t_eng and b_eng:
-            # 영문 폰트끼리는 반드시 영문 문구를 써야 한다. 한글 문구가 얹히면
-            # 한글 글리프가 없어 화면에서 통째로 깨진다.
-            cands = [t for t in _ENGLISH_THEMES if t in theme_pool and t not in used_themes]
-            if not cands:
-                cands = [t for t in _ENGLISH_THEMES if t in theme_pool]
-            if not cands:
-                continue
-            theme = random.choice(cands)
-        elif t_eng != b_eng:
-            # 그 테마가 없거나 이미 한 장 나갔으면 이 조합은 건너뛴다.
-            # 한 응답이 전부 "한글 + 영문 조합"으로 채워지면 탐색이 안 된다.
-            if _MIXED_LANG_THEME not in theme_pool or _MIXED_LANG_THEME in used_themes:
-                continue
-            theme = _MIXED_LANG_THEME
-        else:
-            theme = _pick_theme(
-                title_font, body_font, theme_profiles, theme_idf,
-                theme_exposure, used_themes,
-            )
-            if not theme:
-                theme = next((t for t in available_themes if t not in used_themes), "추천 조합")
-
-        # 문구는 풀에서 무작위로 뽑되, 이번 응답에 이미 쓴 것과
-        # 최근 응답들에 나갔던 것을 함께 피한다(_pick_sample).
-        samples = theme_pool.get(theme) or [("어울리는 조합을 찾았어요", "제목과 본문에 함께 써보세요")]
-        sample_title, sample_body = _pick_sample(theme, samples, used_samples)
-
-        used_partners.add(partner)
-        used_themes.add(theme)
-        used_samples.add((sample_title, sample_body))
-
-        tw = _pick_weight(title_font, 700)
-        results.append({
-            "theme": theme,
-            "title_font_id": title_font.id,
-            "title_font_name": title_font.name,
-            "body_font_id": body_font.id,
-            "body_font_name": body_font.name,
-            "title_weight": tw,
-            "body_weight": _pick_body_weight(body_font, tw),
-            "sample_title": sample_title,
-            "sample_body": sample_body,
-            "description": _describe(title_font, body_font, theme),
-            "score": round(score, 1),
-            # 카드를 실제 폰트로 그리려면 stack/has_file/available_weights가 필요하다.
-            # 위 평면 필드(title_font_id 등)는 어드민 자동생성 모달이 쓰므로 유지한다.
-            "title_font": _font_brief(title_font),
-            "body_font": _font_brief(body_font),
-        })
+    # 최근 파트너를 피해 한 바퀴 돌고, 그것만으로 top_n을 못 채우면
+    # 회피를 풀고 한 바퀴 더 돈다. 후보가 마르면 조용히 예전처럼 동작한다.
+    for skip_recent in ((True, False) if recent else (False,)):
         if len(results) >= top_n:
             break
+        for score, title_font, body_font in scored:
+            if len(results) >= top_n:
+                break
+            partner = body_font.id if title_font.id == anchor.id else title_font.id
+            if partner in used_partners:
+                continue
+            if skip_recent and recent is not None and partner in recent:
+                continue
+
+            # 언어가 섞인 쌍은 테마가 정해져 있다. 이 테마의 문구만 (영문 제목,
+            # 한글 본문) 형태라, 다른 테마를 고르면 영문 폰트에 한글 제목이 얹혀
+            # 글자가 통째로 깨진다.
+            t_eng, b_eng = _is_english_only(title_font), _is_english_only(body_font)
+            if t_eng and b_eng:
+                # 영문 폰트끼리는 반드시 영문 문구를 써야 한다. 한글 문구가 얹히면
+                # 한글 글리프가 없어 화면에서 통째로 깨진다.
+                cands = [t for t in _ENGLISH_THEMES if t in theme_pool and t not in used_themes]
+                if not cands:
+                    cands = [t for t in _ENGLISH_THEMES if t in theme_pool]
+                if not cands:
+                    continue
+                theme = random.choice(cands)
+            elif t_eng != b_eng:
+                # 그 테마가 없거나 이미 한 장 나갔으면 이 조합은 건너뛴다.
+                # 한 응답이 전부 "한글 + 영문 조합"으로 채워지면 탐색이 안 된다.
+                if _MIXED_LANG_THEME not in theme_pool or _MIXED_LANG_THEME in used_themes:
+                    continue
+                theme = _MIXED_LANG_THEME
+            else:
+                theme = _pick_theme(
+                    title_font, body_font, theme_profiles, theme_idf,
+                    theme_exposure, used_themes,
+                )
+                if not theme:
+                    theme = next((t for t in available_themes if t not in used_themes), "추천 조합")
+
+            # 문구는 풀에서 무작위로 뽑되, 이번 응답에 이미 쓴 것과
+            # 최근 응답들에 나갔던 것을 함께 피한다(_pick_sample).
+            samples = theme_pool.get(theme) or [("어울리는 조합을 찾았어요", "제목과 본문에 함께 써보세요")]
+            sample_title, sample_body = _pick_sample(theme, samples, used_samples)
+
+            used_partners.add(partner)
+            used_themes.add(theme)
+            used_samples.add((sample_title, sample_body))
+            if recent is not None:
+                recent.append(partner)      # 다음 "다른 조합 보기"에서 피할 대상
+
+            tw = _pick_weight(title_font, 700)
+            results.append({
+                "theme": theme,
+                "title_font_id": title_font.id,
+                "title_font_name": title_font.name,
+                "body_font_id": body_font.id,
+                "body_font_name": body_font.name,
+                "title_weight": tw,
+                "body_weight": _pick_body_weight(body_font, tw),
+                "sample_title": sample_title,
+                "sample_body": sample_body,
+                "description": _describe(title_font, body_font, theme),
+                "score": round(score, 1),
+                # 카드를 실제 폰트로 그리려면 stack/has_file/available_weights가 필요하다.
+                # 위 평면 필드(title_font_id 등)는 어드민 자동생성 모달이 쓰므로 유지한다.
+                "title_font": _font_brief(title_font),
+                "body_font": _font_brief(body_font),
+            })
 
     return results
 
