@@ -946,6 +946,8 @@
 
     var parts = [];
     if (known && lic.note) parts.push(licEsc(lic.note));
+    // license.source(확인 근거)는 화면에 내보내지 않는다 — 값을 어디서 가져왔는지
+    // 추적하려고 데이터에만 남기는 운영용 필드다. 어드민에서만 확인한다.
     if (lic && lic.url) {
       parts.push('원문: <a href="' + licEsc(lic.url) + '" target="_blank" rel="noopener nofollow">' +
                  licEsc(lic.url) + '</a>');
