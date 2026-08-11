@@ -222,6 +222,20 @@
     .meta-radio{font-size:11px;padding:5px 10px;border-radius:14px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-weight:600;font-family:inherit;transition:all .12s}
     .meta-radio.selected{background:var(--accent);border-color:var(--accent);color:#fff}
     .meta-summary-wrap input{width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px;font-family:inherit}
+    /* 라이선스 편집 — 확인 여부를 먼저 체크해야 나머지가 열린다 */
+    .lic-verified{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;user-select:none}
+    .lic-verified input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+    #fmLicFields{opacity:.4;pointer-events:none;transition:opacity .15s}
+    #fmLicFields.on{opacity:1;pointer-events:auto}
+    .lic-perms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .lic-perm{display:flex;align-items:center;justify-content:space-between;gap:10px;
+              padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);font-size:13px}
+    .lic-perm-btns{display:flex;gap:4px;flex-shrink:0}
+    .lic-perm-btns button{border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);
+              border-radius:6px;padding:3px 9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+    .lic-perm-btns button.on[data-v="y"]{background:var(--accent);border-color:var(--accent);color:#fff}
+    .lic-perm-btns button.on[data-v="n"]{background:#d64545;border-color:#d64545;color:#fff}
+    .lic-perm-btns button.on[data-v="q"]{background:var(--text-muted);border-color:var(--text-muted);color:#fff}
 
     /* FILE UPLOAD */
     .drop-zone{border:2px dashed var(--border-hover);border-radius:var(--radius-md);padding:24px 16px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg-secondary)}
@@ -644,6 +658,41 @@
           <div class="meta-summary-wrap" style="margin-top:14px">
             <div class="meta-label">폰트 소개글 (상세페이지 '큐레이터 코멘트' 섹션 · 비워두면 안 나옴)</div>
             <textarea id="fmIntro" rows="3" maxlength="500" placeholder="예: 창원단감아삭체는 창원시 대표 특산물인 단감을 모티브로 만든 서체로, 둥글둥글한 형태가 특징입니다." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px;font-family:inherit;resize:vertical"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="field meta-section" id="fmLicenseSection">
+        <div class="meta-header">
+          <label>
+            <i class="ti ti-shield-check" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i>
+            라이선스 <span class="meta-sub">— 상세페이지 '라이선스 요약' 표에 그대로 나옵니다</span>
+          </label>
+        </div>
+        <div class="field-hint" style="margin-bottom:10px">
+          <b>확인한 폰트만 체크하세요.</b> 아래를 비워두면 상세페이지에 <b>'확인 중'</b> 배지가 붙고
+          표가 회색으로 눌린 채 "확인하지 못했다"는 안내가 나갑니다.
+          <br>근거 없이 허용으로 표시하면 사용자가 그대로 믿고 쓰다가 문제가 생길 수 있어요.
+        </div>
+        <label class="lic-verified">
+          <input type="checkbox" id="fmLicVerified" onchange="syncLicEnabled()">
+          <span>이 폰트의 라이선스를 <b>원문으로 확인했습니다</b></span>
+        </label>
+        <div id="fmLicFields" style="margin-top:12px">
+          <div class="meta-summary-wrap">
+            <div class="meta-label">라이선스 이름 <span class="meta-sub">— 상세페이지 배지에 표시</span></div>
+            <input type="text" id="fmLicName" maxlength="60" placeholder="예: SIL Open Font License 1.1 / 우아한형제들 무료 라이선스">
+          </div>
+          <div class="meta-summary-wrap" style="margin-top:12px">
+            <div class="meta-label">라이선스 원문 주소</div>
+            <input type="text" id="fmLicUrl" maxlength="500" placeholder="https://...">
+          </div>
+          <div class="meta-label" style="margin-top:14px">허용 범위</div>
+          <div class="lic-perms" id="fmLicPerms"></div>
+          <div class="meta-summary-wrap" style="margin-top:12px">
+            <div class="meta-label">특이사항 <span class="meta-sub">— 표 아래에 그대로 노출 (예: 스포츠 산업 사용 금지)</span></div>
+            <textarea id="fmLicNote" rows="2" maxlength="300" placeholder="예: 폰트 파일만 따로 유료 판매하는 것은 금지됩니다."
+              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px;font-family:inherit;resize:vertical"></textarea>
           </div>
         </div>
       </div>
@@ -1573,6 +1622,7 @@ function openFontModal(){
   document.getElementById('fmUrl').value = '';
   document.getElementById('fmPreviewText').value = '';
   document.getElementById('fmFileInput').value = '';
+  loadLicenseForm(null);
   renderFmTags();
   document.getElementById('fmWebfontName').value = '';
   document.getElementById('fmWebfontCssUrl').value = '';
@@ -1634,6 +1684,7 @@ function editFont(id){
   renderSamplePreview(id, !!f.hasSample);
   document.getElementById('fmSampleCredit').value = (f.meta && f.meta.sample_credit) || '';
   document.getElementById('fmSampleCreditUrl').value = (f.meta && f.meta.sample_credit_url) || '';
+  loadLicenseForm(f);
   document.getElementById('fontModal').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -1958,6 +2009,57 @@ const USAGE_INDUSTRY = {
   '정보전달 본문용':['공공기관','교육','출판'],
 };
 
+/* ── 라이선스 편집 ────────────────────────────────────────────
+   상세페이지 표(static/font.html의 LIC_AXES)와 키·순서가 같아야 한다.
+   한쪽만 고치면 표가 어긋나므로 두 곳을 함께 수정할 것. */
+const LIC_AXES = [
+  ['print','인쇄'], ['web','웹사이트'], ['package','포장지'], ['video','영상'],
+  ['embed','임베딩'], ['bici','BI/CI'], ['modify','파일 수정'], ['redist','파일 재배포'],
+];
+let fmLicPerms = {};
+
+function renderLicPerms(){
+  document.getElementById('fmLicPerms').innerHTML = LIC_AXES.map(([k, label]) => {
+    const v = fmLicPerms[k] || 'q';
+    const btn = (val, txt) =>
+      `<button type="button" data-k="${k}" data-v="${val}" class="${v === val ? 'on' : ''}">${txt}</button>`;
+    return `<div class="lic-perm"><span>${label}</span><span class="lic-perm-btns">` +
+           btn('y','허용') + btn('n','금지') + btn('q','불명') + '</span></div>';
+  }).join('');
+  document.querySelectorAll('#fmLicPerms button').forEach(b => {
+    b.onclick = () => { fmLicPerms[b.dataset.k] = b.dataset.v; renderLicPerms(); };
+  });
+}
+
+function syncLicEnabled(){
+  document.getElementById('fmLicFields')
+          .classList.toggle('on', document.getElementById('fmLicVerified').checked);
+}
+
+/* 폰트 모달을 열 때 meta.license를 폼에 채운다 */
+function loadLicenseForm(f){
+  const lic = (f && f.meta && f.meta.license) || null;
+  document.getElementById('fmLicVerified').checked = !!(lic && lic.verified);
+  document.getElementById('fmLicName').value = (lic && lic.name) || '';
+  document.getElementById('fmLicUrl').value  = (lic && lic.url)  || '';
+  document.getElementById('fmLicNote').value = (lic && lic.note) || '';
+  fmLicPerms = Object.assign({}, (lic && lic.perms) || {});
+  renderLicPerms();
+  syncLicEnabled();
+}
+
+/* 폼 → meta.license. 확인 체크가 없으면 키를 지워서 '확인 중'으로 되돌린다 */
+function collectLicense(meta){
+  if(!document.getElementById('fmLicVerified').checked){ delete meta.license; return; }
+  meta.license = {
+    verified: true,
+    name: document.getElementById('fmLicName').value.trim() || '라이선스 확인됨',
+    url:  document.getElementById('fmLicUrl').value.trim(),
+    note: document.getElementById('fmLicNote').value.trim(),
+    perms: LIC_AXES.reduce((o, [k]) => (o[k] = fmLicPerms[k] || 'q', o), {}),
+  };
+}
+
 // 카테고리 배열 → 8개 차원 자동 추론
 function inferMetaFromTags(tags){
   const meta = {
@@ -2105,6 +2207,9 @@ async function saveFont(){
   const introInput = document.getElementById('fmIntro').value.trim();
   if(introInput) meta.intro = introInput;
   else delete meta.intro;
+
+  // 라이선스 — 확인 체크가 꺼져 있으면 키를 지워 '확인 중'으로 되돌린다
+  collectLicense(meta);
 
   // 샘플 이미지 출처 (비우면 키 제거 — 상세페이지에 캡션이 안 나옴)
   const creditInput = document.getElementById('fmSampleCredit').value.trim();
