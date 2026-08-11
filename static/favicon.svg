@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>폰트픽</title>
+  <defs>
+    <clipPath id="sq"><rect x="4.5" y="4.5" width="56.0" height="54.0" rx="7.0"/></clipPath>
+  </defs>
+  <g clip-path="url(#sq)">
+    <rect x="4.5" y="4.5" width="56.0" height="54.0" rx="7.0" fill="#12318B"/>
+    <polygon points="18.4,22.5 29.5,32.4 69.1,-5.0 75.7,-5.0 29.5,47.5 12.1,27.5" fill="#fff"/>
+  </g>
+</svg>

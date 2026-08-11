@@ -12,7 +12,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>개인정보처리방침 — 폰트픽</title>
-  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <meta name="description" content="폰트픽-개인정보처리방침. 이용자 개인정보 수집·이용·보호에 관한 안내.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://freefontpick.co.kr/privacy.html">
@@ -66,8 +69,12 @@
     /* HEADER */
     .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
     .header-inner{max-width:960px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
-    .logo{display:flex;align-items:center;text-decoration:none}
-    .logo img{height:32px;width:auto;display:block}
+    /* 메인 헤더(app/header.py + static/header.css)와 같은 모양으로 맞춘다.
+       이 페이지들은 header.css를 안 쓰고 자체 헤더를 갖고 있어 규칙을 따로 둔다. */
+    .logo{display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;
+      font-family:'Noto Sans KR',-apple-system,sans-serif;font-weight:900;font-size:20px;
+      letter-spacing:-.5px;color:var(--text-primary)}
+    .logo img{width:24px;height:24px;flex:0 0 auto;display:block}
     .header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
     .btn-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:0 14px;height:36px;border-radius:20px;border:1px solid var(--border);color:var(--text-secondary);background:transparent;text-decoration:none;transition:all .15s}
     .btn-back:hover{border-color:var(--accent);color:var(--accent)}
@@ -117,7 +124,7 @@
 <header class="header">
   <div class="header-inner">
     <a href="index.html" class="logo" aria-label="폰트픽 홈으로">
-      <img src="logo.png" alt="폰트픽">
+      <img src="/favicon.svg" width="24" height="24" alt="" aria-hidden="true">폰트픽
     </a>
     <div class="header-right">
       <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="야간모드 전환">

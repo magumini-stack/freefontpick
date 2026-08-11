@@ -118,7 +118,7 @@ def render_header(active: str = "") -> str:
 
     return f'''{_analytics()}<header class="header">
   <div class="header-inner">
-    <a href="/" class="logo" id="ffpLogoLink" aria-label="폰트픽 홈으로">폰트픽<span class="logo-dot"></span></a>
+    <a href="/" class="logo" id="ffpLogoLink" aria-label="폰트픽 홈으로"><img class="logo-mark" src="/favicon.svg" width="24" height="24" alt="" aria-hidden="true">폰트픽</a>
     <nav>
 {nav_desktop}
     </nav>

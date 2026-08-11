@@ -13,6 +13,10 @@ body{padding-top:60px}
 .header-inner{max-width:1240px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
 
 .logo{display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;font-family:'Noto Sans KR',-apple-system,sans-serif;font-weight:900;font-size:20px;letter-spacing:-.5px;color:var(--text-primary)}
+/* 로고 심볼 — 글자 앞에 붙는 체크 아이콘.
+   SVG라 어떤 화면 배율에서도 또렷하다. flex-shrink:0 이 없으면 헤더가 좁아질 때
+   아이콘이 먼저 찌그러진다. */
+.logo .logo-mark{width:24px;height:24px;flex:0 0 auto;display:block}
 .logo .logo-dot{width:7px;height:7px;background:var(--accent);border-radius:1px;display:inline-block;margin-bottom:2px}
 
 nav{display:flex;gap:2px}
