@@ -244,6 +244,9 @@
   .lic-badge.ok{border-color:var(--accent-light);color:var(--accent);background:var(--accent-light)}
   .lic-badge.pending{border-color:#e8b04b;color:#9a6b00;background:#fdf5e3}
   /* 미확인 경고 — 회색 체크표만으로는 허용으로 오해할 수 있어 표 위에 명시한다 */
+  /* [hidden]을 함께 눌러줘야 한다 — display:flex 가 브라우저 기본 [hidden]{display:none}
+     보다 우선순위가 높아서, hidden 속성만으로는 숨겨지지 않는다. */
+  .lic-pending[hidden]{display:none}
   .lic-pending{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;margin-bottom:18px;
                border:1px solid #edd9a8;background:#fdf7ea;border-radius:14px;
                font-size:13px;line-height:1.65;color:#7a5600;word-break:keep-all}
