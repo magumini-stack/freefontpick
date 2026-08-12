@@ -96,28 +96,32 @@
   button{font-family:inherit}
 
   
-  :root{--mono:ui-monospace,'SFMono-Regular',Menlo,'Consolas',monospace;}
+  /* --mono는 영문·숫자 전용이다. 이 스택(ui-monospace/SFMono/Menlo/Consolas)에는
+     한글 글자가 하나도 없어서, 한글이 섞이면 스택 끝의 generic monospace —
+     윈도우 크롬에서는 굴림체 계열 — 로 떨어진다. 그러면 한 줄 안에서 영문은
+     Consolas, 한글은 굴림체로 그려져 서체가 어긋나고, 굴림체의 거친 힌팅 탓에
+     작은 크기에서 글자가 깨져 보인다.
+     한글이 들어가는 라벨은 --mono 대신 --ui(본문 폰트)를 쓴다. */
+  :root{--mono:ui-monospace,'SFMono-Regular',Menlo,'Consolas',monospace;
+        --ui:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;}
   body{-webkit-font-smoothing:antialiased}
-  .mono{font-family:var(--mono)}
 
   .wrap{max-width:1240px;margin:0 auto;padding:0 24px}
-  .loading{padding:120px 0;text-align:center;color:var(--text-muted);font-family:var(--mono);font-size:13px}
+  .loading{padding:120px 0;text-align:center;color:var(--text-muted);font-family:var(--ui);font-size:14px}
   .hidden{display:none!important}
-  .lbl{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+  .lbl{font-family:var(--ui);font-size:13px;letter-spacing:.2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;display:flex;align-items:center;gap:10px}
   .lbl::before{content:"";width:22px;height:1px;background:var(--text-secondary)}
 
   section.blk{padding:42px 0;border-bottom:1px solid var(--border)}
 
   /* ── TITLE ── */
-  .crumb{padding:22px 0 0;font-family:var(--mono);font-size:12px;color:var(--text-muted);letter-spacing:.3px}
+  .crumb{padding:22px 0 0;font-family:var(--ui);font-size:13px;color:var(--text-muted);letter-spacing:.2px}
   .crumb a:hover{color:var(--accent)}
   .crumb b{color:var(--text-secondary);font-weight:500}
   .title-block{padding:24px 0 38px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:34px;align-items:end}
   .title-row{min-width:0}
-  .foundry{font-family:var(--mono);font-size:12px;color:var(--text-muted);letter-spacing:.3px;margin-bottom:14px;display:block}
+  .foundry{font-family:var(--ui);font-size:13px;color:var(--text-muted);letter-spacing:.2px;margin-bottom:14px;display:block}
   #fontName{font-weight:800;font-size:clamp(40px,7.5vw,78px);line-height:1.02;letter-spacing:-1px;word-break:keep-all;overflow-wrap:break-word}
-  .tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:20px}
-  .tag{font-family:var(--mono);font-size:11.5px;letter-spacing:.2px;padding:5px 11px;border:1px solid var(--border);border-radius:2px;color:var(--text-secondary)}
   /* 폰트명 아래 한 줄 설명 — 어드민의 meta.summary.
      예전에는 이 자리에 카테고리 태그 알약이 깔렸는데, 폰트 이름 바로 밑이라
      가장 눈에 띄는 자리인데도 "손글씨 · 귀여운 · 3종"처럼 분류값만 나열해서
@@ -125,7 +129,6 @@
   .font-summary{margin-top:18px;font-size:17px;line-height:1.55;color:var(--text-secondary);
     letter-spacing:-.02em;word-break:keep-all;max-width:32em}
   @media(max-width:768px){ .font-summary{font-size:15.5px;margin-top:14px} }
-  .tag.hot{color:var(--accent);border-color:var(--accent)}
   .title-actions{display:flex;flex-direction:column;gap:10px;min-width:210px}
   .btn-dl{background:var(--accent);color:#fff;font-size:15px;font-weight:700;padding:14px 20px;border-radius:3px;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer}
   .btn-dl:hover{background:var(--accent-hover)}
@@ -143,10 +146,10 @@
   .tryout{margin-bottom:6px}
   #tryInput{width:100%;border:none;border-bottom:2px solid var(--text-primary);background:none;font-family:inherit;font-size:17px;color:var(--text-primary);padding:10px 2px;outline:none}
   #tryInput::placeholder{color:var(--text-muted)}
-  .tryout .note{font-family:var(--mono);font-size:11px;color:var(--text-muted);margin-top:8px;letter-spacing:.2px}
+  .tryout .note{font-family:var(--ui);font-size:12.5px;color:var(--text-muted);margin-top:8px;letter-spacing:.2px}
   .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px}
   .sec-head h2{font-size:20px;font-weight:800;letter-spacing:-.4px}
-  .sec-head .count{font-family:var(--mono);font-size:12px;color:var(--text-muted)}
+  .sec-head .count{font-family:var(--ui);font-size:13px;color:var(--text-muted)}
   .weights{display:flex;flex-direction:column}
   .w-row{display:flex;align-items:baseline;gap:22px;padding:20px 0;border-top:1px solid var(--border)}
   .w-row:first-child{border-top:none;padding-top:4px}
@@ -177,14 +180,14 @@
 
   /* ── GLYPHS ── */
   .glyphs{display:flex;flex-direction:column;gap:18px}
-  .g-cap{font-family:var(--mono);font-size:11px;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px}
+  .g-cap{font-family:var(--ui);font-size:12px;color:var(--text-muted);letter-spacing:.2px;text-transform:uppercase;margin-bottom:8px}
   .g-set{font-size:clamp(22px,3.4vw,30px);letter-spacing:2px;line-height:1.5;color:var(--text-primary)}
 
   /* ── CURATOR ── */
   .curator{background:var(--bg-secondary);border-left:3px solid var(--accent);padding:24px 26px;border-radius:0 3px 3px 0}
-  .curator .c-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:12px}
+  .curator .c-lbl{font-family:var(--ui);font-size:12.5px;letter-spacing:.2px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:12px}
   .curator p{font-size:15.5px;line-height:1.85;color:var(--text-primary);max-width:42em;margin:0;word-break:keep-all;overflow-wrap:break-word}
-  .curator .sign{font-family:var(--mono);font-size:12px;color:var(--text-muted);margin-top:14px}
+  .curator .sign{font-family:var(--ui);font-size:13px;color:var(--text-muted);margin-top:14px}
 
   /* ── APP PROMO (사이드바) ── */
   .app-promo-banner{display:flex;flex-direction:column;gap:12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:16px 18px;transition:border-color .15s;min-width:0}
@@ -195,7 +198,7 @@
   .app-promo-title{font-size:13.5px;font-weight:700;color:var(--text-primary)}
   .app-promo-sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
   .app-promo-cta-row{display:flex;justify-content:flex-end}
-  .app-promo-cta{font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:8px 14px;border-radius:8px;transition:background-color .15s,transform .1s}
+  .app-promo-cta{font-family:var(--ui);font-size:13px;font-weight:700;color:#fff;background:var(--accent);padding:8px 14px;border-radius:8px;transition:background-color .15s,transform .1s}
   .app-promo-banner:hover .app-promo-cta{background:var(--accent-hover)}
   .app-promo-banner:active .app-promo-cta{transform:scale(.97)}
 
@@ -239,7 +242,7 @@
   .lic-item .ck.y{background:var(--accent-light);color:var(--accent)}
   .lic-item .ck.n{background:var(--bg-secondary);color:var(--text-muted)}
   .lic-item .ck.q{background:var(--bg-secondary);color:var(--text-muted)}
-  .lic-note{font-family:var(--mono);font-size:11.5px;color:var(--text-muted);margin-top:18px;line-height:1.8}
+  .lic-note{font-family:var(--ui);font-size:12.5px;color:var(--text-muted);margin-top:18px;line-height:1.8}
   .lic-note a{color:var(--accent);text-decoration:underline}
   /* 라이선스 종류 배지 — 확정된 폰트는 라이선스명, 미확인은 '확인 중' */
   .lic-badge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;
@@ -271,8 +274,8 @@
   .pair-title{font-size:23px;line-height:1.3;letter-spacing:-.3px;color:var(--text-primary);word-break:keep-all;overflow-wrap:break-word}
   .pair-body{font-size:15px;line-height:1.6;color:var(--text-secondary);margin-top:3px}
   .pair-meta{border-top:1px solid var(--border);padding-top:10px}
-  .pair-theme{font-family:var(--mono);font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);font-weight:600}
-  .pair-fonts{font-family:var(--mono);font-size:10.5px;color:var(--text-muted);margin-top:6px;overflow-wrap:break-word}
+  .pair-theme{font-family:var(--ui);font-size:12px;letter-spacing:.2px;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .pair-fonts{font-family:var(--ui);font-size:12px;color:var(--text-muted);margin-top:6px;overflow-wrap:break-word}
   .pair-fonts b{color:var(--text-secondary);font-weight:600}
   .pair-fonts .plus{margin:0 5px;color:var(--text-muted)}
 

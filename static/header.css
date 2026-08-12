@@ -73,7 +73,10 @@ nav a.nav-gif:hover{filter:saturate(1.25) brightness(1.05)}
 
 .header-right{display:flex;align-items:center;gap:8px}
 
-.btn-subscribe{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;font-weight:500;letter-spacing:.2px;padding:8px 13px;border:1px solid var(--border);color:var(--text-secondary);border-radius:2px;white-space:nowrap;transition:all .15s;text-decoration:none;display:inline-block}
+/* 버튼 문구가 한글("타닥타닥 구독")이라 monospace 스택을 쓰면 안 된다.
+   그 스택에는 한글이 없어서 굴림체 계열로 떨어지고, 공용 헤더라 전 페이지에서
+   서체가 어긋나 보인다. 본문 폰트로 통일한다. */
+.btn-subscribe{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;font-size:13px;font-weight:500;letter-spacing:.2px;padding:8px 13px;border:1px solid var(--border);color:var(--text-secondary);border-radius:2px;white-space:nowrap;transition:all .15s;text-decoration:none;display:inline-block}
 .btn-subscribe:hover{border-color:var(--text-primary);color:var(--text-primary)}
 
 .theme-toggle{width:36px;height:36px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}

@@ -78,7 +78,10 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
   --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
   --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
+  /* --mono에는 한글 글자가 없다. 한글이 섞이면 굴림체 계열로 떨어져 본문과
+     서체가 어긋나므로, 한글 라벨은 --ui(본문 폰트)를 쓴다. */
   --mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  --ui:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
   color-scheme:light;
 }
 :root[data-theme="dark"]{
@@ -233,7 +236,7 @@ select.inp{appearance:none;cursor:pointer}
 .advsep{border:none;border-top:1px solid var(--border);margin:11px 0 7px}
 .advchk{display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;margin-top:4px}
 .advchk input{accent-color:var(--accent)}
-.advhint2{margin-left:auto;font-size:10.5px;color:var(--text-muted);font-family:var(--mono)}
+.advhint2{margin-left:auto;font-size:12px;color:var(--text-muted);font-family:var(--ui)}
 .swrow{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
 .swrow button{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);padding:0}
 .swrow button.on{box-shadow:0 0 0 2px var(--accent)}

@@ -37,7 +37,10 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
   --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
   --status-reviewed-bg:#FFF4E0;--status-reviewed-fg:#B8790A;
+  /* --mono에는 한글 글자가 없다. 한글이 섞이면 굴림체 계열로 떨어져 본문과
+     서체가 어긋나므로, 한글 라벨은 --ui(본문 폰트)를 쓴다. */
   --mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  --ui:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
   color-scheme:light;
 }
 /* 다크 토큰 — index.html과 동일한 값/구조를 그대로 따른다 */
@@ -159,7 +162,7 @@ a{color:inherit}
 .lic-item-t{font-size:14px;font-weight:700;color:var(--text-primary)}
 .lic-item.no .lic-item-t{color:var(--text-muted)}
 .lic-item-d{font-size:12.5px;color:var(--text-secondary);line-height:1.6;margin-top:3px}
-.lic-note{font-family:var(--mono);font-size:11.5px;color:var(--text-muted);margin-top:18px;line-height:1.8}
+.lic-note{font-family:var(--ui);font-size:12.5px;color:var(--text-muted);margin-top:18px;line-height:1.8}
 .lic-note a{color:var(--accent)}
 
 /* 푸터 — index.html과 동일 */

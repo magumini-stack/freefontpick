@@ -36,7 +36,10 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
   --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
   --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
+  /* --mono에는 한글 글자가 없다. 한글이 섞이면 굴림체 계열로 떨어져 본문과
+     서체가 어긋나므로, 한글 라벨은 --ui(본문 폰트)를 쓴다. */
   --mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  --ui:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
   color-scheme:light;
 }
 :root[data-theme="dark"]{
@@ -72,7 +75,7 @@ a{color:inherit}
 .hero{padding:18px 0 26px;border-bottom:1px solid var(--border);margin-bottom:28px}
 .hero h1{font-size:30px;font-weight:900;letter-spacing:-.8px;line-height:1.25}
 .hero .sub{margin-top:8px;font-size:15px;color:var(--text-secondary)}
-.hero .count{margin-top:12px;display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;
+.hero .count{margin-top:12px;display:inline-block;font-family:var(--ui);font-size:12.5px;font-weight:700;
   color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:3px 8px}
 
 /* 브리핑 */
