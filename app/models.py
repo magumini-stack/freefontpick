@@ -2,7 +2,6 @@
 
 테이블: fonts, tags, font_tags, notices, admin_users, font_likes(선택)
 """
-from datetime import datetime
 from sqlalchemy import (
     Column, Integer, String, Boolean, DateTime, Text, ForeignKey,
     UniqueConstraint, Index, JSON,

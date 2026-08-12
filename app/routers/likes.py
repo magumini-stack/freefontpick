@@ -10,7 +10,6 @@
 - like_count는 0 이하로 내려가지 않음 (음수 방지)
 """
 import time
-from collections import defaultdict
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 from sqlalchemy import update

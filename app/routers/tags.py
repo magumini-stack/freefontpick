@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel
 from ..database import get_db
-from ..models import Tag, Font
+from ..models import Tag
 from ..auth import require_password_changed
 from ..schemas import TagCreate, TagUpdate, TagOut
 

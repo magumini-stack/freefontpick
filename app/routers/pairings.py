@@ -122,7 +122,7 @@ def font_audit(rebuild: int = 0, db: Session = Depends(get_db)) -> dict:
 
     ?rebuild=1 을 붙이면 해석 캐시를 다시 계산.
     """
-    from .files import FONT_AUDIT, FONT_RESOLUTION, WEIGHT_RESOLUTION, WEIGHT_UNMATCHED, build_font_resolution
+    from .files import FONT_AUDIT, WEIGHT_RESOLUTION, WEIGHT_UNMATCHED, build_font_resolution
     summary = None
     if rebuild or not FONT_AUDIT:
         summary = build_font_resolution(db)

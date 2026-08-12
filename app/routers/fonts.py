@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from ..database import get_db
-from ..models import Font, Tag, FontTag, FontPairing
+from ..models import Font, Tag, FontPairing
 from ..auth import require_password_changed
 from ..schemas import FontCreate, FontUpdate, FontOut, FontReorderRequest
 from ..webfont_check import check_webfont, normalize_css_url

@@ -11,7 +11,7 @@ fonts.py에서 이미 같은 함정을 겪었으므로(주석 참고) 아예 분
 추가·삭제는 use_case_data.py 수정 + 시드 버전 상향으로 처리한다.
 """
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 
