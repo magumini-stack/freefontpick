@@ -1686,11 +1686,13 @@ function buildAnimPreviews(){
    못 박으면 좁은 폰트는 허전하고 넓은 폰트는 칸 밖으로 잘린다. 실제로 재서
    문구가 칸 폭의 정해진 몫만 차지하게 맞춘다. 렌더러의 setFont와 같은 형태로
    재야 실제 그려지는 폭과 어긋나지 않는다.
-   비율(52%)과 위 한도(120)를 넉넉히 낮춰 잡은 이유: 슬램·고무줄처럼 글자를
-   확대했다 놓는 움직임은 잠깐 원래 크기를 넘어서므로, 딱 맞게 채워두면
-   그 순간에 칸 밖으로 잘린다. */
+   평소에는 위 한도(65)가 이긴다 — 낱말 길이가 어떻든 칸마다 같은 크기로
+   보이는 편이 낫기 때문이다. 비율(52%)은 자면이 유난히 넓은 폰트에서만
+   걸리는 안전장치다.
+   둘 다 넉넉히 낮춰 잡은 이유: 슬램·고무줄처럼 글자를 확대했다 놓는 움직임은
+   잠깐 원래 크기를 넘어서므로, 딱 맞게 채워두면 그 순간에 칸 밖으로 잘린다. */
 const _measCtx = document.createElement('canvas').getContext('2d');
-const PREVIEW_FILL = 0.52, PREVIEW_MAX_SIZE = 120;
+const PREVIEW_FILL = 0.52, PREVIEW_MAX_SIZE = 65;
 function previewSize(txt, stack){
   _measCtx.font = `100px ${stack}`;
   const w = _measCtx.measureText(txt).width;
