@@ -162,6 +162,16 @@ button{font-family:inherit;cursor:pointer}
 .chip.on{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
 .chip:disabled{opacity:.38;cursor:not-allowed}
 
+/* 용도 탭 — 상자를 두르지 않는다. 바로 아래 템플릿 격자가 이미 테두리라
+   여기까지 상자를 치면 경계선이 두 겹으로 겹친다. 선택은 색·굵기·밑줄로만 알린다. */
+.hubtabs{display:flex;flex-wrap:wrap;gap:2px 4px;margin:-2px 0 2px}
+.hubtab{border:none;background:none;padding:4px 5px;font-size:12.5px;font-weight:500;
+        color:var(--text-muted);cursor:pointer;line-height:1.3;border-radius:4px}
+.hubtab:hover{color:var(--text-primary)}
+.hubtab.on{color:var(--accent);font-weight:700;
+           text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px}
+.hubtab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
 .tplgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .tplcell{border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);
          padding:0;overflow:hidden;display:flex;flex-direction:column;height:98px;text-align:left}
@@ -175,6 +185,9 @@ button{font-family:inherit;cursor:pointer}
 .tplspec{flex:1;display:flex;align-items:center;justify-content:center;font-size:12.6px;
          color:var(--text-primary);padding:4px;text-align:center;line-height:1.15;word-break:keep-all;
          overflow:hidden}
+/* 색·외곽선은 안쪽 span이 쓴다 — 그라데이션의 background-clip:text가
+   바깥 배경색까지 잘라내지 않도록 층을 나눈 것이다. */
+.tplink{display:inline}
 .tplmeta{display:flex;justify-content:space-between;align-items:center;gap:4px;font-size:10.5px;
          padding:5px 7px;border-top:1px solid var(--border);color:var(--text-secondary)}
 .dots{letter-spacing:-1px;color:var(--text-muted)}
@@ -503,7 +516,7 @@ select.inp{appearance:none;cursor:pointer}
   <!-- 템플릿 패널 -->
   <div class="panel">
     <div class="phead"><h3>GIF 템플릿</h3><span class="psub" id="tplCount">—</span></div>
-    <select class="inp opener" id="tplHubSel" aria-label="용도별 템플릿"></select>
+    <div class="hubtabs" id="tplHubTabs" role="tablist" aria-label="용도별 템플릿"></div>
     <div class="tplgrid" id="tplGrid"></div>
     <div class="psub" style="display:flex;align-items:center;gap:6px">
       <span class="dots g">●●●</span> GIF 적합도 — 3점일수록 용량·색이 안정적
@@ -868,23 +881,41 @@ function lumOf(hex){
   return (0.2126*r + 0.7152*g + 0.0722*b) / 255;
 }
 
-/* 칸 배경을 글자색에 따라 정한다.
-   템플릿은 투명 배경이라 '어떤 배경에 올릴지'가 정해져 있지 않은데, 카드 배경
-   하나로 통일하면 흰 글씨 템플릿이 통째로 안 보인다(다크 테마에서는 검은 글씨가
-   똑같이 사라진다). 글자가 밝으면 어두운 바탕, 어두우면 밝은 바탕을 깔아
-   테마와 상관없이 항상 읽히게 한다. */
-function specStyle(t){
+/* 칸 배경을 '글자 자체의 밝기'로만 정한다.
+   템플릿은 투명 배경이라 어떤 바탕에 올릴지가 정해져 있지 않은데, 배경 하나로
+   통일하면 흰 글씨 템플릿이 통째로 안 보인다(다크 테마에서는 검은 글씨가 똑같이
+   사라진다). 밝은 글자엔 어두운 바탕, 어두운 글자엔 밝은 바탕을 깐다.
+
+   외곽선은 판단에 넣지 않는다. 처음엔 "어두운 외곽선이 있으면 밝은 배경에서도
+   읽힌다"고 봤는데 틀렸다 — 캔버스에서는 64px에 12px 외곽선이라 든든하지만,
+   목록은 12.6px이라 외곽선이 1px 아래로 줄어든다. 그래서 레몬(#FDE047)·캔디
+   (#F9A8D4) 같은 밝은 색이 밝은 바탕에 얹혀 거의 안 보였다. */
+function backdropOf(ink){
+  const grad = gradOf(ink);
+  const base = grad ? grad[Math.floor(grad.length/2)] : ink.color;
+  return lumOf(base) > 0.6 ? '#1f2937' : '#f1f5f9';
+}
+function gradOf(ink){
+  const g = (ink && ink.gradient && ink.gradient.length > 1)
+    ? ink.gradient.map(HEX).filter(Boolean) : null;
+  return (g && g.length > 1) ? g : null;
+}
+
+/* 글자에 입힐 색·외곽선. 배경은 여기 넣지 않는다 —
+   그라데이션은 background-clip:text로 그리는데, 그 클리핑이 배경색에도 걸려서
+   칸 배경이 글자 모양으로 잘려 사라진다. 배경은 바깥 .tplspec가 맡는다. */
+function inkStyle(t){
   const ink = inkOfTpl(t);
   if(!ink) return '';
   const size = (t.config && t.config.font && t.config.font.size) || 64;
   const SPEC_PX = 12.6;
   const parts = [];
-  const grad = (ink.gradient && ink.gradient.length > 1)
-    ? ink.gradient.map(HEX).filter(Boolean) : null;
+  const grad = gradOf(ink);
 
-  if(grad && grad.length > 1){
+  if(grad){
     parts.push(`background-image:linear-gradient(90deg,${grad.join(',')})`,
-               '-webkit-background-clip:text', 'background-clip:text', 'color:transparent');
+               '-webkit-background-clip:text', 'background-clip:text',
+               '-webkit-text-fill-color:transparent', 'color:transparent');
   }else if(HEX(ink.color)){
     parts.push(`color:${ink.color}`);
   }
@@ -895,10 +926,11 @@ function specStyle(t){
   if(HEX(ink.outline) && sw >= 0.4){
     parts.push(`-webkit-text-stroke:${sw.toFixed(2)}px ${ink.outline}`, 'paint-order:stroke fill');
   }
-  const base = grad ? grad[Math.floor(grad.length/2)] : ink.color;
-  const light = (HEX(ink.outline) && lumOf(ink.outline) < 0.5) ? false : lumOf(base) > 0.6;
-  parts.push(`background-color:${light ? '#1f2937' : '#f1f5f9'}`);
   return parts.join(';');
+}
+function specStyle(t){
+  const ink = inkOfTpl(t);
+  return ink ? `background-color:${backdropOf(ink)}` : '';
 }
 
 function renderTpls(){
@@ -910,7 +942,7 @@ function renderTpls(){
   }
   $('tplGrid').innerHTML = list.map(t=>`
     <button class="tplcell${t.number===ui.tplNumber?' on':''}" data-n="${t.number}">
-      <span class="tplspec" style="${specStyle(t)}">${esc((t.sample_text||'').replace(/\n/g,' '))}</span>
+      <span class="tplspec" style="${specStyle(t)}"><span class="tplink" style="${inkStyle(t)}">${esc((t.sample_text||'').replace(/\n/g,' '))}</span></span>
       <span class="tplmeta"><span>${esc(t.number)} ${esc(animName(t.anim))}</span>
         <span class="dots${ratingOf(t)===3?' g':''}">${dots(ratingOf(t))}</span></span>
     </button>`).join('');
@@ -938,14 +970,26 @@ function observeTplFonts(){
   $('tplGrid').querySelectorAll('.tplspec').forEach(el=>_tplFontIO.observe(el));
 }
 /* 템플릿 용도 필터 — 실제로 템플릿이 있는 용도만 넣는다 */
+/* 용도 필터 — 펼침 메뉴 대신 글자 탭으로 늘어놓는다.
+   펼침 메뉴는 열기 전까지 어떤 용도가 있는지 안 보여서, 고르려면 매번 한 번 더
+   눌러야 했다. 개수가 6~7개라 한 줄에 다 들어간다.
+   박스를 치지 않는 이유: 바로 아래 템플릿 칸이 이미 테두리 격자라, 여기까지
+   상자를 두르면 경계선이 두 겹으로 겹쳐 어수선해진다. 선택 표시는 색과 굵기로만 한다. */
 function renderTplHubs(){
   const used = [...new Set(TPLS.map(t=>t.hub_slug).filter(Boolean))];
   const name = s => (HUBS.find(h=>h.slug===s)||{}).title || s;
-  $('tplHubSel').innerHTML =
-    `<option value="all">모든 용도</option>` +
-    used.map(s=>`<option value="${esc(s)}"${s===ui.tplHub?' selected':''}>${esc(name(s))}</option>`).join('');
+  const tabs = [['all','전체'], ...used.map(s=>[s, name(s)])];
+  $('tplHubTabs').innerHTML = tabs.map(([v,label])=>
+    `<button type="button" role="tab" class="hubtab${v===ui.tplHub?' on':''}"` +
+    ` aria-selected="${v===ui.tplHub}" data-hub="${esc(v)}">${esc(label)}</button>`
+  ).join('');
 }
-$('tplHubSel').onchange = ()=>{ ui.tplHub = $('tplHubSel').value; renderTpls(); };
+$('tplHubTabs').onclick = e => {
+  const b = e.target.closest('.hubtab');
+  if(!b) return;
+  ui.tplHub = b.dataset.hub;
+  renderTplHubs(); renderTpls();
+};
 
 /* GIF 적합도 — DB의 gif_rating을 믿지 않고 실제 색에서 다시 뽑는다.
    저 컬럼에는 효과 프리셋 시절의 값이 남아 있어, 색 모델을 바꾼 지금은

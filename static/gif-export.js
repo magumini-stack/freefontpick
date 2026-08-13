@@ -241,6 +241,11 @@ async function exportMP4(renderer, onProgress){
   encoder.configure({codec, width:W, height:H, bitrate:5e6, framerate:fps});
 
   for(let i=0;i<total;i++){
+    /* 영상 모드는 그리기 전에 그 시점으로 찾아가야 한다 (seek은 비동기라
+       동기 함수인 render 안에서 처리할 수 없다). 이걸 빼면 video 요소가
+       한 프레임에 멈춘 채로 전 프레임이 인코딩돼 정지 화면이 나온다.
+       GIF 쪽에는 있는데 MP4에만 빠져 있었다. */
+    if(renderer.prepareFrame) await renderer.prepareFrame(i/total);
     renderer.render(i/total);
     /* MP4는 알파를 담지 못한다 — 투명 배경이면 글자 뒤에 검정을 깔아준다.
        destination-over라 이미 그린 글자는 건드리지 않는다. */
