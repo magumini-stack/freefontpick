@@ -167,7 +167,9 @@ button{font-family:inherit;cursor:pointer}
          padding:0;overflow:hidden;display:flex;flex-direction:column;height:98px;text-align:left}
 .tplcell:hover{border-color:var(--border-hover)}
 .tplcell.on{border-color:var(--accent);background:var(--accent-light)}
-/* 문구는 그 템플릿의 실제 폰트로 보여준다 (효과·애니메이션은 캔버스에서만).
+/* 문구는 그 템플릿의 실제 폰트·색·외곽선으로 보여준다 (움직임만 캔버스에서).
+   색과 배경은 specStyle()이 인라인으로 넣는다 — 여기 color는 ink가 없는
+   템플릿의 대비책이다.
    font-weight를 주지 않는 이유: 굵기별로 다른 파일을 @font-face에 등록하므로
    여기서 굵게 하면 브라우저가 가짜 볼드를 덧씌워 실제 폰트 모양이 뭉갠다. */
 .tplspec{flex:1;display:flex;align-items:center;justify-content:center;font-size:12.6px;
@@ -850,6 +852,55 @@ function fontOf(id){
 /* ══════════════════════════════════════════════════════════════
    템플릿 목록
 ══════════════════════════════════════════════════════════════ */
+/* ── 템플릿 목록의 글자 꾸밈 ──
+   예전에는 폰트만 입히고 색·외곽선은 캔버스에서만 보여줬다. 그런데 목록에서
+   고르는 기준이 바로 그 꾸밈이라, 48칸이 전부 검은 글씨로 똑같아 보였다.
+   캔버스와 같은 값(ink)을 CSS로 옮겨 그린다. */
+function inkOfTpl(t){
+  const c = t.config || {};
+  return c.ink || FFPGif.inkFromEffectId(t.effect || c.effect);
+}
+const HEX = h => /^#[0-9a-fA-F]{3,8}$/.test(String(h||'')) ? h : null;
+function lumOf(hex){
+  const h = String(hex||'').replace('#','');
+  if(h.length < 6) return 0;
+  const [r,g,b] = [0,2,4].map(i => parseInt(h.slice(i,i+2),16));
+  return (0.2126*r + 0.7152*g + 0.0722*b) / 255;
+}
+
+/* 칸 배경을 글자색에 따라 정한다.
+   템플릿은 투명 배경이라 '어떤 배경에 올릴지'가 정해져 있지 않은데, 카드 배경
+   하나로 통일하면 흰 글씨 템플릿이 통째로 안 보인다(다크 테마에서는 검은 글씨가
+   똑같이 사라진다). 글자가 밝으면 어두운 바탕, 어두우면 밝은 바탕을 깔아
+   테마와 상관없이 항상 읽히게 한다. */
+function specStyle(t){
+  const ink = inkOfTpl(t);
+  if(!ink) return '';
+  const size = (t.config && t.config.font && t.config.font.size) || 64;
+  const SPEC_PX = 12.6;
+  const parts = [];
+  const grad = (ink.gradient && ink.gradient.length > 1)
+    ? ink.gradient.map(HEX).filter(Boolean) : null;
+
+  if(grad && grad.length > 1){
+    parts.push(`background-image:linear-gradient(90deg,${grad.join(',')})`,
+               '-webkit-background-clip:text', 'background-clip:text', 'color:transparent');
+  }else if(HEX(ink.color)){
+    parts.push(`color:${ink.color}`);
+  }
+  /* 외곽선 굵기는 캔버스와 같은 비율로 줄인다 (템플릿 기준 글자 크기 대비).
+     paint-order로 획을 글자 뒤에 깔아야 캔버스처럼 보인다 — 기본값은 글자를
+     반쯤 덮어서 작은 글씨가 뭉갠다. */
+  const sw = Math.min(2.2, SPEC_PX * ((ink.outlineW || 0) / size));
+  if(HEX(ink.outline) && sw >= 0.4){
+    parts.push(`-webkit-text-stroke:${sw.toFixed(2)}px ${ink.outline}`, 'paint-order:stroke fill');
+  }
+  const base = grad ? grad[Math.floor(grad.length/2)] : ink.color;
+  const light = (HEX(ink.outline) && lumOf(ink.outline) < 0.5) ? false : lumOf(base) > 0.6;
+  parts.push(`background-color:${light ? '#1f2937' : '#f1f5f9'}`);
+  return parts.join(';');
+}
+
 function renderTpls(){
   const list = TPLS.filter(t => ui.tplHub==='all' || t.hub_slug===ui.tplHub);
   $('tplCount').textContent = list.length ? list.length+'종' : '';
@@ -859,7 +910,7 @@ function renderTpls(){
   }
   $('tplGrid').innerHTML = list.map(t=>`
     <button class="tplcell${t.number===ui.tplNumber?' on':''}" data-n="${t.number}">
-      <span class="tplspec">${esc((t.sample_text||'').replace(/\n/g,' '))}</span>
+      <span class="tplspec" style="${specStyle(t)}">${esc((t.sample_text||'').replace(/\n/g,' '))}</span>
       <span class="tplmeta"><span>${esc(t.number)} ${esc(animName(t.anim))}</span>
         <span class="dots${ratingOf(t)===3?' g':''}">${dots(ratingOf(t))}</span></span>
     </button>`).join('');
@@ -934,10 +985,12 @@ async function applyTemplate(number){
      고장난 줄 알고 되돌아 나가게 된다. */
   ui.playing = true;
   syncPlayIcon();
-  /* 템플릿은 전부 글자 GIF다 — applyConfig가 렌더러를 글자 모드로 되돌리므로
-     탭과 패널 표시도 같이 되돌린다. 올린 사진은 photos[]에 남아 있어
-     사진 GIF 탭을 다시 누르면 그대로 있다. */
-  syncModeUI();
+  /* 사진·영상 모드에서는 탭을 그대로 두고 그 위에 템플릿의 글자 꾸밈만 얹는다.
+     글자를 꺼둔 상태였다면 켜준다 — 안 그러면 템플릿을 골라도 화면이 그대로라
+     "눌러도 아무 일이 없다"가 된다. */
+  if(R.state.mode === 'photo') R.setState({photoTextOn: true});
+  if(R.state.mode === 'video') R.setState({videoTextOn: true});
+  syncModeUI(); pgSyncCtl(); vgSyncCtl();
   renderTpls(); renderHubs(); renderFx(); syncBar(); syncAdv(); syncPhotoSliders(); updateCounter(); saveDraft();
 }
 

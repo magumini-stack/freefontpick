@@ -1045,14 +1045,17 @@ function createRenderer(canvas, initial, opts){
   }
 
   /* 템플릿 적용. 사진은 config에 담기지 않으므로(용량) 위치값만 복원한다.
-     템플릿은 전부 글자 GIF다 — 사진 모드에서 템플릿을 고르면 글자 모드로 돌아간다.
-     (올린 사진은 photos[]에 그대로 남아 있어 탭만 되돌리면 복구된다.) */
+     모드는 바꾸지 않는다 — 사진·영상 위에 템플릿의 글자 꾸밈만 얹는다.
+     그 모드에서 넘겨받으면 안 되는 것 세 가지는 건너뛴다:
+       · 길이·fps  — 사진 장수와 자른 구간에서 나온 값이 이긴다
+       · 배경      — 사진·영상이 곧 배경이다
+       · 비율      — 올린 사진·영상에 맞춰둔 것을 템플릿이 되돌리면 안 된다 */
   function applyConfig(cfg){
     if(!cfg) return api;
-    S.mode = 'text';
+    const textMode = S.mode === 'text';
     const f = cfg.font || {}, an = cfg.animation || {}, cv = cfg.canvas || {};
     if(cfg.sampleText !== undefined) S.text = cfg.sampleText;
-    if(cv.ratio && RATIOS[cv.ratio]) S.ratio = cv.ratio;
+    if(textMode && cv.ratio && RATIOS[cv.ratio]) S.ratio = cv.ratio;
     if(f.id !== undefined) S.fontId = f.id;
     if(f.weight) S.fontWeight = f.weight;
     if(f.size) S.size = f.size;
@@ -1070,14 +1073,22 @@ function createRenderer(canvas, initial, opts){
     }
     if(an.type) S.anim = an.type;
     if(an.inDuration) S.inDur = an.inDuration;
-    if(an.total) S.total = an.total;
-    if(an.fps) S.fps = an.fps;
+    if(textMode){
+      if(an.total) S.total = an.total;
+      if(an.fps) S.fps = an.fps;
+      S.bgColor = cfg.bg === 'color' ? (cfg.bgColor || '#1E3A8A') : null;
+      if(cfg.photo){ S.photoX = cfg.photo.x ?? 0; S.photoY = cfg.photo.y ?? 0; S.dim = cfg.photo.dim ?? 35; }
+    }else{
+      /* 사진·영상 위에서는 등장 시간이 전체 길이를 넘지 않게만 조인다.
+         템플릿의 1.5초는 2.5초짜리 글자 GIF 기준이라, 3초 영상에는 맞지만
+         사진 8장(12.8초)에서는 첫 장이 끝나기도 전에 다 나와버린다. */
+      S.inDur = Math.min(S.inDur, Math.max(0.4, S.total * 0.3));
+      S.total = S.mode === 'photo' ? slideshowTotal(S) : trimSpan(S);
+    }
     S.matteAuto = cfg.matteAuto !== false;
     if(cfg.matte) S.matte = cfg.matte;
     S.hlOn = !!cfg.highlight;
     if(cfg.highlight) S.hl = cfg.highlight;
-    S.bgColor = cfg.bg === 'color' ? (cfg.bgColor || '#1E3A8A') : null;
-    if(cfg.photo){ S.photoX = cfg.photo.x ?? 0; S.photoY = cfg.photo.y ?? 0; S.dim = cfg.photo.dim ?? 35; }
     if(cfg.layout && cfg.layout.posY !== undefined) S.posY = cfg.layout.posY;
     applyRatio();
     return api;
