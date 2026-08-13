@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════
-   gif-export.js — PNG / GIF / MP4 내보내기
+   gif-export.js — GIF / MP4 내보내기
 
    gif-render.js 의 렌더러 인스턴스를 받아 프레임을 돌려 파일로 만든다.
    gifenc(vendor/gifenc.js)는 미리 불러와 있어야 하고,
@@ -53,7 +53,7 @@ async function saveBlob(blob, filename, opts){
     downloadBlob(blob, filename);
     return 'downloaded';
   }
-  /* 인앱 브라우저 — 이미지를 띄워 길게 누르게 한다. GIF·PNG만 가능하다. */
+  /* 인앱 브라우저 — 이미지를 띄워 길게 누르게 한다. GIF만 가능하다(MP4는 영상). */
   if(opts.onLongPress && /image\//.test(mime)){
     opts.onLongPress(URL.createObjectURL(blob));
     return 'longpress';
@@ -72,12 +72,6 @@ function hexRgb(h){
   return [parseInt(c.substr(0,2),16)||0, parseInt(c.substr(2,2),16)||0, parseInt(c.substr(4,2),16)||0];
 }
 
-/* ── PNG ─────────────────────────────────────────────────────── */
-function exportPNG(renderer){
-  renderer.render(0.75);              // 대체로 애니메이션이 끝난 시점
-  return new Promise(resolve=>renderer.canvas.toBlob(resolve, 'image/png'));
-}
-
 /* ── GIF ─────────────────────────────────────────────────────── */
 async function exportGIF(renderer, onProgress){
   if(typeof GIFEncoder === 'undefined') throw new Error('GIF 인코더를 불러오지 못했어요. 새로고침 해주세요.');
@@ -92,10 +86,13 @@ async function exportGIF(renderer, onProgress){
   /* 배경이 불투명하면(사진·단색) 투명 처리도 매트도 필요 없다.
      팔레트는 사진만 넉넉히 준다 — 단색 배경은 색이 하나 늘 뿐이라 64색으로 충분하다. */
   const opaque = renderer.isOpaque ? renderer.isOpaque() : !!S.photo;
-  const colors = S.photo ? 192 : 64;
+  const colors = (renderer.needsRichPalette ? renderer.needsRichPalette() : !!S.photo) ? 192 : 64;
   const [mr, mg, mb] = hexRgb(renderer.currentMatte());
 
   for(let i=0; i<total; i++){
+    /* 영상 모드는 그리기 전에 그 시점으로 찾아가야 한다 (seek은 비동기라
+       동기 함수인 render 안에서 처리할 수 없다). 사진·글자는 할 일이 없다. */
+    if(renderer.prepareFrame) await renderer.prepareFrame(i/total);
     renderer.render(i/total);
     const img = ctx.getImageData(0,0,W,H), d = img.data;
 
@@ -152,6 +149,40 @@ async function exportGIF(renderer, onProgress){
   gif.finish();
   if(onProgress) onProgress(1, '마무리 중…');
   return new Blob([gif.bytes()], {type:'image/gif'});
+}
+
+/* ── 사진 GIF 용량·시간 실측 ───────────────────────────────────
+   사진 GIF는 프레임마다 팔레트를 새로 뜨고 화면을 통째로 다시 쓴다.
+   그래서 용량이 프레임 수에 정확히 비례하고, 고정 비용이 사실상 없다.
+   실측: 같은 사진으로 4·8·16프레임을 뽑았더니 프레임당 크기가
+   50.5KB / 50.5KB / 50.5KB 로 완전히 일정했다.
+
+   문제는 그 '프레임당 크기'가 사진에 따라 50KB~309KB로 6배까지 벌어진다는 것이다.
+   어떤 상수를 넣어도 절반은 틀리므로, 추정하지 않고 실제로 한 장을 인코딩해 잰다.
+   한 장 값 × 프레임 수가 곧 정답이다.
+
+   인코딩 시간도 같이 잰다 — 복잡한 사진은 프레임당 800ms까지 가서
+   90프레임이면 1분 넘게 화면이 멈춘다. 누르기 전에 알려줘야 한다. */
+async function measurePhotoFrame(renderer){
+  if(typeof GIFEncoder === 'undefined') return null;
+  const ctx = renderer.canvas.getContext('2d', {willReadFrequently:true});
+  const W = renderer.width, H = renderer.height;
+  const colors = (renderer.needsRichPalette && renderer.needsRichPalette()) ? 192 : 64;
+
+  const t0 = performance.now();
+  if(renderer.prepareFrame) await renderer.prepareFrame(0.5);
+  renderer.render(0.5);                    // 전환 중이 아닌 '한 장이 그대로 보이는' 시점
+  const d = ctx.getImageData(0, 0, W, H).data;
+  const gif = GIFEncoder();
+  const palette = quantize(d, colors);
+  const index = applyPalette(d, palette);
+  gif.writeFrame(index, W, H, {palette, delay:100});
+  gif.finish();
+  const ms = performance.now() - t0;
+
+  /* 헤더+팔레트(1KB 남짓)가 얹혀 있지만 프레임 자체가 50KB 이상이라
+     오차가 2%를 넘지 않는다. 빼려고 0프레임짜리를 또 인코딩할 값어치가 없다. */
+  return {bytes: gif.bytes().length, ms};
 }
 
 /* ── MP4 ─────────────────────────────────────────────────────── */
@@ -242,7 +273,7 @@ async function exportMP4(renderer, onProgress){
 }
 
 global.FFPExport = {
-  exportPNG, exportGIF, exportMP4,
+  exportGIF, exportMP4, measurePhotoFrame,
   saveBlob, downloadBlob, safeName,
   isMobile, isInAppBrowser, mp4Supported, loadMp4Muxer,
 };

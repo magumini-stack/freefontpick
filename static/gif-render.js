@@ -71,6 +71,27 @@ const HL_PRESETS = ['#FDE047','#FDBA74','#F9A8D4','#2563EB','#00E5C0','#22C55E',
    그쯤에서 탭이 죽는다. 넘으면 fps를 낮춰 맞춘다. */
 const MAX_FRAMES = 90;
 
+/* 사진 GIF 상한.
+   8장 × (1.2s + 0.4s) = 12.8초다. 여기에 사진 모드 기본 10fps를 곱하면
+   128프레임 — MAX_FRAMES(90)를 넘어 frameCount()가 잘라내고 실제 fps가
+   7fps로 떨어진다. 슬라이드쇼는 그 정도로도 볼 만하지만, 더 늘리면
+   장당 시간이 눈에 띄게 뚝뚝 끊긴다. 그래서 8장에서 끊는다. */
+const MAX_PHOTOS = 8;
+
+/* 사진 모드 기본값. 글자 애니메이션(20~24fps)보다 훨씬 낮게 잡는다 —
+   사진은 한 장을 1초 넘게 보여주므로 프레임을 촘촘히 쓸 이유가 없고,
+   프레임 하나하나가 통째로 다시 저장되는 사진 GIF에서는 fps가 곧 용량이다. */
+const PHOTO_DEFAULTS = {slideDur:1.2, xfadeDur:0.4, fps:10, dim:0};
+
+/* 영상 GIF.
+   상한 10초는 제품 결정이지만, 그 길이가 실제로 어떤 결과인지 알고 써야 한다:
+   프레임 상한이 90장이라 10초를 채우면 9fps까지 떨어져 뚝뚝 끊기고, 복잡한
+   영상이면 25MB·2분이 나온다. 그래서 기본은 4초로 시작한다 — 같은 90프레임을
+   4초에 쓰면 22fps로 부드럽다. 늘리는 건 사용자가 결과를 보며 정하면 된다. */
+const VIDEO_MAX_SEC = 10;
+const VIDEO_DEFAULT_SEC = 4;
+const VIDEO_DEFAULTS = {fps:15};
+
 /* 이징 */
 const E = {
   outCubic:t=>1-Math.pow(1-t,3),
@@ -172,7 +193,57 @@ function defaultState(){
     photoX: 0, photoY: 0, dim: 35,
     bgColor: null,         // 단색 배경. null이면 투명 (사진이 있으면 사진이 이긴다)
     ratio: '16:9',
+
+    /* ── 사진 GIF 모드 ──
+       'text'  : 지금까지의 글자 애니메이션. photo는 '배경 1장'일 뿐이다.
+       'photo' : photos[]를 순서대로 넘기는 슬라이드쇼. 글자는 얹을 수도 뺄 수도 있다.
+       두 모드의 상태를 한 덩어리에 두는 이유 — 렌더러는 하나뿐이고
+       (파일 머리 주석 참고) 모드를 오가도 폰트·색·비율을 그대로 이어가야 한다. */
+    mode: 'text',
+    photos: [],            // ImageBitmap[] — 사진 모드에서만 쓴다
+    slideDur: PHOTO_DEFAULTS.slideDur,   // 한 장을 그대로 보여주는 시간(초)
+    xfadeDur: PHOTO_DEFAULTS.xfadeDur,   // 다음 장으로 겹쳐 넘어가는 시간(초)
+    /* 글자를 얹을지는 모드마다 따로 기억한다. 하나로 묶으면 사진에서 끈 것이
+       영상 탭까지 따라가서, 영상 탭에 들어갔더니 문구 칸이 사라져 있다. */
+    photoTextOn: true,
+    videoTextOn: true,
+    /* dim과 따로 둔다. 배경 사진의 dim(35%)은 '글자를 읽히게 하려고' 어둡게
+       하는 값이고, 사진 GIF는 사진 자체가 내용이라 기본이 0이다. 하나로 묶으면
+       한쪽에서 조절한 값이 다른 쪽 결과를 조용히 바꾼다. */
+    slideDim: PHOTO_DEFAULTS.dim,
+    /* 사진 GIF 용량·시간 실측 결과. UI가 프레임 한 장을 인코딩해 넣는다.
+       {bytes, ms, key} — key가 지금 상태와 다르면 낡은 값이라 쓰지 않는다.
+       photosRev는 사진 목록이 바뀔 때마다 UI가 올리는 번호다 (장수만 봐서는
+       순서 바꾸기·같은 장수로 교체를 알아챌 수 없다). */
+    photoSample: null,
+    photosRev: 0,
+
+    /* ── 영상 GIF 모드 ──
+       프레임을 미리 뽑아 쌓아두지 않는다. 90프레임을 800×450 비트맵으로 들고
+       있으면 130MB다 — 폰에서 탭이 죽는다. 대신 미리보기는 video 요소를 그냥
+       재생해서 그리고, 내보낼 때만 prepareFrame()으로 한 장씩 찾아간다. */
+    video: null,           // HTMLVideoElement — 편집기가 만들어 넣는다
+    videoDur: 0,           // 원본 전체 길이(초)
+    trimStart: 0,
+    trimEnd: VIDEO_DEFAULT_SEC,
+    videoRev: 0,
   };
+}
+
+/* 잘라낸 구간의 길이. 상한을 넘기지 않게 여기서 한 번 더 조인다 —
+   UI가 막더라도 상태를 직접 건드리는 경로(임시저장 복원 등)가 있다. */
+function trimSpan(S){
+  const span = (S.trimEnd || 0) - (S.trimStart || 0);
+  return Math.max(0.2, Math.min(VIDEO_MAX_SEC, span));
+}
+
+/* 사진 모드의 전체 길이. 마지막 장은 첫 장으로 되돌아가며 겹쳐지므로
+   장마다 (보여주기 + 넘어가기)가 똑같이 한 번씩 들어간다. 그래야 GIF가
+   반복 재생될 때 이음매가 보이지 않는다. */
+function slideshowTotal(S){
+  const n = (S.photos && S.photos.length) || 0;
+  if(!n) return 2.5;
+  return n * (Math.max(0.2, S.slideDur) + Math.max(0, S.xfadeDur));
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -652,33 +723,147 @@ function createRenderer(canvas, initial, opts){
      캔버스에 직접 체커를 그리면 (1) 미리보기와 내보낸 파일이 달라지고
      (2) 색이 고정이라 밝은 테마에서 어두운 격자가 튄다. */
 
-  /* 사진 — cover 크롭. 켄번스(확대)를 넣지 않는다: 배경이 움직이면
-     GIF가 매 프레임을 통째로 다시 저장해 용량이 몇 배가 된다. */
-  function drawPhoto(){
-    const im = S.photo;
-    const scale = Math.max(W/im.width, H/im.height);
-    const dw = im.width*scale, dh = im.height*scale;
+  /* 사진 한 장을 cover 크롭으로 채운다. 켄번스(확대)를 넣지 않는다:
+     배경이 움직이면 GIF가 매 프레임을 통째로 다시 저장해 용량이 몇 배가 된다. */
+  function drawPhotoCover(im, alpha){
+    if(!im) return;
+    const sc = Math.max(W/im.width, H/im.height);
+    const dw = im.width*sc, dh = im.height*sc;
     const dx = (W-dw)/2 + (S.photoX/100)*(dw-W)/2;
     const dy = (H-dh)/2 + (S.photoY/100)*(dh-H)/2;
+    const a = (alpha === undefined) ? 1 : alpha;
+    if(a >= 1){ ctx.drawImage(im, dx, dy, dw, dh); return; }
+    ctx.save();
+    ctx.globalAlpha = a;
     ctx.drawImage(im, dx, dy, dw, dh);
-    if(S.dim>0){
-      ctx.save();
-      ctx.fillStyle = `rgba(0,0,0,${S.dim/100})`;
-      ctx.fillRect(0,0,W,H);
-      ctx.restore();
-    }
+    ctx.restore();
   }
 
-  /* 한 프레임. 미리보기와 내보내기가 완전히 같은 그림을 만든다. */
+  /* 어둡게(dim)는 사진을 다 깔고 난 뒤 한 번만 덮는다.
+     장마다 덮으면 크로스페이드 구간에서 두 번 겹쳐 그 순간만 확 어두워진다. */
+  function drawDim(amount){
+    if(!(amount > 0)) return;
+    ctx.save();
+    ctx.fillStyle = `rgba(0,0,0,${amount/100})`;
+    ctx.fillRect(0,0,W,H);
+    ctx.restore();
+  }
+
+  function drawPhoto(){
+    drawPhotoCover(S.photo, 1);
+    drawDim(S.dim);
+  }
+
+  /* 슬라이드쇼 — t는 전체 타임라인의 0..1 진행도다(render 주석 참고).
+     장마다 같은 길이의 구간을 갖고, 구간 뒷부분에서 다음 장이 겹쳐 올라온다.
+     마지막 장의 다음은 첫 장이라 반복 재생에서 이음매가 없다. */
+  function drawSlideshow(t){
+    const ph = S.photos || [];
+    const n = ph.length;
+    if(!n) return;
+
+    const pos = cl(t) * n;                       // 0..n
+    const i = Math.min(n-1, Math.floor(pos));
+    const local = pos - i;                       // 이 장 구간 안에서의 0..1
+
+    /* 구간 중 '그대로 보여주는' 비율. 나머지가 넘어가는 구간이다. */
+    const seg = Math.max(0.2, S.slideDur) + Math.max(0, S.xfadeDur);
+    const hold = Math.max(0.2, S.slideDur) / seg;
+
+    drawPhotoCover(ph[i], 1);
+    if(n > 1 && S.xfadeDur > 0 && local > hold){
+      drawPhotoCover(ph[(i+1)%n], cl((local - hold) / (1 - hold)));
+    }
+    drawDim(S.slideDim);
+  }
+
+  function photoModeActive(){
+    return S.mode === 'photo' && (S.photos||[]).length > 0;
+  }
+  function videoModeActive(){
+    return S.mode === 'video' && !!S.video;
+  }
+  /* 지금 모드에서 글자를 그리는가. 글자 모드는 글자가 본체라 항상 참이다. */
+  function textEnabled(){
+    if(S.mode === 'photo') return !!S.photoTextOn;
+    if(S.mode === 'video') return !!S.videoTextOn;
+    return true;
+  }
+
+  /* 영상 한 프레임 — 지금 video 요소에 떠 있는 그림을 그대로 그린다.
+     여기서 seek을 걸지 않는다: render는 동기 함수인데 seek은 비동기라
+     기다릴 수 없고, 미리보기에서는 영상이 재생되며 알아서 넘어간다.
+     내보낼 때의 정확한 위치 맞추기는 prepareFrame()이 맡는다. */
+  function drawVideoFrame(){
+    const v = S.video;
+    if(!v || !v.videoWidth) return;
+    const sc = Math.max(W/v.videoWidth, H/v.videoHeight);
+    const dw = v.videoWidth*sc, dh = v.videoHeight*sc;
+    const dx = (W-dw)/2 + (S.photoX/100)*(dw-W)/2;
+    const dy = (H-dh)/2 + (S.photoY/100)*(dh-H)/2;
+    try{ ctx.drawImage(v, dx, dy, dw, dh); }catch(e){ /* 아직 첫 프레임이 없으면 건너뛴다 */ }
+    drawDim(S.slideDim);
+  }
+
+  /* 내보내기가 프레임을 그리기 직전에 부른다. 영상만 실제로 할 일이 있다.
+     t는 0..1 진행도 — 잘라낸 구간 안의 위치로 환산해 그 지점으로 찾아간다.
+     seek 한 번이 40~90ms라 90프레임이면 4초쯤 든다 (인코딩이 훨씬 오래 걸린다). */
+  async function prepareFrame(t){
+    if(!videoModeActive()) return;
+    const v = S.video;
+    const target = S.trimStart + cl(t) * trimSpan(S);
+    /* 끝 프레임에서 duration을 넘기면 seeked가 오지 않고 멈춘다 */
+    const safe = Math.max(0, Math.min((S.videoDur || v.duration || 0) - 0.02, target));
+    if(Math.abs(v.currentTime - safe) < 0.001) return;
+    await new Promise(resolve => {
+      let done = false;
+      const fin = ()=>{ if(done) return; done = true; v.removeEventListener('seeked', fin); resolve(); };
+      v.addEventListener('seeked', fin);
+      /* seek이 오지 않는 경우(코덱·구간 문제)에도 내보내기가 멈추면 안 된다.
+         그 프레임은 직전 그림으로 나가지만, 통째로 실패하는 것보다 낫다. */
+      setTimeout(fin, 400);
+      v.currentTime = safe;
+    });
+  }
+
+  /* 실측값이 지금 화면과 같은 조건에서 나온 것인지 가리는 열쇠.
+     한 프레임의 그림을 바꾸는 것만 넣는다 — 프레임 수(fps·장당 시간)는
+     넣지 않는다. 용량이 프레임 수에 정비례하므로 곱하기만 하면 되고,
+     슬라이더를 움직일 때마다 다시 인코딩하면 편집이 버벅인다. */
+  function sampleKey(){
+    return [
+      S.mode,
+      (S.photos||[]).length, S.photosRev|0, S.ratio, S.slideDim,
+      S.videoRev|0, (S.trimStart||0).toFixed(2),
+      textEnabled() ? [S.text, S.fontStack, S.fontWeight, S.size, S.lh, S.posY,
+                  S.color, S.gradient&&S.gradient.join(''), S.outline, S.outlineW,
+                  S.anim, S.hlOn?S.hl:''].join(',') : 'notext',
+    ].join('~');
+  }
+
+  /* 한 프레임. 미리보기와 내보내기가 완전히 같은 그림을 만든다.
+     t는 초가 아니라 전체 타임라인의 진행도(0..1)다 — 내보내기가 i/총프레임을
+     넘긴다. 초가 필요하면 t*S.total로 환산한다. */
   function render(t){
     applyRatio();
     try{
       ctx.setTransform(scale,0,0,scale,0,0);
       ctx.globalAlpha = 1;
       ctx.clearRect(0,0,W,H);
-      if(S.photo) drawPhoto();
-      else if(S.bgColor){ ctx.fillStyle = S.bgColor; ctx.fillRect(0,0,W,H); }
-      renderText(cl(Number.isFinite(t) ? t : 0));
+      const tn = cl(Number.isFinite(t) ? t : 0);
+      if(S.mode === 'video'){
+        if(videoModeActive()) drawVideoFrame();
+        else if(S.bgColor){ ctx.fillStyle = S.bgColor; ctx.fillRect(0,0,W,H); }
+        if(textEnabled()) renderText(tn);
+      }else if(S.mode === 'photo'){
+        if(photoModeActive()) drawSlideshow(tn);
+        else if(S.bgColor){ ctx.fillStyle = S.bgColor; ctx.fillRect(0,0,W,H); }
+        if(textEnabled()) renderText(tn);
+      }else{
+        if(S.photo) drawPhoto();
+        else if(S.bgColor){ ctx.fillStyle = S.bgColor; ctx.fillRect(0,0,W,H); }
+        renderText(tn);
+      }
     }catch(err){
       /* 프레임 하나가 실패해도 루프는 멈추지 않는다 */
       try{ ctx.setTransform(scale,0,0,scale,0,0); ctx.globalAlpha=1; }catch(e){}
@@ -689,15 +874,54 @@ function createRenderer(canvas, initial, opts){
   /* ── 상태 조작 ── */
   function setState(patch){
     Object.assign(S, patch||{});
+    /* 사진 모드의 전체 길이는 사용자가 정하는 값이 아니라
+       (장수 × 장당 시간)의 결과다. 손으로 넣은 total은 무시한다. */
+    if(S.mode === 'photo') S.total = slideshowTotal(S);
+    if(S.mode === 'video') S.total = trimSpan(S);
+    applyRatio();
+    return api;
+  }
+
+  /* 모드 전환. 폰트·색·비율은 그대로 두고 시간 설정만 그 모드에 맞게 바꾼다.
+     사진 모드는 장수에서 길이가 나오고, 글자 모드는 애니메이션에서 나온다. */
+  function setMode(mode){
+    const prev = S.mode;
+    S.mode = (mode === 'photo' || mode === 'video') ? mode : 'text';
+    if(S.mode === 'video'){
+      /* 다른 모드에서 넘어오면 fps를 영상 기본값으로 잡는다. 사진 모드의
+         10fps를 그대로 들고 오면 영상이 이유 없이 끊겨 보인다.
+         영상 모드 안에서 이미 조절한 값은 건드리지 않는다. */
+      if(prev !== 'video') S.fps = VIDEO_DEFAULTS.fps;
+      S.total = trimSpan(S);
+      S.inDur = Math.min(S.inDur, Math.max(0.4, S.total * 0.3));
+      applyRatio();
+      return api;
+    }
+    if(S.mode === 'photo'){
+      /* 글자 모드의 20~24fps를 그대로 들고 오면 8장짜리가 300프레임이 된다. */
+      if(S.fps > 15) S.fps = PHOTO_DEFAULTS.fps;
+      S.total = slideshowTotal(S);
+      /* 사진 위 글자는 등장만 하고 머문다. 전체 길이가 길어졌으니
+         등장 시간이 그대로면 첫 장이 끝나기도 전에 다 나와버린다. */
+      S.inDur = Math.min(S.inDur, Math.max(0.6, S.total * 0.25));
+    }else{
+      const d = animDefaults(S.anim);
+      S.total = d.total; S.fps = d.fps; S.inDur = d.inDur;
+    }
     applyRatio();
     return api;
   }
 
   /* 애니메이션을 바꾸면 권장 길이·fps를 함께 적용한다.
-     시네마틱을 2.5초로 돌리면 광택이 시작되기도 전에 끝난다. */
+     시네마틱을 2.5초로 돌리면 광택이 시작되기도 전에 끝난다.
+     단 사진 모드에서는 길이·fps가 사진 쪽 설정이라 건드리지 않는다. */
   function setAnim(id){
     S.anim = id;
     const d = animDefaults(id);
+    if(S.mode === 'photo'){
+      S.inDur = Math.min(d.inDur, Math.max(0.6, S.total * 0.25));
+      return api;
+    }
     S.total = d.total; S.fps = d.fps; S.inDur = d.inDur;
     return api;
   }
@@ -717,14 +941,44 @@ function createRenderer(canvas, initial, opts){
     const px = W*H/(800*450);
     const rating = inkRating(effect());
     const colorFactor = [1.9, 1.45, 1.15, 1.0][rating] ?? 1.2;
-    const gifKB = S.photo
+    const photoish = !!S.photo || photoModeActive();
+
+    /* 사진 모드는 추정하지 않고 실측값을 쓴다.
+       프레임당 크기가 사진에 따라 50KB~309KB로 6배까지 벌어져서, 어떤 상수를
+       넣어도 절반은 틀린다. 대신 용량이 프레임 수에 정확히 비례하므로
+       (실측: 4·8·16프레임에서 프레임당 50.5KB로 완전히 일정)
+       한 장을 실제로 인코딩해 재고 프레임 수만 곱한다. */
+    const sample = S.photoSample;
+    if((photoModeActive() || videoModeActive()) && sample && sample.key === sampleKey()){
+      const gifKB = Math.round(sample.bytes * n / 1024);
+      /* 한 장을 따로 잴 때보다 연속으로 돌릴 때가 프레임당 두 배쯤 느리다.
+         실측 비율 16프레임 2.12배 · 32프레임 1.83배 — 가운데인 2를 쓴다.
+         이 값은 '30초 넘으면 경고' 판단에만 쓰이므로, 모자라게 잡아
+         경고를 놓치는 것보다 넉넉히 잡는 편이 낫다. */
+      const encodeMs = Math.round(sample.ms * n * 2);
+      return {
+        frames:n, w:W, h:H, gifKB,
+        mp4KB: Math.round(S.total * 900 * px),
+        /* 실측이라 폭을 좁게 잡는다. 남은 오차는 장마다 그림이 달라서 생기는
+           것뿐이다 (표본은 한 장) — 사진 A/B로 잰 편차가 ±10% 안쪽이었다.
+           영상은 프레임마다 그림이 다 달라서 표본 한 장의 대표성이 떨어지므로
+           폭을 더 넓게 준다. */
+        gifKBLow: Math.round(gifKB * (videoModeActive() ? 0.75 : 0.9)),
+        gifKBHigh: Math.round(gifKB * (videoModeActive() ? 1.4 : 1.15)),
+        heavy: gifKB > 2000,
+        measured: true, encodeMs, slow: encodeMs > 30000,
+      };
+    }
+
+    const gifKB = photoish
       ? Math.round((110 + (n-1)*22) * px * colorFactor)
       : Math.round(n * 6 * px * colorFactor);
-    const mp4KB = Math.round(S.total * (S.photo?900:450) * px);
+    const mp4KB = Math.round(S.total * (photoish?900:450) * px);
     return {
       frames:n, w:W, h:H, gifKB, mp4KB,
       gifKBLow: Math.round(gifKB*0.75), gifKBHigh: Math.round(gifKB*1.4),
       heavy: gifKB*1.4 > 2000,
+      measured: false, encodeMs: 0, slow: false,
     };
   }
 
@@ -738,8 +992,17 @@ function createRenderer(canvas, initial, opts){
   }
   function currentMatte(){ return S.matteAuto ? autoMatte() : S.matte; }
 
-  /* 배경이 불투명한가. 불투명하면 GIF에 투명 처리도 매트도 필요 없다. */
-  function isOpaque(){ return !!(S.photo || S.bgColor); }
+  /* 배경이 불투명한가. 불투명하면 GIF에 투명 처리도 매트도 필요 없다.
+     사진 모드는 사진이 화면을 꽉 채우므로(cover) 사진이 한 장이라도 있으면 불투명이다. */
+  function isOpaque(){
+    if(S.mode === 'photo') return photoModeActive() || !!S.bgColor;
+    if(S.mode === 'video') return videoModeActive() || !!S.bgColor;
+    return !!(S.photo || S.bgColor);
+  }
+
+  /* 내보내기가 팔레트 크기를 정할 때 쓴다 — 사진이 깔리면 64색으로는
+     하늘·피부 같은 완만한 그러데이션이 띠로 뭉개진다. */
+  function needsRichPalette(){ return !!S.photo || photoModeActive() || videoModeActive(); }
 
   /* 폰트가 실제로 준비될 때까지 기다린다.
      내보내기 직전에 반드시 부를 것 — 안 그러면 50프레임이 통째로
@@ -763,7 +1026,14 @@ function createRenderer(canvas, initial, opts){
          이름표로 두면 나중에 프리셋 표를 손볼 때 이미 저장된 템플릿의
          색이 조용히 따라 바뀐다. */
       ink: {color:S.color, gradient:S.gradient, outline:S.outline, outlineW:S.outlineW},
-      animation: {type:S.anim, inDuration:S.inDur, total:S.total, fps:S.fps},
+      /* 길이·fps는 글자 모드 값으로만 저장한다.
+         사진·영상 모드의 값(사진 10fps·4초 등)은 그 모드의 사진 장수와 자른
+         구간에서 나온 것이라 글자 GIF에는 뜻이 없다. 그대로 저장하면 임시저장을
+         복원할 때 글자 GIF가 10fps·4초로 시작해 애니메이션이 뚝뚝 끊긴다.
+         (실제로 그 증상이 나왔다 — 사진 모드에서 저장된 draft가 글자 모드로 복원됐다.) */
+      animation: S.mode === 'text'
+        ? {type:S.anim, inDuration:S.inDur, total:S.total, fps:S.fps}
+        : (d => ({type:S.anim, inDuration:d.inDur, total:d.total, fps:d.fps}))(animDefaults(S.anim)),
       bg: S.photo ? 'photo' : (S.bgColor ? 'color' : null),
       bgColor: S.bgColor,
       photo: S.photo ? {x:S.photoX, y:S.photoY, dim:S.dim} : null,
@@ -774,9 +1044,12 @@ function createRenderer(canvas, initial, opts){
     };
   }
 
-  /* 템플릿 적용. 사진은 config에 담기지 않으므로(용량) 위치값만 복원한다. */
+  /* 템플릿 적용. 사진은 config에 담기지 않으므로(용량) 위치값만 복원한다.
+     템플릿은 전부 글자 GIF다 — 사진 모드에서 템플릿을 고르면 글자 모드로 돌아간다.
+     (올린 사진은 photos[]에 그대로 남아 있어 탭만 되돌리면 복구된다.) */
   function applyConfig(cfg){
     if(!cfg) return api;
+    S.mode = 'text';
     const f = cfg.font || {}, an = cfg.animation || {}, cv = cfg.canvas || {};
     if(cfg.sampleText !== undefined) S.text = cfg.sampleText;
     if(cv.ratio && RATIOS[cv.ratio]) S.ratio = cv.ratio;
@@ -816,16 +1089,18 @@ function createRenderer(canvas, initial, opts){
     scale,
     get width(){ return W; },
     get height(){ return H; },
-    render, setState, setAnim, applyConfig, snapshot,
-    frameCount, estimate, ensureFont, currentMatte, isOpaque,
-    sizePx, effect, autoMatte,
+    render, setState, setAnim, setMode, applyConfig, snapshot, prepareFrame,
+    frameCount, estimate, ensureFont, currentMatte, isOpaque, needsRichPalette,
+    sizePx, effect, autoMatte, sampleKey, textEnabled,
   };
   return api;
 }
 
 global.FFPGif = {
   RATIOS, ANIMS, ANIM_BY_ID, ANIM_DEFAULTS, animDefaults,
-  HL_PRESETS, MAX_FRAMES, defaultState, createRenderer, easing:E, clamp:cl,
+  HL_PRESETS, MAX_FRAMES, MAX_PHOTOS, PHOTO_DEFAULTS, slideshowTotal,
+  VIDEO_MAX_SEC, VIDEO_DEFAULT_SEC, VIDEO_DEFAULTS, trimSpan,
+  defaultState, createRenderer, easing:E, clamp:cl,
   INK_SWATCHES, INK_GRADIENTS, inkFromEffectId, inkRating,
 };
 

@@ -37,7 +37,7 @@
     "애니메이션 18종",
     "투명 배경 GIF",
     "무료 한글 폰트 적용",
-    "GIF · PNG · MP4 저장",
+    "GIF · MP4 저장",
     "워터마크 없음"
   ],
   "isPartOf": {"@type": "WebSite", "name": "폰트픽", "url": "https://freefontpick.co.kr"}
@@ -63,7 +63,12 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6258337579944977"
      crossorigin="anonymous"></script>
 <link rel="stylesheet" href="/static/header.css">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<!-- 구글 폰트는 CSS(googleapis) → 폰트파일(gstatic) 2단계라 preconnect가 없으면
+     첫 글자가 눈에 띄게 늦게 뜬다. 600은 .btn/.chip 등이 실제로 쓰는 굵기다 —
+     빠뜨리면 브라우저가 700으로 대체해서 SemiBold 자리가 Bold로 나온다. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script>
 /* 렌더 전에 저장된 테마를 먼저 적용 — 새로고침 시 흰 화면 번쩍임 방지 */
 (function(){try{var t=localStorage.getItem('ffp-theme');
@@ -337,6 +342,66 @@ select.inp{appearance:none;cursor:pointer}
 .thumb{width:100%;height:78px;object-fit:cover;border-radius:var(--radius-sm);
        border:1px solid var(--border);display:block}
 
+/* ── 모드 탭 ──
+   .props는 overflow-y:auto라, 사진 목록처럼 긴 내용을 보려고 내리면 탭이 위로
+   밀려 사라진다. 지금 어느 모드인지 늘 보여야 하고 언제든 바꿀 수 있어야 하므로
+   패널 맨 위에 붙여둔다. top이 -18px인 건 .props의 padding-top 18px만큼 끌어올려,
+   그 여백 위로 내용이 비쳐 지나가지 않게 덮기 위해서다. */
+.modebar{position:sticky;top:-18px;z-index:5;background:var(--bg-card);
+         padding:18px 0 10px;margin:-18px 0 -8px;border-bottom:1px solid var(--border)}
+.modeseg{width:100%}
+.modeseg button{flex:1}
+/* 사진 목록. 순서가 곧 재생 순서라 번호를 크게 박아둔다 —
+   썸네일만 늘어놓으면 어느 게 먼저인지 매번 헷갈린다. */
+.pglist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.pgitem{display:flex;align-items:center;gap:9px;padding:6px;border:1px solid var(--border);
+        border-radius:var(--radius-sm);background:var(--bg-secondary)}
+.pgnum{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);
+       width:18px;text-align:center;flex:none}
+.pgthumb{width:54px;height:38px;object-fit:cover;border-radius:4px;flex:none;
+         border:1px solid var(--border);display:block}
+.pgname{flex:1;min-width:0;font-size:11.5px;color:var(--text-secondary);
+        overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pgbtns{display:flex;gap:3px;flex:none}
+.pgbtns button{width:26px;height:26px;padding:0;border:1px solid var(--border);
+               background:var(--bg-card);color:var(--text-secondary);border-radius:4px;
+               cursor:pointer;font-size:12px;line-height:1;display:flex;
+               align-items:center;justify-content:center}
+.pgbtns button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.pgbtns button:disabled{opacity:.3;cursor:default}
+.pgbtns .del:hover{border-color:#C2410C;color:#C2410C}
+.pgempty{font-size:12px;color:var(--text-muted);text-align:center;padding:10px 0}
+
+/* ── 영상 GIF ── */
+.vginfo{font-family:var(--ui);font-size:11.5px;color:var(--text-muted);margin-bottom:4px}
+.vginfo b{color:var(--text-secondary);font-weight:600}
+
+/* 필름스트립. 프레임은 캔버스 한 장에 이어 그린다 — 썸네일마다 <img>를 만들면
+   10장이 각각 레이아웃·디코딩을 타서 드래그 중에 버벅인다. */
+.vgstrip{position:relative;height:52px;margin-top:8px;border-radius:var(--radius-sm);
+         overflow:hidden;background:var(--bg-secondary);border:1px solid var(--border);
+         user-select:none;touch-action:none}
+.vgstrip canvas{display:block;width:100%;height:100%}
+/* 잘려나갈 바깥쪽을 덮어 어둡게 — 남는 구간이 한눈에 보인다 */
+.vgmask{position:absolute;top:0;bottom:0;background:rgba(0,0,0,.58);pointer-events:none}
+.vgsel{position:absolute;top:0;bottom:0;border:2px solid var(--accent);
+       border-radius:3px;box-sizing:border-box;cursor:grab}
+.vgsel:active{cursor:grabbing}
+.vgh{position:absolute;top:-2px;bottom:-2px;width:14px;background:var(--accent);
+     cursor:ew-resize;display:flex;align-items:center;justify-content:center}
+.vgh::after{content:"";width:2px;height:16px;background:rgba(255,255,255,.85);border-radius:1px}
+.vgh:focus-visible{outline:2px solid #fff;outline-offset:-4px}
+.vgh-l{left:-2px;border-radius:3px 0 0 3px}
+.vgh-r{right:-2px;border-radius:0 3px 3px 0}
+/* 재생 위치 — 자른 구간 안에서만 움직인다 */
+.vgplay{position:absolute;top:0;bottom:0;width:2px;background:#fff;
+        box-shadow:0 0 3px rgba(0,0,0,.6);pointer-events:none;display:none}
+.vgbusy{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+        background:var(--bg-secondary);font-size:11.5px;color:var(--text-muted)}
+.vgtimes{display:flex;align-items:center;justify-content:space-between;margin-top:6px;
+         font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.vgtimes b{font-family:var(--ui);font-size:11.5px;color:var(--accent);font-weight:700}
+
 /* ── 진행률 · 저장 오버레이 ── */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:none;
     align-items:center;justify-content:center;padding:20px}
@@ -394,6 +459,9 @@ select.inp{appearance:none;cursor:pointer}
   .tlmeta span:last-child{margin-left:0;width:100%}
   .panel,.props{width:100%;max-height:none;border:none;
                 border-bottom:1px solid var(--border);padding:16px 14px;gap:16px}
+  /* 모바일에서는 .props가 스크롤 컨테이너가 아니라(max-height:none) sticky가
+     페이지 기준으로 걸린다. 그러면 탭이 사이트 헤더와 겹치므로 붙이지 않는다. */
+  .modebar{position:static;padding:0;margin:0;border-bottom:none}
   .tplgrid{grid-template-columns:repeat(3,1fr)}
   .fontlist{max-height:none}
   .allbox{margin-top:4px}
@@ -424,7 +492,6 @@ select.inp{appearance:none;cursor:pointer}
     서버 업로드 없이 브라우저에서 인코딩합니다
   </span>
   <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-    <button class="btn" id="pngBtn">PNG로 받기</button>
     <button class="btn" id="mp4Btn">MP4로 받기</button>
     <button class="btn btn-primary" id="gifBtn">GIF로 받기</button>
   </div>
@@ -501,13 +568,87 @@ select.inp{appearance:none;cursor:pointer}
 
   <!-- 속성 패널 -->
   <div class="props">
-    <div>
+    <!-- 모드 — 두 모드가 시간 설정을 서로 다르게 쓰기 때문에(글자는 애니메이션에서,
+         사진은 장수에서 길이가 나온다) 한 화면에 섞지 않고 탭으로 가른다. -->
+    <div class="modebar">
+      <div class="seg modeseg" id="modeSeg">
+        <button class="on" data-mode="text">텍스트 GIF</button>
+        <button data-mode="photo">사진 GIF</button>
+        <button data-mode="video">영상 GIF</button>
+      </div>
+    </div>
+
+    <div id="vgSec" hidden>
+      <div class="lbl">영상 · 최대 <span id="vgMax">10</span>초</div>
+      <input type="file" id="vgFile" accept="video/*" hidden>
+      <div class="drop" id="vgDrop">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M12 16V4m0 0 4 4m-4-4-4 4M5 20h14"/></svg>
+        <span id="vgDropLabel">영상을 올리거나 클릭해서 고르세요</span>
+      </div>
+      <!-- 미리보기는 이 요소를 그대로 캔버스에 그린다. 화면에는 보이지 않는다. -->
+      <video id="vgVideo" muted playsinline preload="auto" style="display:none"></video>
+      <div id="vgCtl" class="disabled" style="margin-top:12px">
+        <div class="vginfo" id="vgInfo"></div>
+        <!-- 필름스트립 — 올린 영상의 프레임을 뽑아 깔고, 그 위에서 앞뒤를 자른다.
+             슬라이더 두 개로는 "어디가 잘리는지"를 숫자로만 알 수 있었다. -->
+        <div class="vgstrip" id="vgStrip">
+          <canvas id="vgStripCv"></canvas>
+          <div class="vgmask" id="vgMaskL"></div>
+          <div class="vgmask" id="vgMaskR"></div>
+          <div class="vgsel" id="vgSel">
+            <span class="vgh vgh-l" id="vgHL" tabindex="0" role="slider" aria-label="시작 지점"></span>
+            <span class="vgh vgh-r" id="vgHR" tabindex="0" role="slider" aria-label="끝 지점"></span>
+          </div>
+          <div class="vgplay" id="vgPlayhead"></div>
+          <div class="vgbusy" id="vgStripBusy">프레임 읽는 중…</div>
+        </div>
+        <div class="vgtimes">
+          <span id="vgStartV">0.0s</span>
+          <b id="vgSpanV">4.0s</b>
+          <span id="vgEndV">4.0s</span>
+        </div>
+        <div class="slider"><label>어둡게</label><input type="range" id="vgDim" min="0" max="80" value="0"><span class="val" id="vgDimV">0%</span></div>
+        <div class="slider"><label>프레임레이트</label><input type="range" id="vgFps" min="6" max="24" value="15"><span class="val" id="vgFpsV">15fps</span></div>
+        <hr class="advsep">
+        <label class="advchk"><input type="checkbox" id="vgText"> 영상 위에 글자 넣기<span class="advhint2">문구 · 폰트 · 색은 위에서</span></label>
+        <div class="advnote" id="vgNote"></div>
+      </div>
+      <div class="hint">
+        <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v5m0 3v.01"/></svg>
+        <span>소리는 GIF에 담기지 않습니다. 길게 자를수록 프레임레이트가 떨어져 끊겨 보이고 용량이 커집니다.</span>
+      </div>
+    </div>
+
+    <div id="pgSec" hidden>
+      <div class="lbl">사진 · 최대 <span id="pgMax">8</span>장</div>
+      <input type="file" id="pgFiles" accept="image/*" multiple hidden>
+      <div class="drop" id="pgDrop">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M12 16V4m0 0 4 4m-4-4-4 4M5 20h14"/></svg>
+        <span id="pgDropLabel">사진을 여러 장 올리거나 클릭해서 고르세요</span>
+      </div>
+      <div class="pglist" id="pgList"></div>
+      <div id="pgCtl" class="disabled" style="margin-top:12px">
+        <div class="slider"><label>장당 시간</label><input type="range" id="pgSlide" min="6" max="30" value="12"><span class="val" id="pgSlideV">1.2s</span></div>
+        <div class="slider"><label>전환 시간</label><input type="range" id="pgFade" min="0" max="15" value="4"><span class="val" id="pgFadeV">0.4s</span></div>
+        <div class="slider"><label>어둡게</label><input type="range" id="pgDim" min="0" max="80" value="0"><span class="val" id="pgDimV">0%</span></div>
+        <div class="slider"><label>프레임레이트</label><input type="range" id="pgFps" min="6" max="15" value="10"><span class="val" id="pgFpsV">10fps</span></div>
+        <hr class="advsep">
+        <label class="advchk"><input type="checkbox" id="pgText" checked> 사진 위에 글자 넣기<span class="advhint2">문구 · 폰트 · 색은 위에서</span></label>
+        <div class="advnote" id="pgNote"></div>
+      </div>
+      <div class="hint">
+        <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v5m0 3v.01"/></svg>
+        <span>사진 GIF는 매 프레임이 사진이라 팔레트가 192색으로 늘고 용량이 큽니다. 장수를 줄이거나 비율을 작게 하면 가벼워집니다.</span>
+      </div>
+    </div>
+
+    <div id="txtSec">
       <div class="lbl">문구 · 최대 2줄</div>
       <textarea class="inp" id="txt" rows="2" spellcheck="false">이걸 몰랐다고?</textarea>
       <div class="counter"><span id="cntLine">1줄 / 8자</span><span id="cntHint">글자수 ±20% 권장</span></div>
     </div>
 
-    <div>
+    <div id="fontSec">
       <div class="lbl">폰트</div>
       <select class="inp opener" id="hubSel" aria-label="용도"></select>
       <div class="hubsub" id="hubSub"></div>
@@ -515,7 +656,7 @@ select.inp{appearance:none;cursor:pointer}
       <div class="chips" id="weightChips" style="margin-top:8px"></div>
     </div>
 
-    <div>
+    <div id="inkSec">
       <div class="lbl">글자색 · 외곽선</div>
       <button class="btn fxbtn opener" id="fxOpen" aria-expanded="false">
         <i class="fxdot" id="fxDot"></i>
@@ -533,9 +674,9 @@ select.inp{appearance:none;cursor:pointer}
         <div class="slider"><label>줄 간격</label><input type="range" id="sLh" min="90" max="200" value="130"><span class="val" id="sLhV">1.30</span></div>
         <div class="slider"><label>세로 위치</label><input type="range" id="sPos" min="10" max="90" value="50"><span class="val" id="sPosV">50%</span></div>
         <hr class="advsep">
-        <div class="slider"><label>전체 길이</label><input type="range" id="sTotal" min="10" max="60" value="25"><span class="val" id="sTotalV">2.5s</span></div>
-        <div class="slider"><label>등장 시간</label><input type="range" id="sIn" min="3" max="40" value="15"><span class="val" id="sInV">1.5s</span></div>
-        <div class="slider"><label>프레임레이트</label><input type="range" id="sFps" min="8" max="30" value="20"><span class="val" id="sFpsV">20fps</span></div>
+        <div class="slider" id="rowTotal"><label>전체 길이</label><input type="range" id="sTotal" min="10" max="60" value="25"><span class="val" id="sTotalV">2.5s</span></div>
+        <div class="slider" id="rowIn"><label>등장 시간</label><input type="range" id="sIn" min="3" max="40" value="15"><span class="val" id="sInV">1.5s</span></div>
+        <div class="slider" id="rowFps"><label>프레임레이트</label><input type="range" id="sFps" min="8" max="30" value="20"><span class="val" id="sFpsV">20fps</span></div>
         <hr class="advsep">
         <label class="advchk"><input type="checkbox" id="hlOn"> 형광 바 사용<span class="advhint2">하이라이트 전용</span></label>
         <div class="swrow" id="hlSw"></div>
@@ -793,6 +934,10 @@ async function applyTemplate(number){
      고장난 줄 알고 되돌아 나가게 된다. */
   ui.playing = true;
   syncPlayIcon();
+  /* 템플릿은 전부 글자 GIF다 — applyConfig가 렌더러를 글자 모드로 되돌리므로
+     탭과 패널 표시도 같이 되돌린다. 올린 사진은 photos[]에 남아 있어
+     사진 GIF 탭을 다시 누르면 그대로 있다. */
+  syncModeUI();
   renderTpls(); renderHubs(); renderFx(); syncBar(); syncAdv(); syncPhotoSliders(); updateCounter(); saveDraft();
 }
 
@@ -865,6 +1010,34 @@ $('ratioSeg').onclick = e=>{
   syncRatio();
   syncBar(); syncPhotoSliders(); saveDraft();
 };
+
+/* 올린 사진·영상의 가로세로에 가장 가까운 캔버스 비율을 고른다.
+   차이를 그냥 빼서 재지 않고 로그로 재는 이유: 16:9(1.78)와 1:1(1.0)의 차이는 0.78,
+   1:1(1.0)과 9:16(0.56)의 차이는 0.44지만 사람 눈에는 둘 다 "한 칸 차이"다.
+   그냥 빼면 가로 쪽이 과대평가돼 세로 사진이 1:1로 끌려간다. */
+function bestRatioFor(w, h){
+  if(!w || !h) return null;
+  const target = w / h;
+  let best = null, bestD = Infinity;
+  for(const key of Object.keys(FFPGif.RATIOS)){
+    const r = FFPGif.RATIOS[key];
+    const d = Math.abs(Math.log((r.w / r.h) / target));
+    if(d < bestD){ bestD = d; best = key; }
+  }
+  return best;
+}
+
+/* 비율을 자동으로 맞춘다. 단, 사용자가 비율 버튼을 한 번이라도 눌렀으면(ui.ratio)
+   건드리지 않는다 — 템플릿보다 사용자 선택이 우선인 기존 규칙과 같다.
+   맞춘 사실은 알려준다. 캔버스 모양이 말없이 바뀌면 고장으로 보인다. */
+function autoFitRatio(w, h){
+  if(ui.ratio) return null;
+  const key = bestRatioFor(w, h);
+  if(!key || key === R.state.ratio) return null;
+  R.setState({ratio: key});
+  syncRatio(); syncPhotoSliders();
+  return key;
+}
 
 /* 비율 세그먼트와 설명을 렌더러의 실제 상태에 맞춘다.
    버튼만 켜고 끄면 컨트롤과 캔버스가 어긋난다 — 실제로 그 버그가 있었다. */
@@ -1415,20 +1588,520 @@ function updateCounter(){
 $('txt').oninput = ()=>{ R.setState({text:$('txt').value}); updateCounter(); saveDraft(); };
 
 /* ══════════════════════════════════════════════════════════════
+   사진 GIF — 여러 장을 순서대로 넘기는 슬라이드쇼
+
+   배경 사진(위)과 별개다. 배경 사진은 '한 장을 깔고 글자를 움직이는' 것이고,
+   여기는 '사진이 넘어가는 것' 자체가 내용이다. 시간 설정이 서로 반대로
+   흐르기 때문에(글자는 애니메이션이 길이를 정하고, 사진은 장수가 정한다)
+   한 화면에 섞지 않고 모드로 갈랐다.
+
+   ImageBitmap은 R.state.photos에, 썸네일용 objectURL은 PG.urls에 같은 순서로
+   둔다. 순서 바꾸기·삭제 때 둘을 같이 움직여야 썸네일과 실제 사진이 어긋나지 않는다.
+══════════════════════════════════════════════════════════════ */
+const PG = {urls: [], names: [], autoRatio: null};
+const MAX_PHOTOS = FFPGif.MAX_PHOTOS;
+
+function pgCount(){ return (R.state.photos || []).length; }
+
+/* 사진을 더한다. 상한을 넘으면 넘는 만큼만 버리고 이유를 알린다 —
+   조용히 자르면 "올렸는데 안 들어갔다"가 된다. */
+async function pgAdd(fileList){
+  const files = [...(fileList||[])].filter(f => f && f.type.startsWith('image/'));
+  if(!files.length) return;
+
+  const wasEmpty = pgCount() === 0;
+  const room = MAX_PHOTOS - pgCount();
+  if(room <= 0){ alert(`사진은 최대 ${MAX_PHOTOS}장까지 넣을 수 있어요.`); return; }
+  const take = files.slice(0, room);
+  const dropped = files.length - take.length;
+
+  const photos = (R.state.photos || []).slice();
+  let failed = 0;
+  for(const f of take){
+    try{
+      photos.push(await createImageBitmap(f, {imageOrientation:'from-image'}));
+      PG.urls.push(URL.createObjectURL(f));
+      PG.names.push(f.name || '사진');
+    }catch(e){ failed++; }
+  }
+  R.setState({photos, photosRev: R.state.photosRev + 1});
+  /* 첫 장을 올릴 때만 비율을 맞춘다. 뒤에 더 넣을 때마다 캔버스가 바뀌면
+     이미 잡아둔 구도가 매번 흐트러진다 — 기준은 첫 장이다. */
+  if(wasEmpty && photos[0]) PG.autoRatio = autoFitRatio(photos[0].width, photos[0].height);
+  pgRender(); pgSyncCtl(); syncPhotoSliders(); syncBar();
+
+  if(failed) alert(`사진 ${failed}장을 읽지 못했어요.\n아이폰 HEIC이면 JPG로 바꿔서 올려주세요.`);
+  else if(dropped) alert(`최대 ${MAX_PHOTOS}장까지만 넣을 수 있어서 ${dropped}장은 넣지 않았어요.`);
+}
+
+function pgRemove(i){
+  const photos = (R.state.photos || []).slice();
+  photos.splice(i, 1);
+  URL.revokeObjectURL(PG.urls[i]);
+  PG.urls.splice(i, 1);
+  PG.names.splice(i, 1);
+  R.setState({photos, photosRev: R.state.photosRev + 1});
+  pgRender(); pgSyncCtl(); syncPhotoSliders(); syncBar();
+}
+
+function pgMove(i, d){
+  const j = i + d;
+  const photos = (R.state.photos || []).slice();
+  if(j < 0 || j >= photos.length) return;
+  [photos[i], photos[j]] = [photos[j], photos[i]];
+  [PG.urls[i], PG.urls[j]] = [PG.urls[j], PG.urls[i]];
+  [PG.names[i], PG.names[j]] = [PG.names[j], PG.names[i]];
+  R.setState({photos, photosRev: R.state.photosRev + 1});
+  pgRender(); syncBar();
+}
+
+function pgRender(){
+  const n = pgCount();
+  const list = $('pgList');
+  if(!n){
+    list.innerHTML = '<div class="pgempty">아직 사진이 없어요. 위에서 올려주세요.</div>';
+    return;
+  }
+  list.innerHTML = (R.state.photos).map((_, i) => `
+    <div class="pgitem">
+      <span class="pgnum">${i+1}</span>
+      <img class="pgthumb" src="${PG.urls[i]}" alt="">
+      <span class="pgname">${(PG.names[i]||'').replace(/[<>&"]/g, '')}</span>
+      <span class="pgbtns">
+        <button type="button" data-act="up"   data-i="${i}" ${i===0?'disabled':''} aria-label="앞으로">↑</button>
+        <button type="button" data-act="down" data-i="${i}" ${i===n-1?'disabled':''} aria-label="뒤로">↓</button>
+        <button type="button" data-act="del"  data-i="${i}" class="del" aria-label="빼기">×</button>
+      </span>
+    </div>`).join('');
+}
+
+$('pgList').onclick = e => {
+  const b = e.target.closest('button[data-act]');
+  if(!b) return;
+  const i = +b.dataset.i;
+  if(b.dataset.act === 'up')   pgMove(i, -1);
+  if(b.dataset.act === 'down') pgMove(i, +1);
+  if(b.dataset.act === 'del')  pgRemove(i);
+};
+
+/* 사진 수·시간 설정이 바뀔 때마다 '몇 초짜리 몇 프레임'을 알려준다.
+   프레임 상한(MAX_FRAMES)에 걸리면 실제 fps가 설정값보다 낮아지므로
+   그 사실을 숨기지 않는다 — 안 알려주면 "왜 뚝뚝 끊기지?"가 된다. */
+function pgSyncCtl(){
+  const n = pgCount();
+  $('pgCtl').classList.toggle('disabled', n === 0);
+  $('pgDropLabel').textContent = n
+    ? `사진 더 올리기 (${n}/${MAX_PHOTOS}장)`
+    : '사진을 여러 장 올리거나 클릭해서 고르세요';
+  $('pgSec').classList.toggle('photoOn', n > 0);
+
+  const S = R.state;
+  if(!n){ $('pgNote').textContent = ''; PG.autoRatio = null; return; }
+  const want = Math.round(S.total * S.fps);
+  const real = R.frameCount();
+  const fit = PG.autoRatio ? ` 사진에 맞춰 ${PG.autoRatio}로 맞췄어요.` : '';
+  $('pgNote').textContent = (want > real
+    ? `${n}장 · ${S.total.toFixed(1)}초. 프레임 상한(${FFPGif.MAX_FRAMES}장)에 걸려 실제 ${Math.round(real/S.total)}fps로 저장돼요. 장수나 장당 시간을 줄이면 부드러워집니다.`
+    : `${n}장 · ${S.total.toFixed(1)}초 · ${real}프레임.`) + fit;
+}
+
+$('pgDrop').onclick = ()=>$('pgFiles').click();
+$('pgFiles').onchange = e => { pgAdd(e.target.files); e.target.value = ''; };
+['dragover','dragleave','drop'].forEach(ev=>$('pgDrop').addEventListener(ev, e=>{
+  e.preventDefault();
+  $('pgDrop').style.borderColor = ev==='dragover' ? 'var(--accent)' : '';
+  if(ev==='drop' && e.dataTransfer.files.length) pgAdd(e.dataTransfer.files);
+}));
+
+/* 슬라이더 — 값은 10배로 담아둔다(1.2s → 12). range가 소수를 못 다뤄서다. */
+[['pgSlide','slideDur',10,'s'],['pgFade','xfadeDur',10,'s']].forEach(([id,key,div,unit])=>{
+  $(id).oninput = ()=>{
+    R.setState({[key]: +$(id).value / div});
+    $(id+'V').textContent = (+$(id).value/div).toFixed(1) + unit;
+    pgSyncCtl(); syncBar();
+  };
+});
+$('pgDim').oninput = ()=>{
+  R.setState({slideDim: +$('pgDim').value});
+  $('pgDimV').textContent = $('pgDim').value + '%';
+  syncBar();
+};
+$('pgFps').oninput = ()=>{
+  R.setState({fps: +$('pgFps').value});
+  $('pgFpsV').textContent = $('pgFps').value + 'fps';
+  pgSyncCtl(); syncBar();
+};
+$('pgText').onchange = ()=>{
+  R.setState({photoTextOn: $('pgText').checked});
+  syncModeUI(); syncBar();
+};
+
+/* ══════════════════════════════════════════════════════════════
+   영상 GIF — 앞뒤만 자른다
+
+   프레임을 미리 뽑아 쌓지 않는다. 미리보기는 video 요소를 그냥 재생시켜
+   캔버스에 그리고, 내보낼 때만 renderer.prepareFrame()이 한 장씩 찾아간다.
+   90프레임을 비트맵으로 들고 있으면 130MB라 폰에서 탭이 죽는다.
+
+   상한 10초는 제품 결정이지만 기본은 4초다 — 프레임 상한(90장)이 있어서
+   10초를 채우면 9fps까지 떨어져 뚝뚝 끊긴다. 4초면 같은 90장으로 22fps다.
+══════════════════════════════════════════════════════════════ */
+const VG = {url: null, autoRatio: null, dragging: false};
+const VIDEO_MAX = FFPGif.VIDEO_MAX_SEC;
+
+function vgDur(){ return R.state.videoDur || 0; }
+
+async function vgLoad(file){
+  if(!file || !file.type.startsWith('video/')){
+    alert('영상 파일을 올려주세요.');
+    return;
+  }
+  const v = $('vgVideo');
+  if(VG.url) URL.revokeObjectURL(VG.url);
+  VG.url = URL.createObjectURL(file);
+  v.src = VG.url;
+  try{
+    await new Promise((res, rej)=>{
+      v.onloadedmetadata = res;
+      v.onerror = ()=>rej(new Error('decode'));
+      setTimeout(()=>rej(new Error('timeout')), 15000);
+    });
+  }catch(e){
+    alert('이 영상은 읽지 못했어요.\n아이폰 .mov(HEVC)이면 mp4로 바꿔서 올려주세요.');
+    return;
+  }
+  const dur = v.duration;
+  if(!isFinite(dur) || dur <= 0){
+    alert('영상 길이를 읽지 못했어요. 다른 파일로 시도해주세요.');
+    return;
+  }
+  /* 첫 프레임을 띄워둔다 — 안 그러면 캔버스가 검게 남아 "안 올라갔다"로 보인다 */
+  await new Promise(r=>{ v.onseeked = r; v.currentTime = 0; setTimeout(r, 800); });
+
+  const end = Math.min(dur, FFPGif.VIDEO_DEFAULT_SEC);
+  R.setState({
+    video: v, videoDur: dur, trimStart: 0, trimEnd: end,
+    videoRev: R.state.videoRev + 1, photoSample: null,
+  });
+  VG.autoRatio = autoFitRatio(v.videoWidth, v.videoHeight);
+  $('vgCtl').classList.remove('disabled');
+  $('vgSec').classList.add('photoOn');
+  $('vgDropLabel').textContent = '다른 영상으로 바꾸기';
+  ui.t = 0;
+  vgSyncSliders(); vgSyncCtl(); syncBar();
+  /* 프레임 읽기는 기다리지 않는다 — 스트립이 채워지는 동안에도
+     미리보기와 구간 조절은 이미 쓸 수 있다. */
+  vgBuildStrip();
+}
+
+/* 두 손잡이가 서로를 밀어낸다. 최소 0.3초, 최대 10초를 여기서 지킨다 —
+   슬라이더 두 개를 각자 놀게 두면 시작이 끝을 넘어가 구간이 뒤집힌다. */
+function vgSetTrim(which, sec){
+  const dur = vgDur();
+  let s = R.state.trimStart, e = R.state.trimEnd;
+  if(which === 'start'){
+    s = Math.max(0, Math.min(sec, dur - 0.3));
+    if(e - s < 0.3) e = Math.min(dur, s + 0.3);
+    if(e - s > VIDEO_MAX) e = s + VIDEO_MAX;
+  }else{
+    e = Math.min(dur, Math.max(sec, 0.3));
+    if(e - s < 0.3) s = Math.max(0, e - 0.3);
+    if(e - s > VIDEO_MAX) s = e - VIDEO_MAX;
+  }
+  R.setState({trimStart:s, trimEnd:e});
+  /* 자른 구간이 바뀌면 재생 위치도 그 안으로 데려온다.
+     단 끄는 중에는 건너뛴다 — 한 번 찾아가는 데 40~90ms인데 드래그는 초당
+     수십 번 들어와서, 매번 seek을 걸면 핸들이 손을 못 따라온다.
+     손을 떼는 순간 한 번만 맞춘다. */
+  const v = R.state.video;
+  if(v && !VG.dragging && (v.currentTime < s || v.currentTime > e)) v.currentTime = s;
+  ui.t = 0;
+  vgSyncSliders(); vgSyncCtl(); syncBar();
+}
+
+function vgSyncSliders(){
+  const S = R.state;
+  $('vgDim').value = S.slideDim; $('vgDimV').textContent = S.slideDim + '%';
+  $('vgFps').value = S.fps;      $('vgFpsV').textContent = S.fps + 'fps';
+  $('vgText').checked = !!S.videoTextOn;
+  vgSyncStrip();
+}
+
+/* 스트립 위의 선택 구간·핸들·시간 표시를 상태에 맞춘다.
+   퍼센트로 두는 이유: 패널 폭이 반응형으로 바뀌어도 다시 계산할 필요가 없다. */
+function vgSyncStrip(){
+  const S = R.state, dur = S.videoDur || 0;
+  $('vgStartV').textContent = S.trimStart.toFixed(1) + 's';
+  $('vgEndV').textContent   = S.trimEnd.toFixed(1) + 's';
+  $('vgSpanV').textContent  = (S.trimEnd - S.trimStart).toFixed(1) + 's';
+  if(!dur) return;
+  const l = S.trimStart / dur * 100, r = S.trimEnd / dur * 100;
+  $('vgMaskL').style.cssText = `left:0;width:${l}%`;
+  $('vgMaskR').style.cssText = `right:0;width:${100-r}%`;
+  $('vgSel').style.left  = l + '%';
+  $('vgSel').style.width = (r - l) + '%';
+  $('vgHL').setAttribute('aria-valuenow', S.trimStart.toFixed(1));
+  $('vgHR').setAttribute('aria-valuenow', S.trimEnd.toFixed(1));
+}
+
+/* 올린 영상의 프레임을 뽑아 스트립에 이어 그린다.
+   썸네일마다 <img>를 만들지 않고 캔버스 한 장에 그리는 이유 — 10여 장이 각각
+   레이아웃·디코딩을 타면 핸들을 끄는 동안 눈에 띄게 버벅인다.
+   한 장을 찾아가는 데 40~90ms라 12장이면 1초 안쪽이다. */
+async function vgBuildStrip(){
+  const S = R.state, v = S.video;
+  if(!v || !S.videoDur) return;
+  const strip = $('vgStrip'), cv = $('vgStripCv');
+  $('vgStripBusy').style.display = 'flex';
+  $('vgPlayhead').style.display = 'none';
+  /* 프레임을 찾아가는 동안 재생이 돌면 서로 seek을 밀어내 스트립이 뒤죽박죽 된다 */
+  ui.playing = false; syncPlayIcon();
+  if(!v.paused) v.pause();
+
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const W = Math.max(120, Math.round(strip.clientWidth));
+  const H = 52;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  const cx = cv.getContext('2d');
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  /* 프레임 폭이 28px 아래로 내려가면 무슨 장면인지 알아볼 수 없다 */
+  const n = Math.max(6, Math.min(14, Math.round(W / 28)));
+  const tw = W / n;
+  const back = v.currentTime;
+  const seek = t => new Promise(res => {
+    let done = false;
+    const fin = ()=>{ if(done) return; done = true; v.removeEventListener('seeked', fin); res(); };
+    v.addEventListener('seeked', fin);
+    setTimeout(fin, 400);              // 못 찾아가도 스트립 만들기가 멈추면 안 된다
+    v.currentTime = t;
+  });
+
+  for(let i = 0; i < n; i++){
+    await seek(Math.min(S.videoDur - 0.02, (i + 0.5) / n * S.videoDur));
+    const sc = Math.max(tw / v.videoWidth, H / v.videoHeight);   // cover 크롭
+    const dw = v.videoWidth * sc, dh = v.videoHeight * sc;
+    cx.save();
+    cx.beginPath(); cx.rect(i * tw, 0, tw, H); cx.clip();
+    try{ cx.drawImage(v, i*tw + (tw-dw)/2, (H-dh)/2, dw, dh); }catch(e){}
+    cx.restore();
+  }
+  await seek(back);
+
+  $('vgStripBusy').style.display = 'none';
+  $('vgPlayhead').style.display = 'block';
+  vgSyncStrip();
+}
+
+/* 스트립 위 드래그 — 왼쪽 핸들 / 오른쪽 핸들 / 선택 구간 통째로 옮기기 */
+(function(){
+  const strip = $('vgStrip');
+  let drag = null;
+  const secPerPx = () => (R.state.videoDur || 0) / Math.max(1, strip.getBoundingClientRect().width);
+
+  strip.addEventListener('pointerdown', e => {
+    const S = R.state;
+    if(!S.video || !S.videoDur) return;
+    const mode = e.target === $('vgHL') ? 'l'
+               : e.target === $('vgHR') ? 'r'
+               : e.target === $('vgSel') ? 'move' : null;
+    if(!mode) return;
+    e.preventDefault();
+    drag = {mode, x: e.clientX, s: S.trimStart, e: S.trimEnd};
+    VG.dragging = true;
+    ui.playing = false; syncPlayIcon();     // 끄는 동안 재생이 같이 움직이면 어디를 잡았는지 알 수 없다
+    strip.setPointerCapture(e.pointerId);
+  });
+
+  strip.addEventListener('pointermove', e => {
+    if(!drag) return;
+    const d = (e.clientX - drag.x) * secPerPx();
+    if(drag.mode === 'l') vgSetTrim('start', drag.s + d);
+    else if(drag.mode === 'r') vgSetTrim('end', drag.e + d);
+    else {
+      /* 통째로 옮길 때는 길이를 그대로 유지한다 — 양 끝에서 멈추되 줄어들지 않게 */
+      const span = drag.e - drag.s;
+      const s = Math.max(0, Math.min(R.state.videoDur - span, drag.s + d));
+      R.setState({trimStart: s, trimEnd: s + span});
+      const v = R.state.video;
+      if(v && (v.currentTime < s || v.currentTime > s + span)) v.currentTime = s;
+      ui.t = 0; vgSyncStrip(); vgSyncCtl(); syncBar();
+    }
+  });
+
+  const end = e => {
+    if(!drag) return;
+    drag = null; VG.dragging = false;
+    try{ strip.releasePointerCapture(e.pointerId); }catch(_){}
+    /* 끄는 동안 미뤄둔 위치 맞추기를 여기서 한 번만 한다 */
+    const S = R.state, v = S.video;
+    if(v && (v.currentTime < S.trimStart || v.currentTime > S.trimEnd)) v.currentTime = S.trimStart;
+  };
+  strip.addEventListener('pointerup', end);
+  strip.addEventListener('pointercancel', end);
+
+  /* 키보드 — 드래그만 되면 손이 떨리는 사람은 0.1초를 못 맞춘다.
+     방향키 0.1초, Shift와 함께면 1초. */
+  [['vgHL','start'], ['vgHR','end']].forEach(([id, which]) => {
+    $(id).addEventListener('keydown', e => {
+      const step = e.shiftKey ? 1 : 0.1;
+      const cur = which === 'start' ? R.state.trimStart : R.state.trimEnd;
+      if(e.key === 'ArrowLeft')       vgSetTrim(which, cur - step);
+      else if(e.key === 'ArrowRight') vgSetTrim(which, cur + step);
+      else return;
+      e.preventDefault();
+    });
+  });
+})();
+
+/* 자를수록 fps가 어떻게 되는지 그 자리에서 알려준다.
+   프레임 상한에 걸린 걸 모르면 "왜 끊기지?"로만 남는다. */
+function vgSyncCtl(){
+  const S = R.state;
+  $('vgCtl').classList.toggle('disabled', !S.video);
+  if(!S.video){ $('vgInfo').textContent = ''; $('vgNote').textContent = ''; return; }
+  const span = S.trimEnd - S.trimStart;
+  const want = Math.round(span * S.fps);
+  const real = R.frameCount();
+  const realFps = real / span;
+  const v = S.video;
+  const size = (v && v.videoWidth) ? ` · ${v.videoWidth}×${v.videoHeight}` : '';
+  $('vgInfo').innerHTML = `원본 <b>${vgDur().toFixed(1)}초</b>${size} · 자른 구간 <b>${span.toFixed(1)}초</b>`;
+  const fit = VG.autoRatio ? ` 영상에 맞춰 ${VG.autoRatio}로 맞췄어요.` : '';
+  $('vgNote').textContent = (want > real
+    ? `프레임 상한(${FFPGif.MAX_FRAMES}장)에 걸려 실제 ${realFps.toFixed(0)}fps로 저장돼요. 구간을 줄이면 부드러워집니다.`
+    : `${real}프레임 · ${realFps.toFixed(0)}fps`) + fit;
+}
+
+$('vgDrop').onclick = ()=>$('vgFile').click();
+$('vgFile').onchange = e => { vgLoad(e.target.files[0]); e.target.value = ''; };
+['dragover','dragleave','drop'].forEach(ev=>$('vgDrop').addEventListener(ev, e=>{
+  e.preventDefault();
+  $('vgDrop').style.borderColor = ev==='dragover' ? 'var(--accent)' : '';
+  if(ev==='drop' && e.dataTransfer.files[0]) vgLoad(e.dataTransfer.files[0]);
+}));
+$('vgDim').oninput = ()=>{
+  R.setState({slideDim: +$('vgDim').value});
+  $('vgDimV').textContent = $('vgDim').value + '%';
+  syncBar();
+};
+$('vgFps').oninput = ()=>{
+  R.setState({fps: +$('vgFps').value});
+  $('vgFpsV').textContent = $('vgFps').value + 'fps';
+  vgSyncCtl(); syncBar();
+};
+$('vgText').onchange = ()=>{
+  R.setState({videoTextOn: $('vgText').checked});
+  syncModeUI(); syncBar();
+};
+
+/* ── 모드 전환 ──
+   글자 관련 섹션은 '사진·영상 모드 + 글자 끔'일 때만 감춘다. 그 모드라도
+   글자를 켜면 문구·폰트·색을 그대로 써야 하므로 모드만 보고 감추면 안 된다. */
+function syncModeUI(){
+  const S = R.state;
+  const photo = S.mode === 'photo';
+  const video = S.mode === 'video';
+  const media = photo || video;                 // 사진·영상 — 시간 설정을 자기 쪽에서 정하는 모드
+  const textOn = R.textEnabled();
+
+  [...$('modeSeg').children].forEach(b=>b.classList.toggle('on', b.dataset.mode === S.mode));
+  $('pgSec').hidden    = !photo;
+  $('vgSec').hidden    = !video;
+  $('photoSec').hidden = media;      // 배경 사진 1장 — 사진·영상 모드에서는 의미가 없다
+  /* 배경 칩(투명·배경색·사진)은 사진·영상 모드에서 뜻이 없다. 그런데 display:none으로
+     빼면 위 막대가 두 줄에서 한 줄로 줄면서 캔버스가 33px 위로 튄다 — 탭을 누를 때마다
+     미리보기가 덜컹거린다. 자리는 그대로 두고 흐리게만 해서 '여기선 못 쓴다'를 보여준다. */
+  $('bgChips').classList.toggle('disabled', media);
+  /* 글자를 끄면 감추지 않고 흐리게만 한다. 감추면 문구·폰트·글자색·세부조정
+     네 칸이 한꺼번에 사라져 패널이 반토막(701→368px) 나고, 다시 켜면 또 튀어나온다.
+     자리를 지키면 체크 하나에 화면이 출렁이지 않는다. */
+  [$('txtSec'), $('fontSec'), $('inkSec'), $('advBox')]
+    .forEach(el => el.classList.toggle('disabled', !textOn));
+  /* 길이·fps는 사진·영상 모드에서 각자의 슬라이더가 대신한다.
+     두 벌을 다 열어두면 어느 쪽이 이기는지 알 수 없다. */
+  $('rowTotal').hidden = media;
+  $('rowFps').hidden   = media;
+
+  /* 영상은 재생을 video 요소가 맡는다 — 다른 모드로 나가면 세워둔다. */
+  if(!video && R.state.video && !R.state.video.paused) R.state.video.pause();
+}
+
+function setEditorMode(mode){
+  R.setMode(mode);
+  if(mode === 'photo'){
+    $('pgSlide').value = Math.round(R.state.slideDur*10); $('pgSlideV').textContent = R.state.slideDur.toFixed(1)+'s';
+    $('pgFade').value  = Math.round(R.state.xfadeDur*10); $('pgFadeV').textContent  = R.state.xfadeDur.toFixed(1)+'s';
+    $('pgDim').value   = R.state.slideDim; $('pgDimV').textContent = R.state.slideDim + '%';
+    $('pgFps').value   = R.state.fps;  $('pgFpsV').textContent = R.state.fps + 'fps';
+    $('pgText').checked = !!R.state.photoTextOn;
+  }
+  if(mode === 'video'){ vgSyncSliders(); vgSyncCtl(); }
+  ui.t = 0;
+  syncModeUI(); syncAdv(); pgSyncCtl(); syncBar(); syncInkNote();
+}
+
+$('modeSeg').onclick = e => {
+  const b = e.target.closest('button[data-mode]');
+  if(b) setEditorMode(b.dataset.mode);
+};
+
+/* ══════════════════════════════════════════════════════════════
    타임라인 · 프레임 정보
 ══════════════════════════════════════════════════════════════ */
+/* 사진 GIF 실측 — 프레임 한 장을 진짜로 인코딩해서 크기와 시간을 잰다.
+   추정식으로는 맞출 수 없다: 프레임당 크기가 사진에 따라 50KB~309KB로
+   6배까지 벌어진다. 대신 용량이 프레임 수에 정확히 비례해서, 한 장만 재면
+   나머지는 곱하기다.
+
+   슬라이더를 움직일 때마다 재면 편집이 버벅이므로(복잡한 사진은 한 장에 0.8초)
+   조금 기다렸다가 한 번만 잰다. */
+let pgMeasureTimer = null;
+function pgScheduleMeasure(){
+  clearTimeout(pgMeasureTimer);
+  pgMeasureTimer = setTimeout(async ()=>{
+    if(ui.busy) return;                       // 내보내는 중에는 캔버스를 건드리지 않는다
+    const key = R.sampleKey();
+    try{
+      const m = await FFPExport.measurePhotoFrame(R);
+      if(!m) return;
+      /* 재는 동안 사용자가 또 바꿨으면 낡은 값이다 — 버린다. */
+      if(R.sampleKey() !== key) return;
+      R.setState({photoSample:{bytes:m.bytes, ms:m.ms, key}});
+      syncBar();
+    }catch(e){ /* 실패하면 추정식으로 떨어진다 */ }
+  }, 400);
+}
+
 function syncBar(){
   const est = R.estimate();
   $('mDur').textContent = `길이 ${R.state.total.toFixed(1)}s`;
   $('mFps').textContent = Math.round(est.frames/R.state.total) + 'fps';
   $('mFrames').textContent = est.frames + '프레임';
   $('tEnd').textContent = R.state.total.toFixed(2) + 's';
-  /* 정확한 값을 알 수 없어 범위로 쓴다. 하나의 숫자로 적으면 실제 파일이
-     그보다 크게 나왔을 때 사용자가 바로 틀린 걸 알아챈다. */
   const kb = n => n>=1024 ? (n/1024).toFixed(1)+'MB' : Math.round(n/10)*10+'KB';
-  $('mSize').textContent =
-    `예상 용량 ${kb(est.gifKBLow)}~${kb(est.gifKBHigh)} · 브라우저에서 바로 생성`;
-  $('mSize').style.color = est.heavy ? '#C2410C' : 'var(--accent)';
+
+  const mediaMode = (R.state.mode==='photo' && R.state.photos.length)
+                 || (R.state.mode==='video' && R.state.video);
+  if(mediaMode && !est.measured){
+    pgScheduleMeasure();
+    $('mSize').textContent = '용량 재는 중…';
+    $('mSize').style.color = 'var(--text-muted)';
+  }else if(est.measured){
+    /* 실측이라 '예상'이라고 쓰지 않는다. 시간은 30초를 넘을 때만 알린다 —
+       늘 붙여두면 짧을 때도 겁을 준다. */
+    const sec = Math.round(est.encodeMs/1000);
+    $('mSize').textContent = est.slow
+      ? `${kb(est.gifKB)} · 만드는 데 약 ${sec}초 걸려요`
+      : `${kb(est.gifKB)} · 브라우저에서 바로 생성`;
+    $('mSize').style.color = (est.heavy || est.slow) ? '#C2410C' : 'var(--accent)';
+  }else{
+    /* 정확한 값을 알 수 없어 범위로 쓴다. 하나의 숫자로 적으면 실제 파일이
+       그보다 크게 나왔을 때 사용자가 바로 틀린 걸 알아챈다. */
+    $('mSize').textContent =
+      `예상 용량 ${kb(est.gifKBLow)}~${kb(est.gifKBHigh)} · 브라우저에서 바로 생성`;
+    $('mSize').style.color = est.heavy ? '#C2410C' : 'var(--accent)';
+  }
   requestAnimationFrame(()=>{
     const shown = $('cv').getBoundingClientRect().width;
     if(shown) $('zoomLabel').textContent = Math.round(shown/R.width*100)+'%';
@@ -1451,6 +2124,12 @@ $('playBtn').onclick = ()=>{ ui.playing = !ui.playing; syncPlayIcon(); };
     const r = el.getBoundingClientRect();
     ui.t = Math.max(0, Math.min(1, (ev.clientX-r.left)/r.width));
     ui.playing = false;
+    /* 영상은 캔버스가 video 요소의 '지금 프레임'을 그리므로,
+       손잡이를 옮겼으면 영상도 그 지점으로 데려가야 화면이 따라온다. */
+    const S = R.state;
+    if(S.mode === 'video' && S.video){
+      S.video.currentTime = S.trimStart + ui.t * Math.max(0.2, S.trimEnd - S.trimStart);
+    }
     syncPlayIcon();
   };
   el.addEventListener('pointerdown', e=>{
@@ -1465,7 +2144,29 @@ $('playBtn').onclick = ()=>{ ui.playing = !ui.playing; syncPlayIcon(); };
 let last = performance.now();
 function loop(now){
   const dt = (now-last)/1000; last = now;
-  if(ui.playing && !ui.busy) ui.t = (ui.t + dt/R.state.total) % 1;
+  const S = R.state;
+
+  if(S.mode === 'video' && S.video){
+    /* 영상은 시간을 우리가 세지 않는다 — video 요소를 재생시키고 그 위치를
+       읽어온다. 매 프레임 seek을 걸면 (한 번에 40~90ms) 미리보기가 기어간다.
+       자른 구간의 끝에 닿으면 시작으로 되돌려 GIF처럼 반복 재생한다. */
+    const v = S.video, span = Math.max(0.2, S.trimEnd - S.trimStart);
+    if(ui.playing && !ui.busy){
+      if(v.paused) v.play().catch(()=>{});
+      if(v.currentTime >= S.trimEnd - 0.02 || v.currentTime < S.trimStart - 0.05){
+        v.currentTime = S.trimStart;
+      }
+      ui.t = Math.max(0, Math.min(1, (v.currentTime - S.trimStart) / span));
+    }else if(!v.paused){
+      v.pause();
+    }
+    /* 스트립 위 재생 위치 */
+    if(S.videoDur){
+      $('vgPlayhead').style.left = (v.currentTime / S.videoDur * 100) + '%';
+    }
+  }else if(ui.playing && !ui.busy){
+    ui.t = (ui.t + dt/R.state.total) % 1;
+  }
   if(!ui.busy) R.render(ui.t);
   $('tNow').textContent = (ui.t*R.state.total).toFixed(2)+'s';
   $('scrubFill').style.right = (100-ui.t*100)+'%';
@@ -1531,6 +2232,34 @@ function ovLongPress(url, blob, filename){
 
 async function runExport(kind){
   if(ui.busy) return;
+  /* 사진 모드인데 사진이 없으면 빈 화면이 저장된다. 만들고 나서
+     "아무것도 안 나왔다"를 겪게 두지 말고 여기서 막는다. */
+  if(R.state.mode === 'photo' && !(R.state.photos||[]).length){
+    alert('사진을 먼저 올려주세요.');
+    return;
+  }
+  if(R.state.mode === 'video' && !R.state.video){
+    alert('영상을 먼저 올려주세요.');
+    return;
+  }
+  /* 내보내는 동안에는 영상을 세운다 — 재생 중이면 prepareFrame의 seek과
+     재생이 서로 밀어내서 엉뚱한 프레임이 저장된다. */
+  if(R.state.video && !R.state.video.paused) R.state.video.pause();
+  /* 사진 GIF는 프레임마다 화면을 통째로 다시 인코딩한다. 복잡한 사진은
+     한 장에 0.8초까지 가서 90프레임이면 1분을 넘긴다. 그동안 화면이 멈추므로
+     (진행률 막대는 돌지만 페이지는 얼어붙는다) 누르기 전에 알린다. */
+  if(kind === 'gif'){
+    const est = R.estimate();
+    if(est.slow){
+      const sec = Math.round(est.encodeMs/1000);
+      const ok = confirm(
+        `이 GIF는 만드는 데 약 ${sec}초 걸립니다.\n` +
+        `그동안 화면이 멈춘 것처럼 보일 수 있어요.\n\n` +
+        `사진 장수나 장당 시간을 줄이면 빨라집니다.\n계속할까요?`
+      );
+      if(!ok) return;
+    }
+  }
   const f = fontOf(ui.fontId);
   ui.busy = true;
   const wasPlaying = ui.playing;
@@ -1544,11 +2273,7 @@ async function runExport(kind){
     await R.ensureFont(f);
 
     let blob, filename;
-    if(kind==='png'){
-      ovOpen('PNG 만드는 중', '한 장을 그리고 있어요.');
-      blob = await FFPExport.exportPNG(R);
-      filename = FFPExport.safeName(R.state.text, 'png');
-    } else if(kind==='gif'){
+    if(kind==='gif'){
       ovOpen('GIF 만드는 중', '프레임을 인코딩하고 있어요.');
       blob = await FFPExport.exportGIF(R, ovProgress);
       filename = FFPExport.safeName(R.state.text, 'gif');
@@ -1590,7 +2315,6 @@ async function runExport(kind){
     if(!FFPExport.mp4Supported()) $('mp4Btn').disabled = true;
   }
 }
-$('pngBtn').onclick = ()=>runExport('png');
 $('gifBtn').onclick = ()=>runExport('gif');
 $('mp4Btn').onclick = ()=>runExport('mp4');
 
@@ -1644,6 +2368,9 @@ async function boot(){
 
   bindAdv();
   renderTplHubs(); renderTpls(); renderHubs(); renderFx();
+  $('pgMax').textContent = MAX_PHOTOS;
+  $('vgMax').textContent = VIDEO_MAX;
+  pgRender(); pgSyncCtl(); vgSyncCtl(); syncModeUI();
   updateCounter(); syncBar(); syncAdv(); syncPhotoSliders(); syncPlayIcon();
   requestAnimationFrame(loop);
 }
