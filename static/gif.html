@@ -881,29 +881,31 @@ function lumOf(hex){
   return (0.2126*r + 0.7152*g + 0.0722*b) / 255;
 }
 
-/* 칸 배경을 '글자 자체의 밝기'로만 정한다.
-   템플릿은 투명 배경이라 어떤 바탕에 올릴지가 정해져 있지 않은데, 배경 하나로
-   통일하면 흰 글씨 템플릿이 통째로 안 보인다(다크 테마에서는 검은 글씨가 똑같이
-   사라진다). 밝은 글자엔 어두운 바탕, 어두운 글자엔 밝은 바탕을 깐다.
-
-   외곽선은 판단에 넣지 않는다. 처음엔 "어두운 외곽선이 있으면 밝은 배경에서도
-   읽힌다"고 봤는데 틀렸다 — 캔버스에서는 64px에 12px 외곽선이라 든든하지만,
-   목록은 12.6px이라 외곽선이 1px 아래로 줄어든다. 그래서 레몬(#FDE047)·캔디
-   (#F9A8D4) 같은 밝은 색이 밝은 바탕에 얹혀 거의 안 보였다. */
-function backdropOf(ink){
-  const grad = gradOf(ink);
-  const base = grad ? grad[Math.floor(grad.length/2)] : ink.color;
-  return lumOf(base) > 0.6 ? '#1f2937' : '#f1f5f9';
-}
 function gradOf(ink){
   const g = (ink && ink.gradient && ink.gradient.length > 1)
     ? ink.gradient.map(HEX).filter(Boolean) : null;
   return (g && g.length > 1) ? g : null;
 }
+/* 색을 어둡게. 흰 배경에서 밝은 글자를 잡아줄 테두리 색을 만들 때 쓴다. */
+function darken(hex, amt){
+  const h = String(hex||'').replace('#','');
+  if(h.length < 6) return '#666666';
+  const v = [0,2,4].map(i => Math.round(parseInt(h.slice(i,i+2),16) * (1-amt)));
+  return '#' + v.map(n => Math.max(0,Math.min(255,n)).toString(16).padStart(2,'0')).join('');
+}
 
-/* 글자에 입힐 색·외곽선. 배경은 여기 넣지 않는다 —
-   그라데이션은 background-clip:text로 그리는데, 그 클리핑이 배경색에도 걸려서
-   칸 배경이 글자 모양으로 잘려 사라진다. 배경은 바깥 .tplspec가 맡는다. */
+/* 목록은 항상 흰 바탕이다.
+   한때 밝은 글자에 어두운 바탕을 깔았는데, 칸마다 검은 상자가 생겨 목록이
+   얼룩덜룩해졌다. 바탕은 흰색으로 고정하고, 대신 글자가 흰 바탕에서 읽히도록
+   테두리를 손본다. (테마와 무관하게 흰색 — 다크 테마에서도 템플릿 색이
+   캔버스에서 보일 모습 그대로 나온다.)
+
+   테두리 규칙 — 흰 바탕에서 글자를 잡아주는 건 '어두운 테두리'뿐이다.
+     · 템플릿 테두리가 글자보다 어두우면 → 그대로 쓴다
+     · 흰색 등 글자보다 밝은 테두리면 → 흰 바탕에선 글자 가장자리를 지우기만
+       하므로 버리고, 글자색을 어둡게 한 색으로 대신 두른다
+     · 굵기는 최소 1.1px. 캔버스 비율 그대로 줄이면 0.5px까지 내려가 사라진다
+       (64px에 5px 테두리 → 12.6px에서는 1px 미만). */
 function inkStyle(t){
   const ink = inkOfTpl(t);
   if(!ink) return '';
@@ -911,6 +913,7 @@ function inkStyle(t){
   const SPEC_PX = 12.6;
   const parts = [];
   const grad = gradOf(ink);
+  const fill = grad ? grad[Math.floor(grad.length/2)] : ink.color;
 
   if(grad){
     parts.push(`background-image:linear-gradient(90deg,${grad.join(',')})`,
@@ -919,19 +922,22 @@ function inkStyle(t){
   }else if(HEX(ink.color)){
     parts.push(`color:${ink.color}`);
   }
-  /* 외곽선 굵기는 캔버스와 같은 비율로 줄인다 (템플릿 기준 글자 크기 대비).
-     paint-order로 획을 글자 뒤에 깔아야 캔버스처럼 보인다 — 기본값은 글자를
-     반쯤 덮어서 작은 글씨가 뭉갠다. */
-  const sw = Math.min(2.2, SPEC_PX * ((ink.outlineW || 0) / size));
-  if(HEX(ink.outline) && sw >= 0.4){
-    parts.push(`-webkit-text-stroke:${sw.toFixed(2)}px ${ink.outline}`, 'paint-order:stroke fill');
+
+  let stroke = null;
+  if(HEX(ink.outline) && ink.outlineW > 0 && lumOf(ink.outline) < lumOf(fill)){
+    stroke = ink.outline;
+  }else if(lumOf(fill) > 0.55){
+    stroke = darken(fill, 0.5);
+  }
+  if(stroke){
+    const sw = Math.max(1.1, Math.min(2.2, SPEC_PX * ((ink.outlineW || 6) / size)));
+    /* paint-order로 획을 글자 뒤에 깔아야 캔버스처럼 보인다 — 기본값은 글자를
+       반쯤 덮어서 작은 글씨가 뭉갠다. */
+    parts.push(`-webkit-text-stroke:${sw.toFixed(2)}px ${stroke}`, 'paint-order:stroke fill');
   }
   return parts.join(';');
 }
-function specStyle(t){
-  const ink = inkOfTpl(t);
-  return ink ? `background-color:${backdropOf(ink)}` : '';
-}
+function specStyle(){ return 'background-color:#ffffff'; }
 
 function renderTpls(){
   const list = TPLS.filter(t => ui.tplHub==='all' || t.hub_slug===ui.tplHub);
