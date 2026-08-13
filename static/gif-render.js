@@ -28,6 +28,9 @@ const RATIOS = {
 };
 
 const ANIMS = [
+  /* 멈춤은 '움직이지 않는 것'을 고르는 칸이다. 사진·영상 위에 자막을 가만히
+     얹거나, 질감·외곽선을 그대로 보여주고 싶을 때 쓴다. 목록 맨 앞에 둔다. */
+  {id:'none',           name:'멈춤',        cat:'basic'},
   {id:'typewriter',     name:'타이핑',      cat:'basic'},
   {id:'pop',            name:'글자 팝',     cat:'basic'},
   {id:'wordSwap',       name:'단어 교체',   cat:'basic'},
@@ -53,6 +56,10 @@ const ANIM_BY_ID = ANIMS.reduce((m,a)=>{ m[a.id]=a; return m; }, {});
    시네마틱은 다단계 구성이라 길어야 하고, 느린 모션이라 15fps로 충분하다.
    역동 계열은 빠른 동작이라 fps가 낮으면 뚝뚝 끊겨 보인다. */
 const ANIM_DEFAULTS = {
+  /* 멈춤은 길이·프레임레이트가 뜻이 없다 — 그래도 슬라이더가 범위를 벗어난
+     값을 들고 있으면 눈금이 끝에 붙어 고장난 것처럼 보이므로, 각 슬라이더의
+     최솟값(1.0s · 8fps · 0.3s)을 넣어둔다. */
+  none:          {total:1.0, fps:8,  inDur:0.3},
   cinematicTrack:{total:4.5, fps:15, inDur:2.0},
   shineSweep:    {total:4.0, fps:15, inDur:1.4},
   slamImpact:    {total:2.2, fps:24, inDur:0.9},
@@ -388,7 +395,14 @@ function createRenderer(canvas, initial, opts){
 
     if(A!=='highlight' && S.hlOn) lines.forEach(L=>drawHLBar(L,1));
 
-    if(A==='typewriter'){
+    /* 멈춤 — 등장이 다 끝난 상태를 그대로 그린다.
+       이 if/else 사슬에는 마지막 else가 없어서, 분기를 안 만들면
+       아무것도 안 그려진 빈 화면이 된다. */
+    if(A==='none'){
+      all.forEach(o=>paintChar(o, lineOf(o), {}));
+    }
+
+    else if(A==='typewriter'){
       const shown = Math.floor(tIn*n + 1e-6);
       all.forEach((o,i)=>{ if(i<shown) paintChar(o, lineOf(o), {}); });
       const blink = Math.floor(t*TOTAL*3) % 2 === 0;
@@ -931,6 +945,10 @@ function createRenderer(canvas, initial, opts){
   }
 
   function frameCount(){
+    /* 멈춤은 모든 프레임이 똑같다 — 장수를 늘려도 같은 그림을 더 저장할 뿐이라
+       용량만 그만큼 커진다. 글자 모드에서는 GIF가 요구하는 최소 장수로 고정한다.
+       사진·영상 모드는 배경이 계속 바뀌므로 손대지 않는다. */
+    if(S.anim === 'none' && S.mode === 'text') return 2;
     let n = Math.round(S.total * S.fps);
     return Math.max(2, Math.min(MAX_FRAMES, n));
   }

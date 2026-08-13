@@ -147,6 +147,35 @@ button{font-family:inherit;cursor:pointer}
 .phead{display:flex;align-items:center;justify-content:space-between}
 .psub{font-size:11.5px;color:var(--text-muted)}
 
+/* ── 왼쪽 패널 머리의 두 화면 전환 ──
+   제목 자리를 그대로 쓴다. 안 고른 쪽은 흐린 회색이라 '지금 어느 화면인지'가
+   글자 굵기가 아니라 색으로 읽히고, 둘 다 항상 눌러볼 수 있다는 것도 보인다. */
+.pnav{display:flex;align-items:center}
+.pnavtab{border:none;background:none;padding:0;font-size:17px;font-weight:800;
+         letter-spacing:-.3px;color:var(--text-muted);line-height:1.2}
+.pnavtab.on{color:var(--text-primary)}
+.pnavtab:hover{color:var(--text-primary)}
+.pnavtab+.pnavtab{position:relative;margin-left:11px;padding-left:11px}
+.pnavtab+.pnavtab::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+                          width:1px;height:14px;background:var(--border)}
+.pnavtab:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+/* hidden 속성이 display:flex에 지므로 명시해준다.
+   flex-basis를 auto로 두고 줄어들지 않게 하는 이유: 0으로 두면 목록이 길 때
+   패널 높이에 눌려 아래가 잘리고, 바깥 패널의 스크롤도 그만큼을 세지 못한다. */
+.pview{display:flex;flex-direction:column;gap:14px;flex:1 0 auto}
+.pview[hidden]{display:none}
+
+/* ── 움직임 고르기 ── */
+.animgrp+.animgrp{margin-top:15px}
+.animlbl{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted);
+         font-weight:700;margin-bottom:7px}
+.animgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.animcell{border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);
+          padding:10px;font-size:12.5px;font-weight:600;color:var(--text-secondary);text-align:left}
+.animcell:hover{border-color:var(--border-hover);color:var(--text-primary)}
+.animcell.on{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.animcell small{display:block;font-size:10.5px;font-weight:500;color:var(--text-muted);margin-top:2px}
+
 .seg{display:inline-flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;flex-wrap:wrap}
 .seg button{border:none;background:transparent;color:var(--text-secondary);
             font-size:12.5px;font-weight:600;padding:6px 11px}
@@ -225,6 +254,10 @@ button{font-family:inherit;cursor:pointer}
      border-radius:var(--radius-sm);padding:9px 11px;font-size:14px;font-family:inherit;
      line-height:1.4;resize:none}
 .inp:focus{outline:none;border-color:var(--accent)}
+/* 안내 문구는 커서가 들어오는 순간 사라진다. 기본 동작(첫 글자를 칠 때 사라짐)은
+   빈 칸에 커서만 놓고 무엇을 지워야 하나 잠깐 헤매게 만든다. */
+.inp::placeholder{color:var(--text-muted)}
+.inp:focus::placeholder{color:transparent}
 .counter{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:5px}
 .counter .warn{color:#C2410C;font-weight:700}
 /* ── 눌러서 여는 항목의 공통 모양 ──
@@ -478,11 +511,13 @@ select.inp{appearance:none;cursor:pointer}
      페이지 기준으로 걸린다. 그러면 탭이 사이트 헤더와 겹치므로 붙이지 않는다. */
   .modebar{position:static;padding:0;margin:0;border-bottom:none}
   .tplgrid{grid-template-columns:repeat(3,1fr)}
+  .animgrid{grid-template-columns:repeat(3,1fr)}
   .fontlist{max-height:none}
   .allbox{margin-top:4px}
 }
 @media(max-width:520px){
   .tplgrid{grid-template-columns:repeat(2,1fr)}
+  .animgrid{grid-template-columns:repeat(2,1fr)}
   #cv{max-height:25vh}
   .toolbar{padding:9px 14px;gap:9px}
   .toolbar .note{display:none}
@@ -513,26 +548,43 @@ select.inp{appearance:none;cursor:pointer}
 </div>
 
 <div class="work">
-  <!-- 템플릿 패널 -->
+  <!-- 왼쪽 패널 — 템플릿 고르기 / 움직임 고르기 두 화면을 번갈아 쓴다.
+       템플릿을 고르면 곧바로 움직임 화면으로 넘어간다: 템플릿은 한 번 고르면
+       끝이지만 움직임은 여러 번 갈아 끼워 보는 값이라, 고른 직후 가장 자주
+       찾는 것이 바로 앞에 있어야 한다. 돌아오려면 왼쪽 위 'GIF 템플릿'을 누른다. -->
   <div class="panel">
-    <div class="phead"><h3>GIF 템플릿</h3><span class="psub" id="tplCount">—</span></div>
-    <div class="hubtabs" id="tplHubTabs" role="tablist" aria-label="용도별 템플릿"></div>
-    <div class="tplgrid" id="tplGrid"></div>
-    <div class="psub" style="display:flex;align-items:center;gap:6px">
-      <span class="dots g">●●●</span> GIF 적합도 — 3점일수록 용량·색이 안정적
+    <div class="phead">
+      <div class="pnav" role="tablist" aria-label="왼쪽 패널">
+        <button type="button" role="tab" class="pnavtab on" id="navTpl" aria-selected="true">GIF 템플릿</button>
+        <button type="button" role="tab" class="pnavtab" id="navAnim" aria-selected="false">움직임</button>
+      </div>
+      <span class="psub" id="tplCount">—</span>
     </div>
 
-    <!-- 편집 없이 그대로 쓰려는 사람을 위한 출구 -->
-    <a class="allbox" href="/gif/templates">
-      <div class="allbox-ic">
-        <svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M4 5h6v6H4zM14 5h6v6h-6zM4 13h6v6H4zM14 13h6v6h-6z"/></svg>
+    <div class="pview" id="tplView">
+      <div class="hubtabs" id="tplHubTabs" role="tablist" aria-label="용도별 템플릿"></div>
+      <div class="tplgrid" id="tplGrid"></div>
+      <div class="psub" style="display:flex;align-items:center;gap:6px">
+        <span class="dots g">●●●</span> GIF 적합도 — 3점일수록 용량·색이 안정적
       </div>
-      <div style="min-width:0">
-        <b>GIF 템플릿 전체보기</b>
-        <span>고르고 바로 받기 · 편집 없이</span>
-      </div>
-      <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px;flex:none;margin-left:auto;color:var(--text-muted)"><path d="m9 6 6 6-6 6"/></svg>
-    </a>
+
+      <!-- 편집 없이 그대로 쓰려는 사람을 위한 출구 -->
+      <a class="allbox" href="/gif/templates">
+        <div class="allbox-ic">
+          <svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M4 5h6v6H4zM14 5h6v6h-6zM4 13h6v6H4zM14 13h6v6h-6z"/></svg>
+        </div>
+        <div style="min-width:0">
+          <b>GIF 템플릿 전체보기</b>
+          <span>고르고 바로 받기 · 편집 없이</span>
+        </div>
+        <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px;flex:none;margin-left:auto;color:var(--text-muted)"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+    </div>
+
+    <div class="pview" id="animView" hidden>
+      <div class="psub" id="animLead">폰트 · 색 · 외곽선은 그대로 두고 움직임만 바꿉니다</div>
+      <div id="animGroups"></div>
+    </div>
   </div>
 
   <!-- 캔버스 -->
@@ -552,8 +604,6 @@ select.inp{appearance:none;cursor:pointer}
         <button class="chip" data-bg="photo">사진</button>
         <input type="color" id="bgColorInput" value="#1E3A8A" title="배경색 고르기">
       </div>
-      <span class="vsep"></span>
-      <span class="tag tag-acc" id="paletteTag">64색 · 투명 GIF</span>
       <div style="margin-left:auto" class="psub" id="zoomLabel"></div>
     </div>
 
@@ -657,10 +707,33 @@ select.inp{appearance:none;cursor:pointer}
       </div>
     </div>
 
+    <div id="txtSec">
+      <div class="lbl">문구 · 최대 2줄</div>
+      <textarea class="inp" id="txt" rows="2" spellcheck="false" placeholder="문구를 입력하세요">이걸 몰랐다고?</textarea>
+      <div class="counter"><span id="cntLine">1줄 / 8자</span><span id="cntHint">글자수 ±20% 권장</span></div>
+    </div>
+
+    <div id="fontSec">
+      <div class="lbl">폰트</div>
+      <select class="inp opener" id="hubSel" aria-label="용도"></select>
+      <div class="hubsub" id="hubSub"></div>
+      <select class="inp opener" id="fontSel" style="margin-top:7px" aria-label="폰트"></select>
+      <div class="chips" id="weightChips" style="margin-top:8px"></div>
+    </div>
+
+    <div id="inkSec">
+      <div class="lbl">글자색 · 외곽선</div>
+      <button class="btn fxbtn opener" id="fxOpen" aria-expanded="false">
+        <i class="fxdot" id="fxDot"></i>
+        <i class="fxdot" id="fxDot2"></i>
+        <span id="fxName">흰색</span>
+        <span class="fxmore" id="fxMore">외곽선 있음</span>
+      </button>
+    </div>
+
     <!-- 세부 조정 — 접어둔다. 슬라이더 6개를 펼쳐두면 문구·폰트가 화면 밖으로 밀린다.
-         자리는 '올린 사진·영상 바로 아래, 문구 바로 위'다. 크기·세로 위치처럼
-         사진 위에 글자를 앉히면서 바로 만지는 값들이라, 사진과 문구 사이에 있어야
-         손이 왔다 갔다 하지 않는다. -->
+         여기 있는 값은 크기·줄 간격·형광 바처럼 전부 글자에만 걸린다. 그래서
+         사진·영상 쪽이 아니라 문구·폰트·글자색 다음, 이 묶음의 끝에 둔다. -->
     <details class="adv" id="advBox">
       <summary class="opener">세부 조정<span class="advhint">크기 · 길이 · 형광 바</span></summary>
       <div class="advbody">
@@ -686,30 +759,6 @@ select.inp{appearance:none;cursor:pointer}
         <div class="advnote" id="matteNote"></div>
       </div>
     </details>
-
-    <div id="txtSec">
-      <div class="lbl">문구 · 최대 2줄</div>
-      <textarea class="inp" id="txt" rows="2" spellcheck="false">이걸 몰랐다고?</textarea>
-      <div class="counter"><span id="cntLine">1줄 / 8자</span><span id="cntHint">글자수 ±20% 권장</span></div>
-    </div>
-
-    <div id="fontSec">
-      <div class="lbl">폰트</div>
-      <select class="inp opener" id="hubSel" aria-label="용도"></select>
-      <div class="hubsub" id="hubSub"></div>
-      <select class="inp opener" id="fontSel" style="margin-top:7px" aria-label="폰트"></select>
-      <div class="chips" id="weightChips" style="margin-top:8px"></div>
-    </div>
-
-    <div id="inkSec">
-      <div class="lbl">글자색 · 외곽선</div>
-      <button class="btn fxbtn opener" id="fxOpen" aria-expanded="false">
-        <i class="fxdot" id="fxDot"></i>
-        <i class="fxdot" id="fxDot2"></i>
-        <span id="fxName">흰색</span>
-        <span class="fxmore" id="fxMore">외곽선 있음</span>
-      </button>
-    </div>
 
     <div id="photoSec">
       <div class="lbl">배경 사진 · 선택</div>
@@ -844,6 +893,12 @@ let HUBS = [];          // /api/gif-fonts
 let ui = {
   tplNumber: null, hub: null, fontId: null, tplHub: 'all',
   t: 0, playing: true, busy: false,
+  /* 왼쪽 패널이 지금 보여주는 화면 — 'tpl'(템플릿 고르기) 또는 'anim'(움직임 고르기) */
+  panel: 'tpl', tplCountText: '',
+  /* 문구 칸에 든 글이 '우리가 넣어둔 예시'인지. 첫 방문에 기본 템플릿을 얹으면서
+     켜지고, 사용자가 한 글자라도 치거나 템플릿을 직접 고르면 꺼진다.
+     켜져 있는 동안에만 움직임을 고를 때 문구를 비워 안내 문구를 띄운다. */
+  sampleText: false,
   /* 사용자가 비율을 직접 고른 적이 있으면 그 값. 템플릿을 바꿔도 유지한다.
      비율은 '어디에 올릴 것인가'(인스타 · 릴스 · 블로그)라서 템플릿보다
      오래 가는 선택이다. 인스타용 1:1로 맞춰놓고 애니메이션을 골라보는
@@ -944,7 +999,10 @@ function specStyle(){ return 'background-color:#ffffff'; }
 
 function renderTpls(){
   const list = TPLS.filter(t => ui.tplHub==='all' || t.hub_slug===ui.tplHub);
-  $('tplCount').textContent = list.length ? list.length+'종' : '';
+  /* 개수는 머리글 한 자리를 두 화면이 나눠 쓴다 — 움직임 화면일 때 덮어쓰지 않게
+     값만 들고 있다가, 템플릿 화면으로 돌아올 때 setPanelView가 다시 적는다. */
+  ui.tplCountText = list.length ? list.length+'종' : '';
+  if(ui.panel !== 'anim') $('tplCount').textContent = ui.tplCountText;
   if(!list.length){
     $('tplGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">해당하는 템플릿이 없어요</div>';
     return;
@@ -956,7 +1014,16 @@ function renderTpls(){
         <span class="dots${ratingOf(t)===3?' g':''}">${dots(ratingOf(t))}</span></span>
     </button>`).join('');
   $('tplGrid').querySelectorAll('.tplcell').forEach(b=>{
-    b.onclick = ()=>applyTemplate(b.dataset.n);
+    b.onclick = ()=>{
+      /* 고르자마자 움직임 화면으로 넘어간다. 템플릿은 한 번 고르면 끝이지만
+         움직임은 여러 번 갈아 끼워 보는 값이라, 다음에 찾을 것이 바로 앞에
+         있어야 한다. 되돌아가려면 왼쪽 위 'GIF 템플릿'을 누른다.
+         화면 전환을 먼저 하는 이유: applyTemplate은 폰트 파일을 기다리는
+         비동기라, 뒤에 두면 누르고 한 박자 뒤에 화면이 바뀐다. */
+      ui.sampleText = false;
+      setPanelView('anim');
+      applyTemplate(b.dataset.n);
+    };
   });
   observeTplFonts();
 }
@@ -1249,9 +1316,6 @@ function setBg(key){
 
   [...$('bgChips').querySelectorAll('.chip')].forEach(x=>x.classList.toggle('on', x.dataset.bg===key));
   $('bgColorInput').classList.toggle('on', key==='color');
-  $('paletteTag').textContent = key==='photo' ? '192색 · 사진 배경'
-                             : key==='color'  ? '64색 · 단색 배경'
-                             : '64색 · 투명 GIF';
   renderFx(); syncBar(); syncAdvNotes(); saveDraft();
 }
 
@@ -1528,6 +1592,76 @@ function syncPhotoSliders(){
 }
 
 /* ══════════════════════════════════════════════════════════════
+   움직임 고르기 — 왼쪽 패널의 두 번째 화면
+══════════════════════════════════════════════════════════════ */
+/* 템플릿의 글자 꾸밈(폰트·색·외곽선)은 그대로 두고 움직임만 바꾼다.
+   이 화면이 없으면 움직임을 바꾸는 길이 '다른 템플릿을 고른다' 하나뿐인데,
+   그러면 공들여 맞춘 폰트·색까지 통째로 딸려 온다. */
+const ANIM_CATS = [['basic','기본'], ['cinematic','시네마틱'], ['dynamic','다이내믹']];
+
+function setPanelView(v){
+  ui.panel = v;
+  $('tplView').hidden  = v !== 'tpl';
+  $('animView').hidden = v !== 'anim';
+  [['navTpl','tpl'], ['navAnim','anim']].forEach(([id, key])=>{
+    $(id).classList.toggle('on', v === key);
+    $(id).setAttribute('aria-selected', String(v === key));
+  });
+  $('tplCount').textContent = v === 'anim'
+    ? FFPGif.ANIMS.length + '종'
+    : (ui.tplCountText || '');
+  if(v === 'anim') renderAnims();
+}
+
+function renderAnims(){
+  $('animGroups').innerHTML = ANIM_CATS.map(([cat, label])=>{
+    const cells = FFPGif.ANIMS.filter(a=>a.cat===cat).map(a=>{
+      /* 움직임을 바꾸면 세부 조정의 길이·프레임레이트도 권장값으로 함께 바뀐다.
+         시네마틱을 2.5초로 돌리면 광택이 시작되기도 전에 끝나기 때문인데,
+         슬라이더가 저 혼자 움직인 것처럼 보이지 않게 칸에 미리 적어둔다. */
+      const d = FFPGif.animDefaults(a.id);
+      const sub = a.id === 'none' ? '움직이지 않음' : `${d.total.toFixed(1)}초 · ${d.fps}fps`;
+      return `<button type="button" class="animcell${a.id===R.state.anim?' on':''}" data-a="${esc(a.id)}">` +
+             `${esc(a.name)}<small>${esc(sub)}</small></button>`;
+    }).join('');
+    return `<div class="animgrp"><div class="animlbl">${esc(label)}</div>` +
+           `<div class="animgrid">${cells}</div></div>`;
+  }).join('');
+
+  $('animLead').textContent = R.state.mode === 'text'
+    ? '폰트 · 색 · 외곽선은 그대로 두고 움직임만 바꿉니다'
+    : '길이 · 프레임레이트는 사진 · 영상 설정이 정합니다';
+}
+
+$('animGroups').onclick = e => {
+  const b = e.target.closest('.animcell');
+  if(b) pickAnim(b.dataset.a);
+};
+
+function pickAnim(id){
+  R.setAnim(id);
+  /* 아직 템플릿을 고르지 않았다면 넣어둔 예시 문구를 비운다 — 그 자리에 회색
+     '문구를 입력하세요'가 떠서 다음에 할 일을 짚어준다. 한 번 비우고 나면
+     끄므로, 사용자가 쓴 글이 나중에 지워지는 일은 없다. */
+  if(ui.sampleText){
+    ui.sampleText = false;
+    R.setState({text:''});
+    $('txt').value = '';
+    updateCounter();
+  }
+  /* 처음부터 다시 재생한다 — 등장이 끝난 시점에 바꾸면 정지 화면이 그대로라
+     "골라도 아무 일이 없다"로 보인다. 템플릿을 고를 때와 같은 이유다. */
+  ui.t = 0; ui.playing = true; syncPlayIcon();
+  /* 위 안내줄도 움직임 이름으로 되어 있다 — 같이 안 고치면 방금 바꾼 것과
+     화면 위쪽에 적힌 것이 서로 다른 말을 한다. */
+  $('crumbTpl').textContent = `${animName(R.state.anim)} · ${hubOf(ui.hub) ? hubOf(ui.hub).title : ''}`;
+  syncAdv(); syncBar(); saveDraft();
+}
+
+$('navTpl').onclick  = ()=>setPanelView('tpl');
+$('navAnim').onclick = ()=>setPanelView('anim');
+
+/* ══════════════════════════════════════════════════════════════
    세부 조정 — 크기·타이밍·형광 바·매트
 ══════════════════════════════════════════════════════════════ */
 function bindAdv(){
@@ -1678,6 +1812,7 @@ function syncAdv(){
   $('sIn').value = S.inDur*10;      $('sInV').textContent = S.inDur.toFixed(1)+'s';
   $('sFps').value = S.fps;          $('sFpsV').textContent = S.fps+'fps';
   $('hlOn').checked = S.hlOn;
+  renderAnims();
   syncAdvNotes();
 }
 
@@ -1693,7 +1828,10 @@ function updateCounter(){
   $('cntHint').textContent = over ? '3줄부터는 표시되지 않아요' : '글자수 ±20% 권장';
   $('cntHint').className = over ? 'warn' : '';
 }
-$('txt').oninput = ()=>{ R.setState({text:$('txt').value}); updateCounter(); saveDraft(); };
+$('txt').oninput = ()=>{
+  ui.sampleText = false;   // 한 글자라도 치면 더는 예시가 아니다
+  R.setState({text:$('txt').value}); updateCounter(); saveDraft();
+};
 
 /* ══════════════════════════════════════════════════════════════
    사진 GIF — 여러 장을 순서대로 넘기는 슬라이드쇼
@@ -2466,7 +2604,11 @@ async function boot(){
     $('saveTag').className = 'tag tag-acc';
     $('crumbTpl').textContent = `${animName(R.state.anim)} · ${hubOf(ui.hub) ? hubOf(ui.hub).title : ''}`;
   } else if(TPLS.length){
+    /* 첫 방문 — 빈 편집기는 고장난 것처럼 보이므로 첫 템플릿을 얹어 보여준다.
+       다만 이 문구는 사용자가 고른 것이 아니라 우리가 넣은 예시다. 움직임을
+       고르는 순간 비워서 '문구를 입력하세요'가 뜨게 표시해둔다. */
     await applyTemplate(TPLS[0].number);
+    ui.sampleText = true;
   } else {
     /* 템플릿이 아직 없어도 편집기는 동작해야 한다 */
     const f = hubOf(ui.hub) && hubOf(ui.hub).fonts[0];
@@ -2478,7 +2620,7 @@ async function boot(){
   syncRatio();
 
   bindAdv();
-  renderTplHubs(); renderTpls(); renderHubs(); renderFx();
+  renderTplHubs(); renderTpls(); renderHubs(); renderFx(); setPanelView('tpl');
   $('pgMax').textContent = MAX_PHOTOS;
   $('vgMax').textContent = VIDEO_MAX;
   pgRender(); pgSyncCtl(); vgSyncCtl(); syncModeUI();
