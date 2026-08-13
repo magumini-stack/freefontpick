@@ -46,12 +46,17 @@ def _nav_links(active: str, indent: str, mobile: bool) -> str:
         cls = f' class="{" ".join(classes)}"' if classes else ""
         elid = id_m if mobile else id_d
         id_attr = f' id="{elid}"' if elid else ""
+        # GIF 생성기만 새 창으로 연다. 편집기는 작업하던 것이 남는 화면이라,
+        # 보던 폰트 페이지를 덮어버리면 뒤로 가기로 돌아왔을 때 작업이 사라진다.
+        # rel은 보안·성능 때문에 함께 둔다 — 새 창이 window.opener로 원래 탭을
+        # 건드리지 못하게 막고, 브라우저가 두 탭을 다른 프로세스로 띄우게 한다.
+        target = ' target="_blank" rel="noopener noreferrer"' if key == "gif" else ""
         onclick = ' onclick="navFindFont(event)"' if key == "findfont" else ""
         if mobile and key == "notice":
             onclick = ' onclick="closeMobileNav()"'
         elif mobile and key == "findfont":
             onclick = ' onclick="navFindFont(event);closeMobileNav()"'
-        lines.append(f'{indent}<a href="{href}"{id_attr}{cls}{onclick}>{label}</a>')
+        lines.append(f'{indent}<a href="{href}"{id_attr}{cls}{target}{onclick}>{label}</a>')
     return "\n".join(lines)
 
 
