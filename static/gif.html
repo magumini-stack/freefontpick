@@ -1647,19 +1647,31 @@ function renderAnims(){
 }
 
 /* ── 칸마다 도는 작은 미리보기 ──
-   문구는 'OOO'로 고정한다. 실제 문구를 넣으면 칸이 작아 글자가 뭉개지고
-   길이도 제각각이라, 정작 봐야 할 '움직임의 차이'가 안 보인다.
-   같은 동그라미 셋이면 차이만 남는다.
    글자 꾸밈(폰트·색·외곽선)은 본 캔버스 것을 그대로 쓴다 — 템플릿에서 고른
    효과 위에서 움직임이 어떻게 보이는지가 이 화면의 목적이다. */
 let ANIM_PREV = [];
+
+/* 미리보기에 넣을 글자.
+   문구 전체를 넣으면 160×90 칸에서 뭉개지고, 길이도 제각각이라 정작 봐야 할
+   '움직임의 차이'가 안 보인다. 그렇다고 'OOO' 같은 기호로 고정하면 폰트도
+   효과도 그 위에서는 제대로 읽히지 않는다.
+   그래서 사용자가 쓴 문구의 첫 낱말만 잘라 쓴다 — 실제 글자라 폰트가 보이고,
+   짧아서 움직임도 보인다.
+   글자 수 한도를 나눈 이유: 한글·한자는 자면이 네모라 3자면 칸의 절반을 넘지만
+   알파벳은 폭이 절반이라 3자면 허전하다. */
+function previewText(){
+  const first = String(R.state.text || '').replace(/\n/g,' ').split(/[\s\/]+/).filter(Boolean)[0];
+  if(!first) return '가나다';           // 문구가 비었을 때 — 폰트 보기의 관례
+  const cjk = /[ㄱ-힝一-鿿]/.test(first);
+  return [...first].slice(0, cjk ? 3 : 6).join('');
+}
 
 function buildAnimPreviews(){
   try{
     ANIM_PREV = [...$('animGroups').querySelectorAll('.animprev')].map(cv=>{
       const d = FFPGif.animDefaults(cv.dataset.a);
       return FFPGif.createRenderer(cv, {
-        text: 'OOO', ratio: '16:9', anim: cv.dataset.a,
+        text: previewText(), ratio: '16:9', anim: cv.dataset.a,
         size: 150, baseW: 800, baseH: 450, lh: 1.2, posY: 0.5,
         total: d.total, inDur: d.inDur, fps: d.fps,
       }, {scale: 0.2});   // 800×450 → 160×90
@@ -1671,11 +1683,26 @@ function buildAnimPreviews(){
   }
 }
 
-/* 꾸밈은 매 프레임 본 캔버스에서 다시 가져온다. 만들 때 한 번만 복사해두면
-   색이나 폰트를 바꿨을 때 미리보기만 옛 모습으로 남는다. */
+/* 미리보기 글자 크기 — 폰트마다 자면 폭이 배 가까이 차이 난다. 크기를 하나로
+   못 박으면 좁은 폰트는 허전하고 넓은 폰트는 칸 밖으로 잘린다. 실제로 재서
+   문구가 칸 폭의 62%가 되게 맞춘다. 렌더러의 setFont와 같은 형태로 재야
+   실제 그려지는 폭과 어긋나지 않는다. */
+const _measCtx = document.createElement('canvas').getContext('2d');
+function previewSize(txt, stack){
+  _measCtx.font = `100px ${stack}`;
+  const w = _measCtx.measureText(txt).width;
+  if(!(w > 0)) return 150;
+  return Math.max(56, Math.min(150, Math.round(800 * 0.62 * 100 / w)));
+}
+
+/* 글자와 꾸밈은 매 프레임 본 캔버스에서 다시 가져온다. 만들 때 한 번만
+   복사해두면 문구·색·폰트를 바꿨을 때 미리보기만 옛 모습으로 남는다. */
 function syncAnimPreviewInk(){
   const S = R.state;
+  const txt = previewText();
+  const size = previewSize(txt, S.fontStack);
   ANIM_PREV.forEach(p=>p.setState({
+    text: txt, size,
     fontStack: S.fontStack, fontWeight: S.fontWeight,
     color: S.color, gradient: S.gradient, outline: S.outline, outlineW: S.outlineW,
     hl: S.hl, hlOn: S.hlOn, bgColor: S.bgColor,
