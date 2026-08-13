@@ -164,6 +164,14 @@ function inkFromEffectId(id){
   };
 }
 
+/* 상대 밝기 0~1. 형광 바 위의 글자가 읽히는지 판단할 때 쓴다. */
+function lumOf(hex){
+  const h = String(hex||'').replace('#','');
+  if(h.length < 6) return 0;
+  const [r,g,b] = [0,2,4].map(i => parseInt(h.slice(i,i+2),16));
+  return (0.2126*r + 0.7152*g + 0.0722*b) / 255;
+}
+
 /* GIF 적합도 — 색이 많을수록 팔레트를 많이 먹고 용량이 커진다.
    3점이 가장 안정적. 예전에는 효과별로 손으로 매겨둔 표를 썼는데,
    이제 실제로 쓰는 색 개수에서 바로 뽑는다. */
@@ -460,17 +468,26 @@ function createRenderer(canvas, initial, opts){
     }
 
     else if(A==='highlight'){
+      const bar = S.hlOn ? S.hl : '#FDE047';
+      /* 글자가 형광 바 위에 얹히므로 색이 바와 너무 비슷하면 통째로 사라진다.
+         예전에는 그래서 무조건 #1A1A1A로 덮어썼는데, 그러면 어떤 효과를 골라도
+         글자색과 외곽선이 함께 무시됐다(고른 검정도 실제로는 안 쓰였다).
+         이제는 바와 대비가 모자랄 때만 바 밝기에 맞춰 바꾼다 — 그 밖에는
+         고른 효과를 그대로 쓴다. forceColor는 외곽선까지 끄므로,
+         정말 필요할 때만 걸어야 한다. */
+      const dim   = Math.abs(lumOf(bar) - lumOf(eff.color)) < 0.35;
+      const force = dim ? (lumOf(bar) > 0.5 ? '#1A1A1A' : '#FFFFFF') : null;
       lines.forEach((L,li)=>{
         const d=li*.2, p=cl((tIn-d)/(1-.2));
         if(p<=0) return;
         const barP = E.outCubic(cl(p/.55));
-        ctx.save(); ctx.fillStyle = S.hlOn ? S.hl : '#FDE047';
+        ctx.save(); ctx.fillStyle = bar;
         ctx.fillRect(L.x0-10, L.y-sz*.55, (L.width+20)*barP, sz*.95);
         ctx.restore();
         const txtP = cl((p-.35)/.5);
         if(txtP>0) L.items.forEach(o=>{
           const rev = cl((barP*(L.width+20) - (o.x-L.x0+10)) / Math.max(o.w,1));
-          paintChar(o, L, {alpha:Math.min(txtP,rev), forceColor:'#1A1A1A'});
+          paintChar(o, L, {alpha:Math.min(txtP,rev), forceColor:force});
         });
       });
     }

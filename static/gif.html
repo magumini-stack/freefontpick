@@ -1655,14 +1655,19 @@ let ANIM_PREV = [];
    문구 전체를 넣으면 160×90 칸에서 뭉개지고, 길이도 제각각이라 정작 봐야 할
    '움직임의 차이'가 안 보인다. 그렇다고 'OOO' 같은 기호로 고정하면 폰트도
    효과도 그 위에서는 제대로 읽히지 않는다.
-   그래서 사용자가 쓴 문구의 첫 낱말을 5자까지 잘라 쓴다 — 실제 글자라 폰트가
-   보이고, 짧아서 움직임도 보인다. 글자 수는 문자 종류를 가리지 않는다:
-   폭 차이는 아래 previewSize가 실측으로 흡수한다. */
+   그래서 문구의 앞 5자만 잘라 쓴다 — 실제 글자라 폰트가 보이고, 짧아서
+   움직임도 보인다. 글자 수는 문자 종류를 가리지 않는다: 폭 차이는 아래
+   previewSize가 실측으로 흡수한다.
+   낱말 단위가 아니라 글자 수로 세는 이유: '오늘 하루도 수고했어'처럼 앞 낱말이
+   짧으면 '오늘' 두 자만 남아 칸이 휑해진다. 공백을 세어 넣으면 '오늘 하루'가
+   되어 길이가 고르다. */
 const PREVIEW_MAX_CHARS = 5;
 function previewText(){
-  const first = String(R.state.text || '').replace(/\n/g,' ').split(/[\s\/]+/).filter(Boolean)[0];
-  if(!first) return '가나다';           // 문구가 비었을 때 — 폰트 보기의 관례
-  return [...first].slice(0, PREVIEW_MAX_CHARS).join('');
+  const t = String(R.state.text || '').replace(/\n/g, ' ').trim();
+  if(!t) return '가나다';               // 문구가 비었을 때 — 폰트 보기의 관례
+  /* 끝의 공백은 그대로 두면 글자가 한쪽으로 쏠려 보인다 (렌더러가 줄 단위로
+     trim하긴 하지만, 여기서 잘라야 폭 실측도 같은 글자로 잰다). */
+  return [...t].slice(0, PREVIEW_MAX_CHARS).join('').trimEnd();
 }
 
 function buildAnimPreviews(){
