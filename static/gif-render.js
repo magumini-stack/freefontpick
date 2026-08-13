@@ -217,6 +217,7 @@ function defaultState(){
        순서 바꾸기·같은 장수로 교체를 알아챌 수 없다). */
     photoSample: null,
     photosRev: 0,
+    bgPhotoRev: 0,         // 배경 사진(글자 모드)이 바뀔 때 UI가 올린다
 
     /* ── 영상 GIF 모드 ──
        프레임을 미리 뽑아 쌓아두지 않는다. 90프레임을 800×450 비트맵으로 들고
@@ -835,6 +836,9 @@ function createRenderer(canvas, initial, opts){
       S.mode,
       (S.photos||[]).length, S.photosRev|0, S.ratio, S.slideDim,
       S.videoRev|0, (S.trimStart||0).toFixed(2),
+      /* 글자 모드의 배경 사진 — 그림을 바꾸는 값은 사진 자체(bgPhotoRev),
+         잘려나가는 위치(X·Y), 어둡게(dim), 그리고 사진이 없을 때의 단색 배경이다. */
+      S.photo ? `bg${S.bgPhotoRev|0},${S.photoX},${S.photoY},${S.dim}` : (S.bgColor || 'nobg'),
       textEnabled() ? [S.text, S.fontStack, S.fontWeight, S.size, S.lh, S.posY,
                   S.color, S.gradient&&S.gradient.join(''), S.outline, S.outlineW,
                   S.anim, S.hlOn?S.hl:''].join(',') : 'notext',
@@ -943,13 +947,18 @@ function createRenderer(canvas, initial, opts){
     const colorFactor = [1.9, 1.45, 1.15, 1.0][rating] ?? 1.2;
     const photoish = !!S.photo || photoModeActive();
 
-    /* 사진 모드는 추정하지 않고 실측값을 쓴다.
+    /* 사진이 깔린 GIF는 추정하지 않고 실측값을 쓴다.
        프레임당 크기가 사진에 따라 50KB~309KB로 6배까지 벌어져서, 어떤 상수를
        넣어도 절반은 틀린다. 대신 용량이 프레임 수에 정확히 비례하므로
        (실측: 4·8·16프레임에서 프레임당 50.5KB로 완전히 일정)
-       한 장을 실제로 인코딩해 재고 프레임 수만 곱한다. */
+       한 장을 실제로 인코딩해 재고 프레임 수만 곱한다.
+
+       글자 모드의 '배경 사진 한 장'도 같은 처지다 — 옛 추정식
+       (110 + (n-1)×22)은 뒷 프레임이 싸다는 전제인데, 이 인코더는 프레임마다
+       팔레트를 새로 뜨고 화면을 통째로 다시 쓴다. 그래서 실제의 절반쯤으로
+       나왔다. 사진 모드와 같은 방식으로 재게 한다. */
     const sample = S.photoSample;
-    if((photoModeActive() || videoModeActive()) && sample && sample.key === sampleKey()){
+    if((photoish || videoModeActive()) && sample && sample.key === sampleKey()){
       const gifKB = Math.round(sample.bytes * n / 1024);
       /* 한 장을 따로 잴 때보다 연속으로 돌릴 때가 프레임당 두 배쯤 느리다.
          실측 비율 16프레임 2.12배 · 32프레임 1.83배 — 가운데인 2를 쓴다.

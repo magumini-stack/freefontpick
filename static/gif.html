@@ -657,31 +657,10 @@ select.inp{appearance:none;cursor:pointer}
       </div>
     </div>
 
-    <div id="txtSec">
-      <div class="lbl">문구 · 최대 2줄</div>
-      <textarea class="inp" id="txt" rows="2" spellcheck="false">이걸 몰랐다고?</textarea>
-      <div class="counter"><span id="cntLine">1줄 / 8자</span><span id="cntHint">글자수 ±20% 권장</span></div>
-    </div>
-
-    <div id="fontSec">
-      <div class="lbl">폰트</div>
-      <select class="inp opener" id="hubSel" aria-label="용도"></select>
-      <div class="hubsub" id="hubSub"></div>
-      <select class="inp opener" id="fontSel" style="margin-top:7px" aria-label="폰트"></select>
-      <div class="chips" id="weightChips" style="margin-top:8px"></div>
-    </div>
-
-    <div id="inkSec">
-      <div class="lbl">글자색 · 외곽선</div>
-      <button class="btn fxbtn opener" id="fxOpen" aria-expanded="false">
-        <i class="fxdot" id="fxDot"></i>
-        <i class="fxdot" id="fxDot2"></i>
-        <span id="fxName">흰색</span>
-        <span class="fxmore" id="fxMore">외곽선 있음</span>
-      </button>
-    </div>
-
-    <!-- 세부 조정 — 접어둔다. 슬라이더 6개를 펼쳐두면 문구·폰트가 화면 밖으로 밀린다. -->
+    <!-- 세부 조정 — 접어둔다. 슬라이더 6개를 펼쳐두면 문구·폰트가 화면 밖으로 밀린다.
+         자리는 '올린 사진·영상 바로 아래, 문구 바로 위'다. 크기·세로 위치처럼
+         사진 위에 글자를 앉히면서 바로 만지는 값들이라, 사진과 문구 사이에 있어야
+         손이 왔다 갔다 하지 않는다. -->
     <details class="adv" id="advBox">
       <summary class="opener">세부 조정<span class="advhint">크기 · 길이 · 형광 바</span></summary>
       <div class="advbody">
@@ -707,6 +686,30 @@ select.inp{appearance:none;cursor:pointer}
         <div class="advnote" id="matteNote"></div>
       </div>
     </details>
+
+    <div id="txtSec">
+      <div class="lbl">문구 · 최대 2줄</div>
+      <textarea class="inp" id="txt" rows="2" spellcheck="false">이걸 몰랐다고?</textarea>
+      <div class="counter"><span id="cntLine">1줄 / 8자</span><span id="cntHint">글자수 ±20% 권장</span></div>
+    </div>
+
+    <div id="fontSec">
+      <div class="lbl">폰트</div>
+      <select class="inp opener" id="hubSel" aria-label="용도"></select>
+      <div class="hubsub" id="hubSub"></div>
+      <select class="inp opener" id="fontSel" style="margin-top:7px" aria-label="폰트"></select>
+      <div class="chips" id="weightChips" style="margin-top:8px"></div>
+    </div>
+
+    <div id="inkSec">
+      <div class="lbl">글자색 · 외곽선</div>
+      <button class="btn fxbtn opener" id="fxOpen" aria-expanded="false">
+        <i class="fxdot" id="fxDot"></i>
+        <i class="fxdot" id="fxDot2"></i>
+        <span id="fxName">흰색</span>
+        <span class="fxmore" id="fxMore">외곽선 있음</span>
+      </button>
+    </div>
 
     <div id="photoSec">
       <div class="lbl">배경 사진 · 선택</div>
@@ -1459,7 +1462,9 @@ async function loadPhoto(file){
   if(!file || !file.type.startsWith('image/')) return;
   try{
     const bmp = await createImageBitmap(file, {imageOrientation:'from-image'});
-    R.setState({photo:bmp});
+    /* bgPhotoRev를 올려야 용량 실측이 새 사진 기준으로 다시 잰다 —
+       장수처럼 눈에 보이는 값이 없어서 사진만 바꾸면 알아챌 방법이 없다. */
+    R.setState({photo:bmp, bgPhotoRev: R.state.bgPhotoRev + 1, photoSample: null});
     $('photoThumb').src = URL.createObjectURL(file);
     $('photoThumb').style.display = 'block';
     $('photoCtl').classList.remove('disabled');
@@ -2184,8 +2189,11 @@ function syncBar(){
   $('tEnd').textContent = R.state.total.toFixed(2) + 's';
   const kb = n => n>=1024 ? (n/1024).toFixed(1)+'MB' : Math.round(n/10)*10+'KB';
 
+  /* 사진이 깔린 GIF는 실측으로 잰다 — 슬라이드쇼·영상뿐 아니라
+     글자 모드의 '배경 사진 한 장'도 같은 이유로 추정식이 맞지 않는다. */
   const mediaMode = (R.state.mode==='photo' && R.state.photos.length)
-                 || (R.state.mode==='video' && R.state.video);
+                 || (R.state.mode==='video' && R.state.video)
+                 || (R.state.mode==='text'  && R.state.photo);
   if(mediaMode && !est.measured){
     pgScheduleMeasure();
     $('mSize').textContent = '용량 재는 중…';
