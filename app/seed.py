@@ -44,6 +44,7 @@ def init_db():
         _seed_pairings(db)
         _seed_use_cases(db)
         _migrate_impact_hub(db)
+        _migrate_luxury_hub(db)
         _seed_gif_use_cases(db)
         _seed_gif_templates(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
@@ -350,6 +351,147 @@ def _migrate_impact_hub(db: Session):
         done.value = "1"
     db.commit()
     print(f"[migrate] '임팩트가 필요할 때!' 허브 생성 완료 (상위픽 {rank}종, 태그 '{tag.name}')")
+
+
+# ═══════════════════════════════════════════════════════════
+# 굿즈·스티커 허브 → '고급 브랜드' 교체 (2026-08, 일회성)
+# ═══════════════════════════════════════════════════════════
+LUXURY_HUB_MIGRATION_KEY = "luxury_hub_migration_v1"
+
+# 고급 인상은 획의 대비와 여백에서 나온다. 굵은 획과 가는 획의 차이가 뚜렷한
+# 부리(명조) 계열을 중심으로 골랐고, 둥근 굴림·손글씨·장식체는 뺐다 —
+# 친근해 보이는 자형은 고급과 반대 방향으로 간다.
+#
+# 상위 4종은 다른 허브와 겹치지 않게 확인했다: menu와 마루부리 1종,
+# wedding과 아리따 부리 1종뿐이다 (3개 이상 겹치면 같은 페이지로 보인다).
+_LUXURY_PICKS = [
+    (33, "마루부리",
+     "부리가 또렷한데 굵기가 다섯이라, 로고부터 본문까지 이 한 가족으로 끌고 갈 수 있습니다."),
+    (84, "조선일보명조체",
+     "삐침과 꼭짓점이 살아 있어 크게 키울수록 좋아집니다. 표지 제목에 어울립니다."),
+    (59, "아리따 부리",
+     "뷰티 브랜드가 자기 이름으로 만든 명조라, 여백과 함께 놓았을 때의 절제가 몸에 배어 있습니다."),
+    (128, "LibreBodoni",
+     "굵은 획과 가는 획의 차이가 큰 디도네 계열로, 로마자를 병기하는 순간 인상이 올라갑니다."),
+]
+
+# 5위 이후는 이름·미리보기만 나가므로 이유를 달지 않는다 (다른 허브와 같은 규칙).
+# 태그가 없는 큐레이션 허브라 이 목록이 페이지의 전부다.
+_LUXURY_MORE = [
+    (156, "고운바탕"),
+    (72, "을유1945"),
+    (22, "나눔명조"),
+    (8, "KoPub바탕"),
+    (46, "부크크 명조"),
+    (82, "제주명조"),
+    (192, "리디바탕"),
+    (203, "Noto Serif KR"),
+    (146, "국립중앙박물관문화재단클래식"),
+    (145, "우아한세리프"),
+    (178, "전주공예명조체"),
+    (182, "함렛"),
+    (120, "CinzelDecorative"),
+    (139, "Playfair Display"),
+    (58, "아리따 돋움"),
+    (170, "네오현대"),
+]
+
+_LUXURY_PHRASES = [
+    "여백",
+    "그 이상을 담다",
+    "장인의 시간이 남긴 것",
+    "서두르지 않아야 닿는 것들이 있습니다",
+]
+
+_LUXURY_TIPS = [
+    ["자간", "로마자 워드마크는 대문자에 자간 +10~20%. 한글 명조 제목은 +5% 안쪽 — 더 벌리면 획 대비가 끊어집니다."],
+    ["굵기", "가는 굵기는 24px 이상에서만. 그 아래로는 고급이 아니라 흐릿해 보입니다. 한 화면에 굵기는 두 개까지."],
+    ["주의", "둥근 굴림·손글씨·장식체는 뺐습니다. 고급 인상은 더하는 게 아니라 덜어내는 데서 나옵니다. 로고·상표 등록은 배포처 라이선스 원문에서 CI/BI 조항을 꼭 확인하세요."],
+]
+
+
+def _migrate_luxury_hub(db: Session):
+    """굿즈·스티커 허브를 감추고 '고급 브랜드' 허브를 그 자리에 만든다.
+
+    ⚠ 시드 재실행이 아니라 해당 행만 손대는 일회성 작업이다.
+    어드민에서 편집한 다른 허브는 건드리지 않는다 (use_case_admin_edited
+    플래그 때문에 시드는 이미 통째로 건너뛰는 상태다).
+
+    굿즈 허브는 지우지 않고 is_active만 내린다 — 폰트·문구가 그대로 남아 있어
+    되돌릴 수 있다. 되돌리려면 app_meta의 luxury_hub_migration_v1 행을 지우고
+    goods를 다시 활성화한 뒤 luxury 허브를 삭제하면 된다.
+
+    _migrate_impact_hub와 같은 구조다. 다른 점은 태그가 없다는 것 —
+    태그 없는 큐레이션 허브라 여기 적은 20종이 페이지의 전부다.
+    """
+    from .models import UseCase, UseCaseFont, UseCasePhrase
+
+    done = db.query(AppMeta).filter(AppMeta.key == LUXURY_HUB_MIGRATION_KEY).first()
+    if done and done.value == "1":
+        return
+
+    # ① 굿즈·스티커 허브 숨기기 (삭제하지 않는다 — 되돌릴 수 있어야 한다)
+    goods = db.query(UseCase).filter(UseCase.slug == "goods").first()
+    slot = goods.sort_order if goods else 0
+    if goods is not None and goods.is_active:
+        goods.is_active = False
+        print("[migrate] 굿즈·스티커 허브 비활성화 (데이터는 보존)")
+
+    # ② 고급 브랜드 허브 생성 — 굿즈가 있던 자리(sort_order)를 물려받아
+    #    그리드 10칸이 유지된다.
+    uc = db.query(UseCase).filter(UseCase.slug == "luxury").first()
+    if uc is None:
+        uc = UseCase(slug="luxury", sort_order=slot)
+        db.add(uc)
+    uc.title = "고급 브랜드"
+    uc.subtitle = "획의 대비와 여백으로 격을 만드는 서체"
+    uc.tag_id = None          # 태그 없는 큐레이션 허브
+    uc.criteria = (
+        "고급스러움은 획의 대비와 여백에서 나옵니다. 굵은 획과 가는 획의 차이가 "
+        "뚜렷한 부리(명조) 계열을 중심으로 골랐고, 둥근 굴림·손글씨·장식체는 "
+        "뺐습니다 — 친근해 보이는 자형은 고급과 반대 방향으로 갑니다. "
+        "로마자를 함께 쓰는 브랜드를 위해 획 대비가 큰 세리프도 넣었습니다."
+    )
+    uc.howto = (
+        "제목은 크게, 본문은 작게 두고 그 사이를 여백으로 채웁니다. 표지 제목 "
+        "96~140px에 본문 15~16px이면 대비가 충분합니다. 로마자 워드마크는 "
+        "대문자로 쓰고 자간을 10~20% 벌리세요 — 대문자와 넓은 자간이 격식을 "
+        "만듭니다. 다만 한글 명조는 자간을 5% 넘게 벌리면 획의 굵기 대비가 "
+        "끊어져 오히려 싸 보입니다. 가는 굵기는 24px 이상에서만 쓰고, "
+        "한 화면에 굵기는 두 개까지만 씁니다."
+    )
+    uc.tips = _LUXURY_TIPS
+    uc.is_active = True
+    db.flush()
+
+    # ③ 폰트 20종 — 없는 폰트는 그 줄만 건너뛴다 (경고만 남긴다)
+    db.query(UseCaseFont).filter(UseCaseFont.use_case_id == uc.id).delete()
+    rank = 0
+    missing = []
+    rows = _LUXURY_PICKS + [(fid, name, "") for fid, name in _LUXURY_MORE]
+    for font_id, name, reason in rows:
+        f = db.query(Font).filter(Font.id == font_id).first()
+        if f is None:
+            missing.append(f"id={font_id}({name})")
+            continue
+        if f.name != name:
+            print(f"[migrate] 고급 브랜드 허브 폰트명 불일치 id={font_id}: DB='{f.name}' 기대='{name}'")
+        rank += 1
+        db.add(UseCaseFont(use_case_id=uc.id, font_id=font_id, rank=rank, reason=reason))
+    if missing:
+        print(f"[migrate] 고급 브랜드 허브 폰트 미발견: {', '.join(missing)}")
+
+    # ④ 문구 칩
+    db.query(UseCasePhrase).filter(UseCasePhrase.use_case_id == uc.id).delete()
+    for i, text_ in enumerate(_LUXURY_PHRASES):
+        db.add(UseCasePhrase(use_case_id=uc.id, text=text_, sort_order=(i + 1) * 10))
+
+    if done is None:
+        db.add(AppMeta(key=LUXURY_HUB_MIGRATION_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+    print(f"[migrate] '고급 브랜드' 허브 생성 완료 (폰트 {rank}종)")
 
 
 def _migrate_tag_axes(db: Session):
