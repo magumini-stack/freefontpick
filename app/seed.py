@@ -45,6 +45,7 @@ def init_db():
         _seed_use_cases(db)
         _migrate_impact_hub(db)
         _migrate_luxury_hub(db)
+        _patch_luxury_hub_title(db)
         _seed_gif_use_cases(db)
         _seed_gif_templates(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
@@ -354,9 +355,14 @@ def _migrate_impact_hub(db: Session):
 
 
 # ═══════════════════════════════════════════════════════════
-# 굿즈·스티커 허브 → '고급 브랜드' 교체 (2026-08, 일회성)
+# 굿즈·스티커 허브 → '브랜딩' 교체 (2026-08, 일회성)
 # ═══════════════════════════════════════════════════════════
 LUXURY_HUB_MIGRATION_KEY = "luxury_hub_migration_v1"
+
+# 제목만 '고급 브랜드' → '브랜딩'으로 고치는 별도 패치의 표시.
+# 위 키를 올리지 않는 이유: _migrate_luxury_hub는 폰트·문구를 지우고 다시
+# 넣으므로, 키를 올리면 제목 하나 바꾸자고 허브 내용 전체를 덮어쓰게 된다.
+LUXURY_TITLE_PATCH_KEY = "luxury_hub_title_patch_v1"
 
 # 고급 인상은 획의 대비와 여백에서 나온다. 굵은 획과 가는 획의 차이가 뚜렷한
 # 부리(명조) 계열을 중심으로 골랐고, 둥근 굴림·손글씨·장식체는 뺐다 —
@@ -443,7 +449,7 @@ def _migrate_luxury_hub(db: Session):
     if uc is None:
         uc = UseCase(slug="luxury", sort_order=slot)
         db.add(uc)
-    uc.title = "고급 브랜드"
+    uc.title = "브랜딩"
     uc.subtitle = "획의 대비와 여백으로 격을 만드는 서체"
     uc.tag_id = None          # 태그 없는 큐레이션 허브
     uc.criteria = (
@@ -491,7 +497,33 @@ def _migrate_luxury_hub(db: Session):
     else:
         done.value = "1"
     db.commit()
-    print(f"[migrate] '고급 브랜드' 허브 생성 완료 (폰트 {rank}종)")
+    print(f"[migrate] '브랜딩' 허브 생성 완료 (폰트 {rank}종)")
+
+
+def _patch_luxury_hub_title(db: Session):
+    """이미 만들어진 브랜딩 허브의 제목만 고친다.
+
+    '고급 브랜드'로 먼저 배포한 뒤 제목만 '브랜딩'으로 바꾸기로 했다.
+    _migrate_luxury_hub의 키를 올리면 폰트·문구·기준까지 전부 다시 쓰이므로,
+    제목 한 줄만 건드리는 패치를 따로 둔다. 부제·기준·활용법·폰트·문구는
+    손대지 않는다.
+    """
+    from .models import UseCase
+
+    done = db.query(AppMeta).filter(AppMeta.key == LUXURY_TITLE_PATCH_KEY).first()
+    if done and done.value == "1":
+        return
+
+    uc = db.query(UseCase).filter(UseCase.slug == "luxury").first()
+    if uc is not None and uc.title != "브랜딩":
+        print(f"[migrate] 브랜딩 허브 제목 변경: '{uc.title}' → '브랜딩'")
+        uc.title = "브랜딩"
+
+    if done is None:
+        db.add(AppMeta(key=LUXURY_TITLE_PATCH_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
 
 
 def _migrate_tag_axes(db: Session):
