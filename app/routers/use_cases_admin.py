@@ -160,8 +160,10 @@ def replace_picks(
     """
     uc = _get(db, use_case_id)
 
-    if len(picks) > 12:
-        raise HTTPException(status_code=400, detail="추천 폰트는 최대 12개까지입니다")
+    # 개수 제한은 두지 않는다. 12개는 시드를 쓸 때의 큐레이션 관례였을 뿐
+    # 기술적 제약이 아니었고, 지금은 그 관례를 넘는 허브가 이미 있다
+    # (브랜딩 18종, 태그가 붙은 허브는 20종이 넘는다). 화면도 상위 4종만
+    # 이유를 달고 나머지는 목록으로 흘리므로 개수가 늘어도 깨지지 않는다.
 
     seen = set()
     for p in picks:
