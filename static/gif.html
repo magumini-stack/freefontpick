@@ -739,11 +739,14 @@ select.inp{appearance:none;cursor:pointer}
       </button>
     </div>
 
-    <!-- 세부 조정 — 접어둔다. 슬라이더 6개를 펼쳐두면 문구·폰트가 화면 밖으로 밀린다.
+    <!-- 글자 세부조정 — 접어둔다. 슬라이더 6개를 펼쳐두면 문구·폰트가 화면 밖으로 밀린다.
          여기 있는 값은 크기·줄 간격·형광 바처럼 전부 글자에만 걸린다. 그래서
-         사진·영상 쪽이 아니라 문구·폰트·글자색 다음, 이 묶음의 끝에 둔다. -->
+         사진·영상 쪽이 아니라 문구·폰트·글자색 다음, 이 묶음의 끝에 둔다.
+         이름에 '글자'를 붙인 이유: 사진·영상 모드에서는 위쪽에 사진·영상용
+         조정 슬라이더가 따로 있어서, 그냥 '세부 조정'이면 둘 중 어느 쪽인지
+         알 수 없다. -->
     <details class="adv" id="advBox">
-      <summary class="opener">세부 조정<span class="advhint">크기 · 길이 · 형광 바</span></summary>
+      <summary class="opener">글자 세부조정<span class="advhint">크기 · 길이 · 형광 바</span></summary>
       <div class="advbody">
         <div class="slider"><label>글자 크기</label><input type="range" id="sSize" min="16" max="200" value="64"><span class="val" id="sSizeV">64</span></div>
         <div class="slider"><label>줄 간격</label><input type="range" id="sLh" min="90" max="200" value="130"><span class="val" id="sLhV">1.30</span></div>
