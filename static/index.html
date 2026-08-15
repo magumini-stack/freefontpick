@@ -3700,23 +3700,17 @@ function fbxIsIOS(){
   if(/iPhone|iPad|iPod|CriOS|FxiOS/.test(ua)) return true;
   return /Mac/.test(ua) && navigator.maxTouchPoints > 1;   // iPadOS 13+
 }
-var FBX_KEY = 'ffp-fbx-dismissed';
-function fbxSeen(){
-  try{ localStorage.setItem(FBX_KEY, String(Date.now())); }catch(e){}
-}
+/* 닫기는 '지금 이 화면에서 치운다'는 뜻만 갖는다 — 아무것도 저장하지 않는다.
+   따라서 새로고침하거나 다른 페이지로 넘어가면 조건을 다시 만족할 때
+   배너가 올라온다. 저장을 안 하므로 fbxSeen()은 남겨두되 비워둔다
+   (받기 버튼의 onclick이 이 이름을 부르고 있어 지우면 오류가 난다). */
+function fbxSeen(){}
 function fbxClose(){
   var el = document.getElementById('fbxBanner');
   if(el) el.classList.remove('show');
-  fbxSeen();
 }
 (function(){
   if(!fbxIsIOS()) return;
-  // 닫은 지 7일이 안 지났으면 띄우지 않는다
-  try{
-    var t = parseInt(localStorage.getItem(FBX_KEY) || '0', 10);
-    if(t && Date.now() - t < 7*24*60*60*1000) return;
-  }catch(e){}
-
   var shown = false;
   function check(){
     if(shown) return;
