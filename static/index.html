@@ -3710,6 +3710,11 @@ function fbxClose(){
   if(el) el.classList.remove('show');
 }
 (function(){
+  // ── 배너 임시 중단 (2026-08) ──────────────────────────
+  // 되살리려면 아래 return 한 줄만 지우면 된다. 나머지 코드·CSS·마크업은
+  // 그대로 두었으므로 다른 손질은 필요 없다.
+  return;
+
   if(!fbxIsIOS()) return;
   var shown = false;
   function check(){
