@@ -35,10 +35,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 {{FFP_JSONLD}}
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/favicon.png">
 <meta name="google-adsense-account" content="ca-pub-6258337579944977">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6258337579944977"
      crossorigin="anonymous"></script>
@@ -96,39 +93,29 @@
   button{font-family:inherit}
 
   
-  /* --mono는 영문·숫자 전용이다. 이 스택(ui-monospace/SFMono/Menlo/Consolas)에는
-     한글 글자가 하나도 없어서, 한글이 섞이면 스택 끝의 generic monospace —
-     윈도우 크롬에서는 굴림체 계열 — 로 떨어진다. 그러면 한 줄 안에서 영문은
-     Consolas, 한글은 굴림체로 그려져 서체가 어긋나고, 굴림체의 거친 힌팅 탓에
-     작은 크기에서 글자가 깨져 보인다.
-     한글이 들어가는 라벨은 --mono 대신 --ui(본문 폰트)를 쓴다. */
-  :root{--mono:ui-monospace,'SFMono-Regular',Menlo,'Consolas',monospace;
-        --ui:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;}
+  :root{--mono:ui-monospace,'SFMono-Regular',Menlo,'Consolas',monospace;}
   body{-webkit-font-smoothing:antialiased}
+  .mono{font-family:var(--mono)}
 
   .wrap{max-width:1240px;margin:0 auto;padding:0 24px}
-  .loading{padding:120px 0;text-align:center;color:var(--text-muted);font-family:var(--ui);font-size:14px}
+  .loading{padding:120px 0;text-align:center;color:var(--text-muted);font-family:var(--mono);font-size:13px}
   .hidden{display:none!important}
-  .lbl{font-family:var(--ui);font-size:13px;letter-spacing:.2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+  .lbl{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;display:flex;align-items:center;gap:10px}
   .lbl::before{content:"";width:22px;height:1px;background:var(--text-secondary)}
 
   section.blk{padding:42px 0;border-bottom:1px solid var(--border)}
 
   /* ── TITLE ── */
-  .crumb{padding:22px 0 0;font-family:var(--ui);font-size:13px;color:var(--text-muted);letter-spacing:.2px}
+  .crumb{padding:22px 0 0;font-family:var(--mono);font-size:12px;color:var(--text-muted);letter-spacing:.3px}
   .crumb a:hover{color:var(--accent)}
   .crumb b{color:var(--text-secondary);font-weight:500}
   .title-block{padding:24px 0 38px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:34px;align-items:end}
   .title-row{min-width:0}
-  .foundry{font-family:var(--ui);font-size:13px;color:var(--text-muted);letter-spacing:.2px;margin-bottom:14px;display:block}
+  .foundry{font-family:var(--mono);font-size:12px;color:var(--text-muted);letter-spacing:.3px;margin-bottom:14px;display:block}
   #fontName{font-weight:800;font-size:clamp(40px,7.5vw,78px);line-height:1.02;letter-spacing:-1px;word-break:keep-all;overflow-wrap:break-word}
-  /* 폰트명 아래 한 줄 설명 — 어드민의 meta.summary.
-     예전에는 이 자리에 카테고리 태그 알약이 깔렸는데, 폰트 이름 바로 밑이라
-     가장 눈에 띄는 자리인데도 "손글씨 · 귀여운 · 3종"처럼 분류값만 나열해서
-     이 폰트가 어떤 폰트인지는 알려주지 못했다. */
-  .font-summary{margin-top:18px;font-size:17px;line-height:1.55;color:var(--text-secondary);
-    letter-spacing:-.02em;word-break:keep-all;max-width:32em}
-  @media(max-width:768px){ .font-summary{font-size:15.5px;margin-top:14px} }
+  .tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:20px}
+  .tag{font-family:var(--mono);font-size:11.5px;letter-spacing:.2px;padding:5px 11px;border:1px solid var(--border);border-radius:2px;color:var(--text-secondary)}
+  .tag.hot{color:var(--accent);border-color:var(--accent)}
   .title-actions{display:flex;flex-direction:column;gap:10px;min-width:210px}
   .btn-dl{background:var(--accent);color:#fff;font-size:15px;font-weight:700;padding:14px 20px;border-radius:3px;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer}
   .btn-dl:hover{background:var(--accent-hover)}
@@ -146,10 +133,10 @@
   .tryout{margin-bottom:6px}
   #tryInput{width:100%;border:none;border-bottom:2px solid var(--text-primary);background:none;font-family:inherit;font-size:17px;color:var(--text-primary);padding:10px 2px;outline:none}
   #tryInput::placeholder{color:var(--text-muted)}
-  .tryout .note{font-family:var(--ui);font-size:12.5px;color:var(--text-muted);margin-top:8px;letter-spacing:.2px}
+  .tryout .note{font-family:var(--mono);font-size:11px;color:var(--text-muted);margin-top:8px;letter-spacing:.2px}
   .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px}
   .sec-head h2{font-size:20px;font-weight:800;letter-spacing:-.4px}
-  .sec-head .count{font-family:var(--ui);font-size:13px;color:var(--text-muted)}
+  .sec-head .count{font-family:var(--mono);font-size:12px;color:var(--text-muted)}
   .weights{display:flex;flex-direction:column}
   .w-row{display:flex;align-items:baseline;gap:22px;padding:20px 0;border-top:1px solid var(--border)}
   .w-row:first-child{border-top:none;padding-top:4px}
@@ -180,14 +167,14 @@
 
   /* ── GLYPHS ── */
   .glyphs{display:flex;flex-direction:column;gap:18px}
-  .g-cap{font-family:var(--ui);font-size:12px;color:var(--text-muted);letter-spacing:.2px;text-transform:uppercase;margin-bottom:8px}
+  .g-cap{font-family:var(--mono);font-size:11px;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px}
   .g-set{font-size:clamp(22px,3.4vw,30px);letter-spacing:2px;line-height:1.5;color:var(--text-primary)}
 
   /* ── CURATOR ── */
   .curator{background:var(--bg-secondary);border-left:3px solid var(--accent);padding:24px 26px;border-radius:0 3px 3px 0}
-  .curator .c-lbl{font-family:var(--ui);font-size:12.5px;letter-spacing:.2px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:12px}
+  .curator .c-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:12px}
   .curator p{font-size:15.5px;line-height:1.85;color:var(--text-primary);max-width:42em;margin:0;word-break:keep-all;overflow-wrap:break-word}
-  .curator .sign{font-family:var(--ui);font-size:13px;color:var(--text-muted);margin-top:14px}
+  .curator .sign{font-family:var(--mono);font-size:12px;color:var(--text-muted);margin-top:14px}
 
   /* ── APP PROMO (사이드바) ── */
   .app-promo-banner{display:flex;flex-direction:column;gap:12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:16px 18px;transition:border-color .15s;min-width:0}
@@ -198,7 +185,7 @@
   .app-promo-title{font-size:13.5px;font-weight:700;color:var(--text-primary)}
   .app-promo-sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
   .app-promo-cta-row{display:flex;justify-content:flex-end}
-  .app-promo-cta{font-family:var(--ui);font-size:13px;font-weight:700;color:#fff;background:var(--accent);padding:8px 14px;border-radius:8px;transition:background-color .15s,transform .1s}
+  .app-promo-cta{font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:8px 14px;border-radius:8px;transition:background-color .15s,transform .1s}
   .app-promo-banner:hover .app-promo-cta{background:var(--accent-hover)}
   .app-promo-banner:active .app-promo-cta{transform:scale(.97)}
 
@@ -241,26 +228,7 @@
   .lic-item-d{font-size:12.5px;color:var(--text-secondary);line-height:1.6;margin-top:3px}
   .lic-item .ck.y{background:var(--accent-light);color:var(--accent)}
   .lic-item .ck.n{background:var(--bg-secondary);color:var(--text-muted)}
-  .lic-item .ck.q{background:var(--bg-secondary);color:var(--text-muted)}
-  .lic-note{font-family:var(--ui);font-size:12.5px;color:var(--text-muted);margin-top:18px;line-height:1.8}
-  .lic-note a{color:var(--accent);text-decoration:underline}
-  /* 라이선스 종류 배지 — 확정된 폰트는 라이선스명, 미확인은 '확인 중' */
-  .lic-badge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;
-             border:1px solid var(--border);color:var(--text-secondary);background:var(--bg-secondary);white-space:nowrap}
-  .lic-badge.ok{border-color:var(--accent-light);color:var(--accent);background:var(--accent-light)}
-  .lic-badge.pending{border-color:#e8b04b;color:#9a6b00;background:#fdf5e3}
-  /* 미확인 경고 — 회색 체크표만으로는 허용으로 오해할 수 있어 표 위에 명시한다 */
-  /* [hidden]을 함께 눌러줘야 한다 — display:flex 가 브라우저 기본 [hidden]{display:none}
-     보다 우선순위가 높아서, hidden 속성만으로는 숨겨지지 않는다. */
-  .lic-pending[hidden]{display:none}
-  .lic-pending{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;margin-bottom:18px;
-               border:1px solid #edd9a8;background:#fdf7ea;border-radius:14px;
-               font-size:13px;line-height:1.65;color:#7a5600;word-break:keep-all}
-  .lic-pending i{font-size:18px;color:#c9901f;flex-shrink:0;margin-top:1px}
-  .lic-pending b{display:block;color:#7a5600;margin-bottom:2px}
-  /* 미확인일 때는 표 전체를 눌러 둔다 */
-  .lic-grid.pending .lic-item{opacity:.55}
-  .lic-grid.pending .lic-item-t{color:var(--text-secondary)}
+  .lic-note{font-family:var(--mono);font-size:11.5px;color:var(--text-muted);margin-top:18px;line-height:1.8}
 
   /* ── 사이드바 카드: 완전 흰색으로 좌측 본문과 구분 ── */
   .blk.side-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:22px 22px 24px}
@@ -274,61 +242,10 @@
   .pair-title{font-size:23px;line-height:1.3;letter-spacing:-.3px;color:var(--text-primary);word-break:keep-all;overflow-wrap:break-word}
   .pair-body{font-size:15px;line-height:1.6;color:var(--text-secondary);margin-top:3px}
   .pair-meta{border-top:1px solid var(--border);padding-top:10px}
-  .pair-theme{font-family:var(--ui);font-size:12px;letter-spacing:.2px;text-transform:uppercase;color:var(--accent);font-weight:600}
-  .pair-fonts{font-family:var(--ui);font-size:12px;color:var(--text-muted);margin-top:6px;overflow-wrap:break-word}
+  .pair-theme{font-family:var(--mono);font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .pair-fonts{font-family:var(--mono);font-size:10.5px;color:var(--text-muted);margin-top:6px;overflow-wrap:break-word}
   .pair-fonts b{color:var(--text-secondary);font-weight:600}
   .pair-fonts .plus{margin:0 5px;color:var(--text-muted)}
-
-  /* ── 폰트 조합 찾기 모달 ──
-     클래스명에 'overlay'가 들어가야 한다 — 뒤로가기(bfcache) 복구 핸들러가
-     [class*="overlay"]로 열린 오버레이를 닫는다. 빼면 되돌아왔을 때 굳는다. */
-  .fp-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;
-    align-items:flex-start;justify-content:center;padding:28px 24px;overflow-y:auto}
-  .fp-overlay.open{display:flex}
-  .fp-sheet{background:var(--bg-card);border-radius:12px;max-width:1180px;width:100%;
-    box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
-  .fp-head{padding:22px 28px 18px;border-bottom:1px solid var(--border);display:flex;
-    align-items:flex-start;justify-content:space-between;gap:16px}
-  .fp-head h2{font-size:19px;font-weight:800;letter-spacing:-.03em;margin:0 0 4px}
-  .fp-head p{margin:0;font-size:12.5px;color:var(--text-muted)}
-  .fp-x{border:none;background:none;font-size:24px;line-height:1;color:var(--text-muted);
-    cursor:pointer;padding:0 4px;flex:0 0 auto}
-  .fp-textbar{display:flex;gap:12px;padding:16px 28px;background:var(--bg-secondary);
-    border-bottom:1px solid var(--border);flex-wrap:wrap}
-  .fp-field{flex:1 1 220px;min-width:0}
-  .fp-field label{display:block;font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:5px}
-  .fp-field input{width:100%;border:1px solid var(--border);border-radius:4px;padding:9px 11px;
-    font-size:13.5px;font-family:inherit;background:var(--bg-card);color:var(--text-primary)}
-  .fp-field input:focus{outline:none;border-color:var(--accent)}
-  .fp-body{padding:24px 28px}
-  /* .pairs는 340px 사이드바 전용(세로 1열)이라 모달에서만 격자로 덮는다.
-     카드 글자 크기도 같이 키운다 — .pair-title 23px / .pair-body 15px은
-     좁은 사이드바에 맞춘 값이라, 넓은 모달에서는 견본이 작아 답답해 보인다. */
-  #fpModal .pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
-  #fpModal .pair-card{padding:22px 22px 18px}
-  #fpModal .pair-stage{margin-bottom:14px}
-  #fpModal .pair-title{font-size:28px;line-height:1.28}
-  #fpModal .pair-body{font-size:16.5px;margin-top:5px}
-  #fpModal .pair-meta{padding-top:12px}
-  .fp-state{padding:38px 20px;text-align:center;color:var(--text-muted);font-size:13.5px}
-  .fp-actions{padding:4px 28px 24px;text-align:center}
-  .fp-reroll{border:1px solid var(--border-hover);background:var(--bg-card);color:var(--text-primary);
-    font-family:inherit;font-size:13px;font-weight:700;border-radius:22px;padding:10px 20px;cursor:pointer;
-    display:inline-flex;align-items:center;gap:7px}
-  .fp-reroll:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
-  .fp-reroll:disabled{opacity:.5;cursor:default}
-  .fp-foot{border-top:1px solid var(--border);padding:16px 28px;text-align:center}
-  .fp-foot a{font-size:13px;font-weight:700;color:var(--accent);text-decoration:none}
-  /* 조합이 없는 폰트(펜시 등)의 사이드바 대체 카드 */
-  .pair-teaser{border:1px dashed var(--border-hover);border-radius:4px;padding:20px 16px;text-align:center}
-  .pair-teaser p{margin:0 0 12px;font-size:12.5px;color:var(--text-secondary);line-height:1.5}
-  .pair-teaser button{border:1px solid var(--accent);background:var(--accent);color:#fff;font-family:inherit;
-    font-size:12.5px;font-weight:700;border-radius:3px;padding:9px 16px;cursor:pointer;width:100%}
-  @media(max-width:640px){
-    .fp-overlay{padding:0;align-items:flex-end}
-    .fp-sheet{border-radius:14px 14px 0 0;max-height:92vh;overflow-y:auto}
-    #fpModal .pairs{grid-template-columns:1fr}
-  }
 
   /* ── RELATED (사이드바) ── */
   .rel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -510,6 +427,39 @@
       .clr-grid{grid-template-columns:repeat(7,1fr)}
     }
   </style>
+    /* ══ 폰트박스 앱 배너 (iOS 전용) ══
+       하단 고정. 전면 팝업이 아니라 본문을 덮지 않는 형태여야
+       구글 모바일 인터스티셜 페널티를 받지 않는다. */
+    .fbx{position:fixed;left:12px;right:12px;bottom:12px;z-index:850;
+      display:none;align-items:center;gap:12px;
+      background:var(--bg-card);border:1px solid var(--border);
+      border-radius:14px;padding:12px 14px;
+      box-shadow:0 8px 28px rgba(0,0,0,.18);
+      /* 아이폰 하단 홈 인디케이터에 가리지 않게 */
+      margin-bottom:env(safe-area-inset-bottom,0)}
+    .fbx.show{display:flex;animation:fbxUp .28s cubic-bezier(.2,.8,.3,1)}
+    @keyframes fbxUp{from{transform:translateY(120%);opacity:0}to{transform:none;opacity:1}}
+    .fbx-ico{width:52px;height:52px;border-radius:12px;flex:0 0 auto;
+      border:1px solid var(--border)}
+    .fbx-txt{flex:1;min-width:0;line-height:1.35}
+    .fbx-txt b{display:block;font-size:14.5px;font-weight:800;margin-bottom:2px}
+    /* 주 카피와 부제를 크기·색으로 갈라 위계를 만든다.
+       같은 굵기·같은 색이면 두 줄이 한 문장처럼 붙어 읽혀서
+       무엇이 핵심인지 사라진다. */
+    .fbx-txt span{display:block;word-break:keep-all}
+    .fbx-s1{font-size:11.5px;color:var(--text-secondary)}
+    .fbx-s2{font-size:10.5px;color:var(--text-muted,#9A9A9A);margin-top:1px}
+    .fbx-cta{flex:0 0 auto;background:var(--accent);color:#fff;
+      font-size:13.5px;font-weight:800;padding:10px 18px;border-radius:999px;
+      text-decoration:none;white-space:nowrap}
+    .fbx-cta:active{opacity:.85}
+    /* 닫기는 배너 바깥 위쪽에 띄워 터치 영역이 겹치지 않게 한다 */
+    .fbx-x{position:absolute;top:-10px;right:-4px;width:28px;height:28px;
+      border:1px solid var(--border);border-radius:50%;background:var(--bg-card);
+      color:var(--text-secondary);font-size:17px;line-height:1;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;padding:0;
+      box-shadow:0 2px 8px rgba(0,0,0,.14)}
+    @media(prefers-reduced-motion:reduce){.fbx.show{animation:none}}
 
 </style>
 </head>
@@ -535,11 +485,11 @@
       <div class="title-row">
         <span class="foundry" id="fontMaker"></span>
         <h1 id="fontName"></h1>
-        <p class="font-summary" id="fontSummary"></p>
+        <div class="tags" id="fontTags"></div>
       </div>
       <div class="title-actions">
         <button class="btn-dl" id="downloadBtn">⬇ 무료 다운로드</button>
-        <a class="btn-design" id="designBtnTop" href="#pairings">폰트 조합 찾기</a>
+        <a class="btn-design" id="designBtnTop" href="#">이 폰트로 텍스트 디자인</a>
       </div>
     </div>
 
@@ -604,18 +554,17 @@
         <section class="blk">
           <div class="lic-head">
             <div class="lic-title"><i class="ti ti-shield-check"></i> 라이선스 요약</div>
-            <span class="lic-badge" id="licBadge"></span>
           </div>
-          <div class="lic-pending" id="licPending" hidden>
-            <i class="ti ti-alert-triangle"></i>
-            <div>
-              <b>아직 확인하지 못한 폰트입니다.</b>
-              아래 표는 <u>확인된 내용이 아니라 일반적인 무료폰트 기준</u>이므로 그대로 믿고 쓰시면 안 됩니다.
-              사용 전에 반드시 저작권자 페이지에서 직접 확인해 주세요.
-            </div>
+          <div class="lic-grid">
+            <div class="lic-item"><span class="ck y">✓</span><div><div class="lic-item-t">인쇄</div><div class="lic-item-d">브로슈어, 포스터, 책, 잡지 및 출판용 인쇄물 등</div></div></div>
+            <div class="lic-item"><span class="ck y">✓</span><div><div class="lic-item-t">웹사이트</div><div class="lic-item-d">웹페이지, 광고 배너, 메일, E-브로슈어 등</div></div></div>
+            <div class="lic-item"><span class="ck y">✓</span><div><div class="lic-item-t">포장지</div><div class="lic-item-d">판매용 상품의 패키지</div></div></div>
+            <div class="lic-item"><span class="ck y">✓</span><div><div class="lic-item-t">영상</div><div class="lic-item-d">유튜브, CF, 상업영화, 뮤직비디오, 영상 자막, 오프닝/엔딩 크레딧 등</div></div></div>
+            <div class="lic-item"><span class="ck y">✓</span><div><div class="lic-item-t">임베딩</div><div class="lic-item-d">웹사이트 및 프로그램 서버 내 폰트 탑재, E-book 제작</div></div></div>
+            <div class="lic-item"><span class="ck y">✓</span><div><div class="lic-item-t">BI/CI</div><div class="lic-item-d">회사명, 브랜드명, 상품명, 로고, 마크, 슬로건, 캐치프레이즈</div></div></div>
+            <div class="lic-item no" style="grid-column:1/-1"><span class="ck n">✕</span><div><div class="lic-item-t">폰트 파일 재배포</div><div class="lic-item-d">폰트 파일의 수정·복제·배포 및 유료 판매 모두 금지 (OFL 기준)</div></div></div>
           </div>
-          <div class="lic-grid" id="licGrid"></div>
-          <p class="lic-note" id="licNote"></p>
+          <p class="lic-note">※ 사용범위는 참고용입니다. 정확한 범위는 이용 전 폰트 저작권자에게 확인하세요.</p>
         </section>
 
       </div>
@@ -684,10 +633,15 @@
     try{ localStorage.setItem('ffp-theme', next); }catch(e){}
     applyThemeIcons();
   };
-  // 헤더 검색창 Enter 처리는 app/header.py가 헤더와 함께 넣는다.
-  // 페이지마다 복사해두면 새 페이지에서 반드시 빠진다 — /use·/gif가 그랬다.
+  window.goSearch = function(q){
+    q = (q||'').trim();
+    if(!q) return;
+    location.href = '/#search/' + encodeURIComponent(q);
+  };
   // 공유 헤더의 "폰트 찾기" 링크가 호출하는 함수 — 이 페이지는 SPA가 아니므로 기본 이동만 허용
   window.navFindFont = window.navFindFont || function(){};
+  var _gsEl = document.getElementById('globalSearch');
+  if(_gsEl) _gsEl.addEventListener('keydown', function(e){ if(e.key === 'Enter') window.goSearch(e.target.value); });
   applyThemeIcons();
   if(window.matchMedia){
     var mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -906,70 +860,6 @@
   /* 한글이 섞여 있는지 — 한글 음절·자모 모두 본다 */
   function hasHangul(s){ return /[\uAC00-\uD7A3\u3131-\u318E]/.test(s || ''); }
 
-  /* ── 라이선스 ────────────────────────────────────────────────
-     meta.license가 있으면 그 폰트의 실제 약관을, 없으면 '확인 중'으로 그린다.
-     예전에는 이 표가 HTML에 하드코딩돼 있어서 모든 폰트가 똑같은 체크 6개를
-     보여줬다. 폰트마다 허용 범위가 다르므로(임베딩·BI/CI를 막는 폰트가 실제로
-     있다) 근거가 없으면 허용으로 단정하지 않는다. */
-  var LIC_AXES = [
-    ['print',  '인쇄',        '브로슈어, 포스터, 책, 잡지 및 출판용 인쇄물 등'],
-    ['web',    '웹사이트',     '웹페이지, 광고 배너, 메일, E-브로슈어 등'],
-    ['package','포장지',       '판매용 상품의 패키지'],
-    ['video',  '영상',        '유튜브, CF, 상업영화, 뮤직비디오, 영상 자막, 오프닝/엔딩 크레딧 등'],
-    ['embed',  '임베딩',       '웹사이트 및 프로그램 서버 내 폰트 탑재, E-book 제작'],
-    ['bici',   'BI/CI',      '회사명, 브랜드명, 상품명, 로고, 마크, 슬로건, 캐치프레이즈'],
-    ['modify', '폰트 파일 수정',  '자형을 고치거나 다른 형식으로 변환해 파생 폰트를 만드는 것'],
-    ['redist', '폰트 파일 재배포', '폰트 파일 자체를 다시 배포하거나 판매하는 것']
-  ];
-  var LIC_MARK = { y:['y','✓'], n:['n','✕'], q:['q','?'] };
-
-  function licEsc(s){
-    return String(s == null ? '' : s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  function renderLicense(f){
-    var lic   = (f && f.meta && f.meta.license) || null;
-    var perms = (lic && lic.perms) || {};
-    var known = !!(lic && lic.verified);
-
-    var grid    = document.getElementById('licGrid');
-    var badge   = document.getElementById('licBadge');
-    var pending = document.getElementById('licPending');
-    var note    = document.getElementById('licNote');
-
-    grid.innerHTML = LIC_AXES.map(function(a){
-      // 확인된 폰트만 실제 값을 쓴다. 미확인이면 전부 '?'로 두고 표를 눌러 놓는다.
-      var v = known ? (perms[a[0]] || 'q') : 'q';
-      var m = LIC_MARK[v] || LIC_MARK.q;
-      return '<div class="lic-item' + (v === 'n' ? ' no' : '') + '">' +
-               '<span class="ck ' + m[0] + '">' + m[1] + '</span>' +
-               '<div><div class="lic-item-t">' + licEsc(a[1]) + '</div>' +
-               '<div class="lic-item-d">' + licEsc(a[2]) + '</div></div></div>';
-    }).join('');
-
-    grid.classList.toggle('pending', !known);
-    pending.hidden = known;
-    badge.className = 'lic-badge ' + (known ? 'ok' : 'pending');
-    badge.textContent = known ? (lic.name || '라이선스 확인됨') : '확인 중';
-
-    var parts = [];
-    if (known && lic.note) parts.push(licEsc(lic.note));
-    // license.source(확인 근거)는 화면에 내보내지 않는다 — 값을 어디서 가져왔는지
-    // 추적하려고 데이터에만 남기는 운영용 필드다. 어드민에서만 확인한다.
-    if (lic && lic.url) {
-      parts.push('원문: <a href="' + licEsc(lic.url) + '" target="_blank" rel="noopener nofollow">' +
-                 licEsc(lic.url) + '</a>');
-    } else if (f && f.url) {
-      parts.push('배포처: <a href="' + licEsc(f.url) + '" target="_blank" rel="noopener nofollow">' +
-                 licEsc(f.maker || f.url) + '</a>');
-    }
-    parts.push(known
-      ? '※ 요약본입니다. 정확한 범위는 이용 전 원문을 확인하세요.'
-      : '※ 폰트픽이 아직 확인하지 못했습니다. 이용 전 저작권자에게 직접 확인하세요.');
-    note.innerHTML = parts.join('<br>');
-  }
-
   function previewDefault(){
     if (FONT && FONT.is_english){
       // 영문 전용 폰트에는 한글 문구를 넣지 않는다.
@@ -1021,48 +911,29 @@
     document.querySelectorAll('.w-sample').forEach(function(el){ el.textContent = v; });
   }
 
-  /* 카드 한 장의 HTML. 사이드바(#pairGrid)와 조합 찾기 모달이 함께 쓴다.
-     문구는 data-속성에 원본을 남겨둔다 — 모달에서 사용자가 자기 문구를
-     넣었다가 지우면 원래 예시로 되돌려야 하기 때문이다. */
-  function pairCardHtml(p){
-    var tw = p.title_weight || 700;
-    var bw = p.body_weight || 400;
-    var titleStack = ensureFontForPair(p.title_font, tw);
-    var bodyStack = ensureFontForPair(p.body_font, bw);
-    var partner = (p.title_font.id === fid) ? p.body_font : p.title_font;
-    return '<a class="pair-card" href="/font/' + partner.id + '">' +
-      '<div class="pair-stage">' +
-        '<div class="pair-title" data-orig="' + esc(p.sample_title) + '" style="font-family:' + titleStack + ';font-weight:' + tw + '">' + esc(p.sample_title) + '</div>' +
-        '<div class="pair-body" data-orig="' + esc(p.sample_body) + '" style="font-family:' + bodyStack + ';font-weight:' + bw + '">' + esc(p.sample_body) + '</div>' +
-      '</div>' +
-      '<div class="pair-meta">' +
-        '<span class="pair-theme">' + esc(p.theme) + '</span>' +
-        '<div class="pair-fonts"><b>' + esc(p.title_font.name) + '</b> 제목<span class="plus">+</span><b>' +
-          esc(p.body_font.name) + '</b> 본문</div>' +
-      '</div></a>';
-  }
-
   function renderPairings(list){
+    if (!list || !list.length) return;
     var sec = document.getElementById('pairingSec');
-    var sub = document.getElementById('pairingSub');
-    var grid = document.getElementById('pairGrid');
-
-    if (!list || !list.length){
-      /* 저장된 조합이 없는 폰트(펜시 계열 등)에서 섹션을 통째로 숨기면
-         "조합" 기능이 있는지조차 알 수 없다. 대신 모달 진입로를 둔다.
-         여기서 자동 생성을 미리 부르지는 않는다 — 수백 ms짜리 호출이
-         모든 상세페이지 조회에 붙게 된다. */
-      sub.textContent = '아직 정리된 조합이 없어요.';
-      grid.innerHTML =
-        '<div class="pair-teaser"><p>분위기와 용도가 맞는 폰트를<br>지금 찾아볼 수 있어요.</p>' +
-        '<button type="button" onclick="fpOpen()">조합 찾아보기</button></div>';
-      sec.classList.remove('hidden');
-      return;
-    }
-
-    sub.textContent =
+    document.getElementById('pairingSub').textContent =
       FONT.name + '이(가) 들어간 추천 페어링이에요. 카드를 누르면 상대 폰트 페이지로 이동합니다.';
-    grid.innerHTML = list.slice(0, 6).map(pairCardHtml).join('');
+    var grid = document.getElementById('pairGrid');
+    grid.innerHTML = list.slice(0, 6).map(function(p){
+      var tw = p.title_weight || 700;
+      var bw = p.body_weight || 400;
+      var titleStack = ensureFontForPair(p.title_font, tw);
+      var bodyStack = ensureFontForPair(p.body_font, bw);
+      var partner = (p.title_font.id === fid) ? p.body_font : p.title_font;
+      return '<a class="pair-card" href="/font/' + partner.id + '">' +
+        '<div class="pair-stage">' +
+          '<div class="pair-title" style="font-family:' + titleStack + ';font-weight:' + tw + '">' + esc(p.sample_title) + '</div>' +
+          '<div class="pair-body" style="font-family:' + bodyStack + ';font-weight:' + bw + '">' + esc(p.sample_body) + '</div>' +
+        '</div>' +
+        '<div class="pair-meta">' +
+          '<span class="pair-theme">' + esc(p.theme) + '</span>' +
+          '<div class="pair-fonts"><b>' + esc(p.title_font.name) + '</b> 제목<span class="plus">+</span><b>' +
+            esc(p.body_font.name) + '</b> 본문</div>' +
+        '</div></a>';
+    }).join('');
     sec.classList.remove('hidden');
   }
 
@@ -1102,14 +973,11 @@
       } else {
         introSec.classList.add('hidden');
       }
-      /* 폰트명 아래에는 카테고리 태그 대신 어드민이 쓴 한 줄 설명을 둔다.
-         굵기 종수는 아래 '굵기별 보기' 섹션 제목(#weightsLabel)에 이미 있다. */
-      var sumEl = document.getElementById('fontSummary');
-      var summary = (f.meta && f.meta.summary) ? String(f.meta.summary).trim() : '';
-      if (summary) { sumEl.textContent = summary; }
-      else { sumEl.classList.add('hidden'); }
+      var tags = [];
+      (f.tags || []).forEach(function(t){ tags.push('<span class="tag">' + esc(t) + '</span>'); });
+      tags.push('<span class="tag">' + esc(f.weights || '1종') + '</span>');
+      document.getElementById('fontTags').innerHTML = tags.join('');
       document.getElementById('weightsLabel').textContent = f.weights || '1종';
-      renderLicense(f);
 
       var input = document.getElementById('tryInput');
       // 입력창 초기값도 같은 규칙 — 영문 폰트에 한글 문구를 미리 채우지 않는다
@@ -1189,7 +1057,7 @@
           }
         }
       } catch(e){}
-      var _dtop = document.getElementById('designBtnTop'); if (_dtop){ _dtop.onclick = function(ev){ ev.preventDefault(); fpOpen(); }; }
+      var _dtop = document.getElementById('designBtnTop'); if (_dtop){ _dtop.setAttribute('href', '/font/' + f.id + '/design'); _dtop.onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); }; }
       fetchRelated(f);
 
       /* /font/{id}/design으로 직접 접속(또는 검색엔진 유입)한 경우: 상세페이지
@@ -1202,96 +1070,6 @@
     .then(function(r){ return r && r.ok ? r.json() : []; })
     .then(renderPairings)
     .catch(function(){ location.href = '/'; });
-
-  /* ══════════════════════════════════════════════════════
-     폰트 조합 찾기 모달
-
-     저장된 큐레이션이 아니라 매번 새로 생성한다. 그래야 "다른 조합 보기"가
-     의미를 갖는다(생성기는 호출마다 다른 결과를 낸다).
-     페이지 로드 시에는 부르지 않는다 — 이 API는 수백 ms가 걸려서 모든
-     상세페이지 조회에 붙이면 손해다. 버튼을 누른 순간에만 호출한다.
-  ══════════════════════════════════════════════════════ */
-  var fpBusy = false, fpBound = false;
-
-  /* 모달 마크업은 이 <script>보다 뒤에 있다. 파싱 시점에 바인딩하면 요소가
-     아직 없어 널 참조가 난다. 처음 열 때 한 번만 묶는다. */
-  function fpBind(){
-    if (fpBound) return;
-    fpBound = true;
-    document.getElementById('fpReroll').onclick = fpLoad;
-    document.getElementById('fpClose').onclick = fpClose;
-    document.getElementById('fpTitleInput').addEventListener('input', fpApplyText);
-    document.getElementById('fpBodyInput').addEventListener('input', fpApplyText);
-    document.getElementById('fpModal').addEventListener('click', function(e){
-      if (e.target === this) fpClose();          // 바깥 클릭으로 닫기
-    });
-    document.addEventListener('keydown', function(e){
-      if (e.key === 'Escape') fpClose();
-    });
-    document.getElementById('fpToDesign').onclick = function(ev){
-      ev.preventDefault();
-      fpClose();
-      if (FONT) dsOpenFor(FONT);
-    };
-  }
-
-  function fpOpen(){
-    fpBind();
-    document.getElementById('fpModal').classList.add('open');
-    var t = document.getElementById('fpTitle');
-    if (t && FONT) t.textContent = FONT.name + '과(와) 어울리는 조합';
-    if (!document.getElementById('fpGrid').children.length) fpLoad();
-  }
-  function fpClose(){ document.getElementById('fpModal').classList.remove('open'); }
-
-  function fpLoad(){
-    if (fpBusy) return;
-    fpBusy = true;
-    var btn = document.getElementById('fpReroll');
-    var grid = document.getElementById('fpGrid');
-    var state = document.getElementById('fpState');
-    if (btn) btn.disabled = true;
-    state.textContent = '어울리는 조합을 찾는 중…';
-    state.style.display = '';
-    grid.innerHTML = '';
-
-    fetch('/api/pairings/auto-generate?font_id=' + fid + '&top_n=6')
-      .then(function(r){ if(!r.ok) throw new Error('실패'); return r.json(); })
-      .then(function(list){
-        if (!list || !list.length){
-          state.textContent = '이 폰트와 묶을 만한 짝을 찾지 못했어요.';
-          return;
-        }
-        state.style.display = 'none';
-        grid.innerHTML = list.map(pairCardHtml).join('');
-        fpApplyText();
-      })
-      .catch(function(){
-        /* 여기서 location.href를 건드리면 안 된다 — 위 체인처럼 홈으로 튕기면
-           재시도 한 번 실패에 사용자가 페이지를 잃는다. */
-        state.textContent = '불러오지 못했어요. 다시 시도해 주세요.';
-      })
-      .then(function(){
-        fpBusy = false;
-        /* 연타로 서버를 두들기지 않도록 짧은 쿨다운 */
-        setTimeout(function(){ if (btn) btn.disabled = false; }, 600);
-      });
-  }
-
-  /* 사용자가 넣은 문구를 6장에 한 번에 적용. 비우면 원래 예시로 되돌린다. */
-  function fpApplyText(){
-    var t = (document.getElementById('fpTitleInput').value || '').trim();
-    var b = (document.getElementById('fpBodyInput').value || '').trim();
-    document.querySelectorAll('#fpGrid .pair-title').forEach(function(el){
-      el.textContent = t || el.getAttribute('data-orig') || '';
-    });
-    document.querySelectorAll('#fpGrid .pair-body').forEach(function(el){
-      el.textContent = b || el.getAttribute('data-orig') || '';
-    });
-  }
-
-  /* 조합이 없어 사이드바가 비는 폰트(펜시 등)의 대체 카드에서도 연다 */
-  window.fpOpen = fpOpen;
 })();
 
 /* 뒤로/앞으로가기 캐시(bfcache)로 이 상세페이지가 복원될 때, 직전 디자인 페이지에서
@@ -1306,41 +1084,6 @@ window.addEventListener('pageshow', function(e){
   document.body.style.position='';
 });
 </script>
-
-<!-- ══ 폰트 조합 찾기 모달 ══
-     클래스에 'overlay'가 들어가야 위 pageshow 핸들러가 뒤로가기 복구 시 닫아준다. -->
-<div class="fp-overlay" id="fpModal" role="dialog" aria-modal="true" aria-labelledby="fpTitle">
-  <div class="fp-sheet">
-    <div class="fp-head">
-      <div>
-        <h2 id="fpTitle">어울리는 조합</h2>
-        <p>제목·본문을 어떤 폰트와 짝지을지 골라보세요. 카드를 누르면 상대 폰트로 이동합니다.</p>
-      </div>
-      <button class="fp-x" id="fpClose" aria-label="닫기">&times;</button>
-    </div>
-
-    <div class="fp-textbar">
-      <div class="fp-field">
-        <label for="fpTitleInput">제목 문구</label>
-        <input id="fpTitleInput" maxlength="40" placeholder="비우면 예시 문구가 나와요">
-      </div>
-      <div class="fp-field">
-        <label for="fpBodyInput">본문 문구</label>
-        <input id="fpBodyInput" maxlength="90" placeholder="여기에 쓰면 아래 조합에 한 번에 적용돼요">
-      </div>
-    </div>
-
-    <div class="fp-body">
-      <div class="fp-state" id="fpState">어울리는 조합을 찾는 중…</div>
-      <div class="pairs" id="fpGrid"></div>
-    </div>
-    <div class="fp-actions">
-      <button class="fp-reroll" id="fpReroll" type="button">↻ 다른 조합 보기</button>
-    </div>
-
-    <div class="fp-foot"><a href="#" id="fpToDesign">이 폰트로 텍스트 디자인 →</a></div>
-  </div>
-</div>
 
 <!-- ══ 텍스트 디자인 모달 (index.html에서 이관) ══ -->
 <!-- TEXT DESIGNER MODAL -->
@@ -2240,5 +1983,77 @@ function dsDownloadFile(){
 }
 
 </script>
+
+<!-- ══ 폰트박스 앱 배너 (iOS 전용) ══════════════════════
+     구글 모바일 인터스티셜 페널티를 피하려고 두 가지를 지킨다.
+       ① 진입 즉시가 아니라 '스크롤 60%' 이후에만 뜬다 — 크롤러는 스크롤하지 않으므로
+          색인·순위에 영향이 없다.
+       ② 본문을 덮지 않는 하단 고정 배너다. 전면 팝업이 아니다.
+     닫으면 7일간 다시 뜨지 않는다. -->
+<div class="fbx" id="fbxBanner" role="complementary" aria-label="폰트박스 앱 안내">
+  <button type="button" class="fbx-x" onclick="fbxClose()" aria-label="닫기">&times;</button>
+  <img class="fbx-ico" src="/static/fontbox-icon.png" width="52" height="52" alt="" aria-hidden="true">
+  <div class="fbx-txt">
+    <b>폰트박스</b>
+    <span class="fbx-s1">한글 무료폰트 200종 바로 설치</span>
+    <span class="fbx-s2">카카오톡 서체 바꾸기</span>
+  </div>
+  <a class="fbx-cta" href="https://apps.apple.com/kr/app/id6795770873"
+     target="_blank" rel="noopener noreferrer" onclick="fbxSeen()">받기</a>
+</div>
+
+<script>
+/* ══ 폰트박스 앱 배너 (iOS 전용) ══════════════════════
+   판별에 maxTouchPoints를 함께 보는 이유: iPadOS 13부터 아이패드 사파리가
+   자신을 Macintosh로 신고한다. 흔히 쓰는 /iPad/ 검사로는 아이패드가 통째로
+   빠진다. 맥에는 터치가 없으므로 'Mac + 터치 지원'이면 아이패드로 본다.
+   크롬·파이어폭스 iOS판도 내부는 웹킷이라 CriOS/FxiOS로 함께 잡는다. */
+function fbxIsIOS(){
+  var ua = navigator.userAgent || '';
+  if(/iPhone|iPad|iPod|CriOS|FxiOS/.test(ua)) return true;
+  return /Mac/.test(ua) && navigator.maxTouchPoints > 1;   // iPadOS 13+
+}
+var FBX_KEY = 'ffp-fbx-dismissed';
+function fbxSeen(){
+  try{ localStorage.setItem(FBX_KEY, String(Date.now())); }catch(e){}
+}
+function fbxClose(){
+  var el = document.getElementById('fbxBanner');
+  if(el) el.classList.remove('show');
+  fbxSeen();
+}
+(function(){
+  if(!fbxIsIOS()) return;
+  // 닫은 지 7일이 안 지났으면 띄우지 않는다
+  try{
+    var t = parseInt(localStorage.getItem(FBX_KEY) || '0', 10);
+    if(t && Date.now() - t < 7*24*60*60*1000) return;
+  }catch(e){}
+
+  var shown = false;
+  function check(){
+    if(shown) return;
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    // 페이지가 짧아 스크롤이 없으면 60% 도달이 영원히 안 온다 → 6초 뒤 노출
+    if(max < 200) return;
+    if((h.scrollTop || document.body.scrollTop) / max < 0.6) return;
+    shown = true;
+    window.removeEventListener('scroll', check);
+    var el = document.getElementById('fbxBanner');
+    if(el) el.classList.add('show');
+  }
+  window.addEventListener('scroll', check, {passive:true});
+  setTimeout(function(){
+    var h = document.documentElement;
+    if(!shown && h.scrollHeight - h.clientHeight < 200){
+      shown = true;
+      var el = document.getElementById('fbxBanner');
+      if(el) el.classList.add('show');
+    }
+  }, 6000);
+})();
+</script>
+
 </body>
 </html>

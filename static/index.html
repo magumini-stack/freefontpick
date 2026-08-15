@@ -90,10 +90,7 @@
   }
   </script>
 
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/favicon.png">
   <meta name="google-adsense-account" content="ca-pub-6258337579944977">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6258337579944977"
        crossorigin="anonymous"></script>
@@ -279,8 +276,32 @@
       .faq-q{padding:13px 14px;font-size:13.5px}
     }
 
-    /* [제거 2026-08] 큐레이터 픽 — 마크업(#picksSection/#picksList)이 사라져서
-       .picks-* / .pick-* 스타일도 함께 지웠다. 되살리려면 git 히스토리 참고. */
+    /* CURATOR PICKS */
+    .picks-section{max-width:1240px;margin:0 auto;padding:0 24px 32px}
+    .picks-head{margin-bottom:6px}
+    .picks-title{font-size:18px;font-weight:800;color:var(--text-primary);letter-spacing:-.3px;display:flex;align-items:center;gap:10px}
+    .picks-badge{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10.5px;font-weight:700;letter-spacing:.6px;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:2px 7px}
+    .picks-desc{font-size:12.5px;color:var(--text-muted);margin-top:6px;margin-bottom:18px}
+    .picks-list{display:grid;grid-template-columns:repeat(2,1fr);gap:0 32px}
+    .pick-row{display:flex;align-items:center;gap:16px;padding:16px 4px;border-top:1px solid var(--border);cursor:pointer;transition:padding-left .18s;text-decoration:none;color:inherit;min-width:0}
+    .pick-row:nth-child(-n+2){border-top:none}
+    .pick-row:hover{padding-left:10px}
+    .pick-rank{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:12px;color:var(--text-muted);width:22px;flex-shrink:0;font-weight:500}
+    .pick-row:first-child .pick-rank{color:var(--accent);font-weight:700}
+    .pick-mark{width:14px;flex-shrink:0;color:var(--accent);font-weight:800;font-size:13px;text-align:center}
+    .pick-specimen{flex:1;font-size:clamp(17px,2.6vw,22px);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px;min-width:0;color:var(--text-primary)}
+    .pick-meta{flex-shrink:0;text-align:right;min-width:100px}
+    .pick-name{font-size:12.5px;font-weight:700;color:var(--text-primary)}
+    .pick-tag{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10px;color:var(--text-muted);margin-top:1px}
+    @media(max-width:700px){
+      .picks-list{grid-template-columns:1fr}
+      .pick-row:nth-child(-n+2){border-top:1px solid var(--border)}
+      .pick-row:first-child{border-top:none}
+    }
+    @media(max-width:480px){
+      .pick-meta{display:none}
+      .pick-specimen{font-size:17px}
+    }
 
     /* HERO+PICKS 접기 토글 */
     #heroPicksWrap{overflow:hidden;max-height:2000px;transition:max-height .32s ease,opacity .28s ease;opacity:1}
@@ -326,9 +347,9 @@
       color:var(--accent);
       cursor:pointer;
       border-radius:2px;
-      font-size:13px;
+      font-size:12px;
       font-weight:600;
-      font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+      font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
       transition:background-color .15s,color .15s;
       white-space:nowrap;
     }
@@ -368,8 +389,8 @@
     .preset-tabs{display:none}
     .preset-tab{
       border:none;background:none;color:var(--text-secondary);
-      font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
-      font-size:13px;font-weight:600;padding:5px 11px;border-radius:12px;
+      font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+      font-size:12px;font-weight:600;padding:5px 11px;border-radius:12px;
       cursor:pointer;white-space:nowrap;transition:background-color .15s,color .15s;
     }
     .preset-tab:hover{color:var(--text-primary)}
@@ -380,8 +401,8 @@
       border:1px solid var(--border);
       background:none;
       color:var(--text-secondary);
-      font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
-      font-size:13px;
+      font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+      font-size:12.5px;
       font-weight:500;
       padding:8px 12px;
       border-radius:2px;
@@ -392,42 +413,22 @@
     .preset-chip:hover{border-color:var(--text-primary);color:var(--text-primary)}
     .preset-chip.active{border-color:var(--accent);color:var(--accent);font-weight:700}
 
-    /* TAGS — 모양 카테고리 */
-    /* 헤더(position:fixed, height:60px)가 끝나는 자리에 붙인다.
-       갤러리가 아무리 길어도 필터가 화면에서 사라지지 않아야 한다.
-       z-index는 용도 레일(.hub-rail, 10)보다 크고 헤더(200)보다 작게 둔다.
-       레일은 top:124px로 이 바 바로 아래에서 시작한다 — 겹치면 레일 제목이 가린다. */
-    .tags-bar{position:sticky;top:60px;z-index:20;
-      display:flex;align-items:center;gap:10px;
-      /* 고정된 채 뒤로 카드가 지나가므로 배경은 반드시 불투명해야 한다 */
-      background:var(--bg);border-bottom:1px solid var(--border);
-      /* 고정되면 margin은 시각적으로 의미가 없어 padding으로 옮겼다 */
-      padding:10px 0;margin-bottom:16px;scroll-margin-top:60px}
-    .tags-label{font-size:13px;font-weight:700;color:var(--text-secondary);
-      letter-spacing:-.02em;flex:0 0 auto;white-space:nowrap}
+    /* TAGS */
     /* 형태 카테고리는 항상 한 줄로 둔다.
-       줄바꿈을 허용하면 태그가 늘 때마다 바 높이가 들쭉날쭉해지고,
-       고정 바라서 그 변화가 갤러리 전체를 흔든다. 대신 넘치면 가로 스크롤. */
-    .tags-scroll{display:flex;gap:4px;flex-wrap:nowrap;min-width:0;flex:1 1 auto;
-      overflow-x:auto;overscroll-behavior-x:contain;
-      -webkit-overflow-scrolling:touch;
+       줄바꿈을 허용하면 태그가 늘 때마다 레일 높이가 들쭉날쭉해지고,
+       그만큼 갤러리가 아래로 밀린다. 대신 넘치면 가로 스크롤. */
+    .tags-bar{display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;
+      -webkit-overflow-scrolling:touch;margin-bottom:16px;scroll-margin-top:76px;
       scrollbar-width:none;-ms-overflow-style:none;
-      /* 잘리는 쪽 끝을 흐리게 처리해 '더 있다'는 걸 알린다.
-         마스크를 바깥(.tags-bar)에 걸면 배경까지 투명해져 카드가 비친다. */
+      /* 잘리는 쪽 끝을 흐리게 처리해 '더 있다'는 걸 알린다 */
       padding-bottom:2px;
       -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);
       mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);
       -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
-    .tags-scroll::-webkit-scrollbar{display:none}
-    .tag{font-size:13px;padding:6px 11px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500;flex:0 0 auto}
+    .tags-bar::-webkit-scrollbar{display:none}
+    .tag{font-size:11.5px;padding:5px 9px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500;flex:0 0 auto}
     .tag:hover{border-color:var(--text-primary);color:var(--text-primary)}
     .tag.active{color:var(--accent);border-color:var(--accent);font-weight:700;background:none}
-    /* 좁은 화면에서는 라벨이 칩 자리를 너무 먹는다 */
-    @media(max-width:520px){
-      .tags-label{display:none}
-      .tags-bar{gap:0;padding:8px 0}
-      .tag{font-size:12.5px;padding:5px 10px}
-    }
 
     /* FILTER BAR */
     .count-label{font-size:13px;color:var(--text-secondary)}
@@ -437,9 +438,6 @@
     /* 갤러리 — 카드마다 상자를 그리지 않는다.
        190개가 깔리면 테두리가 격자처럼 보여서 정작 폰트 형태가 안 읽힌다.
        구분은 여백과 아래쪽 얇은 선으로만 한다. */
-    /* 카테고리를 고르면 여기로 스크롤한다(setTag → scrollBelowFilter).
-       띄우는 양은 JS가 바 높이를 실측해 계산하므로 여기선 값을 두지 않는다 —
-       두 곳에 적어두면 한쪽만 고쳐져 어긋난다. */
     .font-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0 28px;grid-auto-flow:dense}
     .font-card{cursor:pointer;background:none;border:none;border-bottom:1px solid var(--border);
       border-radius:0;padding:24px 2px 20px;transition:background-color .15s;position:relative;
@@ -492,13 +490,12 @@
       .body-cols{margin-left:-230px}
     }
     .hub-rail{position:sticky;
-      /* 헤더(fixed 60px) + 모양 필터 바(.tags-bar, 고정, 약 56px)를 지나야
-         레일 제목과 첫 칸이 안 가린다. 60 + 56 + 여백 8 = 124px.
-         헤더 높이나 필터 바 높이를 바꾸면 이 값도 같이 바꿔야 한다. */
-      top:124px;z-index:10;opacity:0;transform:translateX(-10px);pointer-events:none;
+      /* 헤더가 position:fixed(높이 60px)라 그만큼 내려야 첫 칸이 안 가린다.
+         60 + 여백 16 = 76px. 헤더 높이를 바꾸면 이 값도 같이 바꿔야 한다. */
+      top:76px;z-index:10;opacity:0;transform:translateX(-10px);pointer-events:none;
       /* 허브가 늘어나면 레일 세로가 화면을 넘길 수 있다.
          스티키 컬럼이 화면보다 길면 아래쪽 항목에 영영 닿지 못한다. */
-      max-height:calc(100vh - 140px);overflow-y:auto;scrollbar-width:thin;
+      max-height:calc(100vh - 92px);overflow-y:auto;scrollbar-width:thin;
       transition:opacity .25s ease,transform .25s ease}
     .hub-rail.show{opacity:1;transform:none;pointer-events:auto}
     /* 모노 스택에는 한글 글리프가 없어 '용도별 추천'이 OS 기본 고딕으로 떨어졌다.
@@ -529,16 +526,16 @@
     .view-btn.on{color:var(--accent);border-color:var(--accent)}
     .view-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
 
-    /* 추천 카드 스타일
-       [2026-08] 왼쪽 세로선(inset box-shadow) 제거. 검색하면 결과가 추천 모드로
-       렌더되면서 모든 카드에 파란 선이 붙었는데, 그걸 설명하던 '추천 매칭' 배지는
-       이미 걷어낸 뒤라 선만 남아 정체불명의 줄로 보였다.
-       추천 모드 자체는 유지된다 — '다른 추천 N개 더 보기' 버튼이 그 역할을 한다. */
+    /* 추천 카드 스타일 */
+    .font-card.is-recommend{box-shadow:inset 2px 0 0 var(--accent);padding-left:14px}
+    .recommend-match{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-light);padding:5px 9px;border-radius:12px;margin-bottom:10px;align-self:flex-start;line-height:1.3}
+    .recommend-match i{font-size:13px}
     .recommend-more-btn{display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-size:13px;font-weight:700;color:var(--accent);background:var(--bg-card);border:1.5px dashed var(--accent);border-radius:24px;padding:12px 22px;cursor:pointer;transition:all .15s}
     .recommend-more-btn:hover{background:var(--accent);color:#fff;border-style:solid}
     .recommend-more-btn i{font-size:15px}
     .recommend-more-btn small{font-weight:400;opacity:.8;font-size:11px}
     .font-card:hover{background:var(--bg-card)}
+    .font-card.is-recommend:hover{background:var(--bg-card);box-shadow:inset 2px 0 0 var(--accent)}
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
     /* 앱 광고 카드 — 갤러리 첫 번째 칸 */
@@ -600,6 +597,9 @@
     .font-name{font-size:13.5px;font-weight:700;color:var(--text-primary);margin-bottom:2px;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .font-maker{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .font-weights{font-size:11px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+    .font-tags-row{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
+    .font-tags-row:empty{display:none}
+    .font-tag-pill{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:10px;padding:2px 7px;border-radius:2px;border:1px solid var(--border);color:var(--text-muted);font-weight:500}
 
     /* 자세히 보기 — 카드 오른쪽 위 모서리에 아이콘만.
        텍스트 링크를 190행에 반복하면 견본보다 그게 먼저 보인다. */
@@ -767,16 +767,50 @@
       .header-inner .search-wrap input:focus{width:100%}
       .hero{padding:28px 16px 20px}.hero-title{font-size:22px}
       .use-section{padding:0 16px 24px}
+      .picks-section{padding:0 16px 28px}
       .main{padding:18px 16px 60px}
       .preview-bar{flex-wrap:wrap}
       .preview-bar .preview-divider{display:none}
       .size-wrap input[type=range]{width:70px}
       .preview-presets{padding:12px 14px 14px}
-      .preset-chip{font-size:13px;padding:8px 12px}
+      .preset-chip{font-size:12.5px;padding:8px 12px}
       .preview-toggle{padding:7px;border-radius:50%}
       .preview-toggle-text{display:none}
     }
     @media(prefers-reduced-motion:reduce){.font-card,.preview-roll.spin i{animation:none}*{transition:none!important}}
+    /* ══ 폰트박스 앱 배너 (iOS 전용) ══
+       하단 고정. 전면 팝업이 아니라 본문을 덮지 않는 형태여야
+       구글 모바일 인터스티셜 페널티를 받지 않는다. */
+    .fbx{position:fixed;left:12px;right:12px;bottom:12px;z-index:850;
+      display:none;align-items:center;gap:12px;
+      background:var(--bg-card);border:1px solid var(--border);
+      border-radius:14px;padding:12px 14px;
+      box-shadow:0 8px 28px rgba(0,0,0,.18);
+      /* 아이폰 하단 홈 인디케이터에 가리지 않게 */
+      margin-bottom:env(safe-area-inset-bottom,0)}
+    .fbx.show{display:flex;animation:fbxUp .28s cubic-bezier(.2,.8,.3,1)}
+    @keyframes fbxUp{from{transform:translateY(120%);opacity:0}to{transform:none;opacity:1}}
+    .fbx-ico{width:52px;height:52px;border-radius:12px;flex:0 0 auto;
+      border:1px solid var(--border)}
+    .fbx-txt{flex:1;min-width:0;line-height:1.35}
+    .fbx-txt b{display:block;font-size:14.5px;font-weight:800;margin-bottom:2px}
+    /* 주 카피와 부제를 크기·색으로 갈라 위계를 만든다.
+       같은 굵기·같은 색이면 두 줄이 한 문장처럼 붙어 읽혀서
+       무엇이 핵심인지 사라진다. */
+    .fbx-txt span{display:block;word-break:keep-all}
+    .fbx-s1{font-size:11.5px;color:var(--text-secondary)}
+    .fbx-s2{font-size:10.5px;color:var(--text-muted,#9A9A9A);margin-top:1px}
+    .fbx-cta{flex:0 0 auto;background:var(--accent);color:#fff;
+      font-size:13.5px;font-weight:800;padding:10px 18px;border-radius:999px;
+      text-decoration:none;white-space:nowrap}
+    .fbx-cta:active{opacity:.85}
+    /* 닫기는 배너 바깥 위쪽에 띄워 터치 영역이 겹치지 않게 한다 */
+    .fbx-x{position:absolute;top:-10px;right:-4px;width:28px;height:28px;
+      border:1px solid var(--border);border-radius:50%;background:var(--bg-card);
+      color:var(--text-secondary);font-size:17px;line-height:1;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;padding:0;
+      box-shadow:0 2px 8px rgba(0,0,0,.14)}
+    @media(prefers-reduced-motion:reduce){.fbx.show{animation:none}}
   </style>
 </head>
 <body>
@@ -813,14 +847,7 @@
 
 <!-- MAIN -->
 <main class="main">
-  <!-- 모양 카테고리 — 갤러리를 훑는 내내 손이 닿아야 하므로 헤더 아래 고정한다.
-       바깥(.tags-bar)이 고정·배경·경계선을, 안쪽(.tags-scroll)이 가로 스크롤과
-       끝단 페이드를 맡는다. 한 요소에 몰면 mask-image가 배경까지 갉아먹어
-       고정된 바 오른쪽으로 폰트 카드가 비친다. -->
-  <div class="tags-bar" id="tagsBar">
-    <span class="tags-label">모양으로 찾기</span>
-    <div class="tags-scroll" id="tagsScroll" role="group" aria-label="폰트 모양 카테고리 필터"></div>
-  </div>
+  <div class="tags-bar" id="tagsBar" role="group" aria-label="폰트 카테고리 필터"></div>
 
   <!-- [제거 2026-08] 정렬 드롭다운(추천순/최신순/이름순).
        기본값인 '추천순'(어드민이 정한 저장 순서)만 남긴다. -->
@@ -1123,9 +1150,6 @@
 <script src="/static/api-client.js"></script>
 <script>
 let FONTS=[];
-/* 용도 허브 목록 — init()에서 먼저 받아 그리고, FONTS가 온 뒤 글꼴만 입혀
-   다시 그릴 때 재사용한다. 같은 목록을 두 번 받지 않기 위한 것. */
-let HUB_CACHE=null;
 let currentTag='all';
 let currentFontSize=26;
 /* 갤러리 보기 방식: 'grid'(4열 훑어보기) | 'list'(한 줄에 하나, 형태 확인용).
@@ -1404,20 +1428,6 @@ function clearPresetActive(){
    문구는 상단 미리보기 입력창 하나로만 바꾸고, 카드는 통째로 상세페이지로 간다.
    편집과 이동이 한 자리에 섞이면 어느 쪽인지 매번 헷갈린다. */
 
-/* 대상을 고정된 모양 필터 바 바로 아래로 올려놓는다.
-   sticky 요소(#tagsBar) 자신에게 scrollIntoView를 쓰면 안 된다 —
-   이미 60px에 붙어 있으면 목표가 충족된 것으로 판정돼 아무 데도 가지 않는다.
-   검색 후 화면이 내려간 자리에 그대로 남아 결과 중간부터 보이던 원인이었다.
-   그래서 목적지를 직접 계산한다. 바 높이는 실측한다 — 칩 크기를 손볼 때
-   숫자가 조용히 어긋나지 않게. */
-function scrollBelowFilter(el){
-  if(!el) return;
-  const bar = document.getElementById('tagsBar');
-  const barH = bar ? bar.getBoundingClientRect().height : 56;
-  const y = window.scrollY + el.getBoundingClientRect().top - (60 + barH + 8);
-  window.scrollTo({top: Math.max(0, y), behavior:'smooth'});
-}
-
 function setTag(tag, el, pushHash){
   if(pushHash === undefined) pushHash = true;
   currentTag=tag;
@@ -1453,20 +1463,6 @@ function setTag(tag, el, pushHash){
       const target = newHash || (location.pathname + location.search);
       history.pushState({tag: tag}, '', target);
     }
-  }
-
-  /* 고른 카테고리의 목록 맨 위로 데려간다.
-     필터는 갤러리 어디서든 누를 수 있는데(바가 고정이라), 그대로 두면
-     방금 고른 목록의 중간이나 끝자락을 보게 된다. 결과가 몇 개인지도 모른다.
-
-     pushHash가 false인 경우(route()의 해시 복원, 뒤로가기)에는 움직이지 않는다.
-     되돌아온 사용자를 원래 보던 자리에서 끌어내리면 안 된다.
-
-     목적지는 갤러리(.font-grid) 첫 줄이다. 검색은 미리보기 바부터
-     보여줘야 해서 목적지가 다르지만, 띄우는 계산은 같은 함수를 쓴다. */
-  if(pushHash){
-    // 렌더가 끝난 뒤의 위치를 기준으로 잡아야 목적지가 어긋나지 않는다
-    requestAnimationFrame(()=> scrollBelowFilter(document.getElementById('fontGrid')));
   }
 }
 
@@ -2680,7 +2676,7 @@ function renderFonts(){
       ? ''
       : '';
     return `
-    <article class="font-card" role="listitem" data-font-id="${f.id}" style="animation-delay:${Math.min(idx*20,300)}ms" onclick="cardNavigate(event, ${f.id})">
+    <article class="font-card${isRecommendMode ? ' is-recommend' : ''}" role="listitem" data-font-id="${f.id}" style="animation-delay:${Math.min(idx*20,300)}ms" onclick="cardNavigate(event, ${f.id})">
       ${matchBadge}
       <div class="font-preview">
         <div class="font-preview-text" data-english="${f.isEnglish?'1':'0'}" style="font-family:${getEffectiveStack(f)};font-size:${previewSizeFor()}px">${previewTxt}</div>
@@ -2855,9 +2851,12 @@ function ensureFontLoaded(id){
    상세페이지 '미리 써보기'에 그대로 이어지게 한다. */
 function stashPreviewText(id){
   try{
-    // 문구는 카드의 .font-preview-text에 그려진다 (상단 입력창에서 온 문구).
-    // [제거 2026-08] 큐레이터 픽(.pick-row > .pick-specimen) 폴백은 함께 지웠다.
-    const el = document.querySelector(`.font-card[data-font-id="${id}"] .font-preview-text`);
+    // 문구가 화면에 그려지는 위치가 두 군데다.
+    //   일반 카드   : .font-card  > .font-preview-text  (상단 입력창에서 온 문구)
+    //   큐레이터 픽 : .pick-row   > .pick-specimen
+    // 예전에는 .font-card만 찾아서 큐레이터 픽에서 상세로 들어갈 때 문구가 어긋났다.
+    const el = document.querySelector(`.font-card[data-font-id="${id}"] .font-preview-text`)
+            || document.querySelector(`.pick-row[data-font-id="${id}"] .pick-specimen`);
     let txt = el ? el.textContent.trim() : '';
     if(!txt){
       // DOM에서 못 찾은 경우에도 기본 문구로 떨어지지 않도록 그 폰트의 고유 문구를 쓴다
@@ -2913,8 +2912,37 @@ function observeFontCards(scope){
   });
 }
 
-/* [제거 2026-08] 큐레이터 픽(인기 TOP 10) — 마크업·스타일과 함께
-   renderCuratorPicks()도 지웠다. 되살리려면 git 히스토리 참고. */
+/* ── 인기 TOP 10 ── */
+function renderCuratorPicks(){
+  const section = document.getElementById('picksSection');
+  const list = document.getElementById('picksList');
+  if(!section || !list) return;
+
+  const picks = FONTS.filter(f => f.isPick).slice(0, 6);
+
+  if(!picks.length){
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+
+  list.innerHTML = picks.map((f, i) => {
+    const rank = String(i + 1).padStart(2, '0');
+    const specimen = getPreviewTextFor(f);
+    return `
+      <a class="pick-row" href="/font/${f.id}" data-font-id="${f.id}" onclick="stashPreviewText(${f.id})">
+        <span class="pick-rank">${rank}</span>
+        <span class="pick-mark">${i === 0 ? '✓' : ''}</span>
+        <span class="pick-specimen" style="font-family:${getEffectiveStack(f)}">${specimen}</span>
+        <div class="pick-meta">
+          <div class="pick-name">${f.name}</div>
+          <div class="pick-tag">${f.weights || '1종'}</div>
+        </div>
+      </a>`;
+  }).join('');
+  observeFontCards(list);
+}
+
 
 window.addEventListener('scroll',()=>document.getElementById('scrollTopBtn').classList.toggle('visible',window.scrollY>400),{passive:true});
 
@@ -3026,11 +3054,10 @@ document.addEventListener('keydown',function(e){
    같은 줄에 용도와 형태가 섞여 있으면 사용자는 두 축을 하나로 착각한다.
    axis 값은 /api/tags 가 내려주므로 여기서 직접 받아온다
    (TagStore.getAll()은 이름 배열만 주고 axis를 잃어버린다). */
-/* prefetched: init()이 미리 띄워둔 /api/tags 응답. 넘기면 다시 받지 않는다. */
-async function renderTagsBar(prefetched){
+async function renderTagsBar(){
   let tags;
   try {
-    const rows = prefetched || await (await fetch('/api/tags')).json();
+    const rows = await (await fetch('/api/tags')).json();
     const shaped = rows.filter(t => t.axis === 'shape');
     // axis가 아직 하나도 없는 DB(구버전)에서는 전체를 보여주는 쪽이 안전하다.
     tags = (shaped.length ? shaped : rows).map(t => t.name);
@@ -3038,9 +3065,7 @@ async function renderTagsBar(prefetched){
     console.warn('태그 로딩 실패 — 전체 태그로 폴백', e);
     tags = await TagStore.getAll();
   }
-  // 칩은 안쪽 스크롤 영역에 넣는다. 바깥(.tags-bar)은 고정·배경·라벨을 맡으므로
-  // 여기에 innerHTML을 쓰면 라벨이 지워진다.
-  const bar = document.getElementById('tagsScroll');
+  const bar = document.getElementById('tagsBar');
   // 현재 활성 태그가 목록에서 빠졌다면 'all'로 리셋
   if(currentTag !== 'all' && !tags.includes(currentTag)){
     currentTag = 'all';
@@ -3073,8 +3098,7 @@ document.getElementById('globalSearch')?.addEventListener('input', filterFonts);
 document.getElementById('globalSearch')?.addEventListener('keydown', function(e){
   if(e.key === 'Enter'){
     e.preventDefault();
-    // 미리보기 바부터 보이게 — 여기서 결과 목록이 시작된다
-    requestAnimationFrame(()=> scrollBelowFilter(document.querySelector('.preview-bar-wrap')));
+    document.getElementById('tagsBar')?.scrollIntoView({behavior:'smooth', block:'start'});
   }
 });
 
@@ -3095,24 +3119,18 @@ function renderHubRail(list){
 
   const anchor = document.getElementById('useSection');
   if(!anchor || !('IntersectionObserver' in window)){ rail.classList.add('show'); return; }
-  /* 관찰자는 한 번만 건다. 용도 그리드는 첫 로드에서 두 번 그려지고
-     (도착 즉시 → FONTS 도착 후 글꼴 입혀서) 어드민 변경 시에도 다시 그려지는데,
-     그때마다 새 관찰자를 만들면 같은 요소에 여러 개가 쌓인다. */
-  if(rail.dataset.observed) return;
-  rail.dataset.observed = '1';
   new IntersectionObserver(([e]) => {
     rail.classList.toggle('show', !e.isIntersecting);
   }, {rootMargin:'-40px 0px 0px 0px'}).observe(anchor);
 }
 
-/* prefetched: init()이 미리 띄워둔 /api/use-cases 응답. 넘기면 다시 받지 않는다. */
-async function renderUseGrid(prefetched){
+async function renderUseGrid(){
   const sec = document.getElementById('useSection');
   const wrap = document.getElementById('useGrid');
   if(!sec || !wrap) return;
   let list = [];
   try {
-    list = prefetched || await apiFetch('/use-cases');
+    list = await apiFetch('/use-cases');
   } catch(e){
     console.warn('용도 허브 로딩 실패 — 그리드를 숨깁니다', e);
     sec.style.display = 'none';
@@ -3135,28 +3153,14 @@ async function renderUseGrid(prefetched){
 }
 
 async function init(){
-  /* 세 요청은 서로 의존하지 않는다. 예전에는 직렬로 await해서
-     용도 그리드가 폰트 목록(207KB·약 270ms)과 태그(약 140ms)를 다 받은
-     뒤에야 자기 요청을 시작했다 — 자기 응답은 140ms인데 400ms를 기다린 셈이다.
-     세 개를 한 번에 띄우고, 도착하는 대로 그린다. */
-  const fontsP = FontStore.getAll();
-  const tagsP  = fetch('/api/tags').then(r => r.json()).catch(() => null);
-  const hubsP  = apiFetch('/use-cases').catch(() => []);
-
-  /* 용도 그리드를 폰트 목록보다 먼저 그린다. 대표 폰트로 칸 이름을 렌더하려면
-     FONTS가 필요하지만, 그건 도착한 뒤 다시 그려 얹는다(아래). 링크와 글자는
-     FONTS 없이도 나오므로 사용자는 훨씬 빨리 고를 수 있다. */
-  hubsP.then(list => { HUB_CACHE = list; renderUseGrid(list); });
-
-  FONTS = await fontsP;
+  FONTS = await FontStore.getAll();
   const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
-  await renderTagsBar(await tagsP);
+  await renderTagsBar();
   await registerUploadedFonts();
   renderFonts();
+  // renderCuratorPicks();  // [제거 2026-08] 큐레이터 픽
   applyGalleryView();
-  /* FONTS가 준비됐으니 대표 폰트 글꼴을 입혀 한 번 더 그린다.
-     이미 같은 목록이라 칸이 움직이지 않는다 — 글꼴만 바뀐다. */
-  if (HUB_CACHE) renderUseGrid(HUB_CACHE);
+  renderUseGrid();
   // loadPreviewPhrases();  // [비활성 2026-08] 문구 프리셋 추천 — 용도 그리드로 대체
 
   // 라우팅 처리 (해시 기반)
@@ -3175,6 +3179,7 @@ async function init(){
     await renderTagsBar();
     await registerUploadedFonts();
     renderFonts();
+    // renderCuratorPicks();  // [제거 2026-08] 큐레이터 픽
     renderUseGrid();
     // 공지사항 화면이 활성화돼있다면 같이 갱신
     if(location.hash.startsWith('#notice')) await route();
@@ -3243,7 +3248,7 @@ async function route(){
     // hash로부터 검색어 복원
     const query = decodeURIComponent(hash.slice('#search/'.length));
     applySearch(query, /*pushHash*/ false);
-    requestAnimationFrame(()=> scrollBelowFilter(document.querySelector('.preview-bar-wrap')));
+    document.getElementById('tagsBar')?.scrollIntoView({behavior:'smooth', block:'start'});
   } else if(hash.startsWith('#tag/')){
     // 뒤로/앞으로가기로 카테고리 상태 복원
     showHomeView();
@@ -3666,5 +3671,76 @@ function showToast(msg){
 
 init();
 </script>
+<!-- ══ 폰트박스 앱 배너 (iOS 전용) ══════════════════════
+     구글 모바일 인터스티셜 페널티를 피하려고 두 가지를 지킨다.
+       ① 진입 즉시가 아니라 '스크롤 60%' 이후에만 뜬다 — 크롤러는 스크롤하지 않으므로
+          색인·순위에 영향이 없다.
+       ② 본문을 덮지 않는 하단 고정 배너다. 전면 팝업이 아니다.
+     닫으면 7일간 다시 뜨지 않는다. -->
+<div class="fbx" id="fbxBanner" role="complementary" aria-label="폰트박스 앱 안내">
+  <button type="button" class="fbx-x" onclick="fbxClose()" aria-label="닫기">&times;</button>
+  <img class="fbx-ico" src="/static/fontbox-icon.png" width="52" height="52" alt="" aria-hidden="true">
+  <div class="fbx-txt">
+    <b>폰트박스</b>
+    <span class="fbx-s1">한글 무료폰트 200종 바로 설치</span>
+    <span class="fbx-s2">카카오톡 서체 바꾸기</span>
+  </div>
+  <a class="fbx-cta" href="https://apps.apple.com/kr/app/id6795770873"
+     target="_blank" rel="noopener noreferrer" onclick="fbxSeen()">받기</a>
+</div>
+
+<script>
+/* ══ 폰트박스 앱 배너 (iOS 전용) ══════════════════════
+   판별에 maxTouchPoints를 함께 보는 이유: iPadOS 13부터 아이패드 사파리가
+   자신을 Macintosh로 신고한다. 흔히 쓰는 /iPad/ 검사로는 아이패드가 통째로
+   빠진다. 맥에는 터치가 없으므로 'Mac + 터치 지원'이면 아이패드로 본다.
+   크롬·파이어폭스 iOS판도 내부는 웹킷이라 CriOS/FxiOS로 함께 잡는다. */
+function fbxIsIOS(){
+  var ua = navigator.userAgent || '';
+  if(/iPhone|iPad|iPod|CriOS|FxiOS/.test(ua)) return true;
+  return /Mac/.test(ua) && navigator.maxTouchPoints > 1;   // iPadOS 13+
+}
+var FBX_KEY = 'ffp-fbx-dismissed';
+function fbxSeen(){
+  try{ localStorage.setItem(FBX_KEY, String(Date.now())); }catch(e){}
+}
+function fbxClose(){
+  var el = document.getElementById('fbxBanner');
+  if(el) el.classList.remove('show');
+  fbxSeen();
+}
+(function(){
+  if(!fbxIsIOS()) return;
+  // 닫은 지 7일이 안 지났으면 띄우지 않는다
+  try{
+    var t = parseInt(localStorage.getItem(FBX_KEY) || '0', 10);
+    if(t && Date.now() - t < 7*24*60*60*1000) return;
+  }catch(e){}
+
+  var shown = false;
+  function check(){
+    if(shown) return;
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    // 페이지가 짧아 스크롤이 없으면 60% 도달이 영원히 안 온다 → 6초 뒤 노출
+    if(max < 200) return;
+    if((h.scrollTop || document.body.scrollTop) / max < 0.6) return;
+    shown = true;
+    window.removeEventListener('scroll', check);
+    var el = document.getElementById('fbxBanner');
+    if(el) el.classList.add('show');
+  }
+  window.addEventListener('scroll', check, {passive:true});
+  setTimeout(function(){
+    var h = document.documentElement;
+    if(!shown && h.scrollHeight - h.clientHeight < 200){
+      shown = true;
+      var el = document.getElementById('fbxBanner');
+      if(el) el.classList.add('show');
+    }
+  }, 6000);
+})();
+</script>
+
 </body>
 </html>
