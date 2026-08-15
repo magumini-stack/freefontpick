@@ -2032,19 +2032,24 @@ function fbxClose(){
   function check(){
     if(shown) return;
     var h = document.documentElement;
-    var max = h.scrollHeight - h.clientHeight;
-    // 페이지가 짧아 스크롤이 없으면 60% 도달이 영원히 안 온다 → 6초 뒤 노출
-    if(max < 200) return;
-    if((h.scrollTop || document.body.scrollTop) / max < 0.6) return;
+    var y = h.scrollTop || document.body.scrollTop || 0;
+    /* 기준을 '페이지 길이의 비율'이 아니라 '화면 높이의 배수'로 잡는다.
+       비율로 하면 페이지가 길수록 조건이 가혹해진다 — 폰트 200종이 깔린
+       메인은 60%가 한참 아래라 사실상 도달하지 못했다.
+       화면 높이의 1.5배(아이폰 약 1,200px)면 페이지 길이와 무관하게
+       "두 화면쯤 내려본 사용자"가 되고, 메인과 상세의 체감이 같아진다.
+       이 정도는 넘겨야 구글이 '진입 직후 광고'로 보지 않는다. */
+    if(y < h.clientHeight * 1.5) return;
     shown = true;
     window.removeEventListener('scroll', check);
     var el = document.getElementById('fbxBanner');
     if(el) el.classList.add('show');
   }
   window.addEventListener('scroll', check, {passive:true});
+  // 스크롤할 여지가 아예 없는 짧은 페이지 대비
   setTimeout(function(){
     var h = document.documentElement;
-    if(!shown && h.scrollHeight - h.clientHeight < 200){
+    if(!shown && h.scrollHeight - h.clientHeight < h.clientHeight * 1.5){
       shown = true;
       var el = document.getElementById('fbxBanner');
       if(el) el.classList.add('show');
