@@ -17,10 +17,10 @@ render_header()가 만든 실제 HTML로 서버가 치환해서 응답한다.
 NAV_ITEMS = [
     ("about", "/about.html", "폰트픽 소개", None, None),
     ("notice", "/#notice", "공지사항", "noticeMenuLink", "mNoticeMenuLink"),
+    ("faq", "/faq.html", "자주 묻는 질문", None, None),
     # '폰트 찾기'는 index.html 안의 뷰다. 홈에서는 해시 라우팅으로 화면만 바꾸고,
     # 다른 페이지에서는 평범한 링크로 /find-font 를 연다 (_nav_links 참고).
     ("findfont", "/find-font", "폰트 찾기", "findFontMenuLink", "mFindFontMenuLink"),
-    ("faq", "/faq.html", "자주 묻는 질문", None, None),
     # gif 라우터가 inject_header(html, "gif")로 넘기는 키와 같아야 활성 표시가 붙는다.
     #
     # 2026-08: 템플릿 목록(/gif/templates) 대신 편집기(/gif)로 바로 보낸다.
@@ -132,7 +132,7 @@ def _analytics() -> str:
 
 
 def render_header(active: str = "") -> str:
-    """active: 'about' | 'notice' | 'findfont' | 'faq' | 'gif' | '' (해당 없음)
+    """active: 'about' | 'notice' | 'faq' | 'findfont' | 'gif' | '' (해당 없음)
 
     '폰트 찾기'(/find-font)는 index.html 안의 뷰라 홈에서는 해시 라우팅으로
     전환되고, 다른 페이지에서는 평범한 링크 이동으로 열린다."""
