@@ -41,6 +41,7 @@ import traceback
 from pathlib import Path
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from fastapi import Response
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from ..database import get_db
@@ -588,6 +589,100 @@ def download_font_file(font_id: int, weight: int = 0, db: Session = Depends(get_
     if bp.exists():
         return FileResponse(path=bp, media_type="font/woff2", headers=_CACHE_IMMUTABLE)
     raise HTTPException(status_code=404, detail="폰트 파일이 없습니다")
+
+
+# ═══════════════════════════════════════════════════════════
+# 외부용 웹폰트 CSS  GET /api/fonts/{id}/webfont.css?key=...
+# ═══════════════════════════════════════════════════════════
+# 홍보물·프레스킷처럼 폰트픽 바깥에서 폰트를 그대로 렌더링해야 할 때 쓴다.
+# @font-face 한 덩어리를 CORS 허용 헤더와 함께 내려주므로, 로컬 HTML 파일에서도
+# <link>만 걸면 폰트가 적용된다.
+#
+# ⚠ 키를 요구하는 이유
+#   폰트픽에는 재배포 금지 라이선스 폰트가 있다. 특히 와이즈폰트 자사 폰트는
+#   배포 페이지에 "다른 웹사이트나 서버에 올려 직접 배포 금지"라고 명시돼 있다.
+#   이 엔드포인트를 무조건 열면 누구나 폰트픽을 폰트 CDN으로 쓸 수 있게 되고,
+#   그건 폰트픽이 스스로 그 조건을 무너뜨리는 셈이다.
+#
+#   주소를 공개하지 않는 것만으로는 막히지 않는다 — 브라우저가 실제로 부르는
+#   순간 개발자도구 네트워크 탭, 서버 로그, 히스토리에 주소가 남는다.
+#
+#   다만 이 방식이 완전한 차단은 아니다. 키는 홍보물 HTML 안에 문자열로 들어가므로
+#   그 파일을 받은 사람은 소스를 열어 볼 수 있다. 막아 주는 것은 '주소만 알게 된
+#   제3자'이고, 유출이 의심되면 환경변수만 바꾸면 즉시 무효가 된다.
+#
+# 키 설정: 카페24 프로젝트 환경변수에 WEBFONT_CSS_KEY 를 넣는다.
+#          값이 비어 있으면 엔드포인트 자체가 404로 닫힌다(실수로 열리는 것 방지).
+WEBFONT_CSS_KEY = os.getenv("WEBFONT_CSS_KEY", "").strip()
+
+# 로컬 파일(file://)에서 열면 Origin이 "null"로 온다. 그래서 도메인 화이트리스트가
+# 통하지 않아 * 로 열어야 한다 — 접근 제어는 위의 키가 담당한다.
+_WEBFONT_CSS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    # 폰트 파일 자체는 별도 캐시 정책을 따르고, CSS는 짧게 잡는다.
+    # 어드민에서 굵기를 추가하면 그만큼 빨리 반영돼야 한다.
+    "Cache-Control": "public, max-age=300",
+}
+
+
+@router.get("/{font_id}/webfont.css")
+def webfont_css(font_id: int, key: str = "", db: Session = Depends(get_db)):
+    """이 폰트의 @font-face 규칙을 CSS로 내려준다 (외부 사용).
+
+    사용 예:
+        <link rel="stylesheet"
+              href="https://freefontpick.co.kr/api/fonts/62/webfont.css?key=발급키">
+        <style> h1 { font-family: 'FFP-062', sans-serif; } </style>
+
+    font-family 이름은 폰트픽 내부와 같은 규칙(FFP-{id:03d})을 쓴다.
+    응답 첫 줄 주석에 폰트명과 family 이름을 적어 두므로 그대로 복사하면 된다.
+    """
+    if not WEBFONT_CSS_KEY:
+        # 키가 설정되지 않은 서버에서는 기능 자체가 없는 것처럼 둔다.
+        raise HTTPException(status_code=404, detail="Not Found")
+    if key != WEBFONT_CSS_KEY:
+        raise HTTPException(status_code=403, detail="유효하지 않은 키입니다")
+
+    font = db.query(Font).filter(Font.id == font_id).first()
+    if font is None:
+        raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
+
+    family = _ffp_family(font_id)
+    lines = [
+        f"/* 폰트픽 웹폰트 — {font.name} ({font.maker or ''})",
+        f"   font-family: '{family}'",
+        f"   상세: https://freefontpick.co.kr/font/{font_id}",
+        "   ⚠ 폰트 라이선스는 각 배포처 조건을 따릅니다. 파일 재배포는 하지 마세요. */",
+    ]
+
+    # 굵기별 규칙. _merged_weights 는 어드민 등록·매니페스트·대표 파일을
+    # 우선순위대로 합쳐 주므로 상세페이지와 같은 굵기 구성이 나온다.
+    weights = [w for w in _merged_weights(font) if w.get("source") != "webfont"]
+    if weights:
+        for w in weights:
+            lines.append(
+                f"@font-face{{font-family:'{family}';"
+                f"src:url('/api/fonts/{font_id}/file?weight={w['weight']}') format('woff2');"
+                f"font-weight:{w['weight']};font-style:normal;font-display:swap}}"
+            )
+    elif font.has_file:
+        # 굵기 정보가 없는 폰트 — 대표 파일 하나만 등록한다
+        lines.append(
+            f"@font-face{{font-family:'{family}';"
+            f"src:url('/api/fonts/{font_id}/file') format('woff2');"
+            f"font-weight:normal;font-style:normal;font-display:swap}}"
+        )
+    else:
+        # 웹폰트 CDN으로만 등록된 폰트는 내려줄 파일이 없다.
+        # 빈 CSS 대신 이유를 주석으로 남긴다 — 안 되는 이유를 찾느라 헤매지 않게.
+        lines.append(
+            f"/* 이 폰트는 파일이 없습니다. 외부 CDN 웹폰트로 등록돼 있으므로"
+            f" 제작사 CSS를 직접 사용하세요: {font.webfont_css_url or '(주소 미등록)'} */"
+        )
+
+    # 상대경로(/api/...)는 외부 문서에서 안 통한다. 절대주소로 바꿔 내려준다.
+    css = "\n".join(lines).replace("url('/api/", "url('https://freefontpick.co.kr/api/")
+    return Response(content=css, media_type="text/css", headers=_WEBFONT_CSS_HEADERS)
 
 
 @router.delete("/{font_id}/file", status_code=status.HTTP_204_NO_CONTENT)
