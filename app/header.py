@@ -17,6 +17,9 @@ render_header()가 만든 실제 HTML로 서버가 치환해서 응답한다.
 NAV_ITEMS = [
     ("about", "/about.html", "폰트픽 소개", None, None),
     ("notice", "/#notice", "공지사항", "noticeMenuLink", "mNoticeMenuLink"),
+    # '폰트 찾기'는 index.html 안의 뷰다. 홈에서는 해시 라우팅으로 화면만 바꾸고,
+    # 다른 페이지에서는 평범한 링크로 /find-font 를 연다 (_nav_links 참고).
+    ("findfont", "/find-font", "폰트 찾기", "findFontMenuLink", "mFindFontMenuLink"),
     ("faq", "/faq.html", "자주 묻는 질문", None, None),
     # gif 라우터가 inject_header(html, "gif")로 넘기는 키와 같아야 활성 표시가 붙는다.
     #
@@ -27,6 +30,17 @@ NAV_ITEMS = [
     # 템플릿 목록은 편집기 안의 'GIF 템플릿 전체보기' 카드로 계속 갈 수 있다.
     ("gif", "/gif", "GIF 생성기", None, None),
 ]
+
+# 메뉴 클릭 핸들러.
+#
+# navFindFont / closeMobileNav 는 index.html 에만 정의돼 있다.
+# font · about · faq · policy · privacy · use 6개 페이지에는 없어서, 그냥
+# 호출하면 그 페이지들에서 오류가 나고 브라우저에 따라 링크 이동까지 막혀
+# 죽은 메뉴가 된다 (공지사항 모바일 메뉴에 이미 있던 문제다).
+# typeof 검사로 감싸 함수가 있을 때만 부른다 — 홈에서는 뷰 전환, 다른
+# 페이지에서는 평범한 링크 이동으로 양쪽 모두 동작한다.
+_JS_FIND = "if(typeof navFindFont==='function')navFindFont(event)"
+_JS_CLOSE = "if(typeof closeMobileNav==='function')closeMobileNav()"
 
 
 def _nav_links(active: str, indent: str, mobile: bool) -> str:
@@ -51,11 +65,11 @@ def _nav_links(active: str, indent: str, mobile: bool) -> str:
         # rel은 보안·성능 때문에 함께 둔다 — 새 창이 window.opener로 원래 탭을
         # 건드리지 못하게 막고, 브라우저가 두 탭을 다른 프로세스로 띄우게 한다.
         target = ' target="_blank" rel="noopener noreferrer"' if key == "gif" else ""
-        onclick = ' onclick="navFindFont(event)"' if key == "findfont" else ""
+        onclick = f' onclick="{_JS_FIND}"' if key == "findfont" else ""
         if mobile and key == "notice":
-            onclick = ' onclick="closeMobileNav()"'
+            onclick = f' onclick="{_JS_CLOSE}"'
         elif mobile and key == "findfont":
-            onclick = ' onclick="navFindFont(event);closeMobileNav()"'
+            onclick = f' onclick="{_JS_FIND};{_JS_CLOSE}"'
         lines.append(f'{indent}<a href="{href}"{id_attr}{cls}{target}{onclick}>{label}</a>')
     return "\n".join(lines)
 
@@ -118,10 +132,10 @@ def _analytics() -> str:
 
 
 def render_header(active: str = "") -> str:
-    """active: 'about' | 'notice' | 'faq' | 'gif' | '' (해당 없음, 예: 폰트 상세페이지)
+    """active: 'about' | 'notice' | 'findfont' | 'faq' | 'gif' | '' (해당 없음)
 
-    '폰트 찾기'(/find-font)는 메뉴에서 뺐지만 페이지와 라우트는 그대로다 —
-    공지사항 본문과 검색 결과에서 계속 링크된다."""
+    '폰트 찾기'(/find-font)는 index.html 안의 뷰라 홈에서는 해시 라우팅으로
+    전환되고, 다른 페이지에서는 평범한 링크 이동으로 열린다."""
     nav_desktop = _nav_links(active, "      ", mobile=False)
     nav_mobile = _nav_links(active, "    ", mobile=True)
 
