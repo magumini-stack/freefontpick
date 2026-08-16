@@ -75,7 +75,9 @@ app.add_middleware(
 #   - /api/fonts/{id}/og-image.png : OG 이미지 (디스크 캐시 파일)
 #   - /api/fonts/{id}/file         : woff2 폰트 파일 (매 페이지뷰마다 재다운로드되면 치명적)
 #   - /api/fonts/{id}/sample-image : 상세페이지 샘플 이미지
-_CACHE_EXEMPT_SUFFIXES = ("/og-image.png", "/file", "/sample-image")
+#   - /api/fonts/{id}/webfont.css  : 외부용 웹폰트 CSS. 홍보물·프레스킷이 매번
+#     새로 받을 이유가 없고, 라우터가 직접 max-age=300을 지정한다.
+_CACHE_EXEMPT_SUFFIXES = ("/og-image.png", "/file", "/sample-image", "/webfont.css")
 
 
 # ══════════════════════════════════════════════════════════════
