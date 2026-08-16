@@ -165,10 +165,11 @@
        홈에서 브리핑까지 펼치면 허브 페이지와 같은 화면이 두 벌 생기므로,
        홈은 진입만 만들고 답은 허브 페이지가 한다. */
     .use-section{max-width:1240px;margin:0 auto;padding:0 24px 30px}
-    /* 격자선은 gap 1px 사이로 배경색이 비쳐 만들어진다. 그래서 마지막 줄에
+    /* 6열 × 2줄 = 12칸 고정.
+       격자선은 gap 1px 사이로 배경색이 비쳐 만들어진다. 그래서 마지막 줄에
        빈칸이 생기면 그 자리에 회색 배경이 그대로 드러나 '깨진 표'처럼 보인다.
-       칸 수를 줄이거나 늘리는 대신, 렌더 시 빈칸을 .use-fill 로 채워 막는다. */
-    .use-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);
+       렌더 단계에서 .use-fill 로 부족분을 메운다(아래 fillCells). */
+    .use-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);
       border:1px solid var(--border)}
     .use-fill{background:var(--bg-card)}
     @media(max-width:1080px){.use-grid{grid-template-columns:repeat(4,1fr)}}
@@ -285,15 +286,6 @@
 
     /* [제거 2026-08] 큐레이터 픽 — 마크업(#picksSection/#picksList)이 사라져서
        .picks-* / .pick-* 스타일도 함께 지웠다. 되살리려면 git 히스토리 참고. */
-
-    /* HERO+PICKS 접기 토글 */
-    #heroPicksWrap{overflow:hidden;max-height:2000px;transition:max-height .32s ease,opacity .28s ease;opacity:1}
-    #heroPicksWrap.collapsed{max-height:0;opacity:0;pointer-events:none}
-    html[data-hero-collapsed="1"] #heroPicksWrap{max-height:0;opacity:0;transition:none}
-    .collapse-toggle{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;max-width:1240px;margin:0 auto;padding:9px 24px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;color:var(--text-muted);font-size:11.5px;letter-spacing:.3px;transition:color .15s}
-    .collapse-toggle:hover{color:var(--accent)}
-    .collapse-toggle .ct-icon{width:15px;height:15px;transition:transform .25s}
-    .collapse-toggle.is-collapsed .ct-icon{transform:rotate(180deg)}
 
     /* MAIN */
     .main{max-width:1240px;margin:0 auto;padding:22px 24px 80px}
@@ -824,7 +816,6 @@
 <!-- ━━━━ HOME VIEW (폰트 갤러리) ━━━━ -->
 <div id="homeView">
 
-<div id="heroPicksWrap">
   <!-- HERO -->
   <section class="hero">
     <div class="hero-kicker">무료폰트 큐레이션</div>
@@ -839,17 +830,10 @@
 
   <!-- CURATOR PICKS -->
   <!-- [제거 2026-08] 큐레이터 픽 섹션.
-       용도 허브가 추천 진입로가 되면서 역할이 겹쳐 걷어냄.
+       용도 허브 10칸이 추천 진입로가 되면서 역할이 겹쳐 걷어냄.
        fonts.is_pick 컬럼과 어드민 체크박스는 그대로 남아 있으므로 되살릴 수 있다. -->
-</div>
-
-<!-- 접기 버튼은 허브 그리드 '바로 아래'에 둔다.
-     무엇을 접는 버튼인지는 그 대상 옆에 있을 때 가장 분명하다.
-     펼쳐진 상태에서는 ∧(접기), 접힌 상태에서는 ∨(펼치기)로 방향이 바뀐다. -->
-<button type="button" class="collapse-toggle" id="collapseToggleBtn" onclick="toggleHeroPicks()" aria-expanded="true" aria-controls="heroPicksWrap">
-  <svg class="ct-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
-  <span class="ct-label">접기</span>
-</button>
+  <!-- [제거 2026-08] 접기/펼치기 토글 — 허브를 6열×2줄로 고정 노출하면서
+       숨길 것이 없어져 걷어냄. -->
 
 <!-- MAIN -->
 <main class="main">
@@ -3005,30 +2989,6 @@ if(window.matchMedia){
   });
 }
 
-/* ── 히어로+큐레이터 픽 접기 토글 (상태는 localStorage에 저장) ── */
-const HERO_COLLAPSE_KEY = 'ffp-hero-collapsed';
-function setHeroPicksCollapsed(collapsed){
-  const wrap = document.getElementById('heroPicksWrap');
-  const btn = document.getElementById('collapseToggleBtn');
-  if(!wrap || !btn) return;
-  wrap.classList.toggle('collapsed', collapsed);
-  btn.classList.toggle('is-collapsed', collapsed);
-  btn.setAttribute('aria-expanded', String(!collapsed));
-  const label = btn.querySelector('.ct-label');
-  if(label) label.textContent = collapsed ? '펼치기' : '접기';
-}
-function toggleHeroPicks(){
-  const wrap = document.getElementById('heroPicksWrap');
-  const next = !wrap.classList.contains('collapsed');
-  setHeroPicksCollapsed(next);
-  try{ localStorage.setItem(HERO_COLLAPSE_KEY, next ? '1' : '0'); }catch(e){}
-}
-(function(){
-  let saved = null;
-  try{ saved = localStorage.getItem(HERO_COLLAPSE_KEY); }catch(e){}
-  if(saved === '1') setHeroPicksCollapsed(true);
-})();
-
 /* ── 모바일 햄버거 메뉴 (헤더는 서버가 주입, #mnav는 공유 헤더 구조) ── */
 function closeMobileNav(){
   const n = document.getElementById('mnav');
@@ -3147,14 +3107,15 @@ function renderHubRail(list){
 
 /* prefetched: init()이 미리 띄워둔 /api/use-cases 응답. 넘기면 다시 받지 않는다. */
 /* 마지막 줄의 빈칸을 카드색 블록으로 메운다.
-   열 수는 화면 폭에 따라 5/4/3/2로 바뀌므로 현재 폭에서 실제 열 수를 읽어
-   부족분만큼 만든다. 창 크기가 바뀌면 열 수도 바뀌므로 다시 그린다. */
+   열 수는 화면 폭에 따라 6/4/3/2로 바뀌므로 현재 폭에서 실제 열 수를 읽어
+   부족분만큼 만든다. 허브가 12개면 어느 폭에서도 빈칸이 생기지 않지만,
+   어드민에서 허브를 늘리거나 숨겼을 때를 대비한 안전장치다. */
 function useGridCols(){
   var w = window.innerWidth;
   if(w <= 520) return 2;
   if(w <= 820) return 3;
   if(w <= 1080) return 4;
-  return 5;
+  return 6;
 }
 function fillCells(n){
   var cols = useGridCols();
@@ -3732,94 +3693,76 @@ function showToast(msg){
 init();
 </script>
 
-<!-- ══ 앱 배너 (모바일 전용) ══════════════════════════
-     iOS → 폰트박스(App Store) / 안드로이드 → 글씨사진관(원스토어)
+<!-- ══ 폰트박스 앱 배너 (iOS 전용) ══════════════════════
      구글 모바일 인터스티셜 페널티를 피하려고 두 가지를 지킨다.
-       ① 진입 즉시가 아니라 화면 높이 1.5배를 스크롤한 뒤에만 뜬다.
-          크롤러는 스크롤하지 않으므로 색인·순위에 영향이 없다.
+       ① 진입 즉시가 아니라 '스크롤 60%' 이후에만 뜬다 — 크롤러는 스크롤하지 않으므로
+          색인·순위에 영향이 없다.
        ② 본문을 덮지 않는 하단 고정 배너다. 전면 팝업이 아니다.
-     내용(아이콘·문구·링크)은 JS가 기기를 판별해 채운다. -->
-<div class="fbx" id="fbxBanner" role="complementary" aria-label="앱 안내">
+     닫으면 7일간 다시 뜨지 않는다. -->
+<div class="fbx" id="fbxBanner" role="complementary" aria-label="폰트박스 앱 안내">
   <button type="button" class="fbx-x" onclick="fbxClose()" aria-label="닫기">&times;</button>
-  <img class="fbx-ico" id="fbxIco" src="" width="52" height="52" alt="" aria-hidden="true">
+  <img class="fbx-ico" src="/static/fontbox-icon.png" width="52" height="52" alt="" aria-hidden="true">
   <div class="fbx-txt">
-    <b id="fbxName"></b>
-    <span class="fbx-s1" id="fbxS1"></span>
-    <span class="fbx-s2" id="fbxS2"></span>
+    <b>폰트박스</b>
+    <span class="fbx-s1">한글 무료폰트 200종 바로 설치</span>
+    <span class="fbx-s2">카카오톡 서체 바꾸기</span>
   </div>
-  <a class="fbx-cta" id="fbxCta" href="#" target="_blank" rel="noopener noreferrer" onclick="fbxSeen()">받기</a>
+  <a class="fbx-cta" href="https://apps.apple.com/kr/app/id6795770873"
+     target="_blank" rel="noopener noreferrer" onclick="fbxSeen()">받기</a>
 </div>
 
 <script>
-/* ══ 앱 배너 ══════════════════════════════════════════
-   iOS 판별에 maxTouchPoints를 함께 보는 이유: iPadOS 13부터 아이패드
-   사파리가 자신을 Macintosh로 신고한다. 흔한 /iPad/ 검사로는 아이패드가
-   통째로 빠진다. 맥에는 터치가 없으므로 'Mac + 터치'면 아이패드로 본다. */
+/* ══ 폰트박스 앱 배너 (iOS 전용) ══════════════════════
+   판별에 maxTouchPoints를 함께 보는 이유: iPadOS 13부터 아이패드 사파리가
+   자신을 Macintosh로 신고한다. 흔히 쓰는 /iPad/ 검사로는 아이패드가 통째로
+   빠진다. 맥에는 터치가 없으므로 'Mac + 터치 지원'이면 아이패드로 본다.
+   크롬·파이어폭스 iOS판도 내부는 웹킷이라 CriOS/FxiOS로 함께 잡는다. */
 function fbxIsIOS(){
   var ua = navigator.userAgent || '';
   if(/iPhone|iPad|iPod|CriOS|FxiOS/.test(ua)) return true;
   return /Mac/.test(ua) && navigator.maxTouchPoints > 1;   // iPadOS 13+
 }
-function fbxIsAndroid(){
-  return /Android/.test(navigator.userAgent || '');
+var FBX_KEY = 'ffp-fbx-dismissed';
+function fbxSeen(){
+  try{ localStorage.setItem(FBX_KEY, String(Date.now())); }catch(e){}
 }
-var FBX_APPS = {
-  ios: {
-    name: '폰트박스',
-    s1: '한글 무료폰트 200종 바로 설치',
-    s2: '카카오톡 서체 바꾸기',
-    url: 'https://apps.apple.com/kr/app/id6795770873',
-    icon: '/static/fontbox-icon.png'
-  },
-  android: {
-    name: '글씨사진관',
-    s1: '멋진 사진에 감성글 쓰기',
-    s2: '감성 문구와 폰트를 한 번에',
-    url: 'https://tosto.re/ktext',
-    icon: 'data:image/png;base64,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'
-  }
-};
-/* 닫기는 '지금 이 화면에서 치운다'는 뜻만 갖는다 — 아무것도 저장하지 않는다.
-   fbxSeen()은 받기 버튼의 onclick이 부르고 있어 이름만 남겨 비워둔다. */
-function fbxSeen(){}
 function fbxClose(){
   var el = document.getElementById('fbxBanner');
   if(el) el.classList.remove('show');
+  fbxSeen();
 }
 (function(){
-  var app = fbxIsIOS() ? FBX_APPS.ios : (fbxIsAndroid() ? FBX_APPS.android : null);
-  if(!app) return;                       // 데스크톱은 대상이 아니다
+  // ── 배너 임시 중단 (2026-08) ──────────────────────────
+  // 되살리려면 아래 return 한 줄만 지우면 된다.
+  return;
 
-  var el = document.getElementById('fbxBanner');
-  if(!el) return;
-  document.getElementById('fbxIco').src = app.icon;
-  document.getElementById('fbxName').textContent = app.name;
-  document.getElementById('fbxS1').textContent = app.s1;
-  document.getElementById('fbxS2').textContent = app.s2;
-  var cta = document.getElementById('fbxCta');
-  cta.href = app.url;
-  cta.setAttribute('aria-label', app.name + ' 받기');
+  if(!fbxIsIOS()) return;
+  // 닫은 지 7일이 안 지났으면 띄우지 않는다
+  try{
+    var t = parseInt(localStorage.getItem(FBX_KEY) || '0', 10);
+    if(t && Date.now() - t < 7*24*60*60*1000) return;
+  }catch(e){}
 
   var shown = false;
   function check(){
     if(shown) return;
     var h = document.documentElement;
-    var y = h.scrollTop || document.body.scrollTop || 0;
-    /* 기준을 '페이지 길이의 비율'이 아니라 '화면 높이의 배수'로 잡는다.
-       비율로 하면 페이지가 길수록 조건이 가혹해진다 — 폰트 200종이 깔린
-       메인은 60%가 한참 아래라 사실상 도달하지 못했다. */
-    if(y < h.clientHeight * 1.5) return;
+    var max = h.scrollHeight - h.clientHeight;
+    // 페이지가 짧아 스크롤이 없으면 60% 도달이 영원히 안 온다 → 6초 뒤 노출
+    if(max < 200) return;
+    if((h.scrollTop || document.body.scrollTop) / max < 0.6) return;
     shown = true;
     window.removeEventListener('scroll', check);
-    el.classList.add('show');
+    var el = document.getElementById('fbxBanner');
+    if(el) el.classList.add('show');
   }
   window.addEventListener('scroll', check, {passive:true});
-  // 스크롤할 여지가 아예 없는 짧은 페이지 대비
   setTimeout(function(){
     var h = document.documentElement;
-    if(!shown && h.scrollHeight - h.clientHeight < h.clientHeight * 1.5){
+    if(!shown && h.scrollHeight - h.clientHeight < 200){
       shown = true;
-      el.classList.add('show');
+      var el = document.getElementById('fbxBanner');
+      if(el) el.classList.add('show');
     }
   }, 6000);
 })();
