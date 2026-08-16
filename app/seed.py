@@ -44,6 +44,7 @@ def init_db():
         _seed_pairings(db)
         _seed_use_cases(db)
         _migrate_impact_hub(db)
+        _migrate_newfont_hub(db)
         _migrate_luxury_hub(db)
         _patch_luxury_hub_title(db)
         _seed_gif_use_cases(db)
@@ -271,6 +272,102 @@ _IMPACT_TIPS = [
     ["글자 수", "한 줄 8자 이내. 길어지면 강조가 아니라 그냥 큰 글씨가 됩니다."],
     ["주의", "한 화면에 강조는 하나만. 둘 이상이면 서로 힘을 깎아먹습니다."],
 ]
+
+
+# ═══════════════════════════════════════════════════════════
+# '신상폰트' 허브 추가 (2026-08, 일회성)
+# ═══════════════════════════════════════════════════════════
+NEWFONT_HUB_MIGRATION_KEY = "newfont_hub_migration_v1"
+
+# tag_id를 붙이지 않는다 — '신상'은 폰트의 생김새가 아니라 등록 시점이라
+# 태그로 관리하면 새 폰트가 들어올 때마다 옛 폰트에서 태그를 떼어내야 한다.
+# 대신 추천 목록만 두고, 새 폰트가 쌓이면 어드민에서 이 목록만 갈아끼운다.
+_NEWFONT_PICKS = [
+    (215, "스텔라체"),
+    (216, "페어큰부리새"),
+    (217, "뒤틀림"),
+    (218, "퍼즐체SUPER"),
+    (195, "투혼경남체"),
+    (190, "국민대학교 해옹 산스"),
+    (189, "국민대학교 성곡 세리프"),
+]
+
+_NEWFONT_PHRASES = [
+    "새로 나온 폰트 먼저 써보기",
+    "이번 달 새로 들어온 서체",
+    "아직 아무도 안 쓴 글씨",
+    "가장 최근에 올라온 폰트",
+]
+
+_NEWFONT_TIPS = [
+    ["먼저 확인", "배포처 라이선스를 꼭 보세요. 새 폰트일수록 조건이 바뀌는 일이 있습니다."],
+    ["활용", "아직 흔하지 않아 남들과 겹치지 않습니다. 브랜드 첫인상을 만들 때 유리합니다."],
+    ["주의", "설치 기반이 얕아 웹에서는 파일을 직접 얹어야 제대로 보입니다."],
+]
+
+
+def _migrate_newfont_hub(db: Session):
+    """'신상폰트' 허브를 만든다 (감성 문구 다음 자리).
+
+    ⚠ 시드 재실행이 아니라 이 허브 하나만 추가하는 일회성 작업이다.
+    어드민에서 편집한 다른 허브는 건드리지 않는다.
+    app_meta에 표시해 두 번 실행되지 않게 한다.
+    """
+    from .models import UseCase, UseCaseFont, UseCasePhrase
+
+    done = db.query(AppMeta).filter(AppMeta.key == NEWFONT_HUB_MIGRATION_KEY).first()
+    if done and done.value == "1":
+        return
+
+    uc = db.query(UseCase).filter(UseCase.slug == "new").first()
+    if uc is None:
+        # 감성 문구(quote, sort_order 80) 바로 다음 자리.
+        # 기존 허브의 sort_order를 건드리지 않으려고 사이값(85)을 쓴다.
+        quote = db.query(UseCase).filter(UseCase.slug == "quote").first()
+        slot = (quote.sort_order + 5) if quote else 85
+        uc = UseCase(slug="new", sort_order=slot)
+        db.add(uc)
+    uc.title = "신상폰트"
+    uc.subtitle = "최근 폰트픽에 새로 올라온 서체"
+    uc.tag_id = None          # 태그 없이 추천 목록만 노출
+    uc.criteria = (
+        "가장 최근에 등록된 폰트를 모았습니다. 아직 널리 쓰이지 않아 "
+        "익숙한 서체들 사이에서 눈에 띄고, 남들과 겹치지 않는 인상을 만들 수 있습니다."
+    )
+    uc.howto = (
+        "새 폰트일수록 배포처의 라이선스 조건을 먼저 확인하세요. "
+        "웹에서 쓸 때는 파일을 직접 얹어야 제대로 보입니다."
+    )
+    uc.tips = _NEWFONT_TIPS
+    uc.is_active = True
+    db.flush()
+
+    # 추천 폰트 — 없는 id는 그 줄만 건너뛰고 경고를 남긴다
+    db.query(UseCaseFont).filter(UseCaseFont.use_case_id == uc.id).delete()
+    rank = 0
+    missing = []
+    for font_id, name in _NEWFONT_PICKS:
+        f = db.query(Font).filter(Font.id == font_id).first()
+        if f is None:
+            missing.append(f"id={font_id}({name})")
+            continue
+        if f.name != name:
+            print(f"[migrate] 신상폰트 이름 불일치 id={font_id}: DB='{f.name}' 기대='{name}'")
+        rank += 1
+        db.add(UseCaseFont(use_case_id=uc.id, font_id=font_id, rank=rank, reason=""))
+    if missing:
+        print(f"[migrate] 신상폰트 미발견: {', '.join(missing)}")
+
+    db.query(UseCasePhrase).filter(UseCasePhrase.use_case_id == uc.id).delete()
+    for i, text_ in enumerate(_NEWFONT_PHRASES):
+        db.add(UseCasePhrase(use_case_id=uc.id, text=text_, sort_order=(i + 1) * 10))
+
+    if done is None:
+        db.add(AppMeta(key=NEWFONT_HUB_MIGRATION_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+    print(f"[migrate] '신상폰트' 허브 생성 완료 (추천 {rank}종, sort_order={uc.sort_order})")
 
 
 def _migrate_impact_hub(db: Session):
