@@ -1164,6 +1164,24 @@ def _script_pools(script: str, fonts: list) -> tuple:
     return kor, kor
 
 
+def _cap_weight(font: "Font", target: int, cap: int) -> int:
+    """target에 가장 가까운 굵기를 고르되 cap을 넘지 않는다.
+
+    _pick_weight은 그 폰트가 가진 굵기 중 target에 가장 가까운 값을 준다. 그래서
+    무거운 굵기만 가진 폰트가 서브타이틀에 앉으면 제목보다 굵어진다 — 운영에서
+    400/800/400(서브가 제목보다 무거움)이 실제로 나왔다. 위계가 뒤집히면 어느
+    쪽이 제목인지 화면에서 읽히지 않는다.
+
+    cap 이하인 굵기가 하나도 없으면 어쩔 수 없이 가진 것 중에서 고른다.
+    그런 폰트를 아예 배제하면 후보가 크게 줄고, 크기 차이가 이미 위계를
+    만들어 주므로(제목 60px · 본문 16.5px) 그 정도는 견딜 만하다.
+    """
+    from .files import _merged_weights
+    ws = [w["weight"] for w in _merged_weights(font)] or [int(font.primary_weight or target)]
+    pool = [w for w in ws if w <= cap] or ws
+    return min(pool, key=lambda w: abs(w - target))
+
+
 def _pick_one(pool: list, used: set, key=None):
     """후보에서 하나 고른다. 이미 쓴 폰트는 뺀다 — 세 슬롯이 겹치지 않는 근거."""
     avail = [f for f in pool if f.id not in used]
@@ -1235,9 +1253,9 @@ def font_pair_generate(
         raise HTTPException(status_code=503, detail="서브타이틀 후보를 찾지 못했습니다")
 
     t_w = _pick_weight(t_font, 700)
-    b_w = _pick_body_weight(b_font, t_w)
+    b_w = _cap_weight(b_font, _pick_body_weight(b_font, t_w), t_w)
     # 서브타이틀은 제목보다 가볍고 본문보다 무겁거나 같게 — 위계가 셋으로 보인다.
-    s_w = _pick_weight(s_font, max(b_w, min(t_w, 500)))
+    s_w = _cap_weight(s_font, max(b_w, min(t_w, 500)), t_w)
 
     return {
         "category": cat["key"],
