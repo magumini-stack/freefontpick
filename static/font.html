@@ -968,14 +968,41 @@
   var FONT = null;
   var FILE_WEIGHTS = [];   // [{weight,label}] — 서버 굵기 파일
 
-  function registerWeightFaces(id, list){
+  /* 굵기마다 family 이름을 따로 준다 — FFP-222-300, FFP-222-500 …
+     예전에는 한 family(FFP-222) 안에 font-weight 기술자만 다른 face를 여러 개
+     넣고, 어느 파일을 쓸지는 브라우저에게 맡겼다. 그 고르기가 폰트에 따라
+     어긋난다. 경복궁 수문장 본문체가 그랬다 — 서버는 300/500/700에 서로 다른
+     파일을 정확히 내려주는데(md5로 확인) 화면에서는 Light와 Medium이 같은
+     모양으로 나오고 Bold만 달랐다. 파일 안의 굵기 값을 300/500/700으로 고쳐
+     올려도 그대로였다.
+     이름을 갈라 두면 브라우저가 고를 여지 자체가 없어진다. 굵기는 CSS로
+     흉내내지 않고 그 굵기의 파일이 직접 그린다. */
+  function weightFamily(id, weight){
+    return 'FFP-' + String(id).padStart(3, '0') + '-' + weight;
+  }
+  function registerWeightFaces(id, list, primaryWeight){
     var fam = 'FFP-' + String(id).padStart(3, '0');
     list.forEach(function(w){
       fontStyleEl.appendChild(document.createTextNode(
-        "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + id + "/file?weight=" + w.weight +
-        "') format('woff2');font-display:swap;font-weight:" + w.weight + ";font-style:normal}"
+        "@font-face{font-family:'" + weightFamily(id, w.weight) + "';src:url('/api/fonts/" + id +
+        "/file?weight=" + w.weight +
+        "') format('woff2');font-display:swap;font-weight:normal;font-style:normal}"
       ));
     });
+    /* 폰트명·조합 카드·사용 예시는 굵기 구분 없이 FFP-{id}를 쓴다(stackOf).
+       그쪽이 빈 family를 가리키지 않도록 대표 굵기로 한 벌 더 등록한다. */
+    var pw = primaryWeight;
+    if (!pw) {
+      for (var i = 0; i < list.length; i++) {
+        if (!pw || Math.abs(list[i].weight - 400) < Math.abs(pw - 400)) pw = list[i].weight;
+      }
+    }
+    if (pw) {
+      fontStyleEl.appendChild(document.createTextNode(
+        "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + id + "/file?weight=" + pw +
+        "') format('woff2');font-display:swap;font-weight:normal;font-style:normal}"
+      ));
+    }
     loaded[id] = true;
   }
 
@@ -1076,8 +1103,12 @@
     var rows;
     if (localW.length > 1){
       // 서버에 굵기 파일이 2개 이상 개별 등록된 경우 최우선 (어드민 실제 업로드)
+      // 줄마다 그 굵기 전용 family를 쓰고 font-weight는 normal로 둔다.
+      // CSS로 굵기를 요구하면 브라우저가 파일을 고르거나 가짜 볼드를 합성한다.
+      var _rest = (FONT.stack || "'Nanum Gothic',sans-serif").replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
       rows = localW.map(function(w){
-        return { label: w.label, sub: String(w.weight), family: stackOf(FONT), weight: w.weight };
+        return { label: w.label, sub: String(w.weight),
+                 family: "'" + weightFamily(FONT.id, w.weight) + "'," + _rest, weight: 400 };
       });
       document.getElementById('previewHeading').textContent = '굵기별 보기';
       document.getElementById('weightsLabel').textContent = localW.length + '종';
@@ -1225,7 +1256,7 @@
       // 없어서, 등록해 봤자 전부 대표 파일 하나로 떨어진다.
       var localWeights = FILE_WEIGHTS.filter(function(w){ return w.source !== 'webfont'; });
       if (localWeights.length > 0) {
-        registerWeightFaces(f.id, localWeights);
+        registerWeightFaces(f.id, localWeights, f.primary_weight);
       } else {
         // has_file이 false면 안에서 그냥 빠져나온다
         ensureFont({ id: f.id, has_file: f.has_file });
