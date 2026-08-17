@@ -1164,6 +1164,11 @@ def _script_pools(script: str, fonts: list) -> tuple:
     return kor, kor
 
 
+def _font_weights(font: "Font") -> list:
+    from .files import _merged_weights
+    return [w["weight"] for w in _merged_weights(font)] or [int(font.primary_weight or 400)]
+
+
 def _cap_weight(font: "Font", target: int, cap: int) -> int:
     """target에 가장 가까운 굵기를 고르되 cap을 넘지 않는다.
 
@@ -1176,8 +1181,7 @@ def _cap_weight(font: "Font", target: int, cap: int) -> int:
     그런 폰트를 아예 배제하면 후보가 크게 줄고, 크기 차이가 이미 위계를
     만들어 주므로(제목 60px · 본문 16.5px) 그 정도는 견딜 만하다.
     """
-    from .files import _merged_weights
-    ws = [w["weight"] for w in _merged_weights(font)] or [int(font.primary_weight or target)]
+    ws = _font_weights(font)
     pool = [w for w in ws if w <= cap] or ws
     return min(pool, key=lambda w: abs(w - target))
 
@@ -1231,6 +1235,17 @@ def font_pair_generate(
     if t_font is None:
         raise HTTPException(status_code=503, detail="제목 후보를 찾지 못했습니다")
     used.add(t_font.id)
+    t_w = _pick_weight(t_font, 700)
+
+    # 아래 두 슬롯은 제목보다 굵으면 안 된다. 굵기를 나중에 깎는 것만으로는
+    # 부족하다 — 굵기를 하나만 가진 폰트가 있기 때문이다(Monoton·Anton·
+    # 여기어때 잘난체·레코체는 800 하나뿐이라 상한을 걸어도 800이 나온다).
+    # 그래서 고르는 단계에서 '제목 굵기 이하를 가진 폰트'를 우선한다.
+    # 후보가 너무 줄면 원래 후보로 되돌린다 — 위계보다 조합이 안 나오는 쪽이
+    # 더 나쁘고, 크기 차이(제목 60px · 본문 16.5px)가 위계를 거들어 준다.
+    fit_pool = [f for f in text_pool if min(_font_weights(f)) <= t_w]
+    if len(fit_pool) >= 10:
+        text_pool = fit_pool
 
     b_font = locked.get("body") or _pick_one(
         text_pool, used,
@@ -1252,10 +1267,12 @@ def font_pair_generate(
     if s_font is None:
         raise HTTPException(status_code=503, detail="서브타이틀 후보를 찾지 못했습니다")
 
-    t_w = _pick_weight(t_font, 700)
     b_w = _cap_weight(b_font, _pick_body_weight(b_font, t_w), t_w)
     # 서브타이틀은 제목보다 가볍고 본문보다 무겁거나 같게 — 위계가 셋으로 보인다.
-    s_w = _cap_weight(s_font, max(b_w, min(t_w, 500)), t_w)
+    s_w = _cap_weight(s_font, max(b_w, min(t_w, 500)), max(t_w, b_w))
+    # 서브가 본문보다 가벼우면 가운데 단계가 사라진다. 가진 굵기 안에서 끌어올린다.
+    if s_w < b_w:
+        s_w = _cap_weight(s_font, b_w, max(t_w, b_w))
 
     return {
         "category": cat["key"],
