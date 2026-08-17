@@ -1954,15 +1954,38 @@ function renderFmFilePreview(infoText){
       <button onclick="clearFmFile()" aria-label="파일 제거"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>`;
   } else if(infoText){
+    /* 올린 파일을 지우는 버튼. API(DELETE /api/fonts/{id}/file)는 예전부터
+       있었는데 화면에 버튼이 없어서, 한 번 올린 파일은 다른 파일로 덮어쓰는
+       것 말고는 뺄 방법이 없었다. 웹폰트로 등록한 폰트에 파일을 잘못 올리면
+       그 파일이 웹폰트보다 우선하므로(상세페이지 stackOf) 엉뚱한 굵기·기울기가
+       전 페이지에 나온다 — Raleway에 Black Italic이 올라가 있던 경우가 그랬다. */
     box.innerHTML = `<div class="selected-file" style="background:var(--bg-secondary);color:var(--text-secondary)">
       <i class="ti ti-info-circle" aria-hidden="true"></i>
       <span class="name">${escapeHtml(infoText)}</span>
-    </div>`;
+    </div>` + (editingId ? `<button type="button" class="btn-secondary"
+        style="margin-top:6px;font-size:12px;padding:4px 10px" onclick="deleteServerFile()">
+        <i class="ti ti-trash" aria-hidden="true"></i> 서버에서 이 파일 삭제</button>` : '');
   } else {
     box.innerHTML = '';
   }
 }
 function clearFmFile(){ pendingFile=null; document.getElementById('fmFileInput').value=''; renderFmFilePreview(); }
+
+/* 서버에 올라간 대표 파일을 지운다. 웹폰트(CDN)로 등록된 폰트라면 파일을 지워야
+   비로소 CDN 굵기가 제대로 나온다. 번들 폰트는 배포에 묶여 있어 이걸로 안 지워진다. */
+async function deleteServerFile(){
+  if(!editingId) return;
+  if(!confirm('서버에 올라간 폰트 파일을 삭제할까요?\n웹폰트로 등록한 폰트라면 삭제해야 CDN 굵기가 적용됩니다.')) return;
+  try{
+    const r = await fetch(`/api/fonts/${editingId}/file`, {method:'DELETE'});
+    if(!r.ok && r.status !== 204) throw new Error('HTTP ' + r.status);
+    renderFmFilePreview('');
+    showToast('폰트 파일을 삭제했어요');
+    await refresh();
+  }catch(e){
+    showToast('파일 삭제 실패: ' + e.message);
+  }
+}
 
 // drag&drop
 const _dz = document.getElementById('fmDropZone');
