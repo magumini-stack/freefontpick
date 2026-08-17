@@ -1051,14 +1051,32 @@
   function renderPreviewRows(){
     var wl = document.getElementById('weightRows');
     var wf = webfontOf(FONT.name);
+    /* 굵기 목록은 출처가 섞여 온다(/api/fonts/{id}/weights의 source).
+       extra·legacy·primary는 서버에 실제 파일이 있지만, webfont는 CDN에만
+       있고 로컬 파일이 없다. 이 둘을 갈라 보지 않으면 CDN 굵기 9종을
+       업로드 파일 하나로 그리게 되어 9줄이 전부 같아 보인다. */
+    var localW = FILE_WEIGHTS.filter(function(w){ return w.source !== 'webfont'; });
+    var cdnW   = FILE_WEIGHTS.filter(function(w){ return w.source === 'webfont'; });
     var rows;
-    if (FILE_WEIGHTS.length > 1){
+    if (localW.length > 1){
       // 서버에 굵기 파일이 2개 이상 개별 등록된 경우 최우선 (어드민 실제 업로드)
-      rows = FILE_WEIGHTS.map(function(w){
+      rows = localW.map(function(w){
         return { label: w.label, sub: String(w.weight), family: stackOf(FONT), weight: w.weight };
       });
       document.getElementById('previewHeading').textContent = '굵기별 보기';
-      document.getElementById('weightsLabel').textContent = FILE_WEIGHTS.length + '종';
+      document.getElementById('weightsLabel').textContent = localW.length + '종';
+    } else if (cdnW.length > 1 && FONT.webfont_family){
+      /* 어드민이 등록한 CDN 웹폰트(구글 폰트 등)의 굵기.
+         대표 파일을 따로 올렸더라도 그 파일은 굵기가 하나뿐이라 여기서는 쓰지
+         않는다 — 굵기별 보기의 목적이 굵기 차이를 보여주는 것이기 때문이다.
+         업로드 파일은 폰트명·미리보기(stackOf)에서 계속 우선한다. */
+      var famC = "'" + FONT.webfont_family + "'," +
+                 (FONT.stack || "'Nanum Gothic',sans-serif").replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
+      rows = cdnW.map(function(w){
+        return { label: w.label, sub: String(w.weight), family: famC, weight: w.weight };
+      });
+      document.getElementById('previewHeading').textContent = '굵기별 보기';
+      document.getElementById('weightsLabel').textContent = cdnW.length + '종';
     } else if (wf && wf.weights.length > 1){
       // 웹폰트 배포 폰트(구글 폰트 CDN 등): 전체 굵기 표시
       // 서버에 대표 파일 1개만 있는 경우에도 CDN 쪽이 굵기 정보가 더 풍부하므로 이쪽을 우선한다.
@@ -1176,15 +1194,24 @@
         .then(function(ws){ FILE_WEIGHTS = ws || []; return f; });
     })
     .then(function(f){
-      if (f.webfont_family && f.webfont_css_url && f.file_source !== 'user') {
-        // 웹폰트 CDN 소스 (Google Fonts 등) — 로컬 파일 @font-face 등록 불필요
-        // 어드민 업로드 파일이 있으면 이 가지를 타지 않는다 (아래 파일 경로로 간다)
+      /* 웹폰트 CSS와 로컬 @font-face는 서로 배타가 아니다.
+         예전에는 업로드 파일이 있으면(file_source==='user') 웹폰트 CSS를 아예
+         로드하지 않았다. 그런데 굵기 목록은 CDN에서 그대로 내려오므로, 9종이
+         전부 업로드 파일 하나를 가리켜 굵기가 똑같이 보였다(Raleway 141 —
+         /file?weight=100 과 ?weight=900 의 응답 바이트가 동일하다).
+         이제 둘 다 준비해 두고 굵기 줄마다 출처에 맞는 family를 쓴다. */
+      if (f.webfont_family && f.webfont_css_url) {
         var l = document.createElement('link');
         l.rel = 'stylesheet'; l.href = f.webfont_css_url;
         document.head.appendChild(l);
-      } else if (FILE_WEIGHTS.length > 0) {
-        registerWeightFaces(f.id, FILE_WEIGHTS);
+      }
+      // 실제 파일이 있는 굵기만 @font-face로 등록한다. webfont 출처는 파일이
+      // 없어서, 등록해 봤자 전부 대표 파일 하나로 떨어진다.
+      var localWeights = FILE_WEIGHTS.filter(function(w){ return w.source !== 'webfont'; });
+      if (localWeights.length > 0) {
+        registerWeightFaces(f.id, localWeights);
       } else {
+        // has_file이 false면 안에서 그냥 빠져나온다
         ensureFont({ id: f.id, has_file: f.has_file });
       }
       document.title = f.name + ' 무료폰트 다운로드 - 어울리는 폰트 조합까지 | 폰트픽';
