@@ -572,6 +572,11 @@
 
   <div class="loading" id="loading">폰트 정보를 불러오는 중…</div>
 
+  <!-- 서버가 채우는 본문. JS가 뜨면 아래 #content가 대신하므로 감춘다.
+       크롤러와 JS 차단 환경에는 이 내용이 그대로 남는다 —
+       use.html의 #picksSsr과 같은 방식이다. -->
+  {{FFP_SSR}}
+
   <div id="content" class="hidden">
     <div class="crumb"><a href="/">홈</a> · <b id="crumbName"></b></div>
 
@@ -616,12 +621,11 @@
         <!-- ③ 실제 사용 예시 -->
         <section class="blk">
           <div class="lbl">실제 사용 예시</div>
-          <div class="u-cap">Headline</div>
-          <div class="u-h1 uses-font" style="font-weight:800" data-ko="봄이 오면, 오래된 것들이 새로워진다" data-en="Every great story starts with a single line">봄이 오면, 오래된 것들이 새로워진다</div>
-          <div class="u-cap" style="margin-top:28px">Subhead</div>
-          <div class="u-h2 uses-font" style="font-weight:700" data-ko="좋은 폰트는 문장의 온도를 바꾼다" data-en="Typography sets the tone before words are read">좋은 폰트는 문장의 온도를 바꾼다</div>
-          <div class="u-cap" style="margin-top:28px">Body</div>
-          <p class="u-body uses-font" style="font-weight:400" data-ko="글꼴은 단순한 장식이 아니라 목소리입니다. 같은 문장도 어떤 폰트로 담느냐에 따라 다정하게, 단단하게, 혹은 우아하게 들립니다. 화면과 인쇄물 모두에서 안정적으로 읽히는지 직접 확인해 보세요." data-en="A typeface is not mere decoration but a voice. The same sentence can sound warm, bold, or elegant depending on the font that carries it. Check how it reads on both screen and print.">글꼴은 단순한 장식이 아니라 목소리입니다. 같은 문장도 어떤 폰트로 담느냐에 따라 다정하게, 단단하게, 혹은 우아하게 들립니다. 화면과 인쇄물 모두에서 안정적으로 읽히는지 직접 확인해 보세요.</p>
+          <!-- 예시 문구는 서버가 폰트마다 다르게 채운다.
+               예전에는 세 문장이 여기 하드코딩돼 있어서 216개 상세페이지에
+               똑같은 글이 실렸다 — 크롤러에게는 그게 페이지 간 중복 콘텐츠였다.
+               문구 출처는 app/pairing_phrases.py 의 문구 뱅크다. -->
+          {{FFP_USAGE}}
         </section>
 
         <!-- ④ 글자 견본 / 샘플 이미지 -->
@@ -1209,6 +1213,11 @@
       document.getElementById('designBtn').onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); };
 
       document.getElementById('loading').classList.add('hidden');
+      /* 서버가 그려둔 본문을 치운다. 같은 내용이 두 벌 보이지 않게 하되,
+         지우지 않고 감추기만 한다 — 렌더 후에도 DOM에 남아 있어야
+         JS를 실행하는 크롤러가 읽는 데 문제가 없다. */
+      var _ssr = document.getElementById('fontSsr');
+      if (_ssr) _ssr.style.display = 'none';
       document.getElementById('content').classList.remove('hidden');
       try {
         var _stk = stackOf(f);

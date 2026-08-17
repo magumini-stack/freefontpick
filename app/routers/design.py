@@ -13,6 +13,7 @@
 실제 콘텐츠는 SPA(index.html/font.html)가 클라이언트에서 렌더한다.
 서버는 <head> 메타데이터만 폰트별로 치환해서, 검색엔진이 개별 페이지로 색인하게 한다.
 """
+import html as _html
 import json as _json
 import re
 from pathlib import Path
@@ -21,8 +22,14 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Font
+from ..models import Font, FontPairing, UseCase, UseCaseFont
 from ..header import inject_header
+
+
+def _esc(s) -> str:
+    """use_case_route.py와 같은 이스케이프. 어드민이 쓴 자유 문자열이
+    본문 HTML로 들어가므로 반드시 거친다."""
+    return _html.escape(str(s or ""))
 
 router = APIRouter(tags=["design"])
 
@@ -172,7 +179,12 @@ def font_design_page(font_id: int, db: Session = Depends(get_db)):
         return RedirectResponse(url="/", status_code=302)
     html = _load_font_page()
     html = inject_header(html, "")
-    return HTMLResponse(_replace_meta_for_design(html, font))
+    html = _replace_meta_for_design(html, font)
+    # 이 페이지도 font.html을 그대로 쓰므로 마커를 채워야 한다.
+    # 안 채우면 "{{FFP_SSR}}" 글자가 화면에 그대로 보인다.
+    html = html.replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
+    html = html.replace("{{FFP_USAGE}}", _usage_examples(font), 1)
+    return HTMLResponse(html)
 
 
 @router.get("/design/{font_id}")
@@ -182,6 +194,196 @@ def design_page_legacy_redirect(font_id: int):
     2026-07 URL 개편 이전에 구글에 색인되었거나 외부에서 걸린 백링크가
     끊기지 않도록, 이 경로 자체는 남겨두고 영구 리다이렉트만 수행한다."""
     return RedirectResponse(url=f"/font/{font_id}/design", status_code=301)
+
+
+# ── 상세페이지 본문 서버 렌더링 ──────────────────────────────────────
+#
+# 왜 필요한가 (2026-08, 애드센스 '가치가 별로 없는 콘텐츠' 리젝 대응)
+# ------------------------------------------------------------------
+# 이 페이지는 <head>만 폰트별로 치환하고 본문은 JS가 채웠다. 그 결과 서버가
+# 내려주는 본문이 216개 폰트 전부 **글자 하나까지 같은 1,191자**였다
+# (내용은 헤더·푸터와 "폰트 정보를 불러오는 중…"). 사이트맵 250개 중 216개가
+# 이 껍데기였고, 구글 판정 기준인 *"pages have enough unique content"* 에
+# 정면으로 걸렸다. 게다가 그 1,191자 안에는 라이선스 섹션의 폴백 문구
+# ("아직 확인하지 못한 폰트입니다 … 믿고 쓰시면 안 됩니다")가 들어 있어,
+# 실제로는 214/216이 확인 완료인데 크롤러는 전 페이지에서 정반대를 읽었다.
+#
+# 콘텐츠가 없어서가 아니라 안 보여서 생긴 문제다. 큐레이터 코멘트 94%,
+# 라이선스 권한표 99%, 조합 95%가 이미 DB에 있다. 그래서 새 글을 쓰지 않고
+# 있는 것을 HTML 본문으로 내보낸다.
+#
+# 방식은 use_case_route.py의 #picksSsr 과 같다 — 서버가 마커를 채우고,
+# JS가 뜨면 그 블록을 display:none 으로 덮는다. 크롤러와 JS 차단 환경에는
+# 정적 내용이 그대로 남는다.
+
+# 라이선스 권한 키 → 사람이 읽는 이름. 어드민 입력 폼과 같은 8개 축이다.
+_PERM_LABELS = [
+    ("print", "인쇄물"), ("web", "웹사이트"), ("package", "포장·패키지"),
+    ("video", "영상"), ("embed", "임베딩"), ("bici", "BI/CI·로고"),
+    ("modify", "수정·개작"), ("redist", "재배포"),
+]
+_PERM_TEXT = {"y": "가능", "n": "불가", "c": "조건부"}
+
+
+def _usage_examples(font: Font) -> str:
+    """'실제 사용 예시' 세 칸 — 폰트마다 다른 문구로 채운다.
+
+    예전에는 세 문장이 font.html에 하드코딩돼 216개 페이지에 그대로 복사됐다.
+    문구는 조합 카드가 쓰는 것과 같은 우물(app/pairing_phrases.py)에서 뽑아
+    사이트 전체의 말투를 하나로 맞춘다.
+
+    고르는 기준은 폰트 id다 — 매번 무작위로 뽑으면 같은 폰트를 다시 방문했을
+    때 예시가 바뀌어, 서체가 달라 보이는 건지 문구가 달라진 건지 알 수 없다.
+    """
+    from ..pairing_phrases import THEME_PHRASE_BANK, ENGLISH_THEMES
+
+    is_en = bool(font.is_english)
+    themes = [t for t in THEME_PHRASE_BANK
+              if (t in ENGLISH_THEMES) == is_en] or list(THEME_PHRASE_BANK)
+
+    fid = font.id or 0
+    theme = themes[fid % len(themes)]
+    entries = THEME_PHRASE_BANK[theme]
+    head_title, head_body = entries[fid % len(entries)]
+    sub_title, _ = entries[(fid + 1) % len(entries)]
+
+    # 한글 폰트에도 영문 대체 문구가 필요하다 — JS가 is_english 폰트에서
+    # data-en으로 갈아끼운다. 영문 뱅크에서 같은 방식으로 뽑는다.
+    en_theme = ENGLISH_THEMES[fid % len(ENGLISH_THEMES)]
+    en_entries = THEME_PHRASE_BANK[en_theme]
+    en_head, en_body = en_entries[fid % len(en_entries)]
+    en_sub, _ = en_entries[(fid + 1) % len(en_entries)]
+
+    rows = [
+        ("Headline", "u-h1", 800, head_title, en_head, ""),
+        ("Subhead", "u-h2", 700, sub_title, en_sub, "margin-top:28px"),
+        ("Body", "u-body", 400, head_body, en_body, "margin-top:28px"),
+    ]
+    out = []
+    for cap, cls, weight, ko, en, cap_style in rows:
+        style_attr = f' style="{cap_style}"' if cap_style else ""
+        tag = "p" if cls == "u-body" else "div"
+        out.append(f'<div class="u-cap"{style_attr}>{cap}</div>')
+        out.append(
+            f'<{tag} class="{cls} uses-font" style="font-weight:{weight}"'
+            f' data-ko="{_esc(ko)}" data-en="{_esc(en)}">{_esc(ko)}</{tag}>'
+        )
+    return "".join(out)
+
+
+def _font_ssr_block(font: Font, db: Session) -> str:
+    """폰트 상세페이지 본문 — 크롤러가 읽을 수 있는 정적 HTML.
+
+    여기 들어가는 것은 전부 이미 DB에 있는 값이다. 새로 만들어내지 않는다.
+    """
+    meta = font.meta if isinstance(font.meta, dict) else {}
+    parts = []
+
+    name = _esc(font.name)
+    maker = _esc(font.maker or "")
+
+    parts.append(f"<h1>{name} 무료폰트</h1>")
+
+    summary = str(meta.get("summary") or "").strip()
+    lead = f"{name}은(는) {maker}에서 배포하는 무료 폰트입니다."
+    if summary:
+        lead += f" {_esc(summary)}"
+    parts.append(f"<p>{lead}</p>")
+
+    # 기본 정보 — 폰트마다 값이 달라 이것만으로도 216개가 서로 구분된다
+    facts = [("제작사", maker), ("굵기", _esc(font.weights or ""))]
+    tags = [t.name for t in font.tags] if font.tags else []
+    if tags:
+        facts.append(("분류", _esc(" · ".join(tags))))
+    parts.append(
+        "<ul>" + "".join(f"<li><b>{k}</b> {v}</li>" for k, v in facts if v) + "</ul>"
+    )
+
+    # 큐레이터 코멘트 — 폰트픽이 직접 쓴 글. 구글이 요구하는
+    # additional commentary 에 가장 정확히 대응하므로 위쪽에 둔다.
+    intro = str(meta.get("intro") or "").strip()
+    if intro:
+        parts.append(
+            "<section><h2>왜 골랐나요</h2>"
+            f"<p>{_esc(intro)}</p>"
+            "<p>— 폰트픽 큐레이션팀</p></section>"
+        )
+
+    # 라이선스 권한표 — 직접 조사한 값. 이 사이트의 가장 강한 고유 정보다.
+    lic = meta.get("license") if isinstance(meta.get("license"), dict) else None
+    if lic and lic.get("verified"):
+        perms = lic.get("perms") if isinstance(lic.get("perms"), dict) else {}
+        rows = [
+            f"<li>{label} — {_PERM_TEXT.get(str(perms.get(key) or '').lower(), '확인 필요')}</li>"
+            for key, label in _PERM_LABELS if perms.get(key)
+        ]
+        block = [f"<section><h2>{name} 라이선스</h2>"]
+        if lic.get("name"):
+            block.append(f"<p>{_esc(lic['name'])}</p>")
+        if rows:
+            block.append("<ul>" + "".join(rows) + "</ul>")
+        note = str(lic.get("note") or "").strip()
+        if note:
+            # 줄바꿈이 들어 있는 원문이라 그대로 넣으면 한 덩어리로 뭉친다
+            block.append(
+                "".join(f"<p>{_esc(ln)}</p>" for ln in note.splitlines() if ln.strip())
+            )
+        if lic.get("url"):
+            block.append(f'<p><a href="{_esc(lic["url"])}" rel="nofollow">저작권자 원문 확인</a></p>')
+        block.append("</section>")
+        parts.append("".join(block))
+
+    # 어울리는 조합 — 페이지끼리 내부 링크가 생기는 자리이기도 하다.
+    # 지금 크롤러는 폰트 페이지 사이를 오갈 링크를 하나도 못 본다.
+    pairs = (
+        db.query(FontPairing)
+        .filter((FontPairing.title_font_id == font.id) | (FontPairing.body_font_id == font.id))
+        .order_by(FontPairing.sort_order, FontPairing.id)
+        .limit(8)
+        .all()
+    )
+    if pairs:
+        items = []
+        for p in pairs:
+            other = p.body_font if p.title_font_id == font.id else p.title_font
+            if other is None:
+                continue
+            role = "제목" if p.title_font_id == font.id else "본문"
+            items.append(
+                f'<li><a href="/font/{other.id}">{_esc(other.name)}</a>'
+                f" — {_esc(p.theme)}에서 {name}이(가) {role}을 맡는 조합</li>"
+            )
+        if items:
+            parts.append(
+                f"<section><h2>{name}과(와) 어울리는 폰트</h2>"
+                "<ul>" + "".join(items) + "</ul></section>"
+            )
+
+    # 이 폰트가 속한 용도 허브 — 순위와 추천 이유는 이미 써둔 평가 문장이다
+    memberships = (
+        db.query(UseCaseFont)
+        .join(UseCase, UseCase.id == UseCaseFont.use_case_id)
+        .filter(UseCaseFont.font_id == font.id, UseCase.is_active.is_(True))
+        .order_by(UseCase.sort_order, UseCaseFont.rank)
+        .all()
+    )
+    if memberships:
+        items = []
+        for m in memberships:
+            uc = m.use_case
+            if uc is None:
+                continue
+            line = f'<a href="/use/{_esc(uc.slug)}">{_esc(uc.title)}</a> {m.rank}위'
+            if (m.reason or "").strip():
+                line += f" — {_esc(m.reason.strip())}"
+            items.append(f"<li>{line}</li>")
+        if items:
+            parts.append(
+                f"<section><h2>{name}을(를) 추천한 용도</h2>"
+                "<ul>" + "".join(items) + "</ul></section>"
+            )
+
+    return f'<div id="fontSsr">{"".join(parts)}</div>'
 
 
 def _font_detail_meta(font: Font) -> dict:
@@ -240,13 +442,6 @@ def _replace_meta_for_font_detail(html: str, font: Font) -> str:
     html = html.replace("{{FFP_OG_IMAGE}}", m["og_image"])
     html = html.replace("{{FFP_JSONLD}}", json_ld_tag)
 
-    # 크롤러용 noscript 콘텐츠
-    seo_block = (
-        f'<noscript><section><h1>{m["name"]} 무료폰트</h1>'
-        f'<p>{m["name"]}은(는) {m["maker"]}에서 배포하는 무료 한글 폰트입니다. {m["desc"]}</p>'
-        f'</section></noscript>'
-    )
-    html = html.replace("</body>", seo_block + "\n</body>", 1)
     return html
 
 
@@ -257,7 +452,12 @@ def font_detail_page(font_id: int, db: Session = Depends(get_db)):
         return RedirectResponse(url="/", status_code=302)
     html = _load_font_page()
     html = inject_header(html, "")  # 상세페이지는 nav 항목 중 활성 표시할 게 없음
-    return HTMLResponse(_replace_meta_for_font_detail(html, font))
+    html = _replace_meta_for_font_detail(html, font)
+    # 본문 서버 렌더링 — 옛 <noscript> 두 줄을 대신한다. 자세한 이유는
+    # _font_ssr_block 주석 참조.
+    html = html.replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
+    html = html.replace("{{FFP_USAGE}}", _usage_examples(font), 1)
+    return HTMLResponse(html)
 
 
 @router.get("/", response_class=HTMLResponse)
