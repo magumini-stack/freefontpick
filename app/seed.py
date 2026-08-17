@@ -47,6 +47,7 @@ def init_db():
         _migrate_newfont_hub(db)
         _migrate_luxury_hub(db)
         _patch_luxury_hub_title(db)
+        _migrate_fancy_intros(db)
         _seed_gif_use_cases(db)
         _seed_gif_templates(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
@@ -636,6 +637,102 @@ def _patch_luxury_hub_title(db: Session):
     else:
         done.value = "1"
     db.commit()
+
+
+# ═══════════════════════════════════════════════════════════
+# 펜시 7종 큐레이터 코멘트 (2026-08, 일회성)
+# ═══════════════════════════════════════════════════════════
+# 216종 중 이 7종만 meta.intro가 비어 있어, 상세페이지 본문이 라이선스
+# 권한표 하나로 끝났다. 조합도 허브 소속도 없어 다른 페이지보다 눈에 띄게
+# 얇다.
+#
+# 전부 ㈜와이즈폰트의 '펜시' 계열이고, 제작 배경을 알 수 있는 자료는 웹에서
+# 찾지 못했다. 그래서 지어내지 않고, 폰트 파일을 직접 조판해 본 인상과
+# 쓰는 자리만 적었다. 아래 서술은 fontTools로 글리프를 뽑아 확인한 것이다.
+FANCY_INTRO_KEY = "fancy_intro_migration_v1"
+
+# (id, 이름, 코멘트) — 이름은 엉뚱한 폰트에 쓰이지 않게 확인만 하는 용도다.
+_FANCY_INTROS = [
+    (18, "고사리사랑",
+     "획 끝이 새순처럼 안쪽으로 동그랗게 말려 드는 손글씨체입니다. 획이 통통해 "
+     "작은 크기에서도 형태가 또렷하고, 어린이 콘텐츠 제목이나 영상 자막 한 줄에 "
+     "쓰기 좋습니다. 다만 말린 획이 서로 가까워 문장이 길어지면 답답해지니 "
+     "두세 어절에서 끊는 편이 낫습니다."),
+    (19, "구름가득",
+     "이름처럼 획 끝이 뭉게구름 모양으로 부풀어 오르고, 몇몇 글자에는 작은 구름이 "
+     "얹혀 있습니다. 같은 펜시 계열 중에서는 장식이 가장 절제돼 있어 두세 줄 "
+     "정도는 무리 없이 읽힙니다. 그래도 본문용으로 설계된 글꼴은 아니니 카드 뉴스 "
+     "한 장 분량까지가 알맞습니다."),
+    (31, "러브미텐더",
+     "자음과 모음 사이사이에 하트가 들어가 있어, 글자를 쓰는 것만으로 장식이 끝나는 "
+     "서체입니다. 획이 이 계열에서 가장 굵어 존재감이 큰 대신 문장이 길어지면 "
+     "하트끼리 부딪혀 읽기 어려워집니다. 고백 카드나 기념일 배너처럼 한 문장짜리 "
+     "자리에 쓰세요."),
+    (45, "별헤는밤",
+     "모음 옆에 작은 별이 하나씩 떠 있는 손글씨체입니다. 획이 가늘고 사이가 넉넉해 "
+     "인상이 차분한 편이라 밤·꿈·계절처럼 감성적인 낱말과 잘 붙습니다. 별 장식은 "
+     "반복되면 금세 지루해지니 제목 한 줄에만 쓰고 본문은 다른 서체에 맡기는 편이 "
+     "낫습니다."),
+    (74, "음악의신",
+     "획을 직선으로 각지게 꺾고 그 사이에 음표를 끼워 넣은 서체입니다. 한글뿐 아니라 "
+     "영문과 숫자까지 같은 방식으로 변형돼 있어 읽는 부담이 이 계열에서 가장 큽니다. "
+     "공연 포스터나 플레이리스트 표지의 제목 한 단어처럼, 읽기보다 보는 자리에 "
+     "두는 것이 맞습니다."),
+    (100, "푸들",
+     "획이 가늘고 글자 사이가 넓어 이 계열에서 가장 가벼운 인상을 냅니다. 군데군데 "
+     "발바닥 자국이 찍혀 있어 반려동물 계정 이름이나 산책·분양 안내처럼 소재가 맞는 "
+     "자리에서 힘을 냅니다. 획이 얇은 만큼 배경이 복잡하면 묻히니 여백을 넉넉히 두고 "
+     "쓰세요."),
+    (105, "힙합",
+     "한글은 굵고 네모틀에 가깝게 정리돼 있어 이 계열 중에서는 가장 단정하게 읽히고, "
+     "영문과 숫자는 획을 각지게 깎아 인상이 확 달라집니다. 그래서 한글 제목에 쓰면 "
+     "무난하고 로마자를 섞으면 거친 느낌이 살아납니다. 어느 쪽이든 한두 어절짜리 "
+     "제목용입니다."),
+]
+
+
+def _migrate_fancy_intros(db: Session):
+    """코멘트가 비어 있는 펜시 7종에만 큐레이터 코멘트를 넣는다.
+
+    ⚠ 이미 값이 있으면 건너뛴다. 어드민에서 나중에 고쳐 쓴 글을 배포가
+    되돌리는 일이 없어야 한다. app_meta 표시로 두 번 돌지도 않는다.
+
+    meta는 JSON 컬럼이라 딕셔너리를 제자리에서 고치면 SQLAlchemy가 변경을
+    알아채지 못한다. 새 딕셔너리로 통째로 갈아끼운다.
+    """
+    done = db.query(AppMeta).filter(AppMeta.key == FANCY_INTRO_KEY).first()
+    if done and done.value == "1":
+        return
+
+    filled, skipped, missing = 0, [], []
+    for font_id, name, intro in _FANCY_INTROS:
+        f = db.query(Font).filter(Font.id == font_id).first()
+        if f is None:
+            missing.append(f"id={font_id}({name})")
+            continue
+        if f.name != name:
+            # 이름이 다르면 다른 폰트에 남의 글을 붙이는 것이라 손대지 않는다.
+            print(f"[migrate] 펜시 코멘트 폰트명 불일치 id={font_id}: DB='{f.name}' 기대='{name}' — 건너뜀")
+            continue
+        meta = dict(f.meta or {})
+        if (meta.get("intro") or "").strip():
+            skipped.append(f.name)
+            continue
+        meta["intro"] = intro
+        f.meta = meta
+        filled += 1
+
+    if done is None:
+        db.add(AppMeta(key=FANCY_INTRO_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+    msg = f"[migrate] 펜시 큐레이터 코멘트 {filled}종 추가"
+    if skipped:
+        msg += f" (이미 있어 건너뜀: {', '.join(skipped)})"
+    if missing:
+        msg += f" (미발견: {', '.join(missing)})"
+    print(msg)
 
 
 def _migrate_tag_axes(db: Session):
