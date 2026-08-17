@@ -50,39 +50,72 @@ def _load_font_page() -> str:
     return FONT_PAGE_PATH.read_text(encoding="utf-8")
 
 
-def _inject_crawlable_font_links(html: str, db: Session) -> str:
-    """홈페이지 서버 응답에 전체 폰트 상세페이지 링크를 실제 <a href>로 심는다.
+def _home_ssr_block(db: Session) -> str:
+    """홈 본문 — 크롤러가 읽을 수 있는 정적 HTML.
 
-    폰트 갤러리는 클라이언트 JS(fetch('/api/fonts') → DOM 삽입)로 그려지기 때문에,
-    서버가 최초로 내려주는 HTML에는 카드가 비어있다. 구글봇처럼 JS를 렌더링하는
-    크롤러는 문제없지만, 네이버 Yeti 등 JS 렌더링이 제한적인 크롤러는 홈페이지에서
-    폰트 링크를 아예 발견하지 못할 수 있다 (sitemap.xml로는 색인되지만, 홈페이지發
-    내부링크 효과는 없는 상태).
+    왜 바꿨나 (2026-08, 애드센스 리젝 대응)
+    ---------------------------------------
+    홈도 폰트 상세페이지와 같은 문제였다. 용도 허브(#useSection)는
+    display:none으로 시작하고 폰트 갤러리(#fontGrid)는 빈 채로 시작해서,
+    서버가 내려주는 본문 1,155자가 **전부 헤더·푸터·안내문**이었다.
+    폰트 카드 0개, noscript 밖으로 나가는 /font/ 링크 0개.
 
-    이를 보완하기 위해 <noscript> 블록에 전체 폰트로 가는 진짜 <a href="/font/{id}">
-    링크 목록을 심는다. <noscript>는 JS를 실행하지 않는 크롤러/브라우저에서만
-    렌더링되므로, 일반 사용자 화면(JS 정상 실행)에는 아무 영향이 없다. 다른 라우트
-    (design.py의 폰트별 SEO noscript 블록)와 동일한 패턴이다.
+    예전에는 <noscript>에 폰트 이름만 나열한 링크 목록을 넣어 뒀는데,
+    링크 역할은 해도 콘텐츠는 아니었다(이름만 8,602자). 이제 제작사와
+    한줄요약을 함께 넣어 실제 내용이 되게 하고, noscript가 아니라 보이는
+    HTML로 내린다 — use.html의 #picksSsr, font.html의 #fontSsr과 같은 방식이다.
+    JS가 뜨면 진짜 갤러리가 그려지므로 이 블록은 감춘다.
     """
-    import html as _html_esc
+    parts = []
 
+    # ① 용도 허브 — /use/{slug} 로 가는 진짜 링크. 홈에서 크롤러가 따라갈
+    #    내부 링크가 지금은 하나도 없다.
     try:
-        rows = db.query(Font.id, Font.name).order_by(Font.id).all()
+        hubs = (
+            db.query(UseCase)
+            .filter(UseCase.is_active.is_(True))
+            .order_by(UseCase.sort_order, UseCase.id)
+            .all()
+        )
     except Exception:
-        return html
+        hubs = []
+    if hubs:
+        items = "".join(
+            f'<li><a href="/use/{_esc(u.slug)}"><b>{_esc(u.title)}</b></a>'
+            + (f" — {_esc(u.subtitle)}" if u.subtitle else "")
+            + "</li>"
+            for u in hubs
+        )
+        parts.append(
+            "<section><h2>어디에 쓰실 건가요</h2>"
+            "<ul>" + items + "</ul></section>"
+        )
 
-    if not rows:
-        return html
+    # ② 폰트 목록 — 이름만이 아니라 제작사와 한줄요약까지. 한줄요약은
+    #    216종 전부 채워져 있어(meta.summary) 목록 자체가 읽을거리가 된다.
+    try:
+        fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
+    except Exception:
+        fonts = []
+    if fonts:
+        rows = []
+        for f in fonts:
+            meta = f.meta if isinstance(f.meta, dict) else {}
+            summary = str(meta.get("summary") or "").strip()
+            line = f'<li><a href="/font/{f.id}"><b>{_esc(f.name)}</b></a>'
+            if f.maker:
+                line += f" · {_esc(f.maker)}"
+            if summary:
+                line += f" — {_esc(summary)}"
+            rows.append(line + "</li>")
+        parts.append(
+            f"<section><h2>무료 폰트 {len(fonts)}종</h2>"
+            "<ul>" + "".join(rows) + "</ul></section>"
+        )
 
-    items = "".join(
-        f'<li><a href="/font/{fid}">{_html_esc.escape(name or "")}</a></li>'
-        for fid, name in rows
-    )
-    block = (
-        '<noscript><nav aria-label="전체 무료폰트 목록">'
-        '<h2>전체 무료폰트</h2><ul>' + items + '</ul></nav></noscript>'
-    )
-    return html.replace("</body>", block + "\n</body>", 1)
+    if not parts:
+        return ""
+    return f'<div id="homeSsr">{"".join(parts)}</div>'
 
 
 
@@ -597,12 +630,13 @@ def font_detail_page(font_id: int, db: Session = Depends(get_db)):
 def home_page(db: Session = Depends(get_db)):
     """홈 — 서버가 공유 헤더를 주입해서 응답 (헤더 단일 소스화)
 
-    + 전체 폰트 목록을 <noscript> 링크로 심어서, JS 렌더링이 제한적인
-      검색엔진 크롤러도 홈페이지에서 바로 폰트 상세페이지를 발견할 수 있게 한다.
+    + 용도 허브와 전체 폰트 목록을 본문 HTML로 심는다(_home_ssr_block).
+      갤러리와 허브 그리드가 모두 JS로 그려져서, 서버 응답만 보면 헤더·푸터밖에
+      없던 것을 메운다.
     """
     html = _load_index()
     html = inject_header(html, "home")
-    html = _inject_crawlable_font_links(html, db)
+    html = html.replace("{{FFP_HOME_SSR}}", _home_ssr_block(db), 1)
     return HTMLResponse(html)
 
 
@@ -625,6 +659,10 @@ def find_font_page():
     """폰트 찾기 게시판 고유 URL — SEO용 title/description 치환"""
     html = _load_index()
     html = inject_header(html, "findfont")
+    # 이 페이지도 index.html을 그대로 쓴다. 마커를 안 지우면 "{{FFP_HOME_SSR}}"
+    # 글자가 화면에 그대로 보인다. 홈의 폰트 목록은 여기 붙일 내용이 아니므로
+    # 빈 문자열로 지운다 — 같은 목록이 두 URL에 실리면 중복 콘텐츠가 된다.
+    html = html.replace("{{FFP_HOME_SSR}}", "", 1)
     title = "폰트 찾기 - 이미지로 폰트 이름 찾기 | 폰트픽"
     desc = ("찾고 싶은 폰트 이미지를 올리면 다른 사용자들이 폰트 이름을 답변해드려요. "
             "로그인 없이 무료로 질문하고 답변할 수 있습니다.")
