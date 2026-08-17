@@ -660,14 +660,10 @@
             <div class="lic-title"><i class="ti ti-shield-check"></i> 라이선스 요약</div>
             <span class="lic-badge" id="licBadge"></span>
           </div>
-          <div class="lic-pending" id="licPending" hidden>
-            <i class="ti ti-alert-triangle"></i>
-            <div>
-              <b>아직 확인하지 못한 폰트입니다.</b>
-              아래 표는 <u>확인된 내용이 아니라 일반적인 무료폰트 기준</u>이므로 그대로 믿고 쓰시면 안 됩니다.
-              사용 전에 반드시 저작권자 페이지에서 직접 확인해 주세요.
-            </div>
-          </div>
+          <!-- 라이선스를 확인한 폰트(대다수)에는 서버가 이 경고를 아예 안 내려준다.
+               hidden이라 화면에는 안 나왔지만, 같은 HTML 안에 실제 라이선스와
+               "확인하지 못했다"는 문장이 함께 있으면 읽는 쪽이 헷갈린다. -->
+          {{FFP_LIC_PENDING}}
           <div class="lic-grid" id="licGrid"></div>
           <p class="lic-note" id="licNote"></p>
         </section>
@@ -1146,6 +1142,13 @@
     sec.classList.remove('hidden');
   }
 
+  /* 서버가 그려준 본문(#fontSsr)은 크롤러와 JS 차단 환경을 위한 것이다.
+     JS가 도는 브라우저에서는 잠시 뒤 #content가 같은 내용을 제대로 된 모양으로
+     그리므로, 여기서 미리 감춰 '글자만 있는 화면이 번쩍 스쳤다가 바뀌는' 것을
+     없앤다. 아래 .catch에서 되돌리므로 불러오기에 실패해도 빈 화면이 되지 않는다. */
+  var _ssrEl = document.getElementById('fontSsr');
+  if (_ssrEl) _ssrEl.style.display = 'none';
+
   fetch('/api/fonts/' + fid)
     .then(function(r){ if (!r.ok) throw new Error('not found'); return r.json(); })
     .then(function(f){
@@ -1213,11 +1216,7 @@
       document.getElementById('designBtn').onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); };
 
       document.getElementById('loading').classList.add('hidden');
-      /* 서버가 그려둔 본문을 치운다. 같은 내용이 두 벌 보이지 않게 하되,
-         지우지 않고 감추기만 한다 — 렌더 후에도 DOM에 남아 있어야
-         JS를 실행하는 크롤러가 읽는 데 문제가 없다. */
-      var _ssr = document.getElementById('fontSsr');
-      if (_ssr) _ssr.style.display = 'none';
+      /* #fontSsr은 fetch를 걸기 전에 이미 감췄다 (위 _ssrEl 참조) */
       document.getElementById('content').classList.remove('hidden');
       try {
         var _stk = stackOf(f);
@@ -1286,7 +1285,12 @@
     })
     .then(function(r){ return r && r.ok ? r.json() : []; })
     .then(renderPairings)
-    .catch(function(){ location.href = '/'; });
+    .catch(function(){
+      /* 불러오기에 실패하면 서버가 그려준 본문을 되살린다 — 홈으로 튕기기 전에
+         적어도 폰트 정보는 남아 있어야 한다. */
+      if (_ssrEl) _ssrEl.style.display = '';
+      location.href = '/';
+    });
 
   /* ══════════════════════════════════════════════════════
      폰트 조합 찾기 모달

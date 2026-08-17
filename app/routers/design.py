@@ -184,6 +184,7 @@ def font_design_page(font_id: int, db: Session = Depends(get_db)):
     # 안 채우면 "{{FFP_SSR}}" 글자가 화면에 그대로 보인다.
     html = html.replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
     html = html.replace("{{FFP_USAGE}}", _usage_examples(font), 1)
+    html = html.replace("{{FFP_LIC_PENDING}}", _lic_pending_block(font), 1)
     return HTMLResponse(html)
 
 
@@ -223,6 +224,28 @@ _PERM_LABELS = [
     ("modify", "수정·개작"), ("redist", "재배포"),
 ]
 _PERM_TEXT = {"y": "가능", "n": "불가", "c": "조건부"}
+
+
+_LIC_PENDING_HTML = (
+    '<div class="lic-pending" id="licPending" hidden>'
+    '<i class="ti ti-alert-triangle"></i>'
+    '<div><b>아직 확인하지 못한 폰트입니다.</b> '
+    '아래 표는 <u>확인된 내용이 아니라 일반적인 무료폰트 기준</u>이므로 그대로 '
+    '믿고 쓰시면 안 됩니다. 사용 전에 반드시 저작권자 페이지에서 직접 확인해 주세요.'
+    '</div></div>'
+)
+
+
+def _lic_pending_block(font: Font) -> str:
+    """라이선스 미확인 경고 — 정말 미확인인 폰트에만 내려보낸다.
+
+    216종 중 214종이 확인 완료인데, 예전에는 이 경고 마크업이 모든 페이지에
+    실려 나갔다(hidden이라 화면에는 안 보였다). 실제 라이선스와 "확인하지
+    못했다"는 문장이 한 HTML 안에 같이 있으면 읽는 쪽이 헷갈린다.
+    """
+    meta = font.meta if isinstance(font.meta, dict) else {}
+    lic = meta.get("license") if isinstance(meta.get("license"), dict) else None
+    return "" if (lic and lic.get("verified")) else _LIC_PENDING_HTML
 
 
 def _usage_examples(font: Font) -> str:
@@ -457,6 +480,7 @@ def font_detail_page(font_id: int, db: Session = Depends(get_db)):
     # _font_ssr_block 주석 참조.
     html = html.replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
     html = html.replace("{{FFP_USAGE}}", _usage_examples(font), 1)
+    html = html.replace("{{FFP_LIC_PENDING}}", _lic_pending_block(font), 1)
     return HTMLResponse(html)
 
 
