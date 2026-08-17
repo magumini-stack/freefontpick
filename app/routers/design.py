@@ -213,11 +213,7 @@ def font_design_page(font_id: int, db: Session = Depends(get_db)):
     html = _replace_meta_for_design(html, font)
     # 이 페이지도 font.html을 그대로 쓰므로 마커를 채워야 한다.
     # 안 채우면 "{{FFP_SSR}}" 글자가 화면에 그대로 보인다.
-    html = html.replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
-    html = html.replace("{{FFP_USAGE}}", _usage_examples(font), 1)
-    html = html.replace("{{FFP_LIC_PENDING}}", _lic_pending_block(font), 1)
-    html = html.replace("{{FFP_HUBS}}", _font_hub_block(font, db), 1)
-    return HTMLResponse(html)
+    return HTMLResponse(_fill_font_markers(html, font, db))
 
 
 @router.get("/design/{font_id}")
@@ -434,6 +430,79 @@ def _usage_examples(font: Font) -> str:
     return "".join(out)
 
 
+# ── '미리 써보기' 기본 문구 ─────────────────────────────────────────
+#
+# 홈에서 카드를 눌러 들어오면 그 카드의 문구가 sessionStorage로 따라온다.
+# 그런데 검색(네이버·구글)에서 상세페이지로 바로 들어오면 이어받을 값이 없어
+# 판그램 '다람쥐 헌 쳇바퀴에 타고파'가 그대로 나왔다. 판그램은 자모가 다 들어
+# 있는지 보는 시험 문장이라, 서체를 구경하러 온 사람에게는 뜬금없다.
+#
+# 그래서 폰트마다 다른 일반 문구를 서버가 넣어 준다. 고르는 기준은 폰트 id다
+# (_USAGE_SETS와 같은 이유 — 같은 폰트를 다시 열었을 때 문구가 바뀌면 서체가
+# 달라 보이는 건지 문구가 달라진 건지 알 수 없다).
+_PREVIEW_PHRASES = [
+    ("오늘 하루도 잘 지나갔습니다", "Every good day starts here"),
+    ("천천히 읽어도 괜찮은 문장입니다", "Take your time with this line"),
+    ("작은 차이가 오래 남습니다", "Small details, long remembered"),
+    ("좋은 글씨는 먼저 읽힙니다", "Good type reads before it speaks"),
+    ("내일은 조금 더 나아질 거예요", "Tomorrow arrives a little brighter"),
+    ("한 줄로도 충분한 이야기가 있어요", "Some stories fit in one line"),
+    ("계절이 바뀌는 냄새가 납니다", "The season turns overnight"),
+    ("오래 두고 볼수록 편안합니다", "Easier on the eyes over time"),
+    ("문장의 온도는 서체가 정합니다", "Type sets the tone of a sentence"),
+    ("가까이서 보면 더 잘 보입니다", "Look closer and it shows"),
+    ("오늘 저녁에는 국수를 삶을까 해요", "Warm bowls for a cool evening"),
+    ("적당한 여백이 글을 살립니다", "Whitespace does half the work"),
+    ("멀리 가려면 천천히 걸어야죠", "Go slow to go far"),
+    ("이 문장을 소리 내어 읽어 보세요", "Try reading this one out loud"),
+    ("봄볕이 창가에 오래 머뭅니다", "Sunlight lingers by the window"),
+    ("필요한 말만 남기고 지웠어요", "Only what needed saying"),
+    ("처음 만든 것을 아직 갖고 있어요", "Still keeping the very first one"),
+    ("읽는 사람을 재촉하지 않습니다", "It never rushes the reader"),
+    ("조용한 아침이 가장 좋습니다", "Quiet mornings suit us best"),
+    ("끝까지 읽어 주셔서 고맙습니다", "Thanks for reading to the end"),
+]
+
+_HANGUL_RE = re.compile(r"[가-힣ㄱ-ㆎ]")
+
+
+def _preview_phrase(font: Font) -> tuple:
+    """이 폰트의 '미리 써보기' 기본 문구 (한글용, 영문용).
+
+    어드민이 폰트에 문구를 지정해 뒀으면(meta.preview_text) 그게 우선이다.
+    다만 영문 전용 폰트에 한글 문구가 들어 있으면 글자가 통째로 깨지므로
+    그때는 쓰지 않는다 — 홈(index.html getPreviewTextFor)과 같은 규칙이다.
+    """
+    ko, en = _PREVIEW_PHRASES[(font.id or 0) % len(_PREVIEW_PHRASES)]
+    meta = font.meta or {}
+    own = str(meta.get("preview_text") or "").strip()
+    if own:
+        if font.is_english:
+            if not _HANGUL_RE.search(own):
+                en = own
+        else:
+            ko = own
+    return ko, en
+
+
+def _fill_font_markers(html: str, font: Font, db: Session) -> str:
+    """font.html의 {{FFP_*}} 마커를 전부 채운다.
+
+    /font/{id} 와 /font/{id}/design 이 같은 파일을 쓴다. 예전에는 두 라우트가
+    같은 replace 네 줄을 각각 갖고 있어서, 마커를 하나 추가할 때 한쪽만 고치면
+    그 페이지에 "{{FFP_...}}" 글자가 그대로 보였다. 한 곳에 모은다.
+    """
+    ko, en = _preview_phrase(font)
+    return (
+        html.replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
+            .replace("{{FFP_USAGE}}", _usage_examples(font), 1)
+            .replace("{{FFP_LIC_PENDING}}", _lic_pending_block(font), 1)
+            .replace("{{FFP_HUBS}}", _font_hub_block(font, db), 1)
+            .replace("{{FFP_TRY_KO}}", _esc(ko), 1)
+            .replace("{{FFP_TRY_EN}}", _esc(en), 1)
+    )
+
+
 def _font_ssr_block(font: Font, db: Session) -> str:
     """폰트 상세페이지 본문 — 크롤러가 읽을 수 있는 정적 HTML.
 
@@ -628,11 +697,7 @@ def font_detail_page(font_id: int, db: Session = Depends(get_db)):
     html = _replace_meta_for_font_detail(html, font)
     # 본문 서버 렌더링 — 옛 <noscript> 두 줄을 대신한다. 자세한 이유는
     # _font_ssr_block 주석 참조.
-    html = html.replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
-    html = html.replace("{{FFP_USAGE}}", _usage_examples(font), 1)
-    html = html.replace("{{FFP_LIC_PENDING}}", _lic_pending_block(font), 1)
-    html = html.replace("{{FFP_HUBS}}", _font_hub_block(font, db), 1)
-    return HTMLResponse(html)
+    return HTMLResponse(_fill_font_markers(html, font, db))
 
 
 @router.get("/", response_class=HTMLResponse)

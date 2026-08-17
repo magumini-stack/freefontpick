@@ -613,7 +613,8 @@
         <!-- ① 직접 입력 + ② 굵기별 보기 -->
         <section class="blk">
           <div class="tryout">
-            <input type="text" id="tryInput" placeholder="원하는 문구를 입력해 보세요" maxlength="60">
+            <input type="text" id="tryInput" placeholder="원하는 문구를 입력해 보세요" maxlength="60"
+                   data-ko="{{FFP_TRY_KO}}" data-en="{{FFP_TRY_EN}}">
             <div class="note">입력한 문구가 아래 미리보기에 바로 적용됩니다.</div>
           </div>
           <div class="sec-head" style="margin-top:30px"><h2 id="previewHeading">미리보기</h2><span class="count" id="weightsLabel"></span>
@@ -790,8 +791,19 @@
 
 <script>
 (function(){
-  var DEFAULT_TEXT = '다람쥐 헌 쳇바퀴에 타고파';
-  var DEFAULT_TEXT_EN = 'The quick brown fox jumps';
+  /* 미리 써보기 기본 문구.
+     홈에서 카드를 눌러 들어오면 그 카드의 문구가 따라오지만, 검색에서 상세
+     페이지로 바로 들어오면 이어받을 값이 없다. 그때 판그램('다람쥐 헌 쳇바퀴에
+     타고파')이 나오던 것을 폰트마다 다른 일반 문구로 바꾼다. 값은 서버가
+     #tryInput의 data-ko/data-en에 넣어 준다(design.py _preview_phrase).
+     마커가 안 채워진 채로 오면(옛 캐시 등) 그 값은 버리고 아래 기본값을 쓴다. */
+  function _tryAttr(name, fallback){
+    var el = document.getElementById('tryInput');
+    var v = el ? (el.getAttribute(name) || '').trim() : '';
+    return (v && v.indexOf('{{') < 0) ? v : fallback;
+  }
+  var DEFAULT_TEXT    = _tryAttr('data-ko', '좋은 글씨는 먼저 읽힙니다');
+  var DEFAULT_TEXT_EN = _tryAttr('data-en', 'Good type reads before it speaks');
 
   /* 구글·네이버·CDN 웹폰트로 배포되는 폰트 → 전체 굵기 표시
      key: 정규화된 폰트 이름(공백 제거, 소문자) */
