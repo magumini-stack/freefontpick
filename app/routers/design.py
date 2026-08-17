@@ -80,10 +80,11 @@ def _home_ssr_block(db: Session) -> str:
     except Exception:
         hubs = []
     if hubs:
+        # 부제(subtitle)는 넣지 않는다 — 홈 그리드(#useGrid)가 제목만 보여주므로
+        # 부제를 여기 넣으면 화면 어디에도 없는 '크롤러 전용 텍스트'가 된다.
+        # 구글이 CSS로 숨긴 텍스트를 금지하므로, 이 블록에는 사용자도 보는 것만 담는다.
         items = "".join(
-            f'<li><a href="/use/{_esc(u.slug)}"><b>{_esc(u.title)}</b></a>'
-            + (f" — {_esc(u.subtitle)}" if u.subtitle else "")
-            + "</li>"
+            f'<li><a href="/use/{_esc(u.slug)}">{_esc(u.title)}</a></li>'
             for u in hubs
         )
         parts.append(
@@ -91,8 +92,9 @@ def _home_ssr_block(db: Session) -> str:
             "<ul>" + items + "</ul></section>"
         )
 
-    # ② 폰트 목록 — 이름만이 아니라 제작사와 한줄요약까지. 한줄요약은
-    #    216종 전부 채워져 있어(meta.summary) 목록 자체가 읽을거리가 된다.
+    # ② 폰트 목록 — 갤러리 카드가 보여주는 것과 같은 항목(이름·제작사)만 담는다.
+    #    한줄요약(meta.summary)은 카드에 없어서 넣으면 크롤러 전용 텍스트가 된다.
+    #    그 요약은 각 폰트 상세페이지에서 이미 본문으로 나가고 있다.
     try:
         fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
     except Exception:
@@ -100,13 +102,9 @@ def _home_ssr_block(db: Session) -> str:
     if fonts:
         rows = []
         for f in fonts:
-            meta = f.meta if isinstance(f.meta, dict) else {}
-            summary = str(meta.get("summary") or "").strip()
-            line = f'<li><a href="/font/{f.id}"><b>{_esc(f.name)}</b></a>'
+            line = f'<li><a href="/font/{f.id}">{_esc(f.name)}</a>'
             if f.maker:
                 line += f" · {_esc(f.maker)}"
-            if summary:
-                line += f" — {_esc(summary)}"
             rows.append(line + "</li>")
         parts.append(
             f"<section><h2>무료 폰트 {len(fonts)}종</h2>"
@@ -218,6 +216,7 @@ def font_design_page(font_id: int, db: Session = Depends(get_db)):
     html = html.replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
     html = html.replace("{{FFP_USAGE}}", _usage_examples(font), 1)
     html = html.replace("{{FFP_LIC_PENDING}}", _lic_pending_block(font), 1)
+    html = html.replace("{{FFP_HUBS}}", _font_hub_block(font, db), 1)
     return HTMLResponse(html)
 
 
@@ -454,11 +453,11 @@ def _font_ssr_block(font: Font, db: Session) -> str:
         lead += f" {_esc(summary)}"
     parts.append(f"<p>{lead}</p>")
 
-    # 기본 정보 — 폰트마다 값이 달라 이것만으로도 216개가 서로 구분된다
+    # 기본 정보 — 폰트마다 값이 달라 이것만으로도 216개가 서로 구분된다.
+    # 태그(분류)는 넣지 않는다: 화면에서 뺀 항목이라(font.html 주석 참고 —
+    # "예전에는 이 자리에 카테고리 태그 알약이 깔렸는데") 여기 넣으면 사용자에게는
+    # 없고 크롤러에게만 있는 텍스트가 된다.
     facts = [("제작사", maker), ("굵기", _esc(font.weights or ""))]
-    tags = [t.name for t in font.tags] if font.tags else []
-    if tags:
-        facts.append(("분류", _esc(" · ".join(tags))))
     parts.append(
         "<ul>" + "".join(f"<li><b>{k}</b> {v}</li>" for k, v in facts if v) + "</ul>"
     )
@@ -523,7 +522,17 @@ def _font_ssr_block(font: Font, db: Session) -> str:
                 "<ul>" + "".join(items) + "</ul></section>"
             )
 
-    # 이 폰트가 속한 용도 허브 — 순위와 추천 이유는 이미 써둔 평가 문장이다
+    return f'<div id="fontSsr">{"".join(parts)}</div>'
+
+
+def _font_hub_block(font: Font, db: Session) -> str:
+    """이 폰트를 추천한 용도 허브 — 화면에 계속 보이는 섹션.
+
+    #fontSsr 안에 있던 것을 떼어냈다. 그 블록은 JS가 뜨면 감추는데 화면 어디에도
+    같은 내용이 없어서, 크롤러만 읽는 텍스트가 되고 있었다(블록의 27%).
+    구글은 CSS로 숨긴 텍스트를 금지하므로 지우거나 보이게 해야 하는데,
+    순위와 추천 이유는 사용자에게도 쓸모 있는 정보라 보이는 쪽을 택했다.
+    """
     memberships = (
         db.query(UseCaseFont)
         .join(UseCase, UseCase.id == UseCaseFont.use_case_id)
@@ -531,23 +540,23 @@ def _font_ssr_block(font: Font, db: Session) -> str:
         .order_by(UseCase.sort_order, UseCaseFont.rank)
         .all()
     )
-    if memberships:
-        items = []
-        for m in memberships:
-            uc = m.use_case
-            if uc is None:
-                continue
-            line = f'<a href="/use/{_esc(uc.slug)}">{_esc(uc.title)}</a> {m.rank}위'
-            if (m.reason or "").strip():
-                line += f" — {_esc(m.reason.strip())}"
-            items.append(f"<li>{line}</li>")
-        if items:
-            parts.append(
-                f"<section><h2>{name}을(를) 추천한 용도</h2>"
-                "<ul>" + "".join(items) + "</ul></section>"
-            )
-
-    return f'<div id="fontSsr">{"".join(parts)}</div>'
+    items = []
+    for m in memberships:
+        uc = m.use_case
+        if uc is None:
+            continue
+        line = (f'<a href="/use/{_esc(uc.slug)}"><b>{_esc(uc.title)}</b></a>'
+                f' <span class="hub-rank">{m.rank}위</span>')
+        if (m.reason or "").strip():
+            line += f" — {_esc(m.reason.strip())}"
+        items.append(f"<li>{line}</li>")
+    if not items:
+        return ""
+    return (
+        '<section class="blk" id="hubSec">'
+        f'<div class="sec-head"><h2>{_esc(font.name)}을(를) 추천한 용도</h2></div>'
+        '<ul class="hub-list">' + "".join(items) + "</ul></section>"
+    )
 
 
 def _font_detail_meta(font: Font) -> dict:
@@ -622,6 +631,7 @@ def font_detail_page(font_id: int, db: Session = Depends(get_db)):
     html = html.replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
     html = html.replace("{{FFP_USAGE}}", _usage_examples(font), 1)
     html = html.replace("{{FFP_LIC_PENDING}}", _lic_pending_block(font), 1)
+    html = html.replace("{{FFP_HUBS}}", _font_hub_block(font, db), 1)
     return HTMLResponse(html)
 
 
