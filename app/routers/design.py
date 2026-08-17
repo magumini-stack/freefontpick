@@ -248,39 +248,147 @@ def _lic_pending_block(font: Font) -> str:
     return "" if (lic and lic.get("verified")) else _LIC_PENDING_HTML
 
 
+# '실제 사용 예시' 문구 10벌.
+#
+# 조합 문구 뱅크(pairing_phrases.py)에서 뽑아 쓴 적이 있는데, 거기 문장은
+# 한 문장이 20자 안팎이라(456개 중 40자 넘는 것이 5개뿐) 본문이 예전의
+# 5분의 1로 짧아졌다. 이 자리는 '이 폰트로 제목과 문단을 짜면 어떻게 보이나'를
+# 보여주는 곳이라 문단다운 길이가 있어야 한다. 그래서 직접 쓴다.
+#
+# 결은 원래 있던 문구를 따른다 — 헤드라인은 서정적인 한 줄, 서브헤드는
+# 타이포그래피에 대한 짧은 문장, 본문은 이 서체에서 무엇을 살펴봐야 하는지.
+# 길이는 대략 헤드라인 16~20자 / 서브헤드 14~18자 / 본문 100~120자.
+_USAGE_SETS = [
+    ("봄이 오면, 오래된 것들이 새로워진다",
+     "좋은 폰트는 문장의 온도를 바꾼다",
+     "글꼴은 단순한 장식이 아니라 목소리입니다. 같은 문장도 어떤 폰트로 담느냐에 따라 "
+     "다정하게, 단단하게, 혹은 우아하게 들립니다. 화면과 인쇄물 모두에서 안정적으로 "
+     "읽히는지 직접 확인해 보세요.",
+     "Every great story starts with a single line",
+     "Typography sets the tone before words are read",
+     "A typeface is not mere decoration but a voice. The same sentence can sound warm, "
+     "bold, or elegant depending on the font that carries it. Check how it reads on both "
+     "screen and print."),
+
+    ("오래 머문 자리에는 흔적이 남는다",
+     "읽는 속도는 서체가 정한다",
+     "좋은 서체는 읽는 사람을 재촉하지 않습니다. 획이 고르면 눈이 문장을 따라가는 데 "
+     "힘이 들지 않고, 그만큼 오래 읽어도 지치지 않습니다. 긴 글을 얹어 보고 끝까지 "
+     "편안한지 확인해 보세요.",
+     "What stays long enough leaves a mark",
+     "A typeface decides how fast you read",
+     "A good typeface never rushes the reader. When the strokes are even, the eye follows "
+     "the line without effort and stays with it longer. Set a long passage and see whether "
+     "it holds to the end."),
+
+    ("겨울의 끝에서 우리는 조금 자랐다",
+     "여백이 문장의 숨을 만든다",
+     "글자 사이와 줄 사이의 빈 곳이 문장의 호흡을 정합니다. 같은 서체라도 자간과 행간을 "
+     "달리하면 인상이 완전히 달라집니다. 제목과 본문에 각각 올려 보고 두 크기에서 모두 "
+     "살아나는지 살펴보세요.",
+     "We grew a little at the end of winter",
+     "White space gives a sentence its breath",
+     "The gaps between letters and lines set the rhythm of a sentence. The same typeface "
+     "changes character entirely with different tracking and leading. Try it as a heading "
+     "and as body text, and see if it holds at both sizes."),
+
+    ("낡은 것들이 다시 말을 걸어온다",
+     "굵기 하나로 위계가 생긴다",
+     "크기를 키우지 않아도 굵기만 바꾸면 무엇을 먼저 읽어야 할지 정해집니다. 굵기가 여럿인 "
+     "서체는 색을 쓰지 않고도 정보를 정리할 수 있습니다. 제목과 본문의 굵기를 두 단계 "
+     "벌려 보고 차이가 또렷한지 보세요.",
+     "Old things begin to speak again",
+     "Weight alone can build a hierarchy",
+     "You do not need a larger size to say what comes first; weight already does it. A "
+     "family with many weights can organise information without relying on colour. Put two "
+     "steps between heading and body and see if the difference reads."),
+
+    ("멀리 가는 마음은 천천히 걷는다",
+     "작게 줄였을 때 진짜가 보인다",
+     "서체의 완성도는 크게 키웠을 때가 아니라 작게 줄였을 때 드러납니다. 획이 뭉치거나 "
+     "속공간이 막히면 그 크기에서 문장이 무너집니다. 본문 크기까지 내려 보고 글자가 서로 "
+     "붙지 않는지 확인해 보세요.",
+     "A heart going far walks slowly",
+     "The truth shows up at small sizes",
+     "A typeface proves itself when it shrinks, not when it grows. If the strokes clot or "
+     "the counters close, the sentence collapses at that size. Bring it down to body size "
+     "and check that the letters stay apart."),
+
+    ("문 앞에 두고 온 계절이 있다",
+     "한글과 영문은 함께 걸어야 한다",
+     "한글 옆에 숫자와 알파벳이 나란히 설 때 비로소 서체의 균형이 보입니다. 높이와 굵기가 "
+     "어긋나면 한 문장 안에서 두 언어가 따로 놉니다. 날짜와 가격을 섞어 넣고 어색한 곳이 "
+     "없는지 살펴보세요.",
+     "Some seasons wait outside the door",
+     "Latin and numerals must walk together",
+     "Balance shows itself when numerals and letters stand beside one another. If height or "
+     "weight drifts apart, two scripts pull in different directions inside one line. Mix in "
+     "dates and prices and look for the seams."),
+
+    ("아무도 없는 길에서 소리를 들었다",
+     "인쇄와 화면은 다른 눈을 쓴다",
+     "종이에서 단정하던 서체가 화면에서는 흐리게 번지기도 합니다. 가는 획일수록 그 차이가 "
+     "크게 벌어집니다. 쓰려는 환경에서 실제 크기로 띄워 보고 획이 사라지지 않는지 "
+     "확인하는 것이 가장 빠릅니다.",
+     "I heard something on an empty road",
+     "Print and screen ask for different eyes",
+     "A face that looks crisp on paper can blur on a display, and the thinner the stroke the "
+     "wider that gap becomes. Put it on the medium you actually plan to use, at the size you "
+     "plan to use, and see whether the strokes survive."),
+
+    ("여름은 언제나 갑자기 끝난다",
+     "제목과 본문은 다른 일을 한다",
+     "제목은 붙잡는 일을 하고 본문은 데리고 가는 일을 합니다. 한 서체가 두 가지를 다 잘하는 "
+     "경우는 흔치 않습니다. 같은 문장을 큰 크기와 작은 크기로 나란히 놓고 어느 쪽에 더 "
+     "어울리는지 가늠해 보세요.",
+     "Summer always ends without warning",
+     "Headings and body text do different work",
+     "A heading has to catch you; body text has to carry you. Few faces do both equally well. "
+     "Set the same sentence large and small side by side, and judge which job it is better "
+     "suited to."),
+
+    ("돌아오는 길이 더 짧게 느껴졌다",
+     "오래 쓸 서체는 조용한 쪽이다",
+     "처음 볼 때 눈에 띄는 서체가 반년 뒤에도 좋은 경우는 드뭅니다. 개성이 강할수록 문장의 "
+     "내용보다 글자가 먼저 보입니다. 브랜드처럼 오래 쓸 자리라면 며칠 두고 다시 보는 편이 "
+     "안전합니다.",
+     "The way back always felt shorter",
+     "What lasts is usually the quieter face",
+     "The typeface that stands out at first sight is rarely the one you still like six months "
+     "later. The stronger the character, the more the letters arrive before the meaning. For "
+     "something you will keep, look again after a few days."),
+
+    ("잊은 줄 알았던 이름이 떠올랐다",
+     "읽히지 않으면 아무 소용이 없다",
+     "아무리 아름다운 서체도 읽히지 않으면 제 몫을 못 합니다. 멋과 가독성이 부딪힐 때는 "
+     "읽는 쪽을 먼저 챙기는 것이 안전합니다. 처음 보는 사람의 눈으로 한 번 읽어 보고 "
+     "걸리는 곳이 있는지 보세요.",
+     "A name I thought forgotten came back",
+     "Beauty means nothing if it is not read",
+     "However handsome a typeface is, it fails when the reader stumbles. Where charm and "
+     "legibility pull against each other, it is safer to protect the reading. Read it once "
+     "with a stranger's eyes and mark where you snag."),
+]
+
+
 def _usage_examples(font: Font) -> str:
     """'실제 사용 예시' 세 칸 — 폰트마다 다른 문구로 채운다.
 
     예전에는 세 문장이 font.html에 하드코딩돼 216개 페이지에 그대로 복사됐다.
-    문구는 조합 카드가 쓰는 것과 같은 우물(app/pairing_phrases.py)에서 뽑아
-    사이트 전체의 말투를 하나로 맞춘다.
+    위 _USAGE_SETS 열 벌을 폰트마다 돌려 쓴다.
 
     고르는 기준은 폰트 id다 — 매번 무작위로 뽑으면 같은 폰트를 다시 방문했을
     때 예시가 바뀌어, 서체가 달라 보이는 건지 문구가 달라진 건지 알 수 없다.
+    id를 쓰면 폰트마다 다르면서 그 폰트에는 늘 같은 예시가 붙는다.
     """
-    from ..pairing_phrases import THEME_PHRASE_BANK, ENGLISH_THEMES
-
-    is_en = bool(font.is_english)
-    themes = [t for t in THEME_PHRASE_BANK
-              if (t in ENGLISH_THEMES) == is_en] or list(THEME_PHRASE_BANK)
-
     fid = font.id or 0
-    theme = themes[fid % len(themes)]
-    entries = THEME_PHRASE_BANK[theme]
-    head_title, head_body = entries[fid % len(entries)]
-    sub_title, _ = entries[(fid + 1) % len(entries)]
-
-    # 한글 폰트에도 영문 대체 문구가 필요하다 — JS가 is_english 폰트에서
-    # data-en으로 갈아끼운다. 영문 뱅크에서 같은 방식으로 뽑는다.
-    en_theme = ENGLISH_THEMES[fid % len(ENGLISH_THEMES)]
-    en_entries = THEME_PHRASE_BANK[en_theme]
-    en_head, en_body = en_entries[fid % len(en_entries)]
-    en_sub, _ = en_entries[(fid + 1) % len(en_entries)]
+    ko_head, ko_sub, ko_body, en_head, en_sub, en_body = \
+        _USAGE_SETS[fid % len(_USAGE_SETS)]
 
     rows = [
-        ("Headline", "u-h1", 800, head_title, en_head, ""),
-        ("Subhead", "u-h2", 700, sub_title, en_sub, "margin-top:28px"),
-        ("Body", "u-body", 400, head_body, en_body, "margin-top:28px"),
+        ("Headline", "u-h1", 800, ko_head, en_head, ""),
+        ("Subhead", "u-h2", 700, ko_sub, en_sub, "margin-top:28px"),
+        ("Body", "u-body", 400, ko_body, en_body, "margin-top:28px"),
     ]
     out = []
     for cap, cls, weight, ko, en, cap_style in rows:
