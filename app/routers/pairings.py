@@ -1079,3 +1079,181 @@ def regenerate_all_pairings(
         "fonts": len(fonts),
         "themes": dict(sorted(themes.items(), key=lambda kv: -kv[1])),
     }
+
+
+# ═══════════════════════════════════════════════════════════════════
+# 조합 페이지(/font-pair) 전용 — 3슬롯 즉석 생성
+# ═══════════════════════════════════════════════════════════════════
+#
+# 위의 auto-generate와 무엇이 다른가
+# ---------------------------------
+# · auto-generate는 앵커 폰트 하나에 대한 **2폰트 조합 여러 벌**을 준다.
+#   여기는 **3폰트 한 벌**(타이틀·서브타이틀·본문)을 준다.
+# · auto-generate는 theme 파라미터를 받지 않는다. 여기는 카테고리를 실제로
+#   반영한다 — 카테고리 선택이 이 페이지의 핵심 기능이다.
+# · 슬롯을 잠글 수 있다. 잠긴 것은 그대로 두고 나머지만 다시 뽑는다.
+#
+# FontPairing 테이블은 건드리지 않는다. 저장하지 않는 읽기 전용 생성이라
+# 2폰트 구조인 스키마를 늘릴 이유가 없다.
+
+from ..pair_specimens import (
+    PAIR_CATEGORIES as _PAIR_CATEGORIES,
+    SURPRISE_CATEGORY as _SURPRISE,
+    get_category as _get_category,
+    themes_of as _themes_of,
+    specimen as _specimen,
+)
+
+_CATEGORY_POOL = 60      # 카테고리 친화도 상위 몇 종을 후보로 둘 것인가
+
+
+def _category_pool(ctx: "_GenContext", category: str, fonts: list) -> list:
+    """카테고리와 어울리는 폰트만 남긴다.
+
+    테마 프로파일(_build_theme_profiles)과의 코사인 유사도를 쓴다. 카테고리가
+    묶는 테마가 여럿이므로 그중 가장 높은 값을 그 폰트의 점수로 본다.
+    '뜻밖의 발견'은 이 걸러내기를 통째로 건너뛴다 — 어울림 계산을 끄는 것이
+    그 카테고리의 존재 이유다.
+    """
+    themes = _themes_of(category)
+    if not themes:
+        return list(fonts)
+    profs = [ctx.profiles[t] for t in themes if t in ctx.profiles]
+    if not profs:
+        return list(fonts)
+
+    scored = []
+    for f in fonts:
+        vec = _l2_tfidf(_font_features(f), ctx.idf)
+        scored.append((max(_cosine(vec, p) for p in profs), f))
+    scored.sort(key=lambda x: x[0], reverse=True)
+    pool = [f for _, f in scored[:_CATEGORY_POOL]]
+    # 후보가 너무 적으면(태그가 부실한 카테고리) 전체로 되돌린다. 세 슬롯을
+    # 못 채우느니 카테고리를 느슨하게 보는 편이 낫다.
+    return pool if len(pool) >= 12 else list(fonts)
+
+
+def _eng_for_pair(font: "Font") -> bool:
+    """이 폰트에 한글을 얹으면 깨지는가.
+
+    _is_english_only는 태그(_ENGLISH_ONLY_TAGS)만 본다. 그런데 태그가 '본문용
+    영어'인 폰트들(LibreBodoni·Montserrat·OpenSans·Playfair Display·Roboto)은
+    그 집합에 없어서 한글 폰트로 분류된다. 실측으로 5종이 어긋났다.
+    Font.is_english 컬럼이 프론트가 쓰는 값이자 더 정확하므로 둘을 합쳐 본다.
+
+    _is_english_only 자체는 고치지 않는다 — 저장된 조합을 만드는 auto-generate가
+    그 판별에 맞춰 동작하고 있어, 건드리면 그쪽 결과가 함께 바뀐다.
+    """
+    return bool(getattr(font, "is_english", False)) or _is_english_only(font)
+
+
+def _script_pools(script: str, fonts: list) -> tuple:
+    """스크립트 규칙에 맞는 (제목 후보, 서브·본문 후보).
+
+    영문 전용 폰트에 한글 문구를 얹으면 글리프가 없어 통째로 깨진다. 그래서
+    후보를 나누는 기준은 취향이 아니라 '그 문구가 그려지는가'다.
+    mix는 pair_specimens.specimen()의 mix와 같은 배치여야 한다 —
+    제목만 영문, 서브·본문은 한글.
+    """
+    eng = [f for f in fonts if _eng_for_pair(f)]
+    kor = [f for f in fonts if not _eng_for_pair(f)]
+    if script == "en":
+        return eng, eng
+    if script == "mix":
+        return eng, kor
+    return kor, kor
+
+
+def _pick_one(pool: list, used: set, key=None):
+    """후보에서 하나 고른다. 이미 쓴 폰트는 뺀다 — 세 슬롯이 겹치지 않는 근거."""
+    avail = [f for f in pool if f.id not in used]
+    if not avail:
+        return None
+    if key is None:
+        return random.choice(avail)
+    # 상위권에서 무작위로 — 늘 1등만 나오면 새로 뽑아도 그대로다.
+    ranked = sorted(avail, key=key, reverse=True)
+    return random.choice(ranked[:max(3, len(ranked) // 4)])
+
+
+@router.get("/font-pair/generate")
+def font_pair_generate(
+    category: str = "brand",
+    script: str = "ko",
+    title: int = 0,
+    subtitle: int = 0,
+    body: int = 0,
+    db: Session = Depends(get_db),
+):
+    """타이틀·서브타이틀·본문 3폰트 한 벌. 0이 아닌 슬롯은 잠긴 것으로 본다."""
+    if script not in ("ko", "en", "mix"):
+        script = "ko"
+    cat = _get_category(category)
+    ctx = _GenContext(db)
+
+    by_id = {f.id: f for f in ctx.fonts}
+    surprise = cat["key"] == _SURPRISE
+
+    pool = ctx.fonts if surprise else _category_pool(ctx, cat["key"], ctx.fonts)
+    title_pool, text_pool = _script_pools(script, pool)
+    # 스크립트로 좁혔더니 비었다면 카테고리 쪽을 포기한다(스크립트는 못 어긴다).
+    if len(title_pool) < 1 or len(text_pool) < 2:
+        title_pool, text_pool = _script_pools(script, ctx.fonts)
+
+    used = set()
+    locked = {}
+    for slot, fid in (("title", title), ("subtitle", subtitle), ("body", body)):
+        f = by_id.get(fid or 0)
+        if f is not None:
+            locked[slot] = f
+            used.add(f.id)
+
+    t_font = locked.get("title") or _pick_one(
+        title_pool, used, None if surprise else (lambda f: _title_fit(f)))
+    if t_font is None:
+        raise HTTPException(status_code=503, detail="제목 후보를 찾지 못했습니다")
+    used.add(t_font.id)
+
+    b_font = locked.get("body") or _pick_one(
+        text_pool, used,
+        None if surprise else (lambda f: _body_fit(f) + _cohesion(t_font, f)
+                               + _contrast(t_font, f) + _harmony(t_font, f)))
+    if b_font is None:
+        raise HTTPException(status_code=503, detail="본문 후보를 찾지 못했습니다")
+    used.add(b_font.id)
+
+    # 서브타이틀은 제목과 본문 사이에 놓인다. 셋이 전부 다른 계열이면 견본이
+    # 산만해지므로, 이미 뽑힌 둘과 결이 닮은 쪽을 우선한다(_cohesion).
+    s_font = locked.get("subtitle") or _pick_one(
+        text_pool, used,
+        None if surprise else (lambda f: _cohesion(t_font, f) + _cohesion(b_font, f)))
+    if s_font is None:
+        # 후보가 말랐다 — 스크립트만 지키고 전체에서 다시 찾는다.
+        _, wide = _script_pools(script, ctx.fonts)
+        s_font = _pick_one(wide, used)
+    if s_font is None:
+        raise HTTPException(status_code=503, detail="서브타이틀 후보를 찾지 못했습니다")
+
+    t_w = _pick_weight(t_font, 700)
+    b_w = _pick_body_weight(b_font, t_w)
+    # 서브타이틀은 제목보다 가볍고 본문보다 무겁거나 같게 — 위계가 셋으로 보인다.
+    s_w = _pick_weight(s_font, max(b_w, min(t_w, 500)))
+
+    return {
+        "category": cat["key"],
+        "category_label": cat["label"],
+        "script": script,
+        "fonts": {
+            "title": _font_brief(t_font),
+            "subtitle": _font_brief(s_font),
+            "body": _font_brief(b_font),
+        },
+        "weights": {"title": t_w, "subtitle": s_w, "body": b_w},
+        "samples": _specimen(cat["key"], script),
+    }
+
+
+@router.get("/font-pair/categories")
+def font_pair_categories():
+    """카테고리 칩 목록. 화면이 이름을 따로 갖고 있지 않게 서버가 준다."""
+    return [{"key": c["key"], "label": c["label"]} for c in _PAIR_CATEGORIES]
