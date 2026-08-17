@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>
+  (function(){
+    try{
+      var t = localStorage.getItem('ffp-theme');
+      if(t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<title>{{FFP_TITLE}}</title>
+<link rel="stylesheet" href="/header.css">
+<meta name="description" content="{{FFP_DESC}}">
+<link rel="canonical" href="{{FFP_CANONICAL}}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{FFP_TITLE}}">
+<meta property="og:description" content="{{FFP_DESC}}">
+<meta property="og:url" content="{{FFP_CANONICAL}}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
+    --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+    --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+    --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
+    --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+    --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
+    color-scheme:light;
+  }
+  :root[data-theme="dark"]{
+    --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+    --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+    --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+    --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+    --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+    color-scheme:dark;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+      --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+      --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+      --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+      --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+      color-scheme:dark;
+    }
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--ui:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif}
+  body{background:var(--bg);color:var(--text-primary);font-family:var(--ui);
+       -webkit-font-smoothing:antialiased;padding-top:57px}
+
+  .fp-wrap{max-width:1180px;margin:0 auto;padding:18px 20px 60px}
+
+  /* ── 상단 바 ───────────────────────────────────────── */
+  .fp-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .fp-seg{display:inline-flex;background:var(--bg-secondary);border-radius:999px;padding:3px}
+  .fp-seg button{border:none;background:none;font-family:inherit;font-size:13px;font-weight:600;
+                 color:var(--text-secondary);padding:6px 14px;border-radius:999px;cursor:pointer}
+  .fp-seg button.on{background:var(--bg-card);color:var(--text-primary);box-shadow:var(--shadow-card)}
+  .fp-cats{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:240px}
+  .fp-chip{border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);
+           font-family:inherit;font-size:12.5px;padding:6px 12px;border-radius:999px;cursor:pointer;
+           white-space:nowrap;transition:all .13s}
+  .fp-chip:hover{border-color:var(--border-hover);color:var(--text-primary)}
+  .fp-chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+  .fp-act{display:flex;gap:8px}
+  .fp-btn{border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);
+          font-family:inherit;font-size:13px;font-weight:600;padding:8px 15px;border-radius:8px;
+          cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+  .fp-btn:hover{border-color:var(--border-hover)}
+  .fp-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .fp-btn.primary:hover{background:var(--accent-hover)}
+  .fp-btn svg{width:15px;height:15px}
+  .spin svg{animation:fpspin .5s ease}
+  @keyframes fpspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+  /* ── 견본 캔버스 ────────────────────────────────────── */
+  .fp-stage{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
+            padding:clamp(26px,5vw,64px);box-shadow:var(--shadow-card);min-height:380px}
+  .fp-block + .fp-block{margin-top:clamp(22px,3.4vw,40px)}
+  .fp-name{display:inline-block;font-family:var(--ui);font-size:11px;font-weight:600;letter-spacing:.04em;
+           color:var(--text-muted);text-decoration:none;margin-bottom:8px;border-bottom:1px dashed transparent}
+  .fp-name:hover{color:var(--accent);border-bottom-color:var(--accent)}
+  .fp-text{outline:none;word-break:keep-all}
+  .fp-text:focus{background:var(--accent-light);border-radius:4px;
+                 box-shadow:0 0 0 6px var(--accent-light)}
+  #txtTitle{font-size:calc(clamp(32px,5.6vw,60px) * var(--sz-title,1));line-height:var(--lh-title,1.16);
+            letter-spacing:var(--ls-title,0)}
+  #txtSub{font-size:calc(clamp(16px,2.1vw,23px) * var(--sz-sub,1));line-height:var(--lh-sub,1.45);
+          letter-spacing:var(--ls-sub,0);color:var(--text-secondary)}
+  #txtBody{font-size:calc(16.5px * var(--sz-body,1));line-height:var(--lh-body,1.75);
+           letter-spacing:var(--ls-body,0);column-gap:38px}
+  @media(min-width:760px){ #txtBody{column-count:2} }
+  .fp-divider{height:1px;background:var(--border);margin:clamp(22px,3.4vw,38px) 0}
+
+  /* ── 인스펙터 3슬롯 ─────────────────────────────────── */
+  .fp-slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:14px}
+  .fp-slot{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);
+           padding:12px 14px;display:flex;align-items:center;gap:11px}
+  .fp-slot.locked{border-color:var(--accent);background:var(--accent-light)}
+  .fp-role{width:32px;height:32px;flex:none;border-radius:8px;background:var(--bg-secondary);
+           display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--text-secondary)}
+  .fp-slot-main{flex:1;min-width:0}
+  .fp-slot-role{font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--text-muted)}
+  .fp-slot-font{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fp-slot-w{font-size:11px;color:var(--text-muted);font-weight:500}
+  .fp-icons{display:flex;gap:2px;flex:none}
+  .fp-icon{border:none;background:none;cursor:pointer;color:var(--text-muted);padding:6px;border-radius:6px;
+           display:grid;place-items:center;text-decoration:none}
+  .fp-icon:hover{background:var(--bg-secondary);color:var(--text-primary)}
+  .fp-icon.on{color:var(--accent)}
+  .fp-icon svg{width:16px;height:16px}
+
+  /* ── 미세조정 패널 ──────────────────────────────────── */
+  .fp-tune{position:fixed;top:0;right:0;bottom:0;width:min(376px,100%);background:var(--bg-card);
+           border-left:1px solid var(--border);box-shadow:-8px 0 30px rgba(0,0,0,.12);z-index:300;
+           transform:translateX(100%);transition:transform .22s ease;overflow-y:auto;padding:18px}
+  .fp-tune.open{transform:none}
+  .fp-tune-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .fp-tune-head h2{font-size:16px;font-weight:800}
+  .fp-tune-head p{font-size:12px;color:var(--text-muted);margin-top:2px}
+  .fp-tune-grp{border:1px solid var(--border);border-radius:var(--radius-md);padding:13px;margin-top:14px}
+  .fp-tune-grp header{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+  .fp-tune-grp h3{font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--accent)}
+  .fp-row{margin-top:11px}
+  .fp-row-top{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;margin-bottom:5px}
+  .fp-row-top b{font-weight:600;color:var(--text-secondary)}
+  .fp-row-top span{font-weight:700;font-variant-numeric:tabular-nums}
+  .fp-row input[type=range]{width:100%;accent-color:var(--accent)}
+  .fp-mini{border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);
+           font-family:inherit;font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer}
+  .fp-mini:hover{color:var(--text-primary);border-color:var(--border-hover)}
+
+  /* ── 폰트 고르기 ────────────────────────────────────── */
+  .fp-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:none;
+            align-items:center;justify-content:center;padding:20px}
+  .fp-modal.open{display:flex}
+  .fp-modal-box{background:var(--bg-card);border-radius:var(--radius-lg);width:min(560px,100%);
+                max-height:82vh;display:flex;flex-direction:column;overflow:hidden}
+  .fp-modal-head{padding:16px 18px 12px;border-bottom:1px solid var(--border)}
+  .fp-modal-head h2{font-size:15px;font-weight:800;margin-bottom:9px}
+  .fp-modal-head input{width:100%;height:36px;border:1px solid var(--border);border-radius:8px;
+                       padding:0 12px;font-family:inherit;font-size:13px;background:var(--bg-secondary);
+                       color:var(--text-primary);outline:none}
+  .fp-modal-head input:focus{border-color:var(--accent)}
+  .fp-list{overflow-y:auto;padding:6px}
+  .fp-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;cursor:pointer}
+  .fp-item:hover{background:var(--bg-secondary)}
+  .fp-item b{font-size:13.5px;font-weight:700}
+  .fp-item i{font-size:11.5px;color:var(--text-muted);font-style:normal}
+  .fp-empty{padding:22px;text-align:center;color:var(--text-muted);font-size:13px}
+
+  /* ── 크롤러가 읽을 본문 (화면에도 보인다) ─────────────── */
+  .fp-about{margin-top:38px;padding-top:26px;border-top:1px solid var(--border)}
+  .fp-about h2{font-size:17px;font-weight:800;margin-bottom:6px}
+  .fp-about > p{font-size:13.5px;color:var(--text-secondary);line-height:1.75;max-width:70ch}
+  .fp-about-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+  .fp-about-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px}
+  .fp-about-card h3{font-size:13.5px;font-weight:800;margin-bottom:5px}
+  .fp-about-card p{font-size:12.5px;color:var(--text-secondary);line-height:1.7}
+</style>
+</head>
+<body>
+
+<!--FFP_HEADER-->
+
+<main class="fp-wrap">
+
+  <div class="fp-bar">
+    <div class="fp-seg" id="fpScript">
+      <button type="button" data-sc="ko" class="on">한글</button>
+      <button type="button" data-sc="en">영문</button>
+      <button type="button" data-sc="mix">혼합</button>
+    </div>
+    <div class="fp-cats" id="fpCats"></div>
+    <div class="fp-act">
+      <button type="button" class="fp-btn" id="fpTuneBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        미세조정
+      </button>
+      <button type="button" class="fp-btn primary" id="fpRoll">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>
+        조합 새로 뽑기
+      </button>
+    </div>
+  </div>
+
+  <section class="fp-stage" id="fpStage">
+    <div class="fp-block">
+      <a class="fp-name" id="nameTitle" href="/">&nbsp;</a>
+      <h1 class="fp-text" id="txtTitle" contenteditable="true" spellcheck="false"></h1>
+    </div>
+    <div class="fp-block">
+      <a class="fp-name" id="nameSub" href="/">&nbsp;</a>
+      <p class="fp-text" id="txtSub" contenteditable="true" spellcheck="false"></p>
+    </div>
+    <div class="fp-divider"></div>
+    <div class="fp-block">
+      <a class="fp-name" id="nameBody" href="/">&nbsp;</a>
+      <div class="fp-text" id="txtBody" contenteditable="true" spellcheck="false"></div>
+    </div>
+  </section>
+
+  <section class="fp-slots" id="fpSlots"></section>
+
+  {{FFP_PAIR_SSR}}
+
+</main>
+
+<aside class="fp-tune" id="fpTunePanel" aria-hidden="true">
+  <div class="fp-tune-head">
+    <div>
+      <h2>미세 조정</h2>
+      <p>영역마다 크기·자간·줄간격을 따로 맞춥니다</p>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button type="button" class="fp-mini" id="fpTuneResetAll">전체 되돌리기</button>
+      <button type="button" class="fp-mini" id="fpTuneClose">닫기</button>
+    </div>
+  </div>
+  <div id="fpTuneBody"></div>
+</aside>
+
+<div class="fp-modal" id="fpPicker">
+  <div class="fp-modal-box">
+    <div class="fp-modal-head">
+      <h2 id="fpPickerTitle">폰트 고르기</h2>
+      <input type="text" id="fpPickerQ" placeholder="폰트명 또는 제작사로 찾기" autocomplete="off">
+    </div>
+    <div class="fp-list" id="fpPickerList"></div>
+  </div>
+</div>
+
+<script src="/static/ffp-fontface.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  var SLOTS = ['title', 'subtitle', 'body'];
+  var ROLE  = { title: '타이틀', subtitle: '서브타이틀', body: '본문' };
+  var ABBR  = { title: 'H1', subtitle: 'Aa', body: 'T' };
+  var VAR   = { title: 'title', subtitle: 'sub', body: 'body' };   // CSS 변수 접미사
+
+  /* 기본 조정값. 주소에 담을 때 이 값과 같으면 생략해 주소를 짧게 유지한다. */
+  var TUNE0 = {
+    title:    { sz: 100, ls: 0, lh: 1.16 },
+    subtitle: { sz: 100, ls: 0, lh: 1.45 },
+    body:     { sz: 100, ls: 0, lh: 1.75 }
+  };
+
+  var S = {
+    cat: 'brand',
+    script: 'ko',
+    fonts:   { title: null, subtitle: null, body: null },
+    weights: { title: 700, subtitle: 500, body: 400 },
+    lock:    { title: false, subtitle: false, body: false },
+    tune:    JSON.parse(JSON.stringify(TUNE0))
+  };
+
+  var CATS = [];
+  var ALL_FONTS = null;      // 폰트 고르기 목록 (한 번만 받는다)
+  var pickerSlot = null;
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+  // ── 주소 ────────────────────────────────────────────
+  /* 조합과 조정값을 주소에 담는다. 기본값인 항목은 빼서 주소를 짧게 둔다.
+     갱신은 replaceState — 슬라이더를 움직일 때마다 히스토리가 쌓이면
+     뒤로가기가 망가진다. */
+  function tuneToStr(){
+    return SLOTS.map(function(k){
+      var t = S.tune[k];
+      return [t.sz, t.ls, t.lh].join(',');
+    }).join('_');
+  }
+  function tuneFromStr(v){
+    var parts = String(v || '').split('_');
+    if (parts.length !== 3) return;
+    SLOTS.forEach(function(k, i){
+      var n = parts[i].split(',').map(parseFloat);
+      if (n.length !== 3 || n.some(isNaN)) return;
+      S.tune[k] = { sz: n[0], ls: n[1], lh: n[2] };
+    });
+  }
+  function isDefaultTune(){
+    return SLOTS.every(function(k){
+      return S.tune[k].sz === TUNE0[k].sz && S.tune[k].ls === TUNE0[k].ls
+          && S.tune[k].lh === TUNE0[k].lh;
+    });
+  }
+  function syncUrl(){
+    var q = [];
+    if (S.cat !== 'brand') q.push('cat=' + S.cat);
+    if (S.script !== 'ko') q.push('sc=' + S.script);
+    SLOTS.forEach(function(k, i){
+      if (S.fonts[k]) q.push(['t','s','b'][i] + '=' + S.fonts[k].id);
+    });
+    if (!isDefaultTune()) q.push('tn=' + tuneToStr());
+    var url = location.pathname + (q.length ? '?' + q.join('&') : '');
+    if (url !== location.pathname + location.search) history.replaceState(null, '', url);
+  }
+  function readUrl(){
+    var p = new URLSearchParams(location.search);
+    if (p.get('cat')) S.cat = p.get('cat');
+    if (p.get('sc'))  S.script = p.get('sc');
+    if (p.get('tn'))  tuneFromStr(p.get('tn'));
+    return { title: +p.get('t') || 0, subtitle: +p.get('s') || 0, body: +p.get('b') || 0 };
+  }
+
+  // ── 그리기 ──────────────────────────────────────────
+  function applyTune(){
+    var st = $('fpStage').style;
+    SLOTS.forEach(function(k){
+      var t = S.tune[k], v = VAR[k];
+      st.setProperty('--sz-' + v, (t.sz / 100).toFixed(3));
+      st.setProperty('--ls-' + v, t.ls + 'em');
+      st.setProperty('--lh-' + v, String(t.lh));
+    });
+  }
+
+  function renderStage(){
+    SLOTS.forEach(function(k){
+      var f = S.fonts[k];
+      if (!f) return;
+      /* stack과 weight를 한 쌍으로 받아 그대로 적는다 — 그 굵기의 파일이 직접
+         그리는 경우에 CSS로 굵기를 또 요구하면 가짜 볼드가 덧씌워진다. */
+      var face = FFPFont.faceFor(f, S.weights[k]);
+      var el = $({ title: 'txtTitle', subtitle: 'txtSub', body: 'txtBody' }[k]);
+      el.style.fontFamily = face.stack;
+      el.style.fontWeight = face.weight;
+
+      var nm = $({ title: 'nameTitle', subtitle: 'nameSub', body: 'nameBody' }[k]);
+      nm.textContent = f.name + (f.maker ? ' · ' + f.maker : '');
+      nm.href = '/font/' + f.id;
+      nm.title = f.name + ' 상세페이지로 (다운로드 · 라이선스)';
+    });
+    applyTune();
+  }
+
+  function renderSlots(){
+    $('fpSlots').innerHTML = SLOTS.map(function(k){
+      var f = S.fonts[k];
+      if (!f) return '';
+      return '<div class="fp-slot' + (S.lock[k] ? ' locked' : '') + '">' +
+        '<div class="fp-role">' + ABBR[k] + '</div>' +
+        '<div class="fp-slot-main">' +
+          '<div class="fp-slot-role">' + ROLE[k] + '</div>' +
+          '<div class="fp-slot-font">' + esc(f.name) + '</div>' +
+          '<div class="fp-slot-w">굵기 ' + S.weights[k] + '</div>' +
+        '</div>' +
+        '<div class="fp-icons">' +
+          '<button type="button" class="fp-icon' + (S.lock[k] ? ' on' : '') + '" data-lock="' + k +
+            '" title="' + (S.lock[k] ? '잠금 해제' : '이 슬롯 고정 — 새로 뽑아도 안 바뀝니다') + '">' +
+            (S.lock[k]
+              ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+              : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>') +
+          '</button>' +
+          '<button type="button" class="fp-icon" data-pick="' + k + '" title="폰트 직접 고르기">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>' +
+          '</button>' +
+          '<a class="fp-icon" href="/font/' + f.id + '" title="' + esc(f.name) + ' 상세페이지 — 다운로드 · 라이선스">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+          '</a>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  function renderCats(){
+    $('fpCats').innerHTML = CATS.map(function(c){
+      return '<button type="button" class="fp-chip' + (c.key === S.cat ? ' on' : '') +
+             '" data-cat="' + c.key + '">' + esc(c.label) + '</button>';
+    }).join('');
+  }
+
+  // ── 조합 받아오기 ───────────────────────────────────
+  var rolling = false;
+  function roll(){
+    if (rolling) return;
+    rolling = true;
+    var btn = $('fpRoll');
+    btn.classList.remove('spin'); void btn.offsetWidth; btn.classList.add('spin');
+
+    var q = ['category=' + encodeURIComponent(S.cat), 'script=' + S.script];
+    SLOTS.forEach(function(k){
+      if (S.lock[k] && S.fonts[k]) q.push(k + '=' + S.fonts[k].id);
+    });
+    fetch('/api/font-pair/generate?' + q.join('&'))
+      .then(function(r){ if (!r.ok) throw new Error('generate'); return r.json(); })
+      .then(function(d){
+        S.fonts = d.fonts;
+        S.weights = d.weights;
+        setText(d.samples);
+        renderStage(); renderSlots(); syncUrl();
+      })
+      .catch(function(){
+        /* 실패해도 화면을 비우지 않는다 — 보고 있던 조합이 사라지면 더 나쁘다 */
+        $('nameTitle').textContent = '조합을 불러오지 못했어요. 잠시 뒤 다시 눌러 주세요.';
+      })
+      .then(function(){ rolling = false; });
+  }
+
+  /* 문구는 사용자가 고쳐 쓸 수 있다. 고쳐 쓴 뒤에는 조합을 새로 뽑아도
+     그 문구를 지키고, 카테고리를 바꿀 때만 새 문구로 갈아끼운다. */
+  var textEdited = false;
+  function setText(samples){
+    if (textEdited) return;
+    $('txtTitle').textContent = samples.title;
+    $('txtSub').textContent   = samples.subtitle;
+    $('txtBody').textContent  = samples.body;
+  }
+
+  // ── 미세조정 패널 ───────────────────────────────────
+  var ROWS = [
+    { k: 'sz', label: '크기 비율', min: 60,   max: 180, step: 1,    fmt: function(v){ return v + '%'; } },
+    { k: 'ls', label: '자간',      min: -0.08, max: 0.2, step: 0.005, fmt: function(v){ return (v > 0 ? '+' : '') + v.toFixed(3) + 'em'; } },
+    { k: 'lh', label: '줄간격',    min: 0.9,  max: 2.4, step: 0.05, fmt: function(v){ return v.toFixed(2); } }
+  ];
+  function renderTune(){
+    $('fpTuneBody').innerHTML = SLOTS.map(function(k){
+      return '<div class="fp-tune-grp"><header><h3>' + ROLE[k] + '</h3>' +
+        '<button type="button" class="fp-mini" data-treset="' + k + '">되돌리기</button></header>' +
+        ROWS.map(function(r){
+          var v = S.tune[k][r.k];
+          return '<div class="fp-row"><div class="fp-row-top"><b>' + r.label + '</b>' +
+            '<span id="tv-' + k + '-' + r.k + '">' + r.fmt(v) + '</span></div>' +
+            '<input type="range" data-tk="' + k + '" data-tr="' + r.k + '" min="' + r.min +
+            '" max="' + r.max + '" step="' + r.step + '" value="' + v + '"></div>';
+        }).join('') + '</div>';
+    }).join('');
+  }
+  function tuneLabel(k, rk){
+    var r = ROWS.filter(function(x){ return x.k === rk; })[0];
+    $('tv-' + k + '-' + rk).textContent = r.fmt(S.tune[k][rk]);
+  }
+
+  // ── 폰트 고르기 ─────────────────────────────────────
+  /* 스크립트 규칙을 화면에서도 지킨다 — 영문 전용 폰트에 한글 문구를 얹으면
+     글리프가 없어 통째로 깨진다(서버의 _script_pools와 같은 규칙). */
+  function allowedFor(slot){
+    if (S.script === 'en') return 'en';
+    if (S.script === 'mix') return slot === 'title' ? 'en' : 'ko';
+    return 'ko';
+  }
+  function openPicker(slot){
+    pickerSlot = slot;
+    $('fpPickerTitle').textContent = ROLE[slot] + ' 폰트 고르기';
+    $('fpPickerQ').value = '';
+    $('fpPicker').classList.add('open');
+    $('fpPickerQ').focus();
+    if (ALL_FONTS) { drawPicker(); return; }
+    $('fpPickerList').innerHTML = '<div class="fp-empty">불러오는 중…</div>';
+    fetch('/api/fonts').then(function(r){ return r.json(); }).then(function(list){
+      ALL_FONTS = list || []; drawPicker();
+    }).catch(function(){
+      $('fpPickerList').innerHTML = '<div class="fp-empty">폰트 목록을 불러오지 못했어요.</div>';
+    });
+  }
+  function drawPicker(){
+    var want = allowedFor(pickerSlot);
+    var q = ($('fpPickerQ').value || '').trim().toLowerCase();
+    var rows = ALL_FONTS.filter(function(f){
+      if (want === 'en' && !f.is_english) return false;
+      if (want === 'ko' && f.is_english) return false;
+      if (!q) return true;
+      return (f.name || '').toLowerCase().indexOf(q) >= 0
+          || (f.maker || '').toLowerCase().indexOf(q) >= 0;
+    });
+    $('fpPickerList').innerHTML = rows.length
+      ? rows.map(function(f){
+          return '<div class="fp-item" data-fid="' + f.id + '"><b>' + esc(f.name) + '</b>' +
+                 '<i>' + esc(f.maker || '') + '</i></div>';
+        }).join('')
+      : '<div class="fp-empty">찾는 폰트가 없어요.</div>';
+  }
+  function choose(fid){
+    var f = ALL_FONTS.filter(function(x){ return x.id === fid; })[0];
+    if (!f || !pickerSlot) return;
+    /* 같은 폰트가 두 슬롯에 앉으면 견본이 조합으로 안 읽힌다. 이미 다른 슬롯에
+       있으면 그 슬롯과 자리를 바꾼다 — 막아 세우는 것보다 낫다. */
+    SLOTS.forEach(function(k){
+      if (k !== pickerSlot && S.fonts[k] && S.fonts[k].id === fid) {
+        S.fonts[k] = S.fonts[pickerSlot];
+      }
+    });
+    S.fonts[pickerSlot] = f;
+    S.lock[pickerSlot] = true;    // 직접 고른 것은 새로 뽑아도 지킨다
+    $('fpPicker').classList.remove('open');
+    renderStage(); renderSlots(); syncUrl();
+  }
+
+  // ── 이벤트 ──────────────────────────────────────────
+  $('fpRoll').addEventListener('click', roll);
+
+  $('fpScript').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-sc]'); if (!b) return;
+    S.script = b.dataset.sc;
+    [].forEach.call(this.querySelectorAll('button'), function(x){ x.classList.toggle('on', x === b); });
+    /* 스크립트가 바뀌면 쓰던 폰트가 그 글자를 못 그릴 수 있다 — 전부 다시 뽑는다.
+       잠금도 푼다(잠긴 폰트가 깨진 글자를 그리는 것이 더 나쁘다). */
+    SLOTS.forEach(function(k){ S.lock[k] = false; });
+    textEdited = false;
+    roll();
+  });
+
+  $('fpCats').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-cat]'); if (!b) return;
+    S.cat = b.dataset.cat;
+    renderCats();
+    textEdited = false;      // 카테고리가 바뀌면 그 카테고리의 문구로 갈아끼운다
+    roll();
+  });
+
+  $('fpSlots').addEventListener('click', function(e){
+    var lock = e.target.closest('[data-lock]');
+    if (lock) { var k = lock.dataset.lock; S.lock[k] = !S.lock[k]; renderSlots(); return; }
+    var pick = e.target.closest('[data-pick]');
+    if (pick) openPicker(pick.dataset.pick);
+  });
+
+  $('fpTuneBtn').addEventListener('click', function(){ $('fpTunePanel').classList.add('open'); });
+  $('fpTuneClose').addEventListener('click', function(){ $('fpTunePanel').classList.remove('open'); });
+  $('fpTuneResetAll').addEventListener('click', function(){
+    S.tune = JSON.parse(JSON.stringify(TUNE0));
+    renderTune(); applyTune(); syncUrl();
+  });
+  $('fpTuneBody').addEventListener('input', function(e){
+    var el = e.target; if (!el.dataset.tk) return;
+    S.tune[el.dataset.tk][el.dataset.tr] = parseFloat(el.value);
+    tuneLabel(el.dataset.tk, el.dataset.tr);
+    applyTune(); syncUrl();
+  });
+  $('fpTuneBody').addEventListener('click', function(e){
+    var b = e.target.closest('[data-treset]'); if (!b) return;
+    S.tune[b.dataset.treset] = JSON.parse(JSON.stringify(TUNE0[b.dataset.treset]));
+    renderTune(); applyTune(); syncUrl();
+  });
+
+  $('fpPickerQ').addEventListener('input', drawPicker);
+  $('fpPickerList').addEventListener('click', function(e){
+    var it = e.target.closest('[data-fid]'); if (it) choose(+it.dataset.fid);
+  });
+  $('fpPicker').addEventListener('click', function(e){
+    if (e.target === this) this.classList.remove('open');
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Escape') return;
+    $('fpPicker').classList.remove('open');
+    $('fpTunePanel').classList.remove('open');
+  });
+  ['txtTitle','txtSub','txtBody'].forEach(function(id){
+    $(id).addEventListener('input', function(){ textEdited = true; });
+  });
+
+  // ── 시작 ────────────────────────────────────────────
+  var want = readUrl();
+  [].forEach.call($('fpScript').querySelectorAll('button'), function(b){
+    b.classList.toggle('on', b.dataset.sc === S.script);
+  });
+  renderTune(); applyTune();
+
+  fetch('/api/font-pair/categories')
+    .then(function(r){ return r.json(); })
+    .then(function(list){ CATS = list || []; renderCats(); })
+    .catch(function(){})
+    .then(function(){
+      /* 주소로 지정된 폰트는 잠근 것으로 보고 그대로 살린다 —
+         링크를 받은 사람이 보낸 사람과 같은 화면을 봐야 한다. */
+      var q = ['category=' + encodeURIComponent(S.cat), 'script=' + S.script];
+      SLOTS.forEach(function(k){ if (want[k]) q.push(k + '=' + want[k]); });
+      return fetch('/api/font-pair/generate?' + q.join('&'))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          S.fonts = d.fonts; S.weights = d.weights;
+          SLOTS.forEach(function(k){ if (want[k]) S.lock[k] = true; });
+          setText(d.samples);
+          renderStage(); renderSlots(); renderCats(); syncUrl();
+        });
+    })
+    .catch(function(){
+      $('nameTitle').textContent = '조합을 불러오지 못했어요. 새로고침해 주세요.';
+    });
+})();
+</script>
+</body>
+</html>

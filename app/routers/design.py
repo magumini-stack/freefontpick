@@ -756,3 +756,89 @@ def find_font_page():
     html = re.sub(r'(<meta property="og:url" content=")[^"]*(")',
                   rf"\g<1>{url}\g<2>", html, count=1)
     return HTMLResponse(html)
+
+
+# ── 폰트 조합 찾기 (/font-pair) ─────────────────────────────────────
+#
+# 상세페이지의 조합 모달을 대신하는 독립 페이지. 모달은 URL이 없어 공유도
+# 색인도 안 됐다.
+#
+# 헤더 메뉴에는 아직 넣지 않는다 — 화면이 자리를 잡을 때까지 주소로만 들어간다.
+# 사이트맵에도 그때 함께 넣는다(미완성 페이지를 검색엔진에 먼저 알릴 이유가 없다).
+
+def _pair_ssr_block(db: Session) -> str:
+    """크롤러가 읽을 본문. 화면에도 그대로 보이는 자리다.
+
+    애드센스 리젝 대응에서 세운 규칙을 지킨다 — 감춰 두고 크롤러에게만 보여주는
+    텍스트는 만들지 않는다. 각 카테고리에 그 분류의 대표 폰트를 상세페이지
+    링크와 함께 실어, 이 페이지가 상세페이지로 가는 입구가 되게 한다.
+    """
+    from ..pair_specimens import PAIR_CATEGORIES
+
+    # 카테고리가 묶는 테마로 실제 조합에서 자주 쓰인 폰트를 뽑는다.
+    rows = (
+        db.query(FontPairing)
+        .filter(FontPairing.title_font_id.isnot(None))
+        .all()
+    )
+    by_theme: dict = {}
+    for p in rows:
+        for f in (p.title_font, p.body_font):
+            if f is None:
+                continue
+            by_theme.setdefault(p.theme, {})[f.id] = f
+
+    out = ['<section class="fp-about">',
+           "<h2>폰트 조합 찾기</h2>",
+           "<p>제목·서브타이틀·본문에 쓸 세 폰트를 한 화면에서 맞춰 봅니다. "
+           "쓰는 자리를 고르면 그 자리에 어울리는 조합을 뽑아 주고, 마음에 드는 "
+           "슬롯은 잠근 채 나머지만 다시 뽑을 수 있습니다. 문구는 직접 고쳐 쓸 수 "
+           "있고, 크기·자간·줄간격도 영역마다 따로 맞춥니다. "
+           "폰트 이름을 누르면 그 폰트의 다운로드와 라이선스로 바로 갑니다.</p>",
+           '<div class="fp-about-grid">']
+
+    for c in PAIR_CATEGORIES:
+        picks: dict = {}
+        for t in c["themes"]:
+            picks.update(by_theme.get(t, {}))
+        names = ""
+        if picks:
+            top = list(picks.values())[:6]
+            names = " · ".join(
+                f'<a href="/font/{f.id}">{_esc(f.name)}</a>' for f in top
+            )
+        out.append(
+            f'<div class="fp-about-card"><h3>{_esc(c["label"])}</h3>'
+            f'<p>{_esc(c["ko"][1])}</p>'
+            + (f'<p style="margin-top:6px">{names}</p>' if names else "")
+            + "</div>"
+        )
+    out.append("</div></section>")
+    return "".join(out)
+
+
+@router.get("/font-pair", response_class=HTMLResponse)
+def font_pair_page(db: Session = Depends(get_db)):
+    html = (STATIC_DIR / "font-pair.html").read_text(encoding="utf-8")
+    html = inject_header(html, "")
+    html = html.replace("{{FFP_PAIR_SSR}}", _pair_ssr_block(db), 1)
+
+    title = "폰트 조합 찾기 - 제목·본문 폰트 짝 맞추기 | 폰트픽"
+    desc = ("제목·서브타이틀·본문에 쓸 무료 폰트 세 가지를 한 화면에서 맞춰 보세요. "
+            "쓰는 자리별 추천, 슬롯 잠금, 문구 편집, 크기·자간·줄간격 조정까지 "
+            "무료로 씁니다.")
+    url = f"{BASE_URL}/font-pair"
+
+    html = re.sub(r"<title>.*?</title>", f"<title>{title}</title>",
+                  html, count=1, flags=re.S)
+    html = re.sub(r'(<meta name="description" content=")[^"]*(")',
+                  rf"\g<1>{desc}\g<2>", html, count=1)
+    html = re.sub(r'(<link rel="canonical" href=")[^"]*(")',
+                  rf"\g<1>{url}\g<2>", html, count=1)
+    html = re.sub(r'(<meta property="og:title" content=")[^"]*(")',
+                  rf"\g<1>{title}\g<2>", html, count=1)
+    html = re.sub(r'(<meta property="og:description" content=")[^"]*(")',
+                  rf"\g<1>{desc}\g<2>", html, count=1)
+    html = re.sub(r'(<meta property="og:url" content=")[^"]*(")',
+                  rf"\g<1>{url}\g<2>", html, count=1)
+    return HTMLResponse(html)
