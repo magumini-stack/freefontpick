@@ -789,6 +789,7 @@
 })();
 </script>
 
+<script src="/static/ffp-fontface.js"></script>
 <script>
 (function(){
   /* 미리 써보기 기본 문구.
@@ -805,132 +806,21 @@
   var DEFAULT_TEXT    = _tryAttr('data-ko', '좋은 글씨는 먼저 읽힙니다');
   var DEFAULT_TEXT_EN = _tryAttr('data-en', 'Good type reads before it speaks');
 
-  /* 구글·네이버·CDN 웹폰트로 배포되는 폰트 → 전체 굵기 표시
-     key: 정규화된 폰트 이름(공백 제거, 소문자) */
-  var W9 = [[100,'Thin'],[200,'ExtraLight'],[300,'Light'],[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold'],[900,'Black']];
-  var WEBFONT_MAP = {
-    'notosanscjkkr': {css:'', family:"'Noto Sans KR'", weights:W9},
-    '노토산스':      {css:'', family:"'Noto Sans KR'", weights:W9},
-    '나눔고딕': {css:'', family:"'Nanum Gothic'", weights:[[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
-    '나눔명조': {css:'', family:"'Nanum Myeongjo'", weights:[[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
-    '프리텐다드': {css:'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css', family:"'Pretendard Variable'", weights:W9},
-    '수트': {css:'https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css', family:"'SUIT Variable'", weights:W9},
-    '마루부리': {css:'https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css', family:"'MaruBuri'", weights:[[300,'Light'],[400,'Regular'],[600,'SemiBold'],[700,'Bold']]},
-    '나눔스퀘어': {css:'https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@master/nanumsquare.css', family:"'NanumSquare'", weights:[[300,'Light'],[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
-    /* 영문 구글폰트 (다중 굵기) */
-    'montserrat': {css:'https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap', family:"'Montserrat'", weights:W9},
-    'opensans': {css:'https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap', family:"'Open Sans'", weights:[[300,'Light'],[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold']]},
-    'roboto': {css:'https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap', family:"'Roboto'", weights:[[100,'Thin'],[300,'Light'],[400,'Regular'],[500,'Medium'],[700,'Bold'],[900,'Black']]},
-    'raleway': {css:'https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap', family:"'Raleway'", weights:W9},
-    'petrona': {css:'https://fonts.googleapis.com/css2?family=Petrona:wght@100..900&display=swap', family:"'Petrona'", weights:W9},
-    'playfairdisplay': {css:'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&display=swap', family:"'Playfair Display'", weights:[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold'],[900,'Black']]},
-    'librebodoni': {css:'https://fonts.googleapis.com/css2?family=Libre+Bodoni:wght@400..700&display=swap', family:"'Libre Bodoni'", weights:[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold']]},
-    'dancingscript': {css:'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap', family:"'Dancing Script'", weights:[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold']]},
-    'cinzeldecorative': {css:'https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&display=swap', family:"'Cinzel Decorative'", weights:[[400,'Regular'],[700,'Bold'],[900,'Black']]},
-    'bonanova': {css:'https://fonts.googleapis.com/css2?family=Bona+Nova:wght@400;700&display=swap', family:"'Bona Nova'", weights:[[400,'Regular'],[700,'Bold']]},
-  };
-  function webfontOf(name){
-    var key = (name||'').replace(/\s+/g,'').toLowerCase();
-    var wf = WEBFONT_MAP[key];
-    if (wf && wf.css && !wf._loaded){
-      wf._loaded = true;
-      var l = document.createElement('link');
-      l.rel = 'stylesheet'; l.href = wf.css;
-      document.head.appendChild(l);
-    }
-    return wf || null;
-  }
+  /* 폰트 로딩은 static/ffp-fontface.js 한 곳에서 한다.
+     여기서는 이름만 지역 변수로 받아 아래 호출부를 그대로 둔다. */
+  var W9                  = FFPFont.W9,
+      WEIGHT_LABEL_KO     = FFPFont.WEIGHT_LABEL_KO,
+      webfontOf           = FFPFont.webfontOf,
+      ensureFont          = FFPFont.ensureFont,
+      faceFor             = FFPFont.faceFor,
+      stackOf             = FFPFont.stackOf,
+      weightFamily        = FFPFont.weightFamily,
+      registerWeightFaces = FFPFont.registerWeightFaces;
 
-  /* 어드민에서 등록한 DB 웹폰트(webfont_family/webfont_css_url/webfont_weights)를
-     하드코딩된 WEBFONT_MAP보다 우선 사용. Google Fonts 등을 파일 업로드 없이
-     연결할 수 있게 해주는 기능(2026-07 추가)의 프론트엔드 쪽. */
-  var WEIGHT_LABEL_KO = {100:'Thin',200:'ExtraLight',300:'Light',400:'Regular',500:'Medium',600:'SemiBold',700:'Bold',800:'ExtraBold',900:'Black'};
-  var _dbWebfontLoaded = {};
-  function resolveWebfont(f){
-    // 어드민이 직접 올린 파일(file_source==='user')은 웹폰트 설정보다 앞선다.
-    // 파일을 올렸다는 행위 자체가 "이 파일을 쓰겠다"는 뜻이다.
-    if (f && f.webfont_family && f.file_source !== 'user'){
-      if (f.webfont_css_url && !_dbWebfontLoaded[f.webfont_family]){
-        _dbWebfontLoaded[f.webfont_family] = true;
-        var l = document.createElement('link');
-        l.rel = 'stylesheet'; l.href = f.webfont_css_url;
-        document.head.appendChild(l);
-      }
-      var ws = (f.webfont_weights && f.webfont_weights.length) ? f.webfont_weights : [400];
-      return {
-        family: "'" + f.webfont_family + "'",
-        css: null,
-        weights: ws.map(function(w){ return [w, WEIGHT_LABEL_KO[w] || String(w)]; }),
-      };
-    }
-    return webfontOf(f ? f.name : '');
-  }
   var m = location.pathname.match(/\/(?:font|design)\/(\d+)/);
   var fid = m ? parseInt(m[1], 10) : null;
   if (!fid) { location.href = '/'; return; }
 
-  var fontStyleEl = document.createElement('style');
-  document.head.appendChild(fontStyleEl);
-  var loaded = {};
-  function ensureFont(f){
-    if (!f || !f.has_file || loaded[f.id]) return;
-    loaded[f.id] = true;
-    var fam = 'FFP-' + String(f.id).padStart(3, '0');
-    fontStyleEl.appendChild(document.createTextNode(
-      "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + f.id +
-      "/file') format('woff2');font-display:swap;font-weight:normal;font-style:normal}"
-    ));
-  }
-
-  /* 페어링 카드용 헬퍼 (v5): 폰트를 특정 굵기로 로드하고 실제 사용할 font-family 스택 반환.
-     - 웹폰트 배포 폰트(노토산스/수트/프리텐다드/나눔스퀘어/마루부리 등)는 CDN CSS 로드 후 웹폰트 family 사용.
-     - 로컬 파일 폰트는 서버에 해당 굵기 파일이 실제 있을 때만 정확한 굵기로 등록.
-       없으면 넓은 굵기 범위(1~999)로 등록해 브라우저가 자동으로 합성 굵게를 적용하게 함
-       (그래야 페어링 카드에서 title_weight/body_weight가 시각적으로 반영됨).
-     - 파일 없는 폰트는 시스템 스택 반환. */
-  var pairLoaded = {};
-  function ensureFontForPair(f, weight){
-    if (!f) return "'Nanum Gothic',sans-serif";
-    var wf = resolveWebfont(f);
-    if (wf){
-      return wf.family + ',' + (f.stack || "'Nanum Gothic',sans-serif");
-    }
-    if (!f.has_file){
-      return f.stack || "'Nanum Gothic',sans-serif";
-    }
-    var avail = f.available_weights || [];
-    var hasExact = avail.indexOf(weight) >= 0;
-    var fam = (hasExact ? 'FFP-' : 'FFPW-') + String(f.id).padStart(3, '0');
-    var key = fam + '-' + (hasExact ? weight : 'wide');
-    if (!pairLoaded[key]){
-      pairLoaded[key] = true;
-      if (hasExact){
-        fontStyleEl.appendChild(document.createTextNode(
-          "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + f.id +
-          "/file?weight=" + weight + "') format('woff2');font-display:swap;font-weight:" + weight + ";font-style:normal}"
-        ));
-      } else {
-        fontStyleEl.appendChild(document.createTextNode(
-          "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + f.id +
-          "/file') format('woff2');font-display:swap;font-weight:1 999;font-style:normal}"
-        ));
-      }
-    }
-    var base = (f.stack || "'Nanum Gothic',sans-serif").replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
-    return "'" + fam + "'," + base;
-  }
-
-  function stackOf(f){
-    // resolveWebfont와 같은 우선순위여야 한다 — 한쪽만 바꾸면 @font-face는
-    // 등록되는데 font-family는 웹폰트를 가리키는 어긋남이 생긴다.
-    if (f && f.webfont_family && f.file_source !== 'user'){
-      return "'" + f.webfont_family + "'," + (f.stack || "'Nanum Gothic',sans-serif");
-    }
-    var base = f.stack || "'Nanum Gothic',sans-serif";
-    if (!f.has_file) return base;
-    var fam = "FFP-" + String(f.id).padStart(3, '0');
-    return base.indexOf(fam) >= 0 ? base : "'" + fam + "'," + base;
-  }
   function esc(s){ var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
   function fetchRelated(f){
@@ -968,43 +858,6 @@
   var FONT = null;
   var FILE_WEIGHTS = [];   // [{weight,label}] — 서버 굵기 파일
 
-  /* 굵기마다 family 이름을 따로 준다 — FFP-222-300, FFP-222-500 …
-     예전에는 한 family(FFP-222) 안에 font-weight 기술자만 다른 face를 여러 개
-     넣고, 어느 파일을 쓸지는 브라우저에게 맡겼다. 그 고르기가 폰트에 따라
-     어긋난다. 경복궁 수문장 본문체가 그랬다 — 서버는 300/500/700에 서로 다른
-     파일을 정확히 내려주는데(md5로 확인) 화면에서는 Light와 Medium이 같은
-     모양으로 나오고 Bold만 달랐다. 파일 안의 굵기 값을 300/500/700으로 고쳐
-     올려도 그대로였다.
-     이름을 갈라 두면 브라우저가 고를 여지 자체가 없어진다. 굵기는 CSS로
-     흉내내지 않고 그 굵기의 파일이 직접 그린다. */
-  function weightFamily(id, weight){
-    return 'FFP-' + String(id).padStart(3, '0') + '-' + weight;
-  }
-  function registerWeightFaces(id, list, primaryWeight){
-    var fam = 'FFP-' + String(id).padStart(3, '0');
-    list.forEach(function(w){
-      fontStyleEl.appendChild(document.createTextNode(
-        "@font-face{font-family:'" + weightFamily(id, w.weight) + "';src:url('/api/fonts/" + id +
-        "/file?weight=" + w.weight +
-        "') format('woff2');font-display:swap;font-weight:normal;font-style:normal}"
-      ));
-    });
-    /* 폰트명·조합 카드·사용 예시는 굵기 구분 없이 FFP-{id}를 쓴다(stackOf).
-       그쪽이 빈 family를 가리키지 않도록 대표 굵기로 한 벌 더 등록한다. */
-    var pw = primaryWeight;
-    if (!pw) {
-      for (var i = 0; i < list.length; i++) {
-        if (!pw || Math.abs(list[i].weight - 400) < Math.abs(pw - 400)) pw = list[i].weight;
-      }
-    }
-    if (pw) {
-      fontStyleEl.appendChild(document.createTextNode(
-        "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + id + "/file?weight=" + pw +
-        "') format('woff2');font-display:swap;font-weight:normal;font-style:normal}"
-      ));
-    }
-    loaded[id] = true;
-  }
 
   /* 한글이 섞여 있는지 — 한글 음절·자모 모두 본다 */
   function hasHangul(s){ return /[\uAC00-\uD7A3\u3131-\u318E]/.test(s || ''); }
@@ -1185,13 +1038,15 @@
   function pairCardHtml(p){
     var tw = p.title_weight || 700;
     var bw = p.body_weight || 400;
-    var titleStack = ensureFontForPair(p.title_font, tw);
-    var bodyStack = ensureFontForPair(p.body_font, bw);
+    /* stack과 weight를 한 쌍으로 받아 그대로 적는다. 굵기를 여기서 다시 정하면
+       그 굵기의 파일이 직접 그리는 경우에 가짜 볼드가 덧씌워진다(faceFor 주석). */
+    var tf = faceFor(p.title_font, tw);
+    var bf = faceFor(p.body_font, bw);
     var partner = (p.title_font.id === fid) ? p.body_font : p.title_font;
     return '<a class="pair-card" href="/font/' + partner.id + '">' +
       '<div class="pair-stage">' +
-        '<div class="pair-title" data-orig="' + esc(p.sample_title) + '" style="font-family:' + titleStack + ';font-weight:' + tw + '">' + esc(p.sample_title) + '</div>' +
-        '<div class="pair-body" data-orig="' + esc(p.sample_body) + '" style="font-family:' + bodyStack + ';font-weight:' + bw + '">' + esc(p.sample_body) + '</div>' +
+        '<div class="pair-title" data-orig="' + esc(p.sample_title) + '" style="font-family:' + tf.stack + ';font-weight:' + tf.weight + '">' + esc(p.sample_title) + '</div>' +
+        '<div class="pair-body" data-orig="' + esc(p.sample_body) + '" style="font-family:' + bf.stack + ';font-weight:' + bf.weight + '">' + esc(p.sample_body) + '</div>' +
       '</div>' +
       '<div class="pair-meta">' +
         '<span class="pair-theme">' + esc(p.theme) + '</span>' +
