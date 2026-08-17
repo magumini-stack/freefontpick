@@ -1045,7 +1045,11 @@
       // 그려져서 "폰트가 안 나온다"로 보인다.
       return (carried && !hasHangul(carried)) ? carried : DEFAULT_TEXT_EN;
     }
-    return carried || DEFAULT_TEXT;
+    /* 반대쪽도 막아야 한다. 홈에서 영문 폰트 카드를 한 번 누르면 그 영문 문구가
+       sessionStorage에 남고(index.html의 stashPreviewText), 그 뒤로는 한글 폰트
+       상세페이지마다 영문 문구가 따라 나왔다 — 한글 견본인데 한글이 한 글자도
+       안 보인다. 이어받은 문구에 한글이 하나도 없으면 쓰지 않는다. */
+    return (carried && hasHangul(carried)) ? carried : DEFAULT_TEXT;
   }
 
   function renderPreviewRows(){
@@ -1239,9 +1243,10 @@
       renderLicense(f);
 
       var input = document.getElementById('tryInput');
-      // 입력창 초기값도 같은 규칙 — 영문 폰트에 한글 문구를 미리 채우지 않는다
-      if (carried && carried !== DEFAULT_TEXT && carried !== DEFAULT_TEXT_EN
-          && !(FONT && FONT.is_english && hasHangul(carried))) input.value = carried;
+      // 입력창 초기값도 previewDefault와 같은 규칙을 쓴다. 여기만 따로 판정하면
+      // 입력창에는 영문이 들어가 있는데 견본은 한글이 나오는 식으로 어긋난다.
+      var _carry = previewDefault();
+      if (_carry !== DEFAULT_TEXT && _carry !== DEFAULT_TEXT_EN) input.value = _carry;
       input.addEventListener('input', applyText);
       renderPreviewRows();
 
