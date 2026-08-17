@@ -1925,6 +1925,15 @@ function filterFonts(){
   if(activePhraseId !== null){
     activePhraseId = null;
   }
+  /* 검색은 카테고리를 넘어선다.
+     예전에는 카테고리를 고른 채로 검색하면 그 카테고리 안에서만 찾아서,
+     분명히 있는 폰트가 "없음"으로 나왔다. 찾는 사람은 그 폰트가 어느 분류에
+     들어 있는지 모르니 카테고리를 먼저 풀라고 요구할 수 없다.
+     검색어가 있으면 '전체'로 되돌린다(칩 표시도 함께). 검색어가 비어 있을
+     때는 건드리지 않는다 — 카테고리만 보고 있는 사람을 흔들지 않기 위해서다. */
+  if((document.getElementById('globalSearch').value || '').trim() && currentTag !== 'all'){
+    resetTagToAll();
+  }
   // 새 검색 시작 시 추천 카운트 초기화
   _recommendShowCount = 5;
   renderFonts();
@@ -3723,13 +3732,18 @@ async function route(){
 }
 
 /* 검색어를 적용하면서 hash 푸시(뒤로가기 작동을 위해) */
-function applySearch(query, pushHash){
-  // 카테고리 '전체'로 리셋 + 검색창에 값 입력
+/* 카테고리 선택을 '전체'로 되돌린다 (상태 + 칩 표시).
+   applySearch·clearSearchAndFilter·filterFonts 세 곳이 같은 일을 하고 있었다. */
+function resetTagToAll(){
   currentTag = 'all';
   const tagBtns = document.querySelectorAll('.tag');
   tagBtns.forEach(t => t.classList.remove('active'));
   if(tagBtns[0]) tagBtns[0].classList.add('active');
+}
 
+function applySearch(query, pushHash){
+  // 카테고리 '전체'로 리셋 + 검색창에 값 입력
+  resetTagToAll();
   document.getElementById('globalSearch').value = query;
   renderFonts();
 
@@ -3744,10 +3758,7 @@ function applySearch(query, pushHash){
 
 /* 홈으로 돌아왔을 때 검색·필터 초기화 */
 function clearSearchAndFilter(){
-  currentTag = 'all';
-  const tagBtns = document.querySelectorAll('.tag');
-  tagBtns.forEach(t => t.classList.remove('active'));
-  if(tagBtns[0]) tagBtns[0].classList.add('active');
+  resetTagToAll();
   const input = document.getElementById('globalSearch');
   if(input) input.value = '';
   renderFonts();
