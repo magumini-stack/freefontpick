@@ -999,7 +999,10 @@
     }).join('');
 
     grid.classList.toggle('pending', !known);
-    pending.hidden = known;
+    /* 확인된 폰트에는 서버가 #licPending을 아예 안 내려준다(design.py의
+       _lic_pending_block). 그래서 여기서 null일 수 있고, 가드를 빼면
+       TypeError가 나면서 아래 .catch가 홈으로 튕겨버린다. */
+    if (pending) pending.hidden = known;
     badge.className = 'lic-badge ' + (known ? 'ok' : 'pending');
     badge.textContent = known ? (lic.name || '라이선스 확인됨') : '확인 중';
 
