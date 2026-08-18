@@ -99,8 +99,12 @@
      세 단은 제목 > 서브타이틀 > 본문 순으로 벌려 둔다 — 서브타이틀과 본문이
      같은 크기면 두 줄이 한 덩어리로 붙어 위계가 안 읽힌다.
      슬롯의 크기 레버가 그 위에 배수(--k-*)로 곱해진다. */
-  .fp-shell{display:flex;align-items:flex-start;gap:16px;padding:6px 0 2px}
+  /* stretch + 캔버스만 flex-start — 칸의 높이는 캔버스가 정하고(16:9 비율),
+     오른쪽 칸이 거기 맞춰 늘어난다. 사용팁이 남는 자리를 채워
+     아래끝이 캔버스 아래끝과 딱 맞는다. */
+  .fp-shell{display:flex;align-items:stretch;gap:16px;padding:6px 0 2px}
   .fp-stage{container-type:inline-size;position:relative;flex:1;min-width:0;max-width:860px;
+            align-self:flex-start;
             aspect-ratio:16/9;border-radius:var(--radius-md);box-shadow:var(--shadow-hover);
             overflow:hidden;background:var(--bg-card);color:var(--text-primary);
             display:flex;flex-direction:column}
@@ -183,8 +187,17 @@
   .fp-icon.on{color:var(--accent)}
   .fp-icon svg{width:16px;height:16px}
   /* 크기 레버 — 틀은 16:9로 고정이라 자리마다 원하는 크기가 다르다.
-     기본값에 배수(--k-*)를 곱하는 방식이라 틀이 바뀌어도 비례가 유지된다. */
-  .fp-size{width:100%;height:16px;margin:0;accent-color:var(--accent);cursor:pointer}
+     기본값에 배수(--k-*)를 곱하는 방식이라 틀이 바뀌어도 비례가 유지된다.
+     선은 2px까지 얇게 눕힌다. 조작이 아니라 폰트를 보러 온 화면이라
+     손잡이만 보이면 된다. 눌리는 영역은 12px로 남겨 둔다. */
+  .fp-size{-webkit-appearance:none;appearance:none;width:100%;height:12px;
+           margin:0;background:none;cursor:pointer}
+  .fp-size::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:var(--border)}
+  .fp-size::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;
+           border-radius:50%;background:var(--accent);margin-top:-4px}
+  .fp-size::-moz-range-track{height:2px;border-radius:2px;background:var(--border)}
+  .fp-size::-moz-range-thumb{width:10px;height:10px;border:0;border-radius:50%;
+           background:var(--accent)}
 
   /* ── 미세조정 패널 ──────────────────────────────────── */
 
@@ -192,6 +205,7 @@
     .fp-shell{flex-direction:column;align-items:stretch}
     .fp-stage{max-width:none}
     .fp-side{width:auto}
+    .fp-about{flex:none}
     .fp-slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
   }
   @media(max-width:560px){
@@ -221,10 +235,17 @@
   .fp-item i{font-size:11.5px;color:var(--text-muted);font-style:normal;font-family:var(--ui)}
   .fp-empty{padding:22px;text-align:center;color:var(--text-muted);font-size:13px}
 
-  /* ── 쓰는 법 — 오른쪽 칸 슬롯 아래 ────────────────────── */
-  .fp-about{background:var(--bg-secondary);border-radius:var(--radius-md);padding:13px 14px}
+  /* ── 사용팁 — 오른쪽 칸 슬롯 아래 ─────────────────────── */
+  .fp-about{flex:1;min-height:0;background:var(--bg-secondary);
+            border-radius:var(--radius-md);padding:13px 14px}
   .fp-about h2{font-size:11.5px;font-weight:800;letter-spacing:.06em;
-               color:var(--text-muted);margin-bottom:7px}
+               color:var(--text-muted);margin-bottom:9px}
+  .fp-about ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .fp-about li{position:relative;padding-left:11px;font-size:12.5px;line-height:1.65;
+               color:var(--text-secondary);word-break:keep-all}
+  .fp-about li::before{content:'';position:absolute;left:0;top:8px;width:4px;height:4px;
+               border-radius:50%;background:var(--text-muted);opacity:.6}
+  .fp-about b{font-weight:700;color:var(--text-primary)}
   .fp-about p{font-size:12.5px;color:var(--text-secondary);line-height:1.8;
               word-break:keep-all}
 </style>
