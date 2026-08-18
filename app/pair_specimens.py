@@ -52,7 +52,7 @@ PAIR_CATEGORIES = [
         ),
         "en": (
             "I Wasted\nThree Years",
-            "The question ten thousand subscribers asked",
+            "What ten thousand subscribers ask most",
             "Keep each caption line under a dozen words.",
         ),
     },

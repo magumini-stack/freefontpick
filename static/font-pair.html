@@ -64,7 +64,7 @@
   body{font-family:var(--ui);background:var(--bg);color:var(--text-primary);
        line-height:1.6;min-height:100vh;padding-top:57px}
 
-  .fp-wrap{max-width:1180px;margin:0 auto;padding:18px 20px 60px}
+  .fp-wrap{max-width:1240px;margin:0 auto;padding:18px 24px 60px}
 
   /* ── 상단 바 ───────────────────────────────────────── */
   .fp-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
@@ -97,17 +97,21 @@
      바뀐 건지 틀이 바뀐 건지 눈이 헷갈린다 — 비교하러 온 화면에서는 틀이
      고정이어야 폰트만 보인다. 자리 구분은 바탕색이 맡는다.
 
-     글자 크기는 틀 폭에 비례한다(cqw). 폭이 860px이므로 1cqw = 8.6px.
+     글자 크기는 틀 폭에 비례한다(cqw). 폭이 916px이므로 1cqw = 9.16px.
      세 단은 제목 > 서브타이틀 > 본문 순으로 벌려 둔다 — 서브타이틀과 본문이
      같은 크기면 두 줄이 한 덩어리로 붙어 위계가 안 읽힌다.
-     슬롯의 크기 레버가 그 위에 배수(--k-*)로 곱해진다. */
+     슬롯의 크기 레버가 그 위에 배수(--k-*)로 곱해진다.
+
+     틀을 키운 것은 비율 때문이 아니었다. 막고 있던 건 페이지 폭이다 —
+     여기만 1180/20 을 쓰고 사이트 나머지는 1240/24 를 쓴다. 맞추면서
+     캔버스가 860 → 916px(높이 484 → 515)이 됐다. */
   /* 두 칸 높이는 그리드가 맞춘다. flex로도 해 봤지만 캔버스 높이가 비율에서
      나오는 탓에 줄 높이가 제때 잡히지 않아 아래끝이 어긋났다.
      그리드는 줄 높이를 먼저 정하고 칸을 늘리므로 어긋날 여지가 없다.
      캔버스만 align-self:start 로 빼 16:9 비율을 지킨다. */
-  .fp-shell{display:grid;grid-template-columns:minmax(0,1fr) 264px;
+  .fp-shell{display:grid;grid-template-columns:minmax(0,1fr) 260px;
             align-items:stretch;gap:16px;padding:6px 0 2px}
-  .fp-stage{container-type:inline-size;position:relative;min-width:0;max-width:860px;
+  .fp-stage{container-type:inline-size;position:relative;min-width:0;max-width:916px;
             align-self:start;
             aspect-ratio:16/9;border-radius:var(--radius-md);box-shadow:var(--shadow-hover);
             overflow:hidden;background:var(--bg-card);color:var(--text-primary);
@@ -125,23 +129,23 @@
   #txtBody {font-size:calc(var(--b-body,2.66cqw) * var(--k-body,1));line-height:1.75}
 
   /* 영상 · 자막 — 먹색 화면. 자막 바가 아래에 깔린다 */
-  .mk-thumb{background:#15161A;color:#F5F5F2;justify-content:center;padding:4cqw 6cqw 11cqw;
+  .mk-thumb{background:#15161A;color:#F5F5F2;justify-content:center;padding:8cqw 6cqw 12cqw;
             --b-title:11cqw;--b-sub:4.5cqw;--b-body:2.66cqw}
   .mk-thumb .fp-blk-body{position:absolute;left:0;right:0;bottom:0;
             background:rgba(0,0,0,.55);padding:2.4cqw 6cqw 2.8cqw;text-align:center}
-  .mk-thumb #txtSub{margin-top:1.6cqw}
+  .mk-thumb #txtSub{margin-top:2.4cqw}
 
   /* SNS · 카드뉴스 — 따뜻한 모래색 */
-  .mk-card{background:#F2E4D4;color:#2B231A;justify-content:center;padding:7cqw;
+  .mk-card{background:#F2E4D4;color:#2B231A;justify-content:flex-start;padding:7cqw;
            --b-title:8.36cqw;--b-sub:4.5cqw;--b-body:2.85cqw}
-  .mk-card #txtSub{margin-top:2cqw}
-  .mk-card .fp-blk-body{margin-top:3.5cqw}
+  .mk-card #txtSub{margin-top:2.8cqw}
+  .mk-card .fp-blk-body{margin-top:4.5cqw}
 
   /* 브랜딩 · 로고 — 차분한 회백. 명함처럼 아래로 붙는다 */
-  .mk-namecard{background:#E9E9EC;color:#1E1E1C;justify-content:flex-end;padding:7cqw;
+  .mk-namecard{background:#E9E9EC;color:#1E1E1C;justify-content:flex-start;padding:7cqw;
                --b-title:8.8cqw;--b-sub:4.25cqw;--b-body:2.66cqw}
-  .mk-namecard #txtSub{margin-top:1.4cqw}
-  .mk-namecard .fp-blk-body{margin-top:3.5cqw;opacity:.75}
+  .mk-namecard #txtSub{margin-top:2.2cqw}
+  .mk-namecard .fp-blk-body{margin-top:4.5cqw;opacity:.75}
 
   /* 포스터 · 안내 — 짙은 남색. 멀리서 읽히는지 보는 자리 */
   .mk-poster{background:#1F3350;color:#F1F4F9;justify-content:center;padding:4.5cqw 5cqw;
@@ -153,16 +157,16 @@
   .mk-note{background:#E6EDE8;color:#22302A;align-items:center;justify-content:center;
            text-align:center;padding:7cqw;
            --b-title:8.8cqw;--b-sub:4.38cqw;--b-body:2.76cqw}
-  .mk-note #txtSub{margin-top:2cqw}
-  .mk-note .fp-blk-body{margin-top:3cqw}
+  .mk-note #txtSub{margin-top:2.8cqw}
+  .mk-note .fp-blk-body{margin-top:4cqw}
 
   /* 본문 · 읽기 — 종이 흰색. 2단으로 앉힌다.
      낮아진 틀에 2단을 넣어야 해서 본문 줄 사이만 1.6으로 좁힌다. */
   .mk-magazine{background:#FCFBF7;color:#1A1A18;padding:3.5cqw 4cqw;
                --b-title:7.7cqw;--b-sub:4.25cqw;--b-body:2.47cqw}
-  .mk-magazine #txtSub{margin-top:1cqw}
-  .mk-magazine #txtBody{line-height:1.6}
-  .mk-magazine .fp-blk-body{margin-top:2cqw;column-count:2;column-gap:3cqw;
+  .mk-magazine #txtSub{margin-top:2.5cqw}
+  .mk-magazine #txtBody{line-height:1.85}
+  .mk-magazine .fp-blk-body{margin-top:3.5cqw;column-count:2;column-gap:3cqw;
                border-top:1px solid color-mix(in srgb,currentColor 18%,transparent);
                padding-top:2cqw}
 
@@ -241,7 +245,7 @@
   .fp-empty{padding:22px;text-align:center;color:var(--text-muted);font-size:13px}
 
   /* ── 사용팁 — 오른쪽 칸 슬롯 아래 ─────────────────────── */
-  .fp-about{flex:1 1 0;min-height:0;overflow-y:auto;background:var(--bg-secondary);
+  .fp-about{flex:1 1 0;min-height:0;overflow:hidden;background:var(--bg-secondary);
             border-radius:var(--radius-md);padding:12px 13px}
   .fp-about h2{font-size:11.5px;font-weight:800;letter-spacing:.06em;
                color:var(--text-muted);margin-bottom:9px}
