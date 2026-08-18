@@ -98,7 +98,10 @@
      틀을 실제 인쇄물 크기로 잡으면 본문이 13~17px까지 내려간다. 여기 폰트는
      대부분 힌팅이 없어서 그 크기에서는 획이 뭉개져 "깨진 글자"로 보인다 —
      서체를 판단하러 온 화면에서 그러면 안 된다. 그래서 비례는 유지한 채
-     틀 자체를 키웠다. 본문이 어느 틀에서도 19px 아래로 내려가지 않는다. */
+     틀 자체를 키웠다. 본문이 어느 틀에서도 23px 아래로 내려가지 않는다
+     (썸네일 28.6 · 카드뉴스 30.1 · 명함 25 · 포스터 23.8 · 손글씨 31.2 ·
+     매거진 26.3px). 포스터와 손글씨 카드는 틀이 세로로 길어 글이 뜨는 자리라
+     덩어리째 가운데로 모은다 — 남는 여백이 위아래로 갈라져야 자리처럼 읽힌다. */
   .fp-shell{display:flex;justify-content:center;padding:6px 0 2px}
   .fp-stage{container-type:inline-size;position:relative;width:100%;
             border-radius:var(--radius-md);box-shadow:var(--shadow-hover);
@@ -109,10 +112,7 @@
                    font-family:var(--ui);font-size:10px;letter-spacing:.05em;
                    color:currentColor;opacity:.35;pointer-events:none}
 
-  .fp-name{display:inline-block;font-family:var(--ui);font-size:10.5px;font-weight:600;
-           letter-spacing:.03em;opacity:.55;color:currentColor;text-decoration:none;
-           margin-bottom:5px;border-bottom:1px dashed transparent}
-  .fp-name:hover{opacity:1;border-bottom-color:currentColor}
+  .fp-err{margin:10px auto 0;max-width:62ch;text-align:center;font-size:13px;color:var(--text-muted)}
   .fp-text{outline:none;word-break:keep-all;white-space:pre-line}
   .fp-text:focus{outline:2px dashed currentColor;outline-offset:4px;border-radius:3px}
 
@@ -121,42 +121,42 @@
   #txtBody {font-size:var(--b-body,2.1cqw);line-height:1.75}
 
   /* 16:9 썸네일 — 작게 줄여도 버티는지 보는 자리라 어둡게 깔고 크게 앉힌다 */
-  .mk-thumb{max-width:980px;aspect-ratio:16/9;background:#15161A;color:#F5F5F2;
+  .mk-thumb{max-width:1060px;aspect-ratio:16/9;background:#15161A;color:#F5F5F2;
             justify-content:center;padding:7cqw 7cqw 12cqw;
-            --b-title:9.2cqw;--b-sub:2.9cqw;--b-body:2.5cqw}
+            --b-title:9.4cqw;--b-sub:3cqw;--b-body:2.7cqw}
   .mk-thumb .fp-blk-body{position:absolute;left:0;right:0;bottom:0;
             background:rgba(0,0,0,.55);padding:2.4cqw 7cqw 2.8cqw;text-align:center}
   .mk-thumb #txtSub{margin-top:1.6cqw}
 
   /* 1:1 카드뉴스 */
-  .mk-card{max-width:720px;aspect-ratio:1/1;justify-content:center;padding:9cqw;
-           --b-title:7.8cqw;--b-sub:3.4cqw;--b-body:2.9cqw}
+  .mk-card{max-width:860px;aspect-ratio:1/1;justify-content:center;padding:9cqw;
+           --b-title:8.4cqw;--b-sub:3.8cqw;--b-body:3.5cqw}
   .mk-card #txtSub{margin-top:2.4cqw}
   .mk-card .fp-blk-body{margin-top:5cqw}
 
   /* 명함 90×50 — 정보가 작게 앉는 자리 */
-  .mk-namecard{max-width:900px;aspect-ratio:90/50;justify-content:flex-end;padding:8cqw;
+  .mk-namecard{max-width:1000px;aspect-ratio:90/50;justify-content:flex-end;padding:8cqw;
                background:linear-gradient(180deg,var(--bg-card),var(--bg-secondary));
-               --b-title:7.6cqw;--b-sub:2.7cqw;--b-body:2.2cqw}
+               --b-title:8cqw;--b-sub:3cqw;--b-body:2.5cqw}
   .mk-namecard #txtSub{margin-top:1.4cqw}
   .mk-namecard .fp-blk-body{margin-top:4cqw;opacity:.75}
 
   /* A4 세로 포스터 — 멀리서 읽히는지 보는 자리 */
-  .mk-poster{max-width:660px;aspect-ratio:1/1.414;padding:8cqw;
-             --b-title:8.6cqw;--b-sub:3.2cqw;--b-body:3cqw}
-  .mk-poster #txtSub{margin-top:2cqw}
-  .mk-poster .fp-blk-body{margin-top:auto}
+  .mk-poster{max-width:700px;aspect-ratio:1/1.414;justify-content:center;padding:8cqw;
+             --b-title:9.2cqw;--b-sub:3.5cqw;--b-body:3.4cqw}
+  .mk-poster #txtSub{margin-top:2.4cqw}
+  .mk-poster .fp-blk-body{margin-top:6cqw}
 
   /* 세로 카드 — 가운데로 모아 감성 쪽을 본다 */
-  .mk-note{max-width:600px;aspect-ratio:3/4;align-items:center;justify-content:center;
+  .mk-note{max-width:780px;aspect-ratio:3/4;align-items:center;justify-content:center;
            text-align:center;padding:10cqw;
-           --b-title:9.2cqw;--b-sub:3.3cqw;--b-body:3.2cqw}
+           --b-title:10.5cqw;--b-sub:4cqw;--b-body:4cqw}
   .mk-note #txtSub{margin-top:2.4cqw}
   .mk-note .fp-blk-body{margin-top:6cqw}
 
   /* 매거진 지면 — 2단 긴 본문 */
-  .mk-magazine{max-width:1060px;aspect-ratio:1.35/1;padding:5.5cqw;
-               --b-title:5.4cqw;--b-sub:2.2cqw;--b-body:1.85cqw}
+  .mk-magazine{max-width:1120px;aspect-ratio:1.6/1;padding:5.5cqw;
+               --b-title:5.9cqw;--b-sub:2.35cqw;--b-body:2.35cqw}
   .mk-magazine #txtSub{margin-top:1cqw}
   .mk-magazine .fp-blk-body{margin-top:3cqw;column-count:2;column-gap:4cqw;
                border-top:1px solid currentColor;padding-top:2.4cqw}
@@ -176,7 +176,9 @@
            display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--text-secondary)}
   .fp-slot-main{flex:1;min-width:0}
   .fp-slot-role{font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--text-muted)}
-  .fp-slot-font{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fp-slot-font{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+                display:block;color:inherit;text-decoration:none}
+  a.fp-slot-font:hover{text-decoration:underline}
   .fp-slot-w{font-size:11px;color:var(--text-muted);font-weight:500}
   .fp-icons{display:flex;gap:2px;flex:none}
   .fp-icon{border:none;background:none;cursor:pointer;color:var(--text-muted);padding:6px;border-radius:6px;
@@ -239,19 +241,18 @@
   <div class="fp-shell">
     <section class="fp-stage mk-card" id="fpStage" data-frame="">
       <div class="fp-blk-title">
-        <a class="fp-name" id="nameTitle" href="/">&nbsp;</a>
         <h1 class="fp-text" id="txtTitle" contenteditable="true" spellcheck="false"></h1>
       </div>
       <div class="fp-blk-sub">
-        <a class="fp-name" id="nameSub" href="/">&nbsp;</a>
         <p class="fp-text" id="txtSub" contenteditable="true" spellcheck="false"></p>
       </div>
       <div class="fp-blk-body">
-        <a class="fp-name" id="nameBody" href="/">&nbsp;</a>
         <div class="fp-text" id="txtBody" contenteditable="true" spellcheck="false"></div>
       </div>
     </section>
   </div>
+
+  <p class="fp-err" id="fpErr" hidden></p>
 
   <section class="fp-slots" id="fpSlots"></section>
 
@@ -339,11 +340,6 @@
       var el = $({ title: 'txtTitle', subtitle: 'txtSub', body: 'txtBody' }[k]);
       el.style.fontFamily = face.stack;
       el.style.fontWeight = face.weight;
-
-      var nm = $({ title: 'nameTitle', subtitle: 'nameSub', body: 'nameBody' }[k]);
-      nm.textContent = f.name + (f.maker ? ' · ' + f.maker : '');
-      nm.href = '/font/' + f.id;
-      nm.title = f.name + ' 상세페이지로 (다운로드 · 라이선스)';
     });
   }
 
@@ -355,7 +351,8 @@
         '<div class="fp-role">' + ABBR[k] + '</div>' +
         '<div class="fp-slot-main">' +
           '<div class="fp-slot-role">' + ROLE[k] + '</div>' +
-          '<div class="fp-slot-font">' + esc(f.name) + '</div>' +
+          '<a class="fp-slot-font" href="/font/' + f.id + '" title="' + esc(f.name) +
+            ' 상세페이지 — 다운로드 · 라이선스">' + esc(f.name) + '</a>' +
           '<div class="fp-slot-w">굵기 ' + S.weights[k] + '</div>' +
         '</div>' +
         '<div class="fp-icons">' +
@@ -383,6 +380,12 @@
   }
 
   // ── 조합 받아오기 ───────────────────────────────────
+  function showErr(msg){
+    var e = $('fpErr');
+    e.textContent = msg || '';
+    e.hidden = !msg;
+  }
+
   var rolling = false;
   function roll(){
     if (rolling) return;
@@ -403,11 +406,12 @@
         S.fonts = d.fonts;
         S.weights = d.weights;
         setText(d.samples);
+        showErr('');
         renderStage(); renderSlots(); syncUrl();
       })
       .catch(function(){
         /* 실패해도 화면을 비우지 않는다 — 보고 있던 조합이 사라지면 더 나쁘다 */
-        $('nameTitle').textContent = '조합을 불러오지 못했어요. 잠시 뒤 다시 눌러 주세요.';
+        showErr('조합을 불러오지 못했어요. 잠시 뒤 다시 눌러 주세요.');
       })
       .then(function(){ rolling = false; });
   }
@@ -537,21 +541,21 @@
     .then(function(list){ CATS = list || []; renderCats(); })
     .catch(function(){})
     .then(function(){
-      /* 주소로 지정된 폰트는 잠근 것으로 보고 그대로 살린다 —
-         링크를 받은 사람이 보낸 사람과 같은 화면을 봐야 한다. */
+      /* 주소에 적힌 폰트는 그대로 살려 링크를 받은 사람이 같은 화면을 보게 한다.
+         다만 잠그지는 않는다 — 주소에는 늘 세 폰트가 적히므로 잠그면
+         새로고침 한 번에 전부 잠긴 채 열려 조합이 안 바뀐다. */
       var q = ['category=' + encodeURIComponent(S.cat), 'script=' + S.script];
       SLOTS.forEach(function(k){ if (want[k]) q.push(k + '=' + want[k]); });
       return fetch('/api/font-pair/generate?' + q.join('&'))
         .then(function(r){ return r.json(); })
         .then(function(d){
           S.fonts = d.fonts; S.weights = d.weights;
-          SLOTS.forEach(function(k){ if (want[k]) S.lock[k] = true; });
           setText(d.samples);
           renderStage(); renderSlots(); renderCats(); syncUrl();
         });
     })
     .catch(function(){
-      $('nameTitle').textContent = '조합을 불러오지 못했어요. 새로고침해 주세요.';
+      showErr('조합을 불러오지 못했어요. 새로고침해 주세요.');
     });
 })();
 </script>

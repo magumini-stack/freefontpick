@@ -164,9 +164,9 @@ PAIR_CATEGORIES = [
             "fatigue more than size does, and even stroke weight lets a paragraph "
             "settle into an even grey. Around sixty-five characters to the line, with "
             "leading near one and a half times the size, reads comfortably for a long "
-            "stretch. Stray from that and the eye keeps hunting for the start of the "
-            "next line, and those small returns pile up into fatigue. Choosing a text "
-            "face is, in the end, the work of making the reader forget it.",
+            "stretch. Stray from that and the eye keeps hunting for the next line, and "
+            "those small returns pile up. Choosing a text face is, in the end, the "
+            "work of making the reader forget it.",
         ),
     },
     {
