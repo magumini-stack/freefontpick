@@ -28,7 +28,7 @@
      crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
@@ -99,12 +99,14 @@
      세 단은 제목 > 서브타이틀 > 본문 순으로 벌려 둔다 — 서브타이틀과 본문이
      같은 크기면 두 줄이 한 덩어리로 붙어 위계가 안 읽힌다.
      슬롯의 크기 레버가 그 위에 배수(--k-*)로 곱해진다. */
-  /* stretch + 캔버스만 flex-start — 칸의 높이는 캔버스가 정하고(16:9 비율),
-     오른쪽 칸이 거기 맞춰 늘어난다. 사용팁이 남는 자리를 채워
-     아래끝이 캔버스 아래끝과 딱 맞는다. */
-  .fp-shell{display:flex;align-items:stretch;gap:16px;padding:6px 0 2px}
-  .fp-stage{container-type:inline-size;position:relative;flex:1;min-width:0;max-width:860px;
-            align-self:flex-start;
+  /* 두 칸 높이는 그리드가 맞춘다. flex로도 해 봤지만 캔버스 높이가 비율에서
+     나오는 탓에 줄 높이가 제때 잡히지 않아 아래끝이 어긋났다.
+     그리드는 줄 높이를 먼저 정하고 칸을 늘리므로 어긋날 여지가 없다.
+     캔버스만 align-self:start 로 빼 16:9 비율을 지킨다. */
+  .fp-shell{display:grid;grid-template-columns:minmax(0,1fr) 264px;
+            align-items:stretch;gap:16px;padding:6px 0 2px}
+  .fp-stage{container-type:inline-size;position:relative;min-width:0;max-width:860px;
+            align-self:start;
             aspect-ratio:16/9;border-radius:var(--radius-md);box-shadow:var(--shadow-hover);
             overflow:hidden;background:var(--bg-card);color:var(--text-primary);
             display:flex;flex-direction:column}
@@ -117,56 +119,56 @@
   .fp-text:focus{outline:2px dashed currentColor;outline-offset:4px;border-radius:3px}
 
   #txtTitle{font-size:calc(var(--b-title,7cqw) * var(--k-title,1));line-height:1.16}
-  #txtSub  {font-size:calc(var(--b-sub,3.4cqw) * var(--k-sub,1));line-height:1.45;opacity:.8}
-  #txtBody {font-size:calc(var(--b-body,2.8cqw) * var(--k-body,1));line-height:1.75}
+  #txtSub  {font-size:calc(var(--b-sub,4.25cqw) * var(--k-sub,1));line-height:1.45;opacity:.8}
+  #txtBody {font-size:calc(var(--b-body,2.66cqw) * var(--k-body,1));line-height:1.75}
 
   /* 영상 · 자막 — 먹색 화면. 자막 바가 아래에 깔린다 */
-  .mk-thumb{background:#15161A;color:#F5F5F2;justify-content:center;padding:7cqw 7cqw 13cqw;
-            --b-title:10cqw;--b-sub:3.6cqw;--b-body:2.8cqw}
+  .mk-thumb{background:#15161A;color:#F5F5F2;justify-content:center;padding:4cqw 6cqw 11cqw;
+            --b-title:11cqw;--b-sub:4.5cqw;--b-body:2.66cqw}
   .mk-thumb .fp-blk-body{position:absolute;left:0;right:0;bottom:0;
-            background:rgba(0,0,0,.55);padding:2.4cqw 7cqw 2.8cqw;text-align:center}
+            background:rgba(0,0,0,.55);padding:2.4cqw 6cqw 2.8cqw;text-align:center}
   .mk-thumb #txtSub{margin-top:1.6cqw}
 
   /* SNS · 카드뉴스 — 따뜻한 모래색 */
   .mk-card{background:#F2E4D4;color:#2B231A;justify-content:center;padding:7cqw;
-           --b-title:7.6cqw;--b-sub:3.6cqw;--b-body:3cqw}
+           --b-title:8.36cqw;--b-sub:4.5cqw;--b-body:2.85cqw}
   .mk-card #txtSub{margin-top:2cqw}
   .mk-card .fp-blk-body{margin-top:3.5cqw}
 
   /* 브랜딩 · 로고 — 차분한 회백. 명함처럼 아래로 붙는다 */
   .mk-namecard{background:#E9E9EC;color:#1E1E1C;justify-content:flex-end;padding:7cqw;
-               --b-title:8cqw;--b-sub:3.4cqw;--b-body:2.8cqw}
+               --b-title:8.8cqw;--b-sub:4.25cqw;--b-body:2.66cqw}
   .mk-namecard #txtSub{margin-top:1.4cqw}
   .mk-namecard .fp-blk-body{margin-top:3.5cqw;opacity:.75}
 
   /* 포스터 · 안내 — 짙은 남색. 멀리서 읽히는지 보는 자리 */
-  .mk-poster{background:#1F3350;color:#F1F4F9;justify-content:center;padding:6cqw;
-             --b-title:7.6cqw;--b-sub:3.4cqw;--b-body:2.8cqw}
+  .mk-poster{background:#1F3350;color:#F1F4F9;justify-content:center;padding:4.5cqw 5cqw;
+             --b-title:8.36cqw;--b-sub:4.25cqw;--b-body:2.66cqw}
   .mk-poster #txtSub{margin-top:2cqw}
-  .mk-poster .fp-blk-body{margin-top:3cqw}
+  .mk-poster .fp-blk-body{margin-top:2cqw}
 
   /* 감성 · 손글씨 — 연한 쑥빛. 가운데로 모은다 */
   .mk-note{background:#E6EDE8;color:#22302A;align-items:center;justify-content:center;
            text-align:center;padding:7cqw;
-           --b-title:8cqw;--b-sub:3.5cqw;--b-body:2.9cqw}
+           --b-title:8.8cqw;--b-sub:4.38cqw;--b-body:2.76cqw}
   .mk-note #txtSub{margin-top:2cqw}
   .mk-note .fp-blk-body{margin-top:3cqw}
 
   /* 본문 · 읽기 — 종이 흰색. 2단으로 앉힌다.
      낮아진 틀에 2단을 넣어야 해서 본문 줄 사이만 1.6으로 좁힌다. */
-  .mk-magazine{background:#FCFBF7;color:#1A1A18;padding:4.5cqw;
-               --b-title:7cqw;--b-sub:3.4cqw;--b-body:2.6cqw}
+  .mk-magazine{background:#FCFBF7;color:#1A1A18;padding:3.5cqw 4cqw;
+               --b-title:7.7cqw;--b-sub:4.25cqw;--b-body:2.47cqw}
   .mk-magazine #txtSub{margin-top:1cqw}
   .mk-magazine #txtBody{line-height:1.6}
-  .mk-magazine .fp-blk-body{margin-top:3cqw;column-count:2;column-gap:3cqw;
+  .mk-magazine .fp-blk-body{margin-top:2cqw;column-count:2;column-gap:3cqw;
                border-top:1px solid color-mix(in srgb,currentColor 18%,transparent);
-               padding-top:2.4cqw}
+               padding-top:2cqw}
 
   /* ── 오른쪽 칸: 슬롯 3개 + 쓰는 법 ─────────────────────
      캔버스 옆에 세로로 세운다. 아래에 두면 스크롤을 내려야 폰트 이름이
      보였다 — 무슨 폰트인지가 견본과 같이 보여야 한다.
      슬롯 아래로 남는 자리에 쓰는 법을 넣어 칸을 채운다. */
-  .fp-side{flex:none;width:264px;display:flex;flex-direction:column;gap:12px}
+  .fp-side{display:flex;flex-direction:column;gap:12px;min-width:0}
   .fp-slots{display:flex;flex-direction:column;gap:10px}
   .fp-slot{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);
            padding:11px 13px 9px;display:flex;flex-direction:column;gap:8px}
@@ -202,7 +204,7 @@
   /* ── 미세조정 패널 ──────────────────────────────────── */
 
   @media(max-width:900px){
-    .fp-shell{flex-direction:column;align-items:stretch}
+    .fp-shell{grid-template-columns:minmax(0,1fr)}
     .fp-stage{max-width:none}
     .fp-side{width:auto}
     .fp-about{flex:none}
@@ -400,8 +402,9 @@
         '<div class="fp-role">' + ABBR[k] + '</div>' +
         '<div class="fp-slot-main">' +
           '<div class="fp-slot-role">' + ROLE[k] + '</div>' +
-          '<a class="fp-slot-font" href="/font/' + f.id + '" title="' + esc(f.name) +
-            ' 상세페이지 — 다운로드 · 라이선스">' + esc(f.name) + '</a>' +
+          '<a class="fp-slot-font" href="/font/' + f.id + '" target="_blank" rel="noopener"' +
+            ' title="' + esc(f.name) + ' 상세페이지 — 새 창에서 다운로드 · 라이선스">' +
+            esc(f.name) + '</a>' +
           '<div class="fp-slot-w">굵기 ' + S.weights[k] +
             ' · 크기 ' + Math.round(S.scale[k] * 100) + '%</div>' +
         '</div>' +
@@ -415,7 +418,8 @@
           '<button type="button" class="fp-icon" data-pick="' + k + '" title="폰트 직접 고르기">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>' +
           '</button>' +
-          '<a class="fp-icon" href="/font/' + f.id + '" title="' + esc(f.name) + ' 상세페이지 — 다운로드 · 라이선스">' +
+          '<a class="fp-icon" href="/font/' + f.id + '" target="_blank" rel="noopener"' +
+            ' title="' + esc(f.name) + ' 상세페이지 — 새 창에서 다운로드 · 라이선스">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
           '</a>' +
         '</div></div>' +
