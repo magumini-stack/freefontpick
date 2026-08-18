@@ -767,44 +767,23 @@ def find_font_page():
 # 사이트맵에도 그때 함께 넣는다(미완성 페이지를 검색엔진에 먼저 알릴 이유가 없다).
 
 def _pair_ssr_block(db: Session) -> str:
-    """페이지 아래 소개 블록 — 화면에도 그대로 보이는 자리다.
+    """페이지 아래 사용법 한 단락 — 화면에도 그대로 보이는 자리다.
 
-    이 페이지는 JS로 그려져서 이 블록이 없으면 크롤러가 읽는 본문이 186자
-    (전부 메뉴·버튼 이름)뿐이다. 지난 애드센스 리젝 사유가 정확히 그것이었다.
-    그렇다고 감춰 두고 크롤러에게만 보여주면 그건 그것대로 위반이라, 방문자도
-    쓸 수 있는 내용으로 채운다.
+    예전에는 여기에 카테고리 카드 7장을 깔았는데, 위 칩과 똑같은 이름이 다시
+    나와 무엇이 조작이고 무엇이 설명인지 헷갈렸다. 설명만 남긴다.
 
-    폰트 목록은 **엔진과 같은 근거**로 뽑는다(font_pair_engine.top_fonts_for).
-    예전에는 저장된 조합에서 뽑았는데, 엔진이 그걸 안 쓰게 되면서 화면이
-    추천하는 것과 아래 목록이 어긋났다 — '브랜딩 · 로고' 아래에 손글씨체가
-    실려 있었다. 같은 페이지가 두 가지 답을 내놓으면 안 된다.
+    통째로 없애지는 않는다. 이 페이지는 JS로 그려져서 이 단락이 빠지면 크롤러가
+    읽는 본문이 메뉴·버튼 이름뿐이 된다. 감춰 두고 크롤러에게만 보여주는 것은
+    위반이므로, 사람이 읽어도 쓸모 있는 문장으로 둔다.
     """
-    from ..font_pair_engine import top_fonts_for
-    from ..pair_specimens import PAIR_CATEGORIES
-
-    out = ['<section class="fp-about">',
-           "<h2>어디에 쓸 폰트인가요</h2>",
-           "<p>쓰는 자리를 고르면 그 자리의 실제 틀 안에 세 폰트를 앉혀 보여줍니다. "
-           "마음에 드는 슬롯은 잠근 채 나머지만 다시 뽑고, 문구도 직접 고쳐 쓸 수 "
-           "있습니다. 폰트 이름을 누르면 그 폰트의 다운로드와 라이선스로 갑니다.</p>",
-           '<div class="fp-about-grid">']
-
-    for c in PAIR_CATEGORIES:
-        try:
-            picks = top_fonts_for(db, c["key"], 6)
-        except Exception:
-            picks = []
-        names = " · ".join(
-            f'<a href="/font/{f.id}">{_esc(f.name)}</a>' for f in picks
-        )
-        out.append(
-            f'<div class="fp-about-card"><h3>{_esc(c["label"])}</h3>'
-            f'<p>{_esc(c["desc"])}</p>'
-            + (f'<p class="fp-about-fonts">{names}</p>' if names else "")
-            + "</div>"
-        )
-    out.append("</div></section>")
-    return "".join(out)
+    return (
+        '<section class="fp-about">'
+        "<h2>쓰는 법</h2>"
+        "<p>쓰는 자리를 고르면 그 자리의 실제 틀 안에 세 폰트를 앉혀 보여줍니다. "
+        "마음에 드는 슬롯은 잠근 채 나머지만 다시 뽑고, 문구도 직접 고쳐 쓸 수 "
+        "있습니다. 폰트 이름을 누르면 그 폰트의 다운로드와 라이선스로 갑니다.</p>"
+        "</section>"
+    )
 
 
 @router.get("/font-pair", response_class=HTMLResponse)

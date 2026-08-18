@@ -206,18 +206,13 @@
   .fp-item i{font-size:11.5px;color:var(--text-muted);font-style:normal}
   .fp-empty{padding:22px;text-align:center;color:var(--text-muted);font-size:13px}
 
-  /* ── 크롤러가 읽을 본문 (화면에도 보인다) ─────────────── */
-  .fp-about{margin-top:38px;padding-top:26px;border-top:1px solid var(--border)}
-  .fp-about h2{font-size:17px;font-weight:800;margin-bottom:6px}
-  .fp-about > p{font-size:13.5px;color:var(--text-secondary);line-height:1.75;max-width:70ch}
-  .fp-about-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
-  .fp-about-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px}
-  .fp-about-card h3{font-size:13.5px;font-weight:800;margin-bottom:5px}
-  .fp-about-card p{font-size:12.5px;color:var(--text-secondary);line-height:1.7}
-  .fp-about-fonts{margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
-  .fp-about-fonts a{color:var(--text-secondary);text-decoration:none;
-                    border-bottom:1px solid transparent}
-  .fp-about-fonts a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+  /* ── 페이지 아래 사용법 ─────────────────────────────── */
+  .fp-about{max-width:62ch;margin:40px auto 0;padding-top:24px;
+            border-top:1px solid var(--border);text-align:center}
+  .fp-about h2{font-size:14px;font-weight:800;letter-spacing:.02em;
+               color:var(--text-muted);margin-bottom:10px}
+  .fp-about p{font-size:14px;color:var(--text-secondary);line-height:1.9;
+              word-break:keep-all}
 </style>
 </head>
 <body>
@@ -236,7 +231,7 @@
     <div class="fp-act">
       <button type="button" class="fp-btn primary" id="fpRoll">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>
-        조합 새로 뽑기
+        조합 새로고침
       </button>
     </div>
   </div>
@@ -323,6 +318,17 @@
   }
 
   // ── 그리기 ──────────────────────────────────────────
+  /* 목업 틀 이름 → 화면 라벨. 틀 구석에 작게 적어 둔다 —
+     지금 무엇을 보고 있는지가 화면에서 읽혀야 한다. */
+  var FRAME_LABEL = { thumb:'유튜브 썸네일 16:9', card:'카드뉴스 1:1',
+                      namecard:'명함 90×50', poster:'포스터 A4',
+                      note:'카드', magazine:'매거진 지면' };
+  function applyMockup(name){
+    var st = $('fpStage');
+    st.className = 'fp-stage mk-' + (name || 'card');
+    st.setAttribute('data-frame', FRAME_LABEL[name] || '');
+  }
+
   function renderStage(){
     SLOTS.forEach(function(k){
       var f = S.fonts[k];
