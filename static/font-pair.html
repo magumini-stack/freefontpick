@@ -349,9 +349,12 @@
     var q = [];
     if (S.cat !== 'brand') q.push('cat=' + S.cat);
     if (S.script !== 'ko') q.push('sc=' + S.script);
+    var lk = '';
     SLOTS.forEach(function(k, i){
       if (S.fonts[k]) q.push(['t','s','b'][i] + '=' + S.fonts[k].id);
+      if (S.lock[k]) lk += ['t','s','b'][i];
     });
+    if (lk) q.push('lock=' + lk);
     var url = location.pathname + (q.length ? '?' + q.join('&') : '');
     if (url !== location.pathname + location.search) history.replaceState(null, '', url);
   }
@@ -359,6 +362,8 @@
     var p = new URLSearchParams(location.search);
     if (p.get('cat')) S.cat = p.get('cat');
     if (p.get('sc'))  S.script = p.get('sc');
+    var lk = p.get('lock') || '';
+    SLOTS.forEach(function(k, i){ S.lock[k] = lk.indexOf(['t','s','b'][i]) >= 0; });
     return { title: +p.get('t') || 0, subtitle: +p.get('s') || 0, body: +p.get('b') || 0 };
   }
 
@@ -653,8 +658,8 @@
     .catch(function(){})
     .then(function(){
       /* 주소에 적힌 폰트는 그대로 살려 링크를 받은 사람이 같은 화면을 보게 한다.
-         다만 잠그지는 않는다 — 주소에는 늘 세 폰트가 적히므로 잠그면
-         새로고침 한 번에 전부 잠긴 채 열려 조합이 안 바뀐다. */
+         잠금은 lock= 에 적힌 슬롯만 건다 — 주소에는 늘 세 폰트가 적히므로
+         전부 잠그면 새로고침 한 번에 조합이 안 바뀐다. */
       var q = ['category=' + encodeURIComponent(S.cat), 'script=' + S.script];
       SLOTS.forEach(function(k){ if (want[k]) q.push(k + '=' + want[k]); });
       return fetch('/api/font-pair/generate?' + q.join('&'))

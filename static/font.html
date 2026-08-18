@@ -341,8 +341,9 @@
   /* 조합이 없는 폰트(펜시 등)의 사이드바 대체 카드 */
   .pair-teaser{border:1px dashed var(--border-hover);border-radius:4px;padding:20px 16px;text-align:center}
   .pair-teaser p{margin:0 0 12px;font-size:12.5px;color:var(--text-secondary);line-height:1.5}
-  .pair-teaser button{border:1px solid var(--accent);background:var(--accent);color:#fff;font-family:inherit;
-    font-size:12.5px;font-weight:700;border-radius:3px;padding:9px 16px;cursor:pointer;width:100%}
+  .pair-teaser button,.pair-teaser .pair-teaser-go{border:1px solid var(--accent);background:var(--accent);
+    color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;border-radius:3px;padding:9px 16px;
+    cursor:pointer;width:100%;display:block;box-sizing:border-box;text-align:center;text-decoration:none}
   @media(max-width:640px){
     .fp-overlay{padding:0;align-items:flex-end}
     .fp-sheet{border-radius:14px 14px 0 0;max-height:92vh;overflow-y:auto}
@@ -1068,7 +1069,8 @@
       sub.textContent = '아직 정리된 조합이 없어요.';
       grid.innerHTML =
         '<div class="pair-teaser"><p>분위기와 용도가 맞는 폰트를<br>지금 찾아볼 수 있어요.</p>' +
-        '<button type="button" onclick="fpOpen()">조합 찾아보기</button></div>';
+        '<a class="pair-teaser-go" href="' + pairUrl(f) + '" target="_blank" rel="noopener">' +
+        '조합 찾아보기</a></div>';
       sec.classList.remove('hidden');
       return;
     }
@@ -1220,7 +1222,8 @@
           }
         }
       } catch(e){}
-      var _dtop = document.getElementById('designBtnTop'); if (_dtop){ _dtop.onclick = function(ev){ ev.preventDefault(); fpOpen(); }; }
+      var _dtop = document.getElementById('designBtnTop');
+      if (_dtop){ _dtop.href = pairUrl(f); _dtop.target = '_blank'; _dtop.rel = 'noopener'; }
       fetchRelated(f);
 
       /* /font/{id}/design으로 직접 접속(또는 검색엔진 유입)한 경우: 상세페이지
@@ -1247,6 +1250,49 @@
      페이지 로드 시에는 부르지 않는다 — 이 API는 수백 ms가 걸려서 모든
      상세페이지 조회에 붙이면 손해다. 버튼을 누른 순간에만 호출한다.
   ══════════════════════════════════════════════════════ */
+  /* 조합 찾기 페이지로 넘길 주소.
+
+     lock= 을 붙여야 그 폰트가 '조합 새로고침'에서도 자리를 지킨다. 이게 없으면
+     넘어가자마자 다른 폰트로 갈려서, 무엇을 보러 왔는지가 사라진다.
+
+     자리는 폰트의 결로 정한다. 본문용으로 나온 서체를 100px 제목 자리에
+     앉히면 그 폰트를 잘못 보여 주는 셈이다. 나머지 두 자리는 조합 찾기가
+     채운다. 마음에 안 들면 그 화면에서 직접 옮길 수 있다. */
+  var PAIR_BODY_TAGS = ['제목-본문용 고딕', '부드러운 명조', '네모틀 고딕', 'UI/UX/Web'];
+  var PAIR_LOUD_TAGS = ['디스플레이', '장식', '손글씨', '캘리그라피', '펜시',
+                        '시선을 끄는 제목용'];
+
+  /* 태그 → 쓰는 자리. 위에서부터 처음 걸리는 것을 쓴다. 키는
+     app/pair_specimens.py 의 PAIR_CATEGORIES 와 같아야 한다.
+     좁은 것(손글씨·썸네일)을 먼저 보고 넓은 것(제목용)을 나중에 본다 —
+     반대로 두면 손글씨가 죄다 '포스터'로 빠진다. */
+  var PAIR_CAT_BY_TAG = [
+    ['hand',   ['손글씨', '캘리그라피', '펜시']],
+    ['video',  ['유튜브 썸네일 추천', '브이로그 자막용']],
+    ['sns',    ['카드뉴스용', '귀여운']],
+    ['brand',  ['로고디자인', '독특한 세리프']],
+    ['read',   ['제목-본문용 고딕', '부드러운 명조', '네모틀 고딕', 'UI/UX/Web']],
+    ['poster', ['디스플레이', '시선을 끄는 제목용']]
+  ];
+
+  function pairUrl(f){
+    var tags = (f.tags || []).map(function(t){ return t.name || t; });
+    function has(list){
+      return list.some(function(t){ return tags.indexOf(t) >= 0; });
+    }
+    /* 본문용으로 나온 서체를 100px 제목 자리에 앉히면 그 폰트를 잘못
+       보여 주는 셈이다. 나머지 두 자리는 조합 찾기가 채운다. */
+    var slot = (has(PAIR_BODY_TAGS) && !has(PAIR_LOUD_TAGS)) ? 'b' : 't';
+    var cat = 'brand';
+    for (var i = 0; i < PAIR_CAT_BY_TAG.length; i++) {
+      if (has(PAIR_CAT_BY_TAG[i][1])) { cat = PAIR_CAT_BY_TAG[i][0]; break; }
+    }
+    /* lock= 이 없으면 넘어가자마자 '조합 새로고침' 한 번에 갈려 나간다 */
+    var q = [slot + '=' + f.id, 'lock=' + slot, 'cat=' + cat];
+    if (f.is_english) q.push('sc=en');
+    return '/font-pair?' + q.join('&');
+  }
+
   var fpBusy = false, fpBound = false;
 
   /* 모달 마크업은 이 <script>보다 뒤에 있다. 파싱 시점에 바인딩하면 요소가
