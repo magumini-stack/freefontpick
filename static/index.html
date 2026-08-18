@@ -15,15 +15,6 @@
   <title>폰트픽-무료폰트 큐레이션 및 폰트 조합 찾기</title>
   <link rel="stylesheet" href="/header.css">
 
-  <!-- 갤러리용 서브셋의 unicode-range. 서버(_load_index)가 채운다.
-       별도 요청으로 받지 않는 이유: 카드가 그려지기 전에 있어야 하고,
-       값이 배포마다 고정이라 따로 받을 이유가 없다.
-       비어 있으면 프론트가 서브셋을 안 쓰고 원본만 쓴다. -->
-  <script>
-    window.FFP_SUBSET_RANGE = "{{FFP_SUBSET_RANGE}}";
-    window.FFP_SUBSET_VER   = "{{FFP_SUBSET_VER}}";
-  </script>
-
   <!-- 구글 태그(gtag.js)는 app/header.py가 헤더 마커 자리에 함께 넣는다.
        여기 직접 적어두면 페이지마다 빠뜨리게 되고(실제로 /gif·/use가 그랬다),
        양쪽에 두면 조회수가 두 번 잡힌다. -->
@@ -3340,21 +3331,6 @@ function ensureFontLoaded(id){
   addFontFaceRule(
     `@font-face{font-family:'${family}';src:url('${url}') format('woff2');font-display:swap;font-weight:normal;font-style:normal}`
   );
-
-  /* 갤러리용 서브셋을 같은 패밀리로 한 벌 더 건다.
-
-     원본을 먼저, 서브셋을 나중에 선언해야 한다 — 겹치는 글자에서 나중 것이
-     이긴다. 그래야 미리보기 문구는 작은 파일(원본의 20% 안팎)로 그려지고,
-     사용자가 목록 밖 글자를 직접 쳤을 때만 원본을 받는다.
-
-     서브셋이 아직 없으면(has_subset 거짓) 걸지 않는다. 없는 주소로 face를
-     걸면 브라우저가 한 번 받아 보고 실패한 뒤에야 원본으로 넘어간다. */
-  if(f && f.hasSubset && window.FFP_SUBSET_RANGE){
-    const sUrl = `/api/fonts/${id}/subset` + (ver ? `?v=${ver}` : '');
-    addFontFaceRule(
-      `@font-face{font-family:'${family}';src:url('${sUrl}') format('woff2');font-display:swap;font-weight:normal;font-style:normal;unicode-range:${window.FFP_SUBSET_RANGE}}`
-    );
-  }
 }
 
 /* 폰트의 stack을 사용 가능한 형태로 정규화.

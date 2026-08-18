@@ -81,8 +81,6 @@ class FontOut(FontBase):
     file_source: str = ""
     # 파일의 판. 주소에 ?v= 로 붙여 캐시를 가른다 (app/routers/files.py 참조).
     file_version: int = 0
-    # 갤러리용 서브셋이 준비됐는지. 참일 때만 프론트가 서브셋 face를 건다.
-    has_subset: bool = False
     # 웹폰트 등록값 검증 결과. 생성/수정 응답에서만 채워지고 목록 조회에서는 항상 비어 있다
     # (목록마다 외부 CSS를 받아오면 느려지므로).
     webfont_errors: List[str] = Field(default_factory=list)

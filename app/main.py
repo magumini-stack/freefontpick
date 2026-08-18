@@ -38,30 +38,17 @@ async def lifespan(app: FastAPI):
         print(f"[startup] init_db 실패 (앱은 계속 실행됨): {e}")
         traceback.print_exc()
 
-    # 갤러리용 서브셋을 배경에서 채운다. 폰트당 3~5초라 209종이면 15분쯤
-    # 걸리므로, 한 종마다 쉬어 가며 요청 처리를 굶기지 않는다.
-    # user_data에 쌓이므로 이미 있으면 건너뛴다 — 재배포해도 다시 만들지 않는다.
-    # 다 되기 전까지는 프론트가 원본으로 그린다(has_subset이 거짓).
+    # 갤러리 서브셋을 걷어냈다(2026-08). 예전 배포가 user_data에 만들어 둔
+    # 파일이 남아 있으므로 한 번 치운다. 다음 배포 때 이 블록은 지운다.
     try:
-        from .database import SessionLocal
-        from .models import Font
-        from .font_subset import warm_up_async, has_subset
-        from .routers.files import file_version_of
-        db = SessionLocal()
-        try:
-            todo = [f.id for f in db.query(Font).filter(Font.has_file == True).all()
-                    if not has_subset(f.id, file_version_of(f.id))]
-        finally:
-            db.close()
-        if todo:
-            print(f"[startup] 서브셋 {len(todo)}종 배경에서 만듭니다", flush=True)
-            warm_up_async(todo)
-        else:
-            print("[startup] 서브셋 모두 준비됨", flush=True)
-    except Exception as e:
-        import traceback
-        print(f"[startup] 서브셋 준비 건너뜀: {e}")
-        traceback.print_exc()
+        import shutil
+        from pathlib import Path
+        old = Path(os.getenv("SUBSETS_DIR", "/app/user_data/subsets"))
+        if old.exists():
+            shutil.rmtree(old, ignore_errors=True)
+            print("[startup] 남아 있던 서브셋 파일을 치웠습니다", flush=True)
+    except Exception:
+        pass
 
     yield
 
@@ -103,8 +90,7 @@ app.add_middleware(
 #   - /api/fonts/{id}/sample-image : 상세페이지 샘플 이미지
 #   - /api/fonts/{id}/webfont.css  : 외부용 웹폰트 CSS. 홍보물·프레스킷이 매번
 #     새로 받을 이유가 없고, 라우터가 직접 max-age=300을 지정한다.
-_CACHE_EXEMPT_SUFFIXES = ("/og-image.png", "/file", "/subset", "/sample-image",
-                          "/webfont.css")
+_CACHE_EXEMPT_SUFFIXES = ("/og-image.png", "/file", "/sample-image", "/webfont.css")
 
 
 # ══════════════════════════════════════════════════════════════

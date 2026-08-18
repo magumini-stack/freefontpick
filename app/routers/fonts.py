@@ -67,17 +67,7 @@ def _file_version(font_id: int) -> int:
         return 0
 
 
-def _has_subset(font_id: int, version: int) -> bool:
-    """갤러리용 서브셋이 준비됐는지. 아직이면 프론트가 원본으로 그린다."""
-    try:
-        from ..font_subset import has_subset
-        return has_subset(font_id, version)
-    except Exception:
-        return False
-
-
 def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
-    _ver = _file_version(font.id)
     return FontOut(
         has_pairing=font.id in paired_ids,
         id=font.id,
@@ -99,8 +89,7 @@ def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
         like_count=font.like_count or 0,
         has_sample=_has_sample(font.id),
         file_source=_file_source(font.id),
-        file_version=_ver,
-        has_subset=_has_subset(font.id, _ver),
+        file_version=_file_version(font.id),
     )
 
 
