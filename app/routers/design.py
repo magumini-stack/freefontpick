@@ -810,7 +810,7 @@ def _pair_ssr_block(db: Session) -> str:
 @router.get("/font-pair", response_class=HTMLResponse)
 def font_pair_page(request: Request, db: Session = Depends(get_db)):
     html = (STATIC_DIR / "font-pair.html").read_text(encoding="utf-8")
-    html = inject_header(html, "")
+    html = inject_header(html, "fontpair")   # 헤더에서 이 메뉴에 활성 표시
     html = html.replace("{{FFP_PAIR_SSR}}", _pair_ssr_block(db), 1)
 
     # 칩 아래 설명 한 줄. JS가 카테고리를 바꿀 때마다 갈아끼우지만, 첫 줄은

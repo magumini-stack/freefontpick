@@ -21,6 +21,9 @@ NAV_ITEMS = [
     # '폰트 찾기'는 index.html 안의 뷰다. 홈에서는 해시 라우팅으로 화면만 바꾸고,
     # 다른 페이지에서는 평범한 링크로 /find-font 를 연다 (_nav_links 참고).
     ("findfont", "/find-font", "폰트 찾기", "findFontMenuLink", "mFindFontMenuLink"),
+    # 폰트 조합 찾기. 폰트 찾기 다음에 두는 이유 — 둘 다 '고르는' 일이라
+    # 나란히 있어야 하나를 고르고 나서 다음으로 넘어가는 흐름이 읽힌다.
+    ("fontpair", "/font-pair", "폰트 조합 찾기", None, None),
     # gif 라우터가 inject_header(html, "gif")로 넘기는 키와 같아야 활성 표시가 붙는다.
     #
     # 2026-08: 템플릿 목록(/gif/templates) 대신 편집기(/gif)로 바로 보낸다.
@@ -60,11 +63,13 @@ def _nav_links(active: str, indent: str, mobile: bool) -> str:
         cls = f' class="{" ".join(classes)}"' if classes else ""
         elid = id_m if mobile else id_d
         id_attr = f' id="{elid}"' if elid else ""
-        # GIF 생성기만 새 창으로 연다. 편집기는 작업하던 것이 남는 화면이라,
-        # 보던 폰트 페이지를 덮어버리면 뒤로 가기로 돌아왔을 때 작업이 사라진다.
+        # GIF 생성기와 조합 찾기는 새 창으로 연다. 둘 다 화면에서 뭔가를
+        # 맞춰 가는 자리라, 보던 페이지를 덮으면 뒤로 가기로 돌아왔을 때
+        # 맞춰 두었던 것이 사라진다.
         # rel은 보안·성능 때문에 함께 둔다 — 새 창이 window.opener로 원래 탭을
         # 건드리지 못하게 막고, 브라우저가 두 탭을 다른 프로세스로 띄우게 한다.
-        target = ' target="_blank" rel="noopener noreferrer"' if key == "gif" else ""
+        target = (' target="_blank" rel="noopener noreferrer"'
+                  if key in ("gif", "fontpair") else "")
         onclick = f' onclick="{_JS_FIND}"' if key == "findfont" else ""
         if mobile and key == "notice":
             onclick = f' onclick="{_JS_CLOSE}"'
