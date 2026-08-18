@@ -93,7 +93,12 @@
      "이 조합을 내 자리에 쓰면 어떻게 보이는가"에 바로 답한다.
 
      글자 크기는 틀 폭에 비례한다(cqw). 틀 비율이 고정이라, 화면이 좁아져도
-     안에서 보이는 비례가 그대로 유지된다 — 목업의 요점이 그것이다. */
+     안에서 보이는 비례가 그대로 유지된다 — 목업의 요점이 그것이다.
+
+     틀을 실제 인쇄물 크기로 잡으면 본문이 13~17px까지 내려간다. 여기 폰트는
+     대부분 힌팅이 없어서 그 크기에서는 획이 뭉개져 "깨진 글자"로 보인다 —
+     서체를 판단하러 온 화면에서 그러면 안 된다. 그래서 비례는 유지한 채
+     틀 자체를 키웠다. 본문이 어느 틀에서도 19px 아래로 내려가지 않는다. */
   .fp-shell{display:flex;justify-content:center;padding:6px 0 2px}
   .fp-stage{container-type:inline-size;position:relative;width:100%;
             border-radius:var(--radius-md);box-shadow:var(--shadow-hover);
@@ -111,50 +116,47 @@
   .fp-text{outline:none;word-break:keep-all;white-space:pre-line}
   .fp-text:focus{outline:2px dashed currentColor;outline-offset:4px;border-radius:3px}
 
-  #txtTitle{font-size:calc(var(--b-title,7cqw) * var(--sz-title,1));
-            line-height:var(--lh-title,1.16);letter-spacing:var(--ls-title,0)}
-  #txtSub  {font-size:calc(var(--b-sub,2.6cqw) * var(--sz-sub,1));
-            line-height:var(--lh-sub,1.45);letter-spacing:var(--ls-sub,0);opacity:.8}
-  #txtBody {font-size:calc(var(--b-body,2.1cqw) * var(--sz-body,1));
-            line-height:var(--lh-body,1.75);letter-spacing:var(--ls-body,0)}
+  #txtTitle{font-size:var(--b-title,7cqw);line-height:1.16}
+  #txtSub  {font-size:var(--b-sub,2.6cqw);line-height:1.45;opacity:.8}
+  #txtBody {font-size:var(--b-body,2.1cqw);line-height:1.75}
 
   /* 16:9 썸네일 — 작게 줄여도 버티는지 보는 자리라 어둡게 깔고 크게 앉힌다 */
-  .mk-thumb{max-width:820px;aspect-ratio:16/9;background:#15161A;color:#F5F5F2;
+  .mk-thumb{max-width:980px;aspect-ratio:16/9;background:#15161A;color:#F5F5F2;
             justify-content:center;padding:7cqw 7cqw 12cqw;
-            --b-title:9.6cqw;--b-sub:2.7cqw;--b-body:2.4cqw}
+            --b-title:9.2cqw;--b-sub:2.9cqw;--b-body:2.5cqw}
   .mk-thumb .fp-blk-body{position:absolute;left:0;right:0;bottom:0;
             background:rgba(0,0,0,.55);padding:2.4cqw 7cqw 2.8cqw;text-align:center}
   .mk-thumb #txtSub{margin-top:1.6cqw}
 
   /* 1:1 카드뉴스 */
-  .mk-card{max-width:600px;aspect-ratio:1/1;justify-content:center;padding:9cqw;
-           --b-title:8cqw;--b-sub:3.4cqw;--b-body:2.9cqw}
+  .mk-card{max-width:720px;aspect-ratio:1/1;justify-content:center;padding:9cqw;
+           --b-title:7.8cqw;--b-sub:3.4cqw;--b-body:2.9cqw}
   .mk-card #txtSub{margin-top:2.4cqw}
   .mk-card .fp-blk-body{margin-top:5cqw}
 
   /* 명함 90×50 — 정보가 작게 앉는 자리 */
-  .mk-namecard{max-width:660px;aspect-ratio:90/50;justify-content:flex-end;padding:8cqw;
+  .mk-namecard{max-width:900px;aspect-ratio:90/50;justify-content:flex-end;padding:8cqw;
                background:linear-gradient(180deg,var(--bg-card),var(--bg-secondary));
-               --b-title:8.4cqw;--b-sub:2.9cqw;--b-body:2.2cqw}
+               --b-title:7.6cqw;--b-sub:2.7cqw;--b-body:2.2cqw}
   .mk-namecard #txtSub{margin-top:1.4cqw}
   .mk-namecard .fp-blk-body{margin-top:4cqw;opacity:.75}
 
   /* A4 세로 포스터 — 멀리서 읽히는지 보는 자리 */
-  .mk-poster{max-width:520px;aspect-ratio:1/1.414;padding:8cqw;
-             --b-title:9cqw;--b-sub:3.2cqw;--b-body:2.5cqw}
+  .mk-poster{max-width:660px;aspect-ratio:1/1.414;padding:8cqw;
+             --b-title:8.6cqw;--b-sub:3.2cqw;--b-body:3cqw}
   .mk-poster #txtSub{margin-top:2cqw}
   .mk-poster .fp-blk-body{margin-top:auto}
 
   /* 세로 카드 — 가운데로 모아 감성 쪽을 본다 */
-  .mk-note{max-width:460px;aspect-ratio:3/4;align-items:center;justify-content:center;
+  .mk-note{max-width:600px;aspect-ratio:3/4;align-items:center;justify-content:center;
            text-align:center;padding:10cqw;
-           --b-title:10cqw;--b-sub:3.4cqw;--b-body:2.9cqw}
+           --b-title:9.2cqw;--b-sub:3.3cqw;--b-body:3.2cqw}
   .mk-note #txtSub{margin-top:2.4cqw}
   .mk-note .fp-blk-body{margin-top:6cqw}
 
   /* 매거진 지면 — 2단 긴 본문 */
-  .mk-magazine{max-width:900px;aspect-ratio:1.35/1;padding:5.5cqw;
-               --b-title:5.6cqw;--b-sub:2.2cqw;--b-body:1.62cqw}
+  .mk-magazine{max-width:1060px;aspect-ratio:1.35/1;padding:5.5cqw;
+               --b-title:5.4cqw;--b-sub:2.2cqw;--b-body:1.85cqw}
   .mk-magazine #txtSub{margin-top:1cqw}
   .mk-magazine .fp-blk-body{margin-top:3cqw;column-count:2;column-gap:4cqw;
                border-top:1px solid currentColor;padding-top:2.4cqw}
@@ -184,24 +186,6 @@
   .fp-icon svg{width:16px;height:16px}
 
   /* ── 미세조정 패널 ──────────────────────────────────── */
-  .fp-tune{position:fixed;top:0;right:0;bottom:0;width:min(376px,100%);background:var(--bg-card);
-           border-left:1px solid var(--border);box-shadow:-8px 0 30px rgba(0,0,0,.12);z-index:300;
-           transform:translateX(100%);transition:transform .22s ease;overflow-y:auto;padding:18px}
-  .fp-tune.open{transform:none}
-  .fp-tune-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-  .fp-tune-head h2{font-size:16px;font-weight:800}
-  .fp-tune-head p{font-size:12px;color:var(--text-muted);margin-top:2px}
-  .fp-tune-grp{border:1px solid var(--border);border-radius:var(--radius-md);padding:13px;margin-top:14px}
-  .fp-tune-grp header{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
-  .fp-tune-grp h3{font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--accent)}
-  .fp-row{margin-top:11px}
-  .fp-row-top{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;margin-bottom:5px}
-  .fp-row-top b{font-weight:600;color:var(--text-secondary)}
-  .fp-row-top span{font-weight:700;font-variant-numeric:tabular-nums}
-  .fp-row input[type=range]{width:100%;accent-color:var(--accent)}
-  .fp-mini{border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);
-           font-family:inherit;font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer}
-  .fp-mini:hover{color:var(--text-primary);border-color:var(--border-hover)}
 
   /* ── 폰트 고르기 ────────────────────────────────────── */
   .fp-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:none;
@@ -230,6 +214,10 @@
   .fp-about-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px}
   .fp-about-card h3{font-size:13.5px;font-weight:800;margin-bottom:5px}
   .fp-about-card p{font-size:12.5px;color:var(--text-secondary);line-height:1.7}
+  .fp-about-fonts{margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+  .fp-about-fonts a{color:var(--text-secondary);text-decoration:none;
+                    border-bottom:1px solid transparent}
+  .fp-about-fonts a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -246,10 +234,6 @@
     </div>
     <div class="fp-cats" id="fpCats"></div>
     <div class="fp-act">
-      <button type="button" class="fp-btn" id="fpTuneBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-        미세조정
-      </button>
       <button type="button" class="fp-btn primary" id="fpRoll">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>
         조합 새로 뽑기
@@ -280,19 +264,6 @@
 
 </main>
 
-<aside class="fp-tune" id="fpTunePanel" aria-hidden="true">
-  <div class="fp-tune-head">
-    <div>
-      <h2>미세 조정</h2>
-      <p>영역마다 크기·자간·줄간격을 따로 맞춥니다</p>
-    </div>
-    <div style="display:flex;gap:6px">
-      <button type="button" class="fp-mini" id="fpTuneResetAll">전체 되돌리기</button>
-      <button type="button" class="fp-mini" id="fpTuneClose">닫기</button>
-    </div>
-  </div>
-  <div id="fpTuneBody"></div>
-</aside>
 
 <div class="fp-modal" id="fpPicker">
   <div class="fp-modal-box">
@@ -314,20 +285,12 @@
   var ABBR  = { title: 'H1', subtitle: 'Aa', body: 'T' };
   var VAR   = { title: 'title', subtitle: 'sub', body: 'body' };   // CSS 변수 접미사
 
-  /* 기본 조정값. 주소에 담을 때 이 값과 같으면 생략해 주소를 짧게 유지한다. */
-  var TUNE0 = {
-    title:    { sz: 100, ls: 0, lh: 1.16 },
-    subtitle: { sz: 100, ls: 0, lh: 1.45 },
-    body:     { sz: 100, ls: 0, lh: 1.75 }
-  };
-
   var S = {
     cat: 'brand',
     script: 'ko',
     fonts:   { title: null, subtitle: null, body: null },
     weights: { title: 700, subtitle: 500, body: 400 },
     lock:    { title: false, subtitle: false, body: false },
-    tune:    JSON.parse(JSON.stringify(TUNE0)),
     borrow:  ''          // '뜻밖의 발견'이 어느 틀을 빌렸는지 (주소로 재현하려면 필요)
   };
 
@@ -342,27 +305,6 @@
   /* 조합과 조정값을 주소에 담는다. 기본값인 항목은 빼서 주소를 짧게 둔다.
      갱신은 replaceState — 슬라이더를 움직일 때마다 히스토리가 쌓이면
      뒤로가기가 망가진다. */
-  function tuneToStr(){
-    return SLOTS.map(function(k){
-      var t = S.tune[k];
-      return [t.sz, t.ls, t.lh].join(',');
-    }).join('_');
-  }
-  function tuneFromStr(v){
-    var parts = String(v || '').split('_');
-    if (parts.length !== 3) return;
-    SLOTS.forEach(function(k, i){
-      var n = parts[i].split(',').map(parseFloat);
-      if (n.length !== 3 || n.some(isNaN)) return;
-      S.tune[k] = { sz: n[0], ls: n[1], lh: n[2] };
-    });
-  }
-  function isDefaultTune(){
-    return SLOTS.every(function(k){
-      return S.tune[k].sz === TUNE0[k].sz && S.tune[k].ls === TUNE0[k].ls
-          && S.tune[k].lh === TUNE0[k].lh;
-    });
-  }
   function syncUrl(){
     var q = [];
     if (S.cat !== 'brand') q.push('cat=' + S.cat);
@@ -370,7 +312,6 @@
     SLOTS.forEach(function(k, i){
       if (S.fonts[k]) q.push(['t','s','b'][i] + '=' + S.fonts[k].id);
     });
-    if (!isDefaultTune()) q.push('tn=' + tuneToStr());
     var url = location.pathname + (q.length ? '?' + q.join('&') : '');
     if (url !== location.pathname + location.search) history.replaceState(null, '', url);
   }
@@ -378,32 +319,10 @@
     var p = new URLSearchParams(location.search);
     if (p.get('cat')) S.cat = p.get('cat');
     if (p.get('sc'))  S.script = p.get('sc');
-    if (p.get('tn'))  tuneFromStr(p.get('tn'));
     return { title: +p.get('t') || 0, subtitle: +p.get('s') || 0, body: +p.get('b') || 0 };
   }
 
   // ── 그리기 ──────────────────────────────────────────
-  function applyTune(){
-    var st = $('fpStage').style;
-    SLOTS.forEach(function(k){
-      var t = S.tune[k], v = VAR[k];
-      st.setProperty('--sz-' + v, (t.sz / 100).toFixed(3));
-      st.setProperty('--ls-' + v, t.ls + 'em');
-      st.setProperty('--lh-' + v, String(t.lh));
-    });
-  }
-
-  /* 목업 틀 이름 → 화면 라벨. ::after로 틀 구석에 작게 적어 둔다 —
-     지금 무엇을 보고 있는지가 화면에서 읽혀야 한다. */
-  var FRAME_LABEL = { thumb:'유튜브 썸네일 16:9', card:'카드뉴스 1:1',
-                      namecard:'명함 90×50', poster:'포스터 A4',
-                      note:'카드', magazine:'매거진 지면' };
-  function applyMockup(name){
-    var st = $('fpStage');
-    st.className = 'fp-stage mk-' + (name || 'card');
-    st.setAttribute('data-frame', FRAME_LABEL[name] || '');
-  }
-
   function renderStage(){
     SLOTS.forEach(function(k){
       var f = S.fonts[k];
@@ -420,7 +339,6 @@
       nm.href = '/font/' + f.id;
       nm.title = f.name + ' 상세페이지로 (다운로드 · 라이선스)';
     });
-    applyTune();
   }
 
   function renderSlots(){
@@ -503,29 +421,6 @@
   }
 
   // ── 미세조정 패널 ───────────────────────────────────
-  var ROWS = [
-    { k: 'sz', label: '크기 비율', min: 60,   max: 180, step: 1,    fmt: function(v){ return v + '%'; } },
-    { k: 'ls', label: '자간',      min: -0.08, max: 0.2, step: 0.005, fmt: function(v){ return (v > 0 ? '+' : '') + v.toFixed(3) + 'em'; } },
-    { k: 'lh', label: '줄간격',    min: 0.9,  max: 2.4, step: 0.05, fmt: function(v){ return v.toFixed(2); } }
-  ];
-  function renderTune(){
-    $('fpTuneBody').innerHTML = SLOTS.map(function(k){
-      return '<div class="fp-tune-grp"><header><h3>' + ROLE[k] + '</h3>' +
-        '<button type="button" class="fp-mini" data-treset="' + k + '">되돌리기</button></header>' +
-        ROWS.map(function(r){
-          var v = S.tune[k][r.k];
-          return '<div class="fp-row"><div class="fp-row-top"><b>' + r.label + '</b>' +
-            '<span id="tv-' + k + '-' + r.k + '">' + r.fmt(v) + '</span></div>' +
-            '<input type="range" data-tk="' + k + '" data-tr="' + r.k + '" min="' + r.min +
-            '" max="' + r.max + '" step="' + r.step + '" value="' + v + '"></div>';
-        }).join('') + '</div>';
-    }).join('');
-  }
-  function tuneLabel(k, rk){
-    var r = ROWS.filter(function(x){ return x.k === rk; })[0];
-    $('tv-' + k + '-' + rk).textContent = r.fmt(S.tune[k][rk]);
-  }
-
   // ── 폰트 고르기 ─────────────────────────────────────
   /* 스크립트 규칙을 화면에서도 지킨다 — 영문 전용 폰트에 한글 문구를 얹으면
      글리프가 없어 통째로 깨진다(서버의 _script_pools와 같은 규칙). */
@@ -610,24 +505,6 @@
     if (pick) openPicker(pick.dataset.pick);
   });
 
-  $('fpTuneBtn').addEventListener('click', function(){ $('fpTunePanel').classList.add('open'); });
-  $('fpTuneClose').addEventListener('click', function(){ $('fpTunePanel').classList.remove('open'); });
-  $('fpTuneResetAll').addEventListener('click', function(){
-    S.tune = JSON.parse(JSON.stringify(TUNE0));
-    renderTune(); applyTune(); syncUrl();
-  });
-  $('fpTuneBody').addEventListener('input', function(e){
-    var el = e.target; if (!el.dataset.tk) return;
-    S.tune[el.dataset.tk][el.dataset.tr] = parseFloat(el.value);
-    tuneLabel(el.dataset.tk, el.dataset.tr);
-    applyTune(); syncUrl();
-  });
-  $('fpTuneBody').addEventListener('click', function(e){
-    var b = e.target.closest('[data-treset]'); if (!b) return;
-    S.tune[b.dataset.treset] = JSON.parse(JSON.stringify(TUNE0[b.dataset.treset]));
-    renderTune(); applyTune(); syncUrl();
-  });
-
   $('fpPickerQ').addEventListener('input', drawPicker);
   $('fpPickerList').addEventListener('click', function(e){
     var it = e.target.closest('[data-fid]'); if (it) choose(+it.dataset.fid);
@@ -638,7 +515,6 @@
   document.addEventListener('keydown', function(e){
     if (e.key !== 'Escape') return;
     $('fpPicker').classList.remove('open');
-    $('fpTunePanel').classList.remove('open');
   });
   ['txtTitle','txtSub','txtBody'].forEach(function(id){
     $(id).addEventListener('input', function(){ textEdited = true; });
@@ -649,7 +525,6 @@
   [].forEach.call($('fpScript').querySelectorAll('button'), function(b){
     b.classList.toggle('on', b.dataset.sc === S.script);
   });
-  renderTune(); applyTune();
 
   fetch('/api/font-pair/categories')
     .then(function(r){ return r.json(); })

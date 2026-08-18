@@ -767,50 +767,40 @@ def find_font_page():
 # 사이트맵에도 그때 함께 넣는다(미완성 페이지를 검색엔진에 먼저 알릴 이유가 없다).
 
 def _pair_ssr_block(db: Session) -> str:
-    """크롤러가 읽을 본문. 화면에도 그대로 보이는 자리다.
+    """페이지 아래 소개 블록 — 화면에도 그대로 보이는 자리다.
 
-    애드센스 리젝 대응에서 세운 규칙을 지킨다 — 감춰 두고 크롤러에게만 보여주는
-    텍스트는 만들지 않는다. 각 카테고리에 그 분류의 대표 폰트를 상세페이지
-    링크와 함께 실어, 이 페이지가 상세페이지로 가는 입구가 되게 한다.
+    이 페이지는 JS로 그려져서 이 블록이 없으면 크롤러가 읽는 본문이 186자
+    (전부 메뉴·버튼 이름)뿐이다. 지난 애드센스 리젝 사유가 정확히 그것이었다.
+    그렇다고 감춰 두고 크롤러에게만 보여주면 그건 그것대로 위반이라, 방문자도
+    쓸 수 있는 내용으로 채운다.
+
+    폰트 목록은 **엔진과 같은 근거**로 뽑는다(font_pair_engine.top_fonts_for).
+    예전에는 저장된 조합에서 뽑았는데, 엔진이 그걸 안 쓰게 되면서 화면이
+    추천하는 것과 아래 목록이 어긋났다 — '브랜딩 · 로고' 아래에 손글씨체가
+    실려 있었다. 같은 페이지가 두 가지 답을 내놓으면 안 된다.
     """
+    from ..font_pair_engine import top_fonts_for
     from ..pair_specimens import PAIR_CATEGORIES
 
-    # 카테고리가 묶는 테마로 실제 조합에서 자주 쓰인 폰트를 뽑는다.
-    rows = (
-        db.query(FontPairing)
-        .filter(FontPairing.title_font_id.isnot(None))
-        .all()
-    )
-    by_theme: dict = {}
-    for p in rows:
-        for f in (p.title_font, p.body_font):
-            if f is None:
-                continue
-            by_theme.setdefault(p.theme, {})[f.id] = f
-
     out = ['<section class="fp-about">',
-           "<h2>폰트 조합 찾기</h2>",
-           "<p>제목·서브타이틀·본문에 쓸 세 폰트를 한 화면에서 맞춰 봅니다. "
-           "쓰는 자리를 고르면 그 자리에 어울리는 조합을 뽑아 주고, 마음에 드는 "
-           "슬롯은 잠근 채 나머지만 다시 뽑을 수 있습니다. 문구는 직접 고쳐 쓸 수 "
-           "있고, 크기·자간·줄간격도 영역마다 따로 맞춥니다. "
-           "폰트 이름을 누르면 그 폰트의 다운로드와 라이선스로 바로 갑니다.</p>",
+           "<h2>어디에 쓸 폰트인가요</h2>",
+           "<p>쓰는 자리를 고르면 그 자리의 실제 틀 안에 세 폰트를 앉혀 보여줍니다. "
+           "마음에 드는 슬롯은 잠근 채 나머지만 다시 뽑고, 문구도 직접 고쳐 쓸 수 "
+           "있습니다. 폰트 이름을 누르면 그 폰트의 다운로드와 라이선스로 갑니다.</p>",
            '<div class="fp-about-grid">']
 
     for c in PAIR_CATEGORIES:
-        picks: dict = {}
-        for t in c["themes"]:
-            picks.update(by_theme.get(t, {}))
-        names = ""
-        if picks:
-            top = list(picks.values())[:6]
-            names = " · ".join(
-                f'<a href="/font/{f.id}">{_esc(f.name)}</a>' for f in top
-            )
+        try:
+            picks = top_fonts_for(db, c["key"], 6)
+        except Exception:
+            picks = []
+        names = " · ".join(
+            f'<a href="/font/{f.id}">{_esc(f.name)}</a>' for f in picks
+        )
         out.append(
             f'<div class="fp-about-card"><h3>{_esc(c["label"])}</h3>'
-            f'<p>{_esc(c["ko"][1])}</p>'
-            + (f'<p style="margin-top:6px">{names}</p>' if names else "")
+            f'<p>{_esc(c["desc"])}</p>'
+            + (f'<p class="fp-about-fonts">{names}</p>' if names else "")
             + "</div>"
         )
     out.append("</div></section>")

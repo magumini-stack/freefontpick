@@ -383,3 +383,28 @@ def generate(db, category: str, script: str = "ko",
         "weights": {"title": t_w, "subtitle": s_w, "body": b_w},
         "samples": specimen(key, script, borrow=borrow),
     }
+
+
+def top_fonts_for(db, category: str, n: int = 8) -> list:
+    """그 카테고리에 가장 잘 맞는 폰트 n종 (점수순, 무작위 없음).
+
+    페이지 아래 소개 블록이 쓴다. 저장된 조합에서 뽑던 것을 이걸로 바꾼다 —
+    화면이 추천하는 것과 아래 목록이 서로 다른 근거를 쓰면, 같은 페이지에서
+    두 답이 어긋난다. 실제로 '브랜딩 · 로고' 아래에 손글씨체가 실려 있었다.
+    """
+    from .models import Font
+
+    cat = get_category(category)
+    prof = PROFILES.get(cat["key"])
+    if not prof:
+        # '뜻밖의 발견'은 고르는 기준 자체가 없다. 점수가 전부 같아 정렬이
+        # 무의미하므로 목록을 내지 않는다 — 아무 순서나 실으면 "이게 추천인가"로
+        # 읽힌다.
+        return []
+    fonts = [f for f in db.query(Font).all() if not is_english(f)]
+    if not fonts:
+        return []
+    pcts = _percentiles(fonts)
+    scored = [(_slot_score(f, pcts, prof.get("title", {}), prof), f) for f in fonts]
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [f for _, f in scored[:n]]
