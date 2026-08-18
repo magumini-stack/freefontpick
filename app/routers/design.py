@@ -17,7 +17,7 @@ import html as _html
 import json as _json
 import re
 from pathlib import Path
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -790,10 +790,18 @@ def _pair_ssr_block(db: Session) -> str:
 
 
 @router.get("/font-pair", response_class=HTMLResponse)
-def font_pair_page(db: Session = Depends(get_db)):
+def font_pair_page(request: Request, db: Session = Depends(get_db)):
     html = (STATIC_DIR / "font-pair.html").read_text(encoding="utf-8")
     html = inject_header(html, "")
     html = html.replace("{{FFP_PAIR_SSR}}", _pair_ssr_block(db), 1)
+
+    # 칩 아래 설명 한 줄. JS가 카테고리를 바꿀 때마다 갈아끼우지만, 첫 줄은
+    # 서버가 박아 넣는다 — 안 그러면 로드 직후 한 줄이 비었다가 채워지고,
+    # 크롤러에게는 끝내 안 보인다. 주소의 cat= 을 그대로 따른다.
+    from ..pair_specimens import get_category
+    html = html.replace(
+        "{{FFP_PAIR_DESC}}",
+        get_category(request.query_params.get("cat") or "brand")["desc"], 1)
 
     title = "폰트 조합 찾기 - 제목·본문 폰트 짝 맞추기 | 폰트픽"
     desc = ("제목·서브타이틀·본문에 쓸 무료 폰트 세 가지를 한 화면에서 맞춰 보세요. "

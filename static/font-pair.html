@@ -79,6 +79,10 @@
   .fp-chip:hover{border-color:var(--border-hover);color:var(--text-primary)}
   .fp-chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
   .fp-act{display:flex;gap:8px}
+  /* 칩 아래 설명 한 줄. 칩 이름만으로는 '포스터·안내'와 '영상·자막'이
+     서로 무엇이 다른지 안 읽힌다. 고른 자리의 성격을 한 줄로 받쳐 준다. */
+  .fp-catdesc{margin:-6px 0 12px;font-size:13px;line-height:1.6;
+              color:var(--text-secondary);word-break:keep-all}
   .fp-btn{border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);
           font-family:inherit;font-size:13px;font-weight:600;padding:8px 15px;border-radius:8px;
           cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
@@ -280,6 +284,8 @@
     </div>
   </div>
 
+  <p class="fp-catdesc" id="fpCatDesc">{{FFP_PAIR_DESC}}</p>
+
   <div class="fp-shell">
     <section class="fp-stage mk-card" id="fpStage" data-frame="">
       <div class="fp-blk-title">
@@ -446,6 +452,9 @@
       return '<button type="button" class="fp-chip' + (c.key === S.cat ? ' on' : '') +
              '" data-cat="' + c.key + '">' + esc(c.label) + '</button>';
     }).join('');
+    var cur = CATS.filter(function(c){ return c.key === S.cat; })[0];
+    /* 목록을 못 받았으면 서버가 박아 둔 줄을 그대로 둔다 — 비우지 않는다 */
+    if (cur && cur.desc) $('fpCatDesc').textContent = cur.desc;
   }
 
   // ── 조합 받아오기 ───────────────────────────────────

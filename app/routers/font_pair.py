@@ -15,8 +15,10 @@ router = APIRouter(prefix="/api/font-pair", tags=["font-pair"])
 
 @router.get("/categories")
 def categories():
-    """카테고리 칩 목록. 화면이 이름을 따로 갖고 있지 않게 서버가 준다."""
-    return [{"key": c["key"], "label": c["label"], "mockup": c["mockup"]}
+    """카테고리 칩 목록과 설명 한 줄. 화면이 이름을 따로 갖고 있지 않게
+    서버가 준다 — desc는 칩 아래에 그대로 깔린다."""
+    return [{"key": c["key"], "label": c["label"], "mockup": c["mockup"],
+             "desc": c["desc"]}
             for c in PAIR_CATEGORIES]
 
 
