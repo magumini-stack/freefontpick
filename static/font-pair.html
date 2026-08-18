@@ -59,8 +59,10 @@
   }
   *{margin:0;padding:0;box-sizing:border-box}
   :root{--ui:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif}
-  body{background:var(--bg);color:var(--text-primary);font-family:var(--ui);
-       -webkit-font-smoothing:antialiased;padding-top:57px}
+  /* 홈·상세와 같은 규칙을 쓴다. 예전에는 여기만 -webkit-font-smoothing 을
+     걸어 두어 화면에 따라 획이 얇게 보였다. */
+  body{font-family:var(--ui);background:var(--bg);color:var(--text-primary);
+       line-height:1.6;min-height:100vh;padding-top:57px}
 
   .fp-wrap{max-width:1180px;margin:0 auto;padding:18px 20px 60px}
 
@@ -171,19 +173,20 @@
   .fp-side{display:flex;flex-direction:column;gap:12px;min-width:0}
   .fp-slots{display:flex;flex-direction:column;gap:10px}
   .fp-slot{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);
-           padding:11px 13px 9px;display:flex;flex-direction:column;gap:8px}
-  .fp-slot-top{display:flex;align-items:center;gap:11px}
+           padding:10px 12px 7px;display:flex;flex-direction:column;gap:5px}
+  .fp-slot-top{display:flex;align-items:center;gap:10px}
+  .fp-slot-bottom{display:flex;align-items:center;gap:8px}
   .fp-slot.locked{border-color:var(--accent);background:var(--accent-light)}
-  .fp-role{width:32px;height:32px;flex:none;border-radius:8px;background:var(--bg-secondary);
+  .fp-role{width:30px;height:30px;flex:none;border-radius:8px;background:var(--bg-secondary);
            display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--text-secondary)}
   .fp-slot-main{flex:1;min-width:0}
-  .fp-slot-role{font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--text-muted)}
+  .fp-slot-role{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--text-muted)}
   .fp-slot-font{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
                 display:block;color:inherit;text-decoration:none}
   a.fp-slot-font:hover{text-decoration:underline}
-  .fp-slot-w{font-size:11px;color:var(--text-muted);font-weight:500}
+  .fp-slot-w{font-size:10.5px;color:var(--text-muted);font-weight:500;white-space:nowrap}
   .fp-icons{display:flex;gap:2px;flex:none}
-  .fp-icon{border:none;background:none;cursor:pointer;color:var(--text-muted);padding:6px;border-radius:6px;
+  .fp-icon{border:none;background:none;cursor:pointer;color:var(--text-muted);padding:5px;border-radius:6px;
            display:grid;place-items:center;text-decoration:none}
   .fp-icon:hover{background:var(--bg-secondary);color:var(--text-primary)}
   .fp-icon.on{color:var(--accent)}
@@ -192,7 +195,7 @@
      기본값에 배수(--k-*)를 곱하는 방식이라 틀이 바뀌어도 비례가 유지된다.
      선은 2px까지 얇게 눕힌다. 조작이 아니라 폰트를 보러 온 화면이라
      손잡이만 보이면 된다. 눌리는 영역은 12px로 남겨 둔다. */
-  .fp-size{-webkit-appearance:none;appearance:none;width:100%;height:12px;
+  .fp-size{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:14px;
            margin:0;background:none;cursor:pointer}
   .fp-size::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:var(--border)}
   .fp-size::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;
@@ -238,12 +241,12 @@
   .fp-empty{padding:22px;text-align:center;color:var(--text-muted);font-size:13px}
 
   /* ── 사용팁 — 오른쪽 칸 슬롯 아래 ─────────────────────── */
-  .fp-about{flex:1;min-height:0;background:var(--bg-secondary);
-            border-radius:var(--radius-md);padding:13px 14px}
+  .fp-about{flex:1 1 0;min-height:0;overflow-y:auto;background:var(--bg-secondary);
+            border-radius:var(--radius-md);padding:12px 13px}
   .fp-about h2{font-size:11.5px;font-weight:800;letter-spacing:.06em;
                color:var(--text-muted);margin-bottom:9px}
-  .fp-about ul{list-style:none;display:flex;flex-direction:column;gap:8px}
-  .fp-about li{position:relative;padding-left:11px;font-size:12.5px;line-height:1.65;
+  .fp-about ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+  .fp-about li{position:relative;padding-left:10px;font-size:12px;line-height:1.6;
                color:var(--text-secondary);word-break:keep-all}
   .fp-about li::before{content:'';position:absolute;left:0;top:8px;width:4px;height:4px;
                border-radius:50%;background:var(--text-muted);opacity:.6}
@@ -407,7 +410,10 @@
             esc(f.name) + '</a>' +
           '<div class="fp-slot-w">굵기 ' + S.weights[k] +
             ' · 크기 ' + Math.round(S.scale[k] * 100) + '%</div>' +
-        '</div>' +
+        '</div></div>' +
+        '<div class="fp-slot-bottom">' +
+        '<input type="range" class="fp-size" data-size="' + k + '" min="0.6" max="1.7" ' +
+          'step="0.05" value="' + S.scale[k] + '" aria-label="' + ROLE[k] + ' 크기">' +
         '<div class="fp-icons">' +
           '<button type="button" class="fp-icon' + (S.lock[k] ? ' on' : '') + '" data-lock="' + k +
             '" title="' + (S.lock[k] ? '잠금 해제' : '이 슬롯 고정 — 새로 뽑아도 안 바뀝니다') + '">' +
@@ -422,10 +428,7 @@
             ' title="' + esc(f.name) + ' 상세페이지 — 새 창에서 다운로드 · 라이선스">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
           '</a>' +
-        '</div></div>' +
-        '<input type="range" class="fp-size" data-size="' + k + '" min="0.6" max="1.7" ' +
-          'step="0.05" value="' + S.scale[k] + '" aria-label="' + ROLE[k] + ' 크기">' +
-        '</div>';
+        '</div></div></div>';
     }).join('');
   }
 
@@ -615,7 +618,7 @@
     var k = r.dataset.size;
     S.scale[k] = +r.value;
     applyScale();
-    var w = r.parentNode.querySelector('.fp-slot-w');
+    var w = r.closest('.fp-slot').querySelector('.fp-slot-w');
     if (w) w.textContent = '굵기 ' + S.weights[k] + ' · 크기 ' + Math.round(S.scale[k] * 100) + '%';
   });
 

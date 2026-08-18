@@ -390,7 +390,9 @@ def generate(db, category: str, script: str = "ko",
     if s_font is None:
         return {}
 
-    b_w = pick_weight(b_font, 400, cap=t_w)
+    # 본문은 300이 있으면 300으로 간다. 오래 읽는 글은 한 단 가볍게 앉는 쪽이
+    # 덜 지친다 — 400만 있는 폰트는 pick_weight가 알아서 400을 준다.
+    b_w = pick_weight(b_font, 300, cap=t_w)
     s_w = pick_weight(s_font, max(b_w, min(t_w, 500)), cap=max(t_w, b_w))
     if s_w < b_w:
         s_w = pick_weight(s_font, b_w, cap=max(t_w, b_w))
