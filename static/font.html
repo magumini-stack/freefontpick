@@ -1113,7 +1113,7 @@
       // 없어서, 등록해 봤자 전부 대표 파일 하나로 떨어진다.
       var localWeights = FILE_WEIGHTS.filter(function(w){ return w.source !== 'webfont'; });
       if (localWeights.length > 0) {
-        registerWeightFaces(f.id, localWeights, f.primary_weight);
+        registerWeightFaces(f.id, localWeights, f.primary_weight, f.file_version || 0);
       } else {
         // has_file이 false면 안에서 그냥 빠져나온다
         ensureFont({ id: f.id, has_file: f.has_file });
@@ -1611,13 +1611,13 @@ function showToast(msg){
     const _dsWeightStyle = document.createElement('style');
     document.head.appendChild(_dsWeightStyle);
     const _dsWeightDone = {};
-    function dsRegisterWeightFaces(id, list){
+    function dsRegisterWeightFaces(id, list, ver){
       if (_dsWeightDone[id]) return;
       _dsWeightDone[id] = true;
       const fam = 'FFP-' + String(id).padStart(3,'0');
       list.forEach(w=>{
         _dsWeightStyle.appendChild(document.createTextNode(
-          `@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file?weight=${w.weight}') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`
+          `@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file?weight=${w.weight}${ver?`&v=${ver}`:''}') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`
         ));
       });
     }
@@ -1658,7 +1658,10 @@ function ensureFontLoaded(id){
     return;
   }
   const family = `FFP-${String(id).padStart(3,'0')}`;
-  const url = `/api/fonts/${id}/file`;
+  // ?v= 는 파일의 판. 붙으면 서버가 1년 immutable로 내린다 — 없으면 매번
+  // 재검증이라 브라우저가 파일 전체를 다시 받는다.
+  const ver = (f && (f.fileVersion || f.file_version)) || 0;
+  const url = `/api/fonts/${id}/file` + (ver ? `?v=${ver}` : '');
   // @font-face 규칙을 누적 추가
   _fontStyleEl.appendChild(document.createTextNode(
     `@font-face{font-family:'${family}';src:url('${url}') format('woff2');font-display:swap;font-weight:normal;font-style:normal}`
@@ -1682,6 +1685,7 @@ function dsAdaptFont(f){
     id: f.id, name: f.name, stack: f.stack,
     hasFile: !!f.has_file,
     fileSource: f.file_source || '',
+    fileVersion: f.file_version || 0,   // 파일 판 — 캐시 주소를 가른다
     webfontFamily: f.webfont_family || null,
     webfontCssUrl: f.webfont_css_url || null,
     webfontWeights: f.webfont_weights || null,
@@ -2190,7 +2194,7 @@ async function openDesigner(fontId){
         }catch(e){}
         if (fw.length > 1){
           // 서버 굵기 파일 — FFP family에 굵기별 @font-face 등록 후 사용
-          dsRegisterWeightFaces(f.id, fw);
+          dsRegisterWeightFaces(f.id, fw, f.file_version || 0);
           const def = fw.some(w=>w.weight===700) ? 700 : fw[Math.floor(fw.length/2)].weight;
           setOptions(fw.map(w=>({weight:w.weight, label:w.label, def})), null);
           dsState.weight = def;

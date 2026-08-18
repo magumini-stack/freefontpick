@@ -79,6 +79,8 @@ class FontOut(FontBase):
     # 프론트가 '업로드 파일 vs 웹폰트' 우선순위를 판단하는 데 쓴다. 어드민이 직접 올린
     # 파일은 웹폰트 설정보다 앞선다 — 올렸다는 행위 자체가 그 파일을 쓰겠다는 뜻이다.
     file_source: str = ""
+    # 파일의 판. 주소에 ?v= 로 붙여 캐시를 가른다 (app/routers/files.py 참조).
+    file_version: int = 0
     # 웹폰트 등록값 검증 결과. 생성/수정 응답에서만 채워지고 목록 조회에서는 항상 비어 있다
     # (목록마다 외부 CSS를 받아오면 느려지므로).
     webfont_errors: List[str] = Field(default_factory=list)

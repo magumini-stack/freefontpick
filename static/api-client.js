@@ -60,6 +60,8 @@ const FontStore = {
       hasFile: f.has_file,
       // 'user'면 어드민이 직접 올린 파일 — 프론트에서 웹폰트보다 우선한다
       fileSource: f.file_source || '',
+      // 파일의 판. 주소에 ?v= 로 붙여 캐시를 가른다 — 없으면 폰트를 매번 다시 받는다
+      fileVersion: f.file_version || 0,
       hasSample: !!f.has_sample,
       hasPairing: !!f.has_pairing,
       sort_order: f.sort_order,
@@ -166,6 +168,7 @@ function _fromServer(f) {
     // fileSource가 undefined라, 어드민이 저장하자마자 미리보기를 그릴 때
     // 업로드 파일 대신 웹폰트로 떨어진다.
     fileSource: f.file_source || '',
+    fileVersion: f.file_version || 0,
     hasSample: !!f.has_sample,
     hasPairing: !!f.has_pairing,
     sort_order: f.sort_order,

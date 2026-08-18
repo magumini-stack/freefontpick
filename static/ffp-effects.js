@@ -157,7 +157,9 @@ function ffpRegisterFace(font, weight){
   const key = `${font.id}:${w}`;
   if(!_ffpFaces.has(key)){
     _ffpFaces.add(key);
-    const url = w ? `/api/fonts/${font.id}/file?weight=${w}` : `/api/fonts/${font.id}/file`;
+    const ver = font.file_version || font.fileVersion || 0;
+    const url = `/api/fonts/${font.id}/file`
+      + (w ? `?weight=${w}` : '') + (ver ? (w ? '&' : '?') + `v=${ver}` : '');
     /* font-display:swap — 폰트가 오기 전에는 기본 글꼴로 보여준다.
        block으로 두면 목록의 문구 칸이 몇 초간 빈칸으로 보인다.
        캔버스는 ffpEnsureFontReady로 로드를 기다린 뒤에 그리므로,

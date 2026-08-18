@@ -29,7 +29,7 @@ router = APIRouter(prefix="/api", tags=["pairings"])
 
 
 def _font_brief(f: Font) -> dict:
-    from .files import _merged_weights, file_source_of
+    from .files import _merged_weights, file_source_of, file_version_of
     weights = _merged_weights(f)
     return {
         "id": f.id,
@@ -44,6 +44,7 @@ def _font_brief(f: Font) -> dict:
         # 우선"을 판단한다. 없으면 undefined !== 'user'가 항상 참이 되어
         # 업로드된 파일을 두고 CDN 웹폰트로 렌더한다.
         "file_source": file_source_of(f.id),
+        "file_version": file_version_of(f.id),
         "available_weights": [w["weight"] for w in weights],
     }
 

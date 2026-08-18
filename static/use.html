@@ -237,7 +237,8 @@ footer{border-top:1px solid var(--border);margin-top:60px;padding:24px 0;text-al
         var fam = 'FFP-' + String(f.id).padStart(3,'0');
         fontStyleEl.appendChild(document.createTextNode(
           "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + f.id +
-          "/file') format('woff2');font-display:swap;font-weight:normal;font-style:normal}"
+          "/file" + (f.file_version ? "?v=" + f.file_version : "") +
+          "') format('woff2');font-display:swap;font-weight:normal;font-style:normal}"
         ));
       }
       return f.stack || "'Nanum Gothic',sans-serif";

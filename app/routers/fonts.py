@@ -58,6 +58,15 @@ def _file_source(font_id: int) -> str:
         return ""
 
 
+def _file_version(font_id: int) -> int:
+    """파일의 판. 프론트가 주소에 ?v= 로 붙여 캐시를 가른다."""
+    try:
+        from .files import file_version_of
+        return file_version_of(font_id)
+    except Exception:
+        return 0
+
+
 def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
     return FontOut(
         has_pairing=font.id in paired_ids,
@@ -80,6 +89,7 @@ def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
         like_count=font.like_count or 0,
         has_sample=_has_sample(font.id),
         file_source=_file_source(font.id),
+        file_version=_file_version(font.id),
     )
 
 

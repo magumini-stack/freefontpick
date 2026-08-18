@@ -271,7 +271,7 @@ def font_brief(f) -> dict:
     file_source는 빼면 안 된다 — 프론트가 "어드민이 올린 파일이 웹폰트보다
     우선"을 그 값으로 판단한다.
     """
-    from .routers.files import _merged_weights, file_source_of
+    from .routers.files import _merged_weights, file_source_of, file_version_of
     return {
         "id": f.id,
         "name": f.name,
@@ -282,6 +282,7 @@ def font_brief(f) -> dict:
         "webfont_family": f.webfont_family or None,
         "webfont_css_url": f.webfont_css_url or None,
         "file_source": file_source_of(f.id),
+        "file_version": file_version_of(f.id),
         "available_weights": [w["weight"] for w in _merged_weights(f)],
     }
 

@@ -41,7 +41,7 @@ import traceback
 from pathlib import Path
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
-from fastapi import Response
+from fastapi import Request, Response
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from ..database import get_db
@@ -277,6 +277,41 @@ def file_source_of(font_id: int) -> str:
     """
     r = FONT_RESOLUTION.get(font_id)
     return r[1] if r else ""
+
+
+def file_version_of(font_id: int) -> int:
+    """이 폰트 파일들의 '판'. 대표 파일과 굵기 파일 중 가장 최근 수정 시각이다.
+
+    주소에 ?v= 로 붙여 캐시를 가른다. 어느 파일이든 바꾸면 값이 달라져 주소가
+    바뀌므로, 1년 immutable로 내려도 교체가 즉시 반영된다.
+
+    굵기 파일 하나만 바꿔도 대표 파일 주소까지 같이 바뀐다 — 필요 이상으로
+    한 번 더 받게 되지만, 폰트 하나 분량이고 어드민이 파일을 바꿀 때만이다.
+    """
+    ts = 0
+    for p in (font_path(font_id), bundled_font_path(font_id)):
+        try:
+            if p.exists():
+                ts = max(ts, int(p.stat().st_mtime))
+        except OSError:
+            pass
+    r = FONT_RESOLUTION.get(font_id)
+    if r:
+        try:
+            ts = max(ts, int(Path(r[0]).stat().st_mtime))
+        except OSError:
+            pass
+    try:
+        for wp in FONTS_DIR.glob(f"font-{font_id:03d}-w*.woff2"):
+            ts = max(ts, int(wp.stat().st_mtime))
+    except OSError:
+        pass
+    for w in WEIGHT_RESOLUTION.get(font_id, []):
+        try:
+            ts = max(ts, int(Path(w["path"]).stat().st_mtime))
+        except OSError:
+            pass
+    return ts
 
 
 def _ffp_family(font_id: int) -> str:
@@ -563,32 +598,74 @@ _CACHE_REVALIDATE = {
 }
 
 
-@router.get("/{font_id}/file")
-def download_font_file(font_id: int, weight: int = 0, db: Session = Depends(get_db)):
-    _headers = _CACHE_REVALIDATE if file_source_of(font_id) == "user" else _CACHE_IMMUTABLE
+def _etag_of(path) -> str:
+    st = Path(path).stat()
+    return f'"f{int(st.st_mtime)}-{st.st_size}"'
+
+
+def _serve_font(request: Request, path, headers: dict):
+    """파일 하나를 내린다. If-None-Match 가 맞으면 304 — 본문을 안 보낸다.
+
+    FileResponse는 ETag를 붙이기만 하고 조건부 요청을 검사하지 않는다. 그래서
+    max-age=0, must-revalidate 로 내려도 브라우저가 매번 파일 전체를 다시 받았다
+    (한글 폰트 평균 476KB × 화면에 보이는 수만큼, 방문할 때마다). 여기서 직접
+    검사한다.
+    """
+    try:
+        etag = _etag_of(path)
+    except OSError:
+        etag = None
+    h = dict(headers)
+    if etag:
+        h["ETag"] = etag
+        if etag in [t.strip() for t in (request.headers.get("if-none-match") or "").split(",")]:
+            return Response(status_code=304, headers=h)
+    return FileResponse(path=path, media_type="font/woff2", headers=h)
+
+
+def _pick_font_file(font_id: int, weight: int = 0):
+    """내려줄 파일 경로와, 버전 키 없이 내릴 때 쓸 캐시 헤더를 고른다."""
     if weight:
         # 1순위: 어드민이 개별 등록한 굵기 파일
         wp = weight_file_path(font_id, weight)
         if wp.exists():
             # 굵기 파일도 어드민 업로드다. 대표 파일이 번들이라 해서 이 파일까지
             # immutable로 내리면, 굵기 파일을 교체해도 반영되지 않는다.
-            return FileResponse(path=wp, media_type="font/woff2", headers=_CACHE_REVALIDATE)
+            return wp, _CACHE_REVALIDATE
         # 2순위: 매니페스트 기반 굵기 파일 (저장소에 묶여 배포되므로 immutable)
         for w in WEIGHT_RESOLUTION.get(font_id, []):
             if w["weight"] == weight and Path(w["path"]).exists():
-                return FileResponse(path=w["path"], media_type="font/woff2", headers=_CACHE_IMMUTABLE)
+                return Path(w["path"]), _CACHE_IMMUTABLE
     resolved = FONT_RESOLUTION.get(font_id)
     if resolved and Path(resolved[0]).exists():
-        return FileResponse(path=resolved[0], media_type="font/woff2", headers=_headers)
+        headers = (_CACHE_REVALIDATE if file_source_of(font_id) == "user"
+                   else _CACHE_IMMUTABLE)
+        return Path(resolved[0]), headers
     p = font_path(font_id)
     if p.exists():
         FONT_RESOLUTION[font_id] = (str(p), "user")
         # 방금 'user'로 밝혀졌으므로 재검증 헤더로 내린다
-        return FileResponse(path=p, media_type="font/woff2", headers=_CACHE_REVALIDATE)
+        return p, _CACHE_REVALIDATE
     bp = bundled_font_path(font_id)
     if bp.exists():
-        return FileResponse(path=bp, media_type="font/woff2", headers=_CACHE_IMMUTABLE)
-    raise HTTPException(status_code=404, detail="폰트 파일이 없습니다")
+        return bp, _CACHE_IMMUTABLE
+    return None, None
+
+
+@router.get("/{font_id}/file")
+def download_font_file(request: Request, font_id: int, weight: int = 0,
+                       v: str = "", db: Session = Depends(get_db)):
+    """v= 는 파일의 판(file_version_of)이다. 값 자체는 쓰지 않는다 — 주소를
+    가르는 것이 일이다. 붙어 있으면 파일이 바뀌면 주소도 바뀌므로 1년
+    immutable로 내려도 교체가 즉시 반영된다.
+
+    v가 없는 옛 주소도 그대로 받는다. 그쪽은 예전대로 재검증인데, 이제는
+    If-None-Match 를 실제로 검사해 304를 돌려준다.
+    """
+    path, headers = _pick_font_file(font_id, weight)
+    if path is None:
+        raise HTTPException(status_code=404, detail="폰트 파일이 없습니다")
+    return _serve_font(request, path, _CACHE_IMMUTABLE if v else headers)
 
 
 # ═══════════════════════════════════════════════════════════

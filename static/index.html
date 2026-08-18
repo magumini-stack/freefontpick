@@ -3241,17 +3241,17 @@ function showMoreRecommendations(){
     const _dsWeightStyle = document.createElement('style');
     document.head.appendChild(_dsWeightStyle);
     const _dsWeightDone = {};
-    function dsRegisterWeightFaces(id, list){
+    function dsRegisterWeightFaces(id, list, ver){
       if (_dsWeightDone[id]) return;
       _dsWeightDone[id] = true;
       const fam = 'FFP-' + String(id).padStart(3,'0');
       list.forEach(w=>{
         try{
           const sh = _dsWeightStyle.sheet;
-          sh.insertRule(`@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file?weight=${w.weight}') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`, sh.cssRules.length);
+          sh.insertRule(`@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file?weight=${w.weight}${ver?`&v=${ver}`:''}') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`, sh.cssRules.length);
         }catch(e){
           _dsWeightStyle.appendChild(document.createTextNode(
-            `@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file?weight=${w.weight}') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`
+            `@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file?weight=${w.weight}${ver?`&v=${ver}`:''}') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`
           ));
         }
       });
@@ -3320,7 +3320,12 @@ function ensureFontLoaded(id){
   // 굵기 자체를 CSS로 흉내내지 않고 그 굵기의 woff2 파일을 직접 받아온다.
   // 해당 굵기 파일이 없으면 서버가 대표 파일로 폴백하므로 안전하다.
   const pw = (f && f.primaryWeight) || 0;
-  const url = pw ? `/api/fonts/${id}/file?weight=${pw}` : `/api/fonts/${id}/file`;
+  // ?v= 는 파일의 판(file_version). 붙으면 서버가 1년 immutable로 내린다.
+  // 없으면 매번 재검증이라 브라우저가 파일 전체를 다시 받는다 — 폰트 하나가
+  // 평균 476KB라 방문할 때마다 수 MB가 다시 흐른다.
+  const ver = (f && (f.fileVersion || f.file_version)) || 0;
+  const url = `/api/fonts/${id}/file`
+    + (pw ? `?weight=${pw}` : '') + (ver ? (pw ? '&' : '?') + `v=${ver}` : '');
   // 받아온 파일을 'normal'로 선언해 둔다. 화면 요소는 기본 굵기로 그려지므로
   // 합성 없이 이 파일이 그대로 쓰인다.
   addFontFaceRule(

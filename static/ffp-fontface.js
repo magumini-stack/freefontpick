@@ -32,6 +32,23 @@
   }
   function pad3(id) { return String(id).padStart(3, '0'); }
 
+  /* 폰트 파일 주소. 파일의 판(file_version)을 ?v= 로 붙인다.
+
+     이게 없으면 서버가 매번 재검증 헤더로 내리고, 브라우저는 파일 전체를
+     다시 받는다 — 한글 폰트 평균 476KB × 화면에 보이는 수만큼, 방문할 때마다.
+     v가 붙으면 1년 immutable로 내려가고, 어드민이 파일을 바꾸면 v가 달라져
+     주소가 바뀌므로 교체도 그대로 반영된다.
+
+     v를 모르면(옛 응답 등) 그냥 빼고 부른다 — 예전 방식으로 안전하게 떨어진다. */
+  function fileUrl(id, weight, ver) {
+    var u = '/api/fonts/' + id + '/file';
+    var q = [];
+    if (weight) q.push('weight=' + weight);
+    if (ver) q.push('v=' + ver);
+    return q.length ? u + '?' + q.join('&') : u;
+  }
+  function verOf(f) { return f && f.file_version || 0; }
+
   /* stack에서 FFP-### 를 걷어낸 나머지(대체 폰트 목록). 우리가 앞에 붙일 family와
      중복되면 브라우저가 엉뚱한 걸 먼저 찾는다. */
   function baseStack(f) {
@@ -114,7 +131,7 @@
   function ensureFont(f) {
     if (!f || !f.has_file || loaded[f.id]) return;
     loaded[f.id] = true;
-    addFace('FFP-' + pad3(f.id), '/api/fonts/' + f.id + '/file');
+    addFace('FFP-' + pad3(f.id), fileUrl(f.id, 0, verOf(f)));
   }
 
   /* 굵기마다 family 이름을 따로 준다 — FFP-222-300, FFP-222-500 …
@@ -128,9 +145,9 @@
     return 'FFP-' + pad3(id) + '-' + weight;
   }
 
-  function registerWeightFaces(id, list, primaryWeight) {
+  function registerWeightFaces(id, list, primaryWeight, ver) {
     list.forEach(function (w) {
-      addFace(weightFamily(id, w.weight), '/api/fonts/' + id + '/file?weight=' + w.weight);
+      addFace(weightFamily(id, w.weight), fileUrl(id, w.weight, ver));
     });
     /* 굵기 구분 없이 FFP-{id}를 쓰는 자리(stackOf)가 빈 family를 가리키지 않도록
        대표 굵기로 한 벌 더 등록한다. */
@@ -140,7 +157,7 @@
         if (!pw || Math.abs(list[i].weight - 400) < Math.abs(pw - 400)) pw = list[i].weight;
       }
     }
-    if (pw) addFace('FFP-' + pad3(id), '/api/fonts/' + id + '/file?weight=' + pw);
+    if (pw) addFace('FFP-' + pad3(id), fileUrl(id, pw, ver));
     loaded[id] = true;
   }
 
@@ -172,14 +189,14 @@
       var fam = weightFamily(f.id, weight);
       if (!pairLoaded[fam]) {
         pairLoaded[fam] = true;
-        addFace(fam, '/api/fonts/' + f.id + '/file?weight=' + weight);
+        addFace(fam, fileUrl(f.id, weight, verOf(f)));
       }
       return { stack: "'" + fam + "'," + baseStack(f), weight: 400 };
     }
     var wide = 'FFPW-' + pad3(f.id);                            // ④
     if (!pairLoaded[wide]) {
       pairLoaded[wide] = true;
-      addFace(wide, '/api/fonts/' + f.id + '/file', '1 999');
+      addFace(wide, fileUrl(f.id, 0, verOf(f)), '1 999');
     }
     return { stack: "'" + wide + "'," + baseStack(f), weight: weight };
   }
@@ -198,6 +215,7 @@
   }
 
   global.FFPFont = {
+    fileUrl: fileUrl,
     W9: W9,
     WEIGHT_LABEL_KO: WEIGHT_LABEL_KO,
     webfontOf: webfontOf,
