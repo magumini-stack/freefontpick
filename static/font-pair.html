@@ -188,11 +188,13 @@
   .fp-role{width:30px;height:30px;flex:none;border-radius:8px;background:var(--bg-secondary);
            display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--text-secondary)}
   .fp-slot-main{flex:1;min-width:0}
-  .fp-slot-role{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--text-muted)}
+  .fp-slot-role{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--text-muted);
+                line-height:1.3}
   .fp-slot-font{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-                display:block;color:inherit;text-decoration:none}
+                display:block;color:inherit;text-decoration:none;line-height:1.35}
   a.fp-slot-font:hover{text-decoration:underline}
-  .fp-slot-w{font-size:10.5px;color:var(--text-muted);font-weight:500;white-space:nowrap}
+  .fp-slot-w{font-size:10.5px;color:var(--text-muted);font-weight:500;white-space:nowrap;
+             line-height:1.3}
   .fp-icons{display:flex;gap:2px;flex:none}
   .fp-icon{border:none;background:none;cursor:pointer;color:var(--text-muted);padding:5px;border-radius:6px;
            display:grid;place-items:center;text-decoration:none}
@@ -250,20 +252,19 @@
 
   /* ── 사용팁 — 오른쪽 칸 슬롯 아래 ─────────────────────── */
   .fp-about{flex:1 1 0;min-height:0;overflow:hidden;background:var(--bg-secondary);
-            border-radius:var(--radius-md);padding:12px 13px}
+            border-radius:var(--radius-md);padding:11px 13px}
   .fp-about h2{font-size:11.5px;font-weight:800;letter-spacing:.06em;
-               color:var(--text-muted);margin-bottom:9px}
-  .fp-about ul{list-style:none;display:flex;flex-direction:column;gap:7px}
-  .fp-about li{position:relative;padding-left:10px;font-size:12px;line-height:1.6;
+               color:var(--text-muted);margin-bottom:7px}
+  .fp-about ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+  .fp-about li{position:relative;padding-left:10px;font-size:12px;line-height:1.55;
                color:var(--text-secondary);word-break:keep-all}
   .fp-about li::before{content:'';position:absolute;left:0;top:8px;width:4px;height:4px;
                border-radius:50%;background:var(--text-muted);opacity:.6}
   .fp-about b{font-weight:700;color:var(--text-primary)}
   /* 다음 읽을거리로 가는 길. 소개 글을 복사해 오지 않고 링크만 건다 —
      같은 글이 두 주소에 앉으면 중복 콘텐츠가 된다. */
-  .fp-more{margin-top:10px;padding-top:9px;border-top:1px solid var(--border);
-           font-size:12px;line-height:1.6;color:var(--text-muted);white-space:nowrap;
-           overflow:hidden;text-overflow:ellipsis}
+  .fp-more{flex:none;padding-top:2px;font-size:12px;line-height:1.5;
+           color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .fp-more a{color:var(--accent);font-weight:700;text-decoration:none}
   .fp-more a:hover{text-decoration:underline}
   .fp-about p{font-size:12.5px;color:var(--text-secondary);line-height:1.8;
