@@ -119,6 +119,47 @@ def _search_script() -> str:
     location.href = '/#search/' + encodeURIComponent(q);
   });
 })();
+
+/* 야간·주간 전환도 헤더가 책임진다.
+
+   헤더가 onclick="toggleTheme()" 버튼을 내보내는데 함수는 페이지마다
+   복사해 두고 있었다. 그래서 새로 만든 /font-pair 와 /use 에서는 눌러도
+   아무 일이 없었다 — 검색창 Enter 가 겪은 것과 똑같은 일이 또 났다.
+
+   이미 함수를 가진 페이지는 이 뒤에 자기 것을 다시 정의하므로 그쪽이
+   이긴다. 하는 일이 같아서 어느 쪽이 이기든 결과는 같다. */
+(function(){
+  function icons(){
+    var root = document.documentElement;
+    var isDark = root.getAttribute('data-theme') === 'dark'
+      || (!root.hasAttribute('data-theme')
+          && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var moon = document.getElementById('mThemeIconMoon');
+    var sun  = document.getElementById('mThemeIconSun');
+    var lab  = document.getElementById('mThemeLabel');
+    if(moon) moon.style.display = isDark ? 'none' : '';
+    if(sun)  sun.style.display  = isDark ? '' : 'none';
+    if(lab)  lab.textContent    = isDark ? '주간모드' : '야간모드';
+  }
+  window.ffpApplyThemeIcons = icons;
+  window.toggleTheme = function(){
+    var root = document.documentElement;
+    var cur = root.getAttribute('data-theme')
+      || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try{ localStorage.setItem('ffp-theme', next); }catch(e){}
+    icons();
+  };
+  /* 공유 헤더의 '폰트 찾기'가 부르는 함수. SPA가 아닌 페이지에서는 링크를
+     그대로 따라가면 된다 — 없으면 onclick 에서 예외가 난다. */
+  window.navFindFont = window.navFindFont || function(){};
+  icons();
+  if(window.matchMedia){
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    if(mq.addEventListener) mq.addEventListener('change', icons);
+  }
+})();
 </script>
 '''
 
