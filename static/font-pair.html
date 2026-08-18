@@ -89,30 +89,26 @@
 
   /* ── 견본 = 쓰는 자리 목업 ──────────────────────────────
      추상적인 문서 한 장 대신 고른 카테고리의 실제 틀 안에 조판한다.
-     폰트픽은 용도로 폰트를 골라주는 사이트라 카테고리와 그대로 이어지고,
      "이 조합을 내 자리에 쓰면 어떻게 보이는가"에 바로 답한다.
 
-     글자 크기는 틀 폭에 비례한다(cqw). 틀 비율이 고정이라, 화면이 좁아져도
-     안에서 보이는 비례가 그대로 유지된다 — 목업의 요점이 그것이다.
+     틀은 전부 가로형이다. 세로 틀(A4 포스터·세로 카드)은 글보다 틀이 훨씬
+     길어 위아래가 늘 비어 보였다 — 조판을 보러 온 화면에서 빈 칸이 주인공이
+     되면 안 된다. 대신 자리마다 바탕색을 달리해 구분한다.
 
-     틀을 실제 인쇄물 크기로 잡으면 본문이 13~17px까지 내려간다. 여기 폰트는
-     대부분 힌팅이 없어서 그 크기에서는 획이 뭉개져 "깨진 글자"로 보인다 —
-     서체를 판단하러 온 화면에서 그러면 안 된다. 그래서 비례는 유지한 채
-     틀 자체를 키웠다. 본문이 어느 틀에서도 23px 아래로 내려가지 않는다
-     (썸네일 28.6 · 카드뉴스 30.1 · 명함 25 · 포스터 23.8 · 손글씨 31.2 ·
-     매거진 26.3px). 포스터와 손글씨 카드는 틀이 세로로 길어 글이 뜨는 자리라
-     덩어리째 가운데로 모은다 — 남는 여백이 위아래로 갈라져야 자리처럼 읽힌다. */
-  .fp-shell{display:flex;justify-content:center;padding:6px 0 2px}
-  .fp-stage{container-type:inline-size;position:relative;width:100%;
+     글자 크기는 틀 폭에 비례한다(cqw). 폭은 860px 하나로 맞췄으므로
+     1cqw = 8.6px 이고, 어느 틀에서도 본문이 24px 아래로 내려가지 않는다.
+     여기 폰트는 대부분 힌팅이 없어 그보다 작으면 획이 뭉개져 보인다. */
+  .fp-shell{display:flex;align-items:flex-start;gap:16px;padding:6px 0 2px}
+  .fp-stage{container-type:inline-size;position:relative;flex:1;min-width:0;max-width:860px;
             border-radius:var(--radius-md);box-shadow:var(--shadow-hover);
-            overflow:hidden;transition:max-width .2s,aspect-ratio .2s;
+            overflow:hidden;transition:aspect-ratio .2s;
             background:var(--bg-card);color:var(--text-primary);
             display:flex;flex-direction:column}
-  .fp-stage::after{content:attr(data-frame);position:absolute;right:9px;bottom:7px;
-                   font-family:var(--ui);font-size:10px;letter-spacing:.05em;
-                   color:currentColor;opacity:.35;pointer-events:none}
+  .fp-stage::after{content:attr(data-frame);position:absolute;right:10px;bottom:8px;
+                   font-family:var(--ui);font-size:10.5px;letter-spacing:.05em;
+                   color:currentColor;opacity:.4;pointer-events:none}
 
-  .fp-err{margin:10px auto 0;max-width:62ch;text-align:center;font-size:13px;color:var(--text-muted)}
+  .fp-err{margin:12px auto 0;max-width:62ch;text-align:center;font-size:13px;color:var(--text-muted)}
   .fp-text{outline:none;word-break:keep-all;white-space:pre-line}
   .fp-text:focus{outline:2px dashed currentColor;outline-offset:4px;border-radius:3px}
 
@@ -120,55 +116,54 @@
   #txtSub  {font-size:var(--b-sub,2.6cqw);line-height:1.45;opacity:.8}
   #txtBody {font-size:var(--b-body,2.1cqw);line-height:1.75}
 
-  /* 16:9 썸네일 — 작게 줄여도 버티는지 보는 자리라 어둡게 깔고 크게 앉힌다 */
-  .mk-thumb{max-width:1060px;aspect-ratio:16/9;background:#15161A;color:#F5F5F2;
-            justify-content:center;padding:7cqw 7cqw 12cqw;
-            --b-title:9.4cqw;--b-sub:3cqw;--b-body:2.7cqw}
+  /* 영상 · 자막 — 먹색 화면. 자막 바가 아래에 깔린다 */
+  .mk-thumb{aspect-ratio:16/9;background:#15161A;color:#F5F5F2;
+            justify-content:center;padding:7cqw 7cqw 13cqw;
+            --b-title:10cqw;--b-sub:3.4cqw;--b-body:2.8cqw}
   .mk-thumb .fp-blk-body{position:absolute;left:0;right:0;bottom:0;
             background:rgba(0,0,0,.55);padding:2.4cqw 7cqw 2.8cqw;text-align:center}
   .mk-thumb #txtSub{margin-top:1.6cqw}
 
-  /* 1:1 카드뉴스 */
-  .mk-card{max-width:860px;aspect-ratio:1/1;justify-content:center;padding:9cqw;
+  /* SNS · 카드뉴스 — 따뜻한 모래색 */
+  .mk-card{aspect-ratio:4/3;background:#F2E4D4;color:#2B231A;
+           justify-content:center;padding:9cqw;
            --b-title:8.4cqw;--b-sub:3.8cqw;--b-body:3.5cqw}
   .mk-card #txtSub{margin-top:2.4cqw}
   .mk-card .fp-blk-body{margin-top:5cqw}
 
-  /* 명함 90×50 — 정보가 작게 앉는 자리 */
-  .mk-namecard{max-width:1000px;aspect-ratio:90/50;justify-content:flex-end;padding:8cqw;
-               background:linear-gradient(180deg,var(--bg-card),var(--bg-secondary));
-               --b-title:8cqw;--b-sub:3cqw;--b-body:2.5cqw}
+  /* 브랜딩 · 로고 — 차분한 회백. 명함처럼 납작하고 아래로 붙는다 */
+  .mk-namecard{aspect-ratio:90/50;background:#E9E9EC;color:#1E1E1C;
+               justify-content:flex-end;padding:8cqw;
+               --b-title:8.6cqw;--b-sub:3.2cqw;--b-body:2.9cqw}
   .mk-namecard #txtSub{margin-top:1.4cqw}
   .mk-namecard .fp-blk-body{margin-top:4cqw;opacity:.75}
 
-  /* A4 세로 포스터 — 멀리서 읽히는지 보는 자리 */
-  .mk-poster{max-width:700px;aspect-ratio:1/1.414;justify-content:center;padding:8cqw;
-             --b-title:9.2cqw;--b-sub:3.5cqw;--b-body:3.4cqw}
+  /* 포스터 · 안내 — 짙은 남색. 멀리서 읽히는지 보는 자리 */
+  .mk-poster{aspect-ratio:1.25/1;background:#1F3350;color:#F1F4F9;
+             justify-content:center;padding:8cqw;
+             --b-title:8.6cqw;--b-sub:3.5cqw;--b-body:3.4cqw}
   .mk-poster #txtSub{margin-top:2.4cqw}
-  .mk-poster .fp-blk-body{margin-top:6cqw}
+  .mk-poster .fp-blk-body{margin-top:4cqw}
 
-  /* 세로 카드 — 가운데로 모아 감성 쪽을 본다 */
-  .mk-note{max-width:780px;aspect-ratio:3/4;align-items:center;justify-content:center;
-           text-align:center;padding:10cqw;
-           --b-title:10.5cqw;--b-sub:4cqw;--b-body:4cqw}
+  /* 감성 · 손글씨 — 연한 쑥빛. 가운데로 모은다 */
+  .mk-note{aspect-ratio:4/3;background:#E6EDE8;color:#22302A;
+           align-items:center;justify-content:center;text-align:center;padding:8cqw;
+           --b-title:9cqw;--b-sub:3.5cqw;--b-body:3.5cqw}
   .mk-note #txtSub{margin-top:2.4cqw}
-  .mk-note .fp-blk-body{margin-top:6cqw}
+  .mk-note .fp-blk-body{margin-top:4cqw}
 
-  /* 매거진 지면 — 2단 긴 본문 */
-  .mk-magazine{max-width:1120px;aspect-ratio:1.6/1;padding:5.5cqw;
-               --b-title:5.9cqw;--b-sub:2.35cqw;--b-body:2.35cqw}
+  /* 본문 · 읽기 — 종이 흰색. 2단으로 길게 앉힌다 */
+  .mk-magazine{aspect-ratio:1.3/1;background:#FCFBF7;color:#1A1A18;padding:5cqw;
+               --b-title:6.5cqw;--b-sub:2.8cqw;--b-body:3cqw}
   .mk-magazine #txtSub{margin-top:1cqw}
-  .mk-magazine .fp-blk-body{margin-top:3cqw;column-count:2;column-gap:4cqw;
-               border-top:1px solid currentColor;padding-top:2.4cqw}
-  .mk-magazine .fp-blk-body{border-color:color-mix(in srgb,currentColor 18%,transparent)}
+  .mk-magazine .fp-blk-body{margin-top:3cqw;column-count:2;column-gap:3cqw;
+               border-top:1px solid color-mix(in srgb,currentColor 18%,transparent);
+               padding-top:2.4cqw}
 
-  @media(max-width:560px){
-    .mk-magazine{aspect-ratio:auto;min-height:520px}
-    .mk-magazine .fp-blk-body{column-count:1}
-  }
-
-  /* ── 인스펙터 3슬롯 ─────────────────────────────────── */
-  .fp-slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:14px}
+  /* ── 인스펙터 3슬롯 ───────────────────────────────────
+     캔버스 오른쪽에 세로로 세운다. 아래에 두면 세로로 긴 틀에서 스크롤을
+     내려야 폰트 이름이 보였다 — 무슨 폰트인지가 견본과 같이 보여야 한다. */
+  .fp-slots{flex:none;width:264px;display:flex;flex-direction:column;gap:10px}
   .fp-slot{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);
            padding:12px 14px;display:flex;align-items:center;gap:11px}
   .fp-slot.locked{border-color:var(--accent);background:var(--accent-light)}
@@ -188,6 +183,16 @@
   .fp-icon svg{width:16px;height:16px}
 
   /* ── 미세조정 패널 ──────────────────────────────────── */
+
+  @media(max-width:900px){
+    .fp-shell{flex-direction:column;align-items:stretch}
+    .fp-stage{max-width:none}
+    .fp-slots{width:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  }
+  @media(max-width:560px){
+    .mk-magazine{aspect-ratio:auto;min-height:560px}
+    .mk-magazine .fp-blk-body{column-count:1}
+  }
 
   /* ── 폰트 고르기 ────────────────────────────────────── */
   .fp-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:none;
@@ -250,11 +255,11 @@
         <div class="fp-text" id="txtBody" contenteditable="true" spellcheck="false"></div>
       </div>
     </section>
+
+    <section class="fp-slots" id="fpSlots"></section>
   </div>
 
   <p class="fp-err" id="fpErr" hidden></p>
-
-  <section class="fp-slots" id="fpSlots"></section>
 
   {{FFP_PAIR_SSR}}
 
@@ -321,9 +326,11 @@
   // ── 그리기 ──────────────────────────────────────────
   /* 목업 틀 이름 → 화면 라벨. 틀 구석에 작게 적어 둔다 —
      지금 무엇을 보고 있는지가 화면에서 읽혀야 한다. */
-  var FRAME_LABEL = { thumb:'유튜브 썸네일 16:9', card:'카드뉴스 1:1',
-                      namecard:'명함 90×50', poster:'포스터 A4',
-                      note:'카드', magazine:'매거진 지면' };
+  /* 틀이 전부 가로형이라 치수를 적으면 거짓말이 된다. 대신 어느 자리를
+     보고 있는지를 적는다 — '뜻밖의 발견'은 틀을 빌려 쓰므로 특히 필요하다. */
+  var FRAME_LABEL = { thumb:'영상 · 자막', card:'SNS · 카드뉴스',
+                      namecard:'브랜딩 · 로고', poster:'포스터 · 안내',
+                      note:'감성 · 손글씨', magazine:'본문 · 읽기' };
   function applyMockup(name){
     var st = $('fpStage');
     st.className = 'fp-stage mk-' + (name || 'card');

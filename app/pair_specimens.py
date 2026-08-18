@@ -35,7 +35,7 @@ font_pair_engine.py로 독립하면서 저장 조합에서 학습하지 않게 �
 # desc     : 이 자리가 어떤 자리인지 한 줄 설명 (페이지 아래 소개 블록이 쓴다).
 #            견본 문구를 설명 대신 쓰면 안 된다 — 그건 예시 문장이라 맥락 없이
 #            보면 무슨 말인지 알 수 없다. 실제로 그렇게 넣었다가 걷어냈다.
-# mockup   : 견본 틀 — static/font-pair.html의 .mk-{mockup} 이 그린다
+# mockup   : 견본 틀 — static/font-pair.html의 .mk-{mockup} 이 그린다 (모두 가로형)
 # themes   : 기존 21개 테마 중 이 카테고리가 아우르는 것 (분류 참고용)
 # ko / en  : (타이틀, 서브타이틀, 본문) — 길이는 목업에 맞춰 다르다
 PAIR_CATEGORIES = [
@@ -43,7 +43,7 @@ PAIR_CATEGORIES = [
         "key": "video",
         "desc": "작은 화면에서 흘끗 보고 읽혀야 하는 자리. 제목은 통이 크고 굵게, 자막은 담백하게 받칩니다.",
         "label": "영상 · 자막",
-        "mockup": "thumb",          # 16:9 썸네일 — 큰 제목 + 하단 자막 바
+        "mockup": "thumb",          # 16:9 썸네일 — 큰 제목 + 아래 자막 바
         "themes": ["유튜브 썸네일", "브이로그 자막", "인스타 릴스 · 숏폼 자막"],
         "ko": (
             "이걸 몰라서\n3년을 버렸다",
@@ -60,7 +60,7 @@ PAIR_CATEGORIES = [
         "key": "sns",
         "desc": "손가락으로 넘기는 자리. 제목이 한 번에 잡히고 본문은 두 줄 안에서 끝나야 다음 장으로 넘어갑니다.",
         "label": "SNS · 카드뉴스",
-        "mockup": "card",           # 1:1 카드
+        "mockup": "card",           # 가로 카드 — 따뜻한 모래색 바탕
         "themes": ["카드뉴스 · SNS", "이벤트 · 프로모션 배너"],
         "ko": (
             "한 장에 하나만",
@@ -79,7 +79,7 @@ PAIR_CATEGORIES = [
         "key": "brand",
         "desc": "유행보다 오래 남아야 하는 자리. 획의 대비가 과하지 않고 자간이 고른 서체가 명함부터 간판까지 견딥니다.",
         "label": "브랜딩 · 로고",
-        "mockup": "namecard",       # 명함 (가로 90×50)
+        "mockup": "namecard",       # 명함 비율(90×50) — 납작하고 아래로 붙는다
         "themes": [
             "명함 · 브랜드 로고", "감성 카페 · 브랜딩", "모던 미니멀 제목",
             "포인트 서체 조합", "영문 로고 · 캐치프레이즈",
@@ -99,7 +99,7 @@ PAIR_CATEGORIES = [
         "key": "poster",
         "desc": "지나가면서, 대개는 비스듬히 보는 자리. 굵기보다 글자통의 크기가 읽히는 거리를 정합니다.",
         "label": "포스터 · 안내",
-        "mockup": "poster",         # 세로 포스터 (A4 비율)
+        "mockup": "poster",         # 가로 포스터 — 짙은 남색 바탕
         "themes": [
             "포스터 · 안내문", "시니어 친화 · 관공서", "큰 안내 본문",
             "굵은 산세리프 슬로건",
@@ -115,15 +115,15 @@ PAIR_CATEGORIES = [
             "A Walk in the Winter Garden",
             "Saturday, December 6 · 2 PM · Seoul Botanic Park",
             "Signage is not read by someone leaning in. It is caught in passing, "
-            "usually at an angle, in a single look. Character width matters more than "
-            "weight, and lines set too tight collapse into one grey block at distance.",
+            "usually at an angle, in a single look. Character width matters more "
+            "than weight at that distance.",
         ),
     },
     {
         "key": "hand",
         "desc": "내용보다 필적이 먼저 닿는 자리. 반듯한 서체보다 조금 기울고 흔들리는 획이 오래 남습니다.",
         "label": "감성 · 손글씨",
-        "mockup": "note",           # 세로 카드, 가운데 정렬
+        "mockup": "note",           # 가로 카드, 가운데 정렬
         "themes": ["캘리 · 손글씨 감성", "웨딩 · 청첩장", "키즈 · 교육 콘텐츠", "반려동물"],
         "ko": (
             "고맙습니다",
@@ -143,7 +143,7 @@ PAIR_CATEGORIES = [
         "key": "read",
         "desc": "오래 읽어도 지치지 않아야 하는 자리. 독자가 서체를 알아차리지 못하는 것이 목표입니다.",
         "label": "본문 · 읽기",
-        "mockup": "magazine",       # 매거진 지면 — 2단 긴 본문
+        "mockup": "magazine",       # 매거진 지면 — 2단 본문
         "themes": ["블로그 · 매거진 본문", "영문 본문 · 에디토리얼", "한글 + 영문 조합"],
         "ko": (
             "오래 읽어도 지치지 않게",
@@ -151,10 +151,9 @@ PAIR_CATEGORIES = [
             "좋은 본문 서체는 눈에 띄지 않습니다. 독자가 서체를 알아차렸다면 대개 "
             "무언가 불편했다는 뜻입니다. 글자 크기보다 줄 사이와 한 줄의 길이가 "
             "피로를 좌우하고, 획의 굵기가 고를수록 문단이 고르게 회색으로 앉습니다. "
-            "한 줄에 서른 자 안팎, 줄 사이는 글자 크기의 1.7배쯤이 오래 읽기에 "
-            "무난합니다. 여기서 벗어나면 눈이 다음 줄의 시작을 찾느라 자꾸 "
-            "되돌아가고, 그 되돌아감이 쌓여 피로가 됩니다. 서체를 고르는 일은 결국 "
-            "독자가 서체를 잊게 만드는 일입니다.",
+            "한 줄에 서른 자 안팎, 줄 사이는 글자 크기의 1.7배쯤이 무난합니다. "
+            "벗어나면 눈이 다음 줄을 찾느라 자꾸 되돌아갑니다. 서체를 고르는 일은 "
+            "결국 독자가 서체를 잊게 만드는 일입니다.",
         ),
         "en": (
             "Built for the Long Read",
@@ -162,11 +161,10 @@ PAIR_CATEGORIES = [
             "A good text face goes unnoticed. If a reader has noticed the type, "
             "something was usually getting in the way. Line spacing and measure decide "
             "fatigue more than size does, and even stroke weight lets a paragraph "
-            "settle into an even grey. Around sixty-five characters to the line, with "
-            "leading near one and a half times the size, reads comfortably for a long "
-            "stretch. Stray from that and the eye keeps hunting for the next line, and "
-            "those small returns pile up. Choosing a text face is, in the end, the "
-            "work of making the reader forget it.",
+            "settle into an even grey. Around sixty-five characters to the line reads "
+            "comfortably for a long stretch. Stray from that and the eye keeps hunting "
+            "for the next line. Choosing a text face is, in the end, the work of "
+            "making the reader forget it.",
         ),
     },
     {
