@@ -18,7 +18,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.middleware.sessions import SessionMiddleware
 
 from .seed import init_db
-from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, sample_image, db_migrate, gif_templates, gif
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, sample_image, db_migrate, gif_templates, gif, font_pair
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -174,6 +174,7 @@ app.include_router(likes.router)
 app.include_router(seo.router)
 app.include_router(submissions.router)
 app.include_router(pairings.router)
+app.include_router(font_pair.router)
 app.include_router(preview_phrases.router)
 app.include_router(use_cases.router)
 app.include_router(use_cases_admin.router)
