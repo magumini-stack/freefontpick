@@ -461,6 +461,7 @@
     .font-grid[data-view="list"] .font-name{font-size:14px;margin-bottom:0;flex:0 0 auto}
     .font-grid[data-view="list"] .font-maker{flex:0 1 auto}
     .font-grid[data-view="list"] .font-weights{flex:0 0 auto}
+    .font-grid[data-view="list"] .font-metaright{flex:0 0 auto}
 
     /* 2행 — 견본. 전체 폭, 한 줄 말줄임 */
     .font-grid[data-view="list"] .font-preview{order:2;margin-bottom:0;min-height:0;display:block;
@@ -596,6 +597,16 @@
     .font-name{font-size:13.5px;font-weight:700;color:var(--text-primary);margin-bottom:2px;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .font-maker{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .font-weights{font-size:11px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+    /* 종수 옆 태그. 이름·제작사와 같은 줄에 서므로 아주 얇은 테두리만 두고
+       배경은 주지 않는다 — 칠을 넣으면 그쪽이 먼저 읽혀 폰트 이름이 밀린다.
+
+       하나만 보여준다. 3열 격자에서 카드가 379px인데 태그가 '유튜브 썸네일 추천'
+       처럼 10자까지 있어, 두 개를 넣으면 폰트 이름 자리가 안 남는다.
+       나머지 태그는 title에 담아 올려두면 보이게 한다. */
+    .font-metaright{display:flex;align-items:center;gap:6px;flex-shrink:0;min-width:0}
+    .font-tag{font-size:10px;line-height:1;color:var(--text-muted);
+              border:1px solid var(--border);border-radius:3px;padding:3px 6px;
+              white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:112px}
 
     /* 자세히 보기 — 카드 오른쪽 위 모서리에 아이콘만.
        텍스트 링크를 190행에 반복하면 견본보다 그게 먼저 보인다. */
@@ -3173,7 +3184,12 @@ function renderFonts(){
           <div class="font-name">${f.name}</div>
           <div class="font-maker">${f.maker}</div>
         </div>
-        <span class="font-weights">${f.weights}</span>
+        <span class="font-metaright">
+          ${(f.tags || []).length
+            ? `<span class="font-tag" title="${escapeHtml((f.tags || []).join(' · '))}">${escapeHtml(f.tags[0])}</span>`
+            : ''}
+          <span class="font-weights">${f.weights}</span>
+        </span>
       </div>
       <div class="font-actions">
         <a class="btn-download" href="/font/${f.id}" onclick="event.stopPropagation()" aria-label="${f.name} 상세 페이지로 이동" title="자세히 보기">
