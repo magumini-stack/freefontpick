@@ -37,6 +37,32 @@ async def lifespan(app: FastAPI):
         import traceback
         print(f"[startup] init_db 실패 (앱은 계속 실행됨): {e}")
         traceback.print_exc()
+
+    # 갤러리용 서브셋을 배경에서 채운다. 폰트당 3~5초라 209종이면 15분쯤
+    # 걸리므로, 한 종마다 쉬어 가며 요청 처리를 굶기지 않는다.
+    # user_data에 쌓이므로 이미 있으면 건너뛴다 — 재배포해도 다시 만들지 않는다.
+    # 다 되기 전까지는 프론트가 원본으로 그린다(has_subset이 거짓).
+    try:
+        from .database import SessionLocal
+        from .models import Font
+        from .font_subset import warm_up_async, has_subset
+        from .routers.files import file_version_of
+        db = SessionLocal()
+        try:
+            todo = [f.id for f in db.query(Font).filter(Font.has_file == True).all()
+                    if not has_subset(f.id, file_version_of(f.id))]
+        finally:
+            db.close()
+        if todo:
+            print(f"[startup] 서브셋 {len(todo)}종 배경에서 만듭니다", flush=True)
+            warm_up_async(todo)
+        else:
+            print("[startup] 서브셋 모두 준비됨", flush=True)
+    except Exception as e:
+        import traceback
+        print(f"[startup] 서브셋 준비 건너뜀: {e}")
+        traceback.print_exc()
+
     yield
 
 

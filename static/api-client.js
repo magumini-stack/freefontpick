@@ -62,6 +62,8 @@ const FontStore = {
       fileSource: f.file_source || '',
       // 파일의 판. 주소에 ?v= 로 붙여 캐시를 가른다 — 없으면 폰트를 매번 다시 받는다
       fileVersion: f.file_version || 0,
+      // 갤러리용 서브셋이 준비됐는지. 참일 때만 서브셋 face를 건다
+      hasSubset: !!f.has_subset,
       hasSample: !!f.has_sample,
       hasPairing: !!f.has_pairing,
       sort_order: f.sort_order,
@@ -169,6 +171,7 @@ function _fromServer(f) {
     // 업로드 파일 대신 웹폰트로 떨어진다.
     fileSource: f.file_source || '',
     fileVersion: f.file_version || 0,
+    hasSubset: !!f.has_subset,
     hasSample: !!f.has_sample,
     hasPairing: !!f.has_pairing,
     sort_order: f.sort_order,

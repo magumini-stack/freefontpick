@@ -41,8 +41,20 @@ BASE_URL = "https://freefontpick.co.kr"
 
 
 def _load_index() -> str:
-    """index.html 원본 로드 (매 요청 파일 IO — 트래픽 규모에서 문제 없음)"""
-    return INDEX_PATH.read_text(encoding="utf-8")
+    """index.html 원본 로드 (매 요청 파일 IO — 트래픽 규모에서 문제 없음)
+
+    갤러리용 서브셋의 unicode-range도 여기서 심는다. index.html을 쓰는
+    라우트가 여럿이라 각자 치환하게 두면 언젠가 하나를 빠뜨리고, 그러면
+    "{{FFP_SUBSET_RANGE}}" 글자가 화면에 그대로 보인다.
+    """
+    html = INDEX_PATH.read_text(encoding="utf-8")
+    try:
+        from ..font_subset import UNICODE_RANGE, CHARSET_VERSION
+        rng, ver = UNICODE_RANGE, CHARSET_VERSION
+    except Exception:
+        rng, ver = "", ""     # 값이 없으면 프론트가 원본만 쓴다
+    return (html.replace("{{FFP_SUBSET_RANGE}}", rng, 1)
+                .replace("{{FFP_SUBSET_VER}}", ver, 1))
 
 
 def _load_font_page() -> str:

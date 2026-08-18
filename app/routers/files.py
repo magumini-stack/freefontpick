@@ -402,6 +402,14 @@ async def upload_font_file(
     # 나가야 교체가 즉시 반영되므로, 여기서 반드시 갱신해 둔다.
     FONT_RESOLUTION[font_id] = (str(out_path), "user")
 
+    # 갤러리용 서브셋도 새 파일 기준으로 다시 만든다. 3~5초라 응답을 붙잡지
+    # 않고 배경으로 넘긴다 — 만들어지기 전까지는 원본으로 그려질 뿐이다.
+    try:
+        from ..font_subset import warm_up_async
+        warm_up_async([font_id])
+    except Exception:
+        traceback.print_exc()
+
     size = len(content)
     msg = f"업로드 완료 (woff2 원본 그대로 저장: {size // 1024}KB)"
     return FileUploadResponse(
@@ -666,6 +674,28 @@ def download_font_file(request: Request, font_id: int, weight: int = 0,
     if path is None:
         raise HTTPException(status_code=404, detail="폰트 파일이 없습니다")
     return _serve_font(request, path, _CACHE_IMMUTABLE if v else headers)
+
+
+@router.get("/{font_id}/subset")
+def download_font_subset(request: Request, font_id: int, v: str = "",
+                         db: Session = Depends(get_db)):
+    """갤러리 미리보기용 작은 파일. 원본의 20% 안팎이다(app/font_subset.py 참조).
+
+    없으면 404 — 프론트는 has_subset이 참일 때만 부르므로 정상 경로에서는
+    나지 않는다. 배경 작업이 아직 안 만든 폰트면 원본으로 그려질 뿐이다.
+    """
+    from ..font_subset import subset_path
+    from ..font_subset import ensure_subset  # 없을 때 한 번 만들어 두기 위함
+
+    ver = v or str(file_version_of(font_id))
+    p = subset_path(font_id, ver)
+    if not (p.exists() and p.stat().st_size > 0):
+        # 요청이 먼저 닿았으면 그 자리에서 만들지 않는다 — 3~5초가 걸려
+        # 응답이 묶인다. 대신 배경에서 만들어 두고 이번엔 404를 준다.
+        from ..font_subset import warm_up_async
+        warm_up_async([font_id])
+        raise HTTPException(status_code=404, detail="서브셋이 아직 없습니다")
+    return _serve_font(request, p, _CACHE_IMMUTABLE)
 
 
 # ═══════════════════════════════════════════════════════════
