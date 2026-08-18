@@ -807,7 +807,7 @@ def font_pair_page(request: Request, db: Session = Depends(get_db)):
     from ..pair_specimens import get_category
     html = html.replace(
         "{{FFP_PAIR_DESC}}",
-        get_category(request.query_params.get("cat") or "brand")["desc"], 1)
+        get_category(request.query_params.get("cat"))["desc"], 1)
 
     title = "폰트 조합 찾기 - 제목·본문 폰트 짝 맞추기 | 폰트픽"
     desc = ("제목·서브타이틀·본문에 쓸 무료 폰트 세 가지를 한 화면에서 맞춰 보세요. "

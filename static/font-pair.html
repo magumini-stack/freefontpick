@@ -333,13 +333,22 @@
 (function(){
   'use strict';
 
+  /* 처음 열었을 때 — 서버의 DEFAULT_CATEGORY 와 같아야 주소가 깔끔하다.
+     포스터는 글자가 가장 크게 앉는 틀이라 폰트 모양이 한눈에 들어온다. */
+  var DEFAULT_CAT = 'poster';
+
+  /* 첫 화면에 앉힐 세 폰트. 무작위로 뽑으면 열 때마다 다른 인상을 주는데,
+     첫 인상은 정해 두는 편이 낫다. 주소에 폰트가 지정돼 있으면 그쪽이 이긴다.
+     잠그지는 않으므로 '조합 새로고침'을 누르면 평소대로 다시 뽑는다. */
+  var DEFAULT_FONTS = { title: 62, subtitle: 59, body: 10 };
+
   var SLOTS = ['title', 'subtitle', 'body'];
   var ROLE  = { title: '타이틀', subtitle: '서브타이틀', body: '본문' };
   var ABBR  = { title: 'H1', subtitle: 'Aa', body: 'T' };
   var VAR   = { title: 'title', subtitle: 'sub', body: 'body' };   // CSS 변수 접미사
 
   var S = {
-    cat: 'brand',
+    cat: DEFAULT_CAT,
     script: 'ko',
     fonts:   { title: null, subtitle: null, body: null },
     weights: { title: 700, subtitle: 500, body: 400 },
@@ -361,7 +370,7 @@
      뒤로가기가 망가진다. */
   function syncUrl(){
     var q = [];
-    if (S.cat !== 'brand') q.push('cat=' + S.cat);
+    if (S.cat !== DEFAULT_CAT) q.push('cat=' + S.cat);
     if (S.script !== 'ko') q.push('sc=' + S.script);
     var lk = '';
     SLOTS.forEach(function(k, i){
@@ -678,7 +687,13 @@
          잠금은 lock= 에 적힌 슬롯만 건다 — 주소에는 늘 세 폰트가 적히므로
          전부 잠그면 새로고침 한 번에 조합이 안 바뀐다. */
       var q = ['category=' + encodeURIComponent(S.cat), 'script=' + S.script];
-      SLOTS.forEach(function(k){ if (want[k]) q.push(k + '=' + want[k]); });
+      /* 주소에 하나도 없으면 기본 세 폰트로 연다. 하나라도 있으면 링크를 받은
+         것이므로 기본값을 섞지 않는다 — 보낸 사람 화면과 달라진다. */
+      var fromUrl = SLOTS.some(function(k){ return want[k]; });
+      SLOTS.forEach(function(k){
+        var id = fromUrl ? want[k] : (S.script === 'ko' ? DEFAULT_FONTS[k] : 0);
+        if (id) q.push(k + '=' + id);
+      });
       return fetch('/api/font-pair/generate?' + q.join('&'))
         .then(function(r){ return r.json(); })
         .then(function(d){

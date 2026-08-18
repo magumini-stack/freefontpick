@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..font_pair_engine import generate
-from ..pair_specimens import PAIR_CATEGORIES
+from ..pair_specimens import PAIR_CATEGORIES, DEFAULT_CATEGORY
 
 router = APIRouter(prefix="/api/font-pair", tags=["font-pair"])
 
@@ -24,7 +24,7 @@ def categories():
 
 @router.get("/generate")
 def generate_set(
-    category: str = "brand",
+    category: str = DEFAULT_CATEGORY,
     script: str = "ko",
     title: int = 0,
     subtitle: int = 0,

@@ -186,7 +186,9 @@ PAIR_CATEGORIES = [
     },
 ]
 
-DEFAULT_CATEGORY = "brand"
+# 처음 열었을 때 보여줄 자리. 포스터는 글자가 가장 크게 앉는 틀이라
+# 폰트 모양이 한눈에 들어온다.
+DEFAULT_CATEGORY = "poster"
 SURPRISE_CATEGORY = "surprise"
 
 _BY_KEY = {c["key"]: c for c in PAIR_CATEGORIES}
