@@ -65,7 +65,7 @@ PROFILES = {
         "title": {"d": 0.55, "w": 0.45},
         "subtitle": {"d": 0.35},
         "body": {"d": 0.30},
-        "tags": {"로고디자인": 2.0, "독특한 세리프": 1.2, "부드러운 바탕": 1.0,
+        "tags": {"로고디자인": 2.0, "독특한 세리프": 1.2, "부드러운 명조": 1.0,
                  "디자인 영어": 0.8},
         "usage": {"로고": 1.5, "패키지": 1.0, "캐치프레이즈": 0.8},
     },
@@ -87,11 +87,32 @@ PROFILES = {
         "title": {"d": 0.60},
         "subtitle": {"d": 0.42},
         "body": {"d": 0.35, "x": 0.60},
-        "tags": {"부드러운 바탕": 2.0, "제목-본문용 고딕": 1.8, "정보전달 본문용": 1.8,
-                 "UI/UX/Web": 1.0},
+        "tags": {"부드러운 명조": 2.2, "제목-본문용 고딕": 1.8, "네모틀 고딕": 1.5,
+                 "UI/UX/Web": 1.2, "제목용 굴림": 0.8},
         "usage": {"본문": 2.0, "출판": 1.2, "정보전달": 1.0},
+        # 오래 읽는 자리라 손글씨·장식 계열은 아예 후보에서 뺀다. 가산점을 안
+        # 주는 것만으로는 부족했다 — 점수가 낮아도 확률 추출이라 결국 나온다.
+        "exclude": {"손글씨", "캘리그라피", "펜시", "장식", "귀여운"},
+        # 서브타이틀과 본문은 제목보다 더 좁게 본다. 디스플레이 서체는 표제로는
+        # 쓰지만 문단으로 깔면 읽히지 않는다.
+        "exclude_slot": {
+            "subtitle": {"디스플레이", "시선을 끄는 제목용"},
+            "body": {"디스플레이", "시선을 끄는 제목용"},
+        },
     },
 }
+
+# 후보를 이만큼도 못 남기면 거르지 않는다. 걸러서 텅 비는 것보다 낫다.
+_MIN_POOL = 8
+
+
+def _allowed(font, cat_prof, slot) -> bool:
+    """이 카테고리·슬롯에서 아예 빼야 할 폰트인가."""
+    ban = set(cat_prof.get("exclude") or ())
+    ban |= set((cat_prof.get("exclude_slot") or {}).get(slot) or ())
+    if not ban:
+        return True
+    return not ({t.name for t in (font.tags or [])} & ban)
 
 # 최근에 내보낸 폰트를 잠시 피한다. 연속으로 누를 때 같은 얼굴이 또 나오면
 # "안 바뀐다"로 읽힌다. 프로세스 메모리라 재시작하면 비워진다 — 그래도 된다.
@@ -323,6 +344,9 @@ def generate(db, category: str, script: str = "ko",
         cands = [f for f in pool if f.id not in used]
         if not cands:
             return None
+        keep = [f for f in cands if _allowed(f, prof, slot)]
+        if len(keep) >= _MIN_POOL:
+            cands = keep
         if surprise:
             return random.choice(cands)
         scored = []

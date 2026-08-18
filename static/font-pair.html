@@ -88,21 +88,21 @@
   @keyframes fpspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
   /* ── 견본 = 쓰는 자리 목업 ──────────────────────────────
-     추상적인 문서 한 장 대신 고른 카테고리의 실제 틀 안에 조판한다.
-     "이 조합을 내 자리에 쓰면 어떻게 보이는가"에 바로 답한다.
+     고른 카테고리의 실제 자리에 조판해 "내 자리에 쓰면 어떻게 보이는가"에
+     바로 답한다.
 
-     틀은 전부 가로형이다. 세로 틀(A4 포스터·세로 카드)은 글보다 틀이 훨씬
-     길어 위아래가 늘 비어 보였다 — 조판을 보러 온 화면에서 빈 칸이 주인공이
-     되면 안 된다. 대신 자리마다 바탕색을 달리해 구분한다.
+     틀은 16:9 하나로 통일했다(860×484). 자리마다 비율이 달라지면 조합이
+     바뀐 건지 틀이 바뀐 건지 눈이 헷갈린다 — 비교하러 온 화면에서는 틀이
+     고정이어야 폰트만 보인다. 자리 구분은 바탕색이 맡는다.
 
-     글자 크기는 틀 폭에 비례한다(cqw). 폭은 860px 하나로 맞췄으므로
-     1cqw = 8.6px 이고, 어느 틀에서도 본문이 24px 아래로 내려가지 않는다.
-     여기 폰트는 대부분 힌팅이 없어 그보다 작으면 획이 뭉개져 보인다. */
+     글자 크기는 틀 폭에 비례한다(cqw). 폭이 860px이므로 1cqw = 8.6px.
+     세 단은 제목 > 서브타이틀 > 본문 순으로 벌려 둔다 — 서브타이틀과 본문이
+     같은 크기면 두 줄이 한 덩어리로 붙어 위계가 안 읽힌다.
+     슬롯의 크기 레버가 그 위에 배수(--k-*)로 곱해진다. */
   .fp-shell{display:flex;align-items:flex-start;gap:16px;padding:6px 0 2px}
   .fp-stage{container-type:inline-size;position:relative;flex:1;min-width:0;max-width:860px;
-            border-radius:var(--radius-md);box-shadow:var(--shadow-hover);
-            overflow:hidden;transition:aspect-ratio .2s;
-            background:var(--bg-card);color:var(--text-primary);
+            aspect-ratio:16/9;border-radius:var(--radius-md);box-shadow:var(--shadow-hover);
+            overflow:hidden;background:var(--bg-card);color:var(--text-primary);
             display:flex;flex-direction:column}
   .fp-stage::after{content:attr(data-frame);position:absolute;right:10px;bottom:8px;
                    font-family:var(--ui);font-size:10.5px;letter-spacing:.05em;
@@ -112,60 +112,61 @@
   .fp-text{outline:none;word-break:keep-all;white-space:pre-line}
   .fp-text:focus{outline:2px dashed currentColor;outline-offset:4px;border-radius:3px}
 
-  #txtTitle{font-size:var(--b-title,7cqw);line-height:1.16}
-  #txtSub  {font-size:var(--b-sub,2.6cqw);line-height:1.45;opacity:.8}
-  #txtBody {font-size:var(--b-body,2.1cqw);line-height:1.75}
+  #txtTitle{font-size:calc(var(--b-title,7cqw) * var(--k-title,1));line-height:1.16}
+  #txtSub  {font-size:calc(var(--b-sub,3.4cqw) * var(--k-sub,1));line-height:1.45;opacity:.8}
+  #txtBody {font-size:calc(var(--b-body,2.8cqw) * var(--k-body,1));line-height:1.75}
 
   /* 영상 · 자막 — 먹색 화면. 자막 바가 아래에 깔린다 */
-  .mk-thumb{aspect-ratio:16/9;background:#15161A;color:#F5F5F2;
-            justify-content:center;padding:7cqw 7cqw 13cqw;
-            --b-title:10cqw;--b-sub:3.4cqw;--b-body:2.8cqw}
+  .mk-thumb{background:#15161A;color:#F5F5F2;justify-content:center;padding:7cqw 7cqw 13cqw;
+            --b-title:10cqw;--b-sub:3.6cqw;--b-body:2.8cqw}
   .mk-thumb .fp-blk-body{position:absolute;left:0;right:0;bottom:0;
             background:rgba(0,0,0,.55);padding:2.4cqw 7cqw 2.8cqw;text-align:center}
   .mk-thumb #txtSub{margin-top:1.6cqw}
 
   /* SNS · 카드뉴스 — 따뜻한 모래색 */
-  .mk-card{aspect-ratio:4/3;background:#F2E4D4;color:#2B231A;
-           justify-content:center;padding:9cqw;
-           --b-title:8.4cqw;--b-sub:3.8cqw;--b-body:3.5cqw}
-  .mk-card #txtSub{margin-top:2.4cqw}
-  .mk-card .fp-blk-body{margin-top:5cqw}
+  .mk-card{background:#F2E4D4;color:#2B231A;justify-content:center;padding:7cqw;
+           --b-title:7.6cqw;--b-sub:3.6cqw;--b-body:3cqw}
+  .mk-card #txtSub{margin-top:2cqw}
+  .mk-card .fp-blk-body{margin-top:3.5cqw}
 
-  /* 브랜딩 · 로고 — 차분한 회백. 명함처럼 납작하고 아래로 붙는다 */
-  .mk-namecard{aspect-ratio:90/50;background:#E9E9EC;color:#1E1E1C;
-               justify-content:flex-end;padding:8cqw;
-               --b-title:8.6cqw;--b-sub:3.2cqw;--b-body:2.9cqw}
+  /* 브랜딩 · 로고 — 차분한 회백. 명함처럼 아래로 붙는다 */
+  .mk-namecard{background:#E9E9EC;color:#1E1E1C;justify-content:flex-end;padding:7cqw;
+               --b-title:8cqw;--b-sub:3.4cqw;--b-body:2.8cqw}
   .mk-namecard #txtSub{margin-top:1.4cqw}
-  .mk-namecard .fp-blk-body{margin-top:4cqw;opacity:.75}
+  .mk-namecard .fp-blk-body{margin-top:3.5cqw;opacity:.75}
 
   /* 포스터 · 안내 — 짙은 남색. 멀리서 읽히는지 보는 자리 */
-  .mk-poster{aspect-ratio:1.25/1;background:#1F3350;color:#F1F4F9;
-             justify-content:center;padding:8cqw;
-             --b-title:8.6cqw;--b-sub:3.5cqw;--b-body:3.4cqw}
-  .mk-poster #txtSub{margin-top:2.4cqw}
-  .mk-poster .fp-blk-body{margin-top:4cqw}
+  .mk-poster{background:#1F3350;color:#F1F4F9;justify-content:center;padding:6cqw;
+             --b-title:7.6cqw;--b-sub:3.4cqw;--b-body:2.8cqw}
+  .mk-poster #txtSub{margin-top:2cqw}
+  .mk-poster .fp-blk-body{margin-top:3cqw}
 
   /* 감성 · 손글씨 — 연한 쑥빛. 가운데로 모은다 */
-  .mk-note{aspect-ratio:4/3;background:#E6EDE8;color:#22302A;
-           align-items:center;justify-content:center;text-align:center;padding:8cqw;
-           --b-title:9cqw;--b-sub:3.5cqw;--b-body:3.5cqw}
-  .mk-note #txtSub{margin-top:2.4cqw}
-  .mk-note .fp-blk-body{margin-top:4cqw}
+  .mk-note{background:#E6EDE8;color:#22302A;align-items:center;justify-content:center;
+           text-align:center;padding:7cqw;
+           --b-title:8cqw;--b-sub:3.5cqw;--b-body:2.9cqw}
+  .mk-note #txtSub{margin-top:2cqw}
+  .mk-note .fp-blk-body{margin-top:3cqw}
 
-  /* 본문 · 읽기 — 종이 흰색. 2단으로 길게 앉힌다 */
-  .mk-magazine{aspect-ratio:1.3/1;background:#FCFBF7;color:#1A1A18;padding:5cqw;
-               --b-title:6.5cqw;--b-sub:2.8cqw;--b-body:3cqw}
+  /* 본문 · 읽기 — 종이 흰색. 2단으로 앉힌다.
+     낮아진 틀에 2단을 넣어야 해서 본문 줄 사이만 1.6으로 좁힌다. */
+  .mk-magazine{background:#FCFBF7;color:#1A1A18;padding:4.5cqw;
+               --b-title:7cqw;--b-sub:3.4cqw;--b-body:2.6cqw}
   .mk-magazine #txtSub{margin-top:1cqw}
+  .mk-magazine #txtBody{line-height:1.6}
   .mk-magazine .fp-blk-body{margin-top:3cqw;column-count:2;column-gap:3cqw;
                border-top:1px solid color-mix(in srgb,currentColor 18%,transparent);
                padding-top:2.4cqw}
 
-  /* ── 인스펙터 3슬롯 ───────────────────────────────────
-     캔버스 오른쪽에 세로로 세운다. 아래에 두면 세로로 긴 틀에서 스크롤을
-     내려야 폰트 이름이 보였다 — 무슨 폰트인지가 견본과 같이 보여야 한다. */
-  .fp-slots{flex:none;width:264px;display:flex;flex-direction:column;gap:10px}
+  /* ── 오른쪽 칸: 슬롯 3개 + 쓰는 법 ─────────────────────
+     캔버스 옆에 세로로 세운다. 아래에 두면 스크롤을 내려야 폰트 이름이
+     보였다 — 무슨 폰트인지가 견본과 같이 보여야 한다.
+     슬롯 아래로 남는 자리에 쓰는 법을 넣어 칸을 채운다. */
+  .fp-side{flex:none;width:264px;display:flex;flex-direction:column;gap:12px}
+  .fp-slots{display:flex;flex-direction:column;gap:10px}
   .fp-slot{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);
-           padding:12px 14px;display:flex;align-items:center;gap:11px}
+           padding:11px 13px 9px;display:flex;flex-direction:column;gap:8px}
+  .fp-slot-top{display:flex;align-items:center;gap:11px}
   .fp-slot.locked{border-color:var(--accent);background:var(--accent-light)}
   .fp-role{width:32px;height:32px;flex:none;border-radius:8px;background:var(--bg-secondary);
            display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--text-secondary)}
@@ -181,16 +182,20 @@
   .fp-icon:hover{background:var(--bg-secondary);color:var(--text-primary)}
   .fp-icon.on{color:var(--accent)}
   .fp-icon svg{width:16px;height:16px}
+  /* 크기 레버 — 틀은 16:9로 고정이라 자리마다 원하는 크기가 다르다.
+     기본값에 배수(--k-*)를 곱하는 방식이라 틀이 바뀌어도 비례가 유지된다. */
+  .fp-size{width:100%;height:16px;margin:0;accent-color:var(--accent);cursor:pointer}
 
   /* ── 미세조정 패널 ──────────────────────────────────── */
 
   @media(max-width:900px){
     .fp-shell{flex-direction:column;align-items:stretch}
     .fp-stage{max-width:none}
-    .fp-slots{width:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+    .fp-side{width:auto}
+    .fp-slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
   }
   @media(max-width:560px){
-    .mk-magazine{aspect-ratio:auto;min-height:560px}
+    .fp-stage{aspect-ratio:auto;min-height:340px}
     .mk-magazine .fp-blk-body{column-count:1}
   }
 
@@ -207,18 +212,20 @@
                        color:var(--text-primary);outline:none}
   .fp-modal-head input:focus{border-color:var(--accent)}
   .fp-list{overflow-y:auto;padding:6px}
-  .fp-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;cursor:pointer}
+  .fp-item{display:flex;flex-direction:column;align-items:flex-start;gap:1px;
+           padding:9px 12px;border-radius:8px;cursor:pointer}
   .fp-item:hover{background:var(--bg-secondary)}
-  .fp-item b{font-size:13.5px;font-weight:700}
-  .fp-item i{font-size:11.5px;color:var(--text-muted);font-style:normal}
+  /* 이름을 그 폰트로 그린다 — 목록에서 모양을 못 보면 고를 수가 없다.
+     파일은 화면에 들어온 줄만 받는다(아래 IntersectionObserver). */
+  .fp-item b{font-size:21px;font-weight:400;line-height:1.4;font-family:var(--ui)}
+  .fp-item i{font-size:11.5px;color:var(--text-muted);font-style:normal;font-family:var(--ui)}
   .fp-empty{padding:22px;text-align:center;color:var(--text-muted);font-size:13px}
 
-  /* ── 페이지 아래 사용법 ─────────────────────────────── */
-  .fp-about{max-width:62ch;margin:40px auto 0;padding-top:24px;
-            border-top:1px solid var(--border);text-align:center}
-  .fp-about h2{font-size:14px;font-weight:800;letter-spacing:.02em;
-               color:var(--text-muted);margin-bottom:10px}
-  .fp-about p{font-size:14px;color:var(--text-secondary);line-height:1.9;
+  /* ── 쓰는 법 — 오른쪽 칸 슬롯 아래 ────────────────────── */
+  .fp-about{background:var(--bg-secondary);border-radius:var(--radius-md);padding:13px 14px}
+  .fp-about h2{font-size:11.5px;font-weight:800;letter-spacing:.06em;
+               color:var(--text-muted);margin-bottom:7px}
+  .fp-about p{font-size:12.5px;color:var(--text-secondary);line-height:1.8;
               word-break:keep-all}
 </style>
 </head>
@@ -256,12 +263,13 @@
       </div>
     </section>
 
-    <section class="fp-slots" id="fpSlots"></section>
+    <aside class="fp-side">
+      <section class="fp-slots" id="fpSlots"></section>
+      {{FFP_PAIR_SSR}}
+    </aside>
   </div>
 
   <p class="fp-err" id="fpErr" hidden></p>
-
-  {{FFP_PAIR_SSR}}
 
 </main>
 
@@ -292,6 +300,7 @@
     fonts:   { title: null, subtitle: null, body: null },
     weights: { title: 700, subtitle: 500, body: 400 },
     lock:    { title: false, subtitle: false, body: false },
+    scale:   { title: 1, subtitle: 1, body: 1 },   // 슬롯 크기 레버 배수
     borrow:  ''          // '뜻밖의 발견'이 어느 틀을 빌렸는지 (주소로 재현하려면 필요)
   };
 
@@ -337,6 +346,17 @@
     st.setAttribute('data-frame', FRAME_LABEL[name] || '');
   }
 
+  /* 크기 레버 — 기본 크기(--b-*)에 배수(--k-*)를 곱한다. 값을 직접 px로
+     쓰지 않는 이유는 틀이 바뀌어도 비례가 유지돼야 하기 때문이다. */
+  function applyScale(){
+    var st = $('fpStage');
+    SLOTS.forEach(function(k){ st.style.setProperty('--k-' + VAR[k], S.scale[k]); });
+  }
+  function resetScale(){
+    SLOTS.forEach(function(k){ S.scale[k] = 1; });
+    applyScale();
+  }
+
   function renderStage(){
     SLOTS.forEach(function(k){
       var f = S.fonts[k];
@@ -354,13 +374,15 @@
     $('fpSlots').innerHTML = SLOTS.map(function(k){
       var f = S.fonts[k];
       if (!f) return '';
-      return '<div class="fp-slot' + (S.lock[k] ? ' locked' : '') + '">' +
+      return '<div class="fp-slot' + (S.lock[k] ? ' locked' : '') + '" data-slot="' + k + '">' +
+        '<div class="fp-slot-top">' +
         '<div class="fp-role">' + ABBR[k] + '</div>' +
         '<div class="fp-slot-main">' +
           '<div class="fp-slot-role">' + ROLE[k] + '</div>' +
           '<a class="fp-slot-font" href="/font/' + f.id + '" title="' + esc(f.name) +
             ' 상세페이지 — 다운로드 · 라이선스">' + esc(f.name) + '</a>' +
-          '<div class="fp-slot-w">굵기 ' + S.weights[k] + '</div>' +
+          '<div class="fp-slot-w">굵기 ' + S.weights[k] +
+            ' · 크기 ' + Math.round(S.scale[k] * 100) + '%</div>' +
         '</div>' +
         '<div class="fp-icons">' +
           '<button type="button" class="fp-icon' + (S.lock[k] ? ' on' : '') + '" data-lock="' + k +
@@ -375,7 +397,10 @@
           '<a class="fp-icon" href="/font/' + f.id + '" title="' + esc(f.name) + ' 상세페이지 — 다운로드 · 라이선스">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
           '</a>' +
-        '</div></div>';
+        '</div></div>' +
+        '<input type="range" class="fp-size" data-size="' + k + '" min="0.6" max="1.7" ' +
+          'step="0.05" value="' + S.scale[k] + '" aria-label="' + ROLE[k] + ' 크기">' +
+        '</div>';
     }).join('');
   }
 
@@ -452,6 +477,9 @@
     $('fpPickerQ').value = '';
     $('fpPicker').classList.add('open');
     $('fpPickerQ').focus();
+    /* 늘 맨 위에서 시작한다 — 지난번에 보던 자리에 그대로 서 있으면
+       목록을 새로 여는 것인지 이어 보는 것인지 알 수 없다. */
+    $('fpPickerList').scrollTop = 0;
     if (ALL_FONTS) { drawPicker(); return; }
     $('fpPickerList').innerHTML = '<div class="fp-empty">불러오는 중…</div>';
     fetch('/api/fonts').then(function(r){ return r.json(); }).then(function(list){
@@ -460,6 +488,34 @@
       $('fpPickerList').innerHTML = '<div class="fp-empty">폰트 목록을 불러오지 못했어요.</div>';
     });
   }
+  /* 목록의 폰트 파일은 화면에 들어온 줄만 받는다. 한글 폰트만 180종이라
+     한 번에 다 받으면 목록이 뜨기까지 한참 걸린다. */
+  var pickIO = null, pickIndex = {};
+  function paintRow(row){
+    var f = pickIndex[row.dataset.fid];
+    if (!f) return;
+    if (f.webfont_family && f.file_source !== 'user') FFPFont.resolveWebfont(f);
+    else FFPFont.ensureFont(f);
+    var nm = row.querySelector('b');
+    if (nm) nm.style.fontFamily = FFPFont.stackOf(f);
+  }
+  function observeRows(){
+    if (pickIO) pickIO.disconnect();
+    var rows = $('fpPickerList').querySelectorAll('[data-fid]');
+    if (!('IntersectionObserver' in window)) {
+      [].forEach.call(rows, paintRow);
+      return;
+    }
+    pickIO = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if (!e.isIntersecting) return;
+        pickIO.unobserve(e.target);
+        paintRow(e.target);
+      });
+    }, { root: $('fpPickerList'), rootMargin: '250px' });
+    [].forEach.call(rows, function(r){ pickIO.observe(r); });
+  }
+
   function drawPicker(){
     var want = allowedFor(pickerSlot);
     var q = ($('fpPickerQ').value || '').trim().toLowerCase();
@@ -476,6 +532,10 @@
                  '<i>' + esc(f.maker || '') + '</i></div>';
         }).join('')
       : '<div class="fp-empty">찾는 폰트가 없어요.</div>';
+    pickIndex = {};
+    rows.forEach(function(f){ pickIndex[f.id] = f; });
+    $('fpPickerList').scrollTop = 0;
+    observeRows();
   }
   function choose(fid){
     var f = ALL_FONTS.filter(function(x){ return x.id === fid; })[0];
@@ -512,6 +572,7 @@
     S.cat = b.dataset.cat;
     renderCats();
     textEdited = false;      // 카테고리가 바뀌면 그 카테고리의 문구로 갈아끼운다
+    resetScale();            // 자리가 바뀌면 그 자리의 기본 크기에서 다시 본다
     roll();
   });
 
@@ -520,6 +581,17 @@
     if (lock) { var k = lock.dataset.lock; S.lock[k] = !S.lock[k]; renderSlots(); return; }
     var pick = e.target.closest('[data-pick]');
     if (pick) openPicker(pick.dataset.pick);
+  });
+
+  /* 레버는 끄는 동안 계속 들어온다. 슬롯을 다시 그리면 잡고 있던 손잡이가
+     사라지므로, 숫자만 제자리에서 고쳐 쓴다. */
+  $('fpSlots').addEventListener('input', function(e){
+    var r = e.target.closest('[data-size]'); if (!r) return;
+    var k = r.dataset.size;
+    S.scale[k] = +r.value;
+    applyScale();
+    var w = r.parentNode.querySelector('.fp-slot-w');
+    if (w) w.textContent = '굵기 ' + S.weights[k] + ' · 크기 ' + Math.round(S.scale[k] * 100) + '%';
   });
 
   $('fpPickerQ').addEventListener('input', drawPicker);

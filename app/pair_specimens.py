@@ -115,8 +115,7 @@ PAIR_CATEGORIES = [
             "A Walk in the Winter Garden",
             "Saturday, December 6 · 2 PM · Seoul Botanic Park",
             "Signage is not read by someone leaning in. It is caught in passing, "
-            "usually at an angle, in a single look. Character width matters more "
-            "than weight at that distance.",
+            "usually at an angle, in a single look.",
         ),
     },
     {
@@ -150,21 +149,18 @@ PAIR_CATEGORIES = [
             "본문 서체가 하는 일은 사라지는 것",
             "좋은 본문 서체는 눈에 띄지 않습니다. 독자가 서체를 알아차렸다면 대개 "
             "무언가 불편했다는 뜻입니다. 글자 크기보다 줄 사이와 한 줄의 길이가 "
-            "피로를 좌우하고, 획의 굵기가 고를수록 문단이 고르게 회색으로 앉습니다. "
-            "한 줄에 서른 자 안팎, 줄 사이는 글자 크기의 1.7배쯤이 무난합니다. "
-            "벗어나면 눈이 다음 줄을 찾느라 자꾸 되돌아갑니다. 서체를 고르는 일은 "
-            "결국 독자가 서체를 잊게 만드는 일입니다.",
+            "피로를 좌우합니다. 한 줄에 서른 자 안팎, 줄 사이는 글자 크기의 "
+            "1.7배쯤이 무난합니다. 서체를 고르는 일은 결국 독자가 서체를 잊게 "
+            "만드는 일입니다.",
         ),
         "en": (
             "Built for the Long Read",
             "The body face does its job by disappearing",
             "A good text face goes unnoticed. If a reader has noticed the type, "
-            "something was usually getting in the way. Line spacing and measure decide "
-            "fatigue more than size does, and even stroke weight lets a paragraph "
-            "settle into an even grey. Around sixty-five characters to the line reads "
-            "comfortably for a long stretch. Stray from that and the eye keeps hunting "
-            "for the next line. Choosing a text face is, in the end, the work of "
-            "making the reader forget it.",
+            "something was usually getting in the way. Line spacing and measure "
+            "decide fatigue more than size does. Around sixty-five characters to "
+            "the line reads comfortably. Choosing a text face is the work of making "
+            "the reader forget it.",
         ),
     },
     {
