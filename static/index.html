@@ -832,31 +832,41 @@
     @media(prefers-reduced-motion:reduce){.fbx.show{animation:none}}
 
     /* ── 폰트 조합 찾기 배너 ──
-       화면 왼쪽 위에 떠 있다가, 스크롤해서 용도 그리드가 이 자리까지
-       올라오면 비켜 준다. 용도 칸을 덮은 채로 남으면 안 된다.
+       상세페이지의 글씨사진관 스카이스크래퍼(.skyscraper-ad)와 같은 결이다.
+
+       본문 폭이 1240px이라, 그 **바깥 왼쪽 여백**에 세운다. 앞서 본문 위에
+       겹쳐 놓았더니 히어로 제목을 가렸다. 여백이 생기는 1600px 이상에서만
+       보인다 — 스카이스크래퍼가 같은 이유로 그렇게 한다.
 
        #homeView 안에 둔다. 폰트 찾기·공지 화면으로 넘어가면 그 부모가
-       숨겨지므로 배너도 함께 사라진다 — 화면마다 따로 챙기지 않아도 된다.
-
-       좁은 화면에서는 감춘다. 본문 폭이 1240px이라 그보다 좁으면 글 위에
-       바로 얹히고, 모바일은 아래에 앱 안내 배너가 이미 있다. */
-    .fpb{position:fixed;left:20px;top:70px;z-index:840;width:214px;
-      background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
-      padding:13px 14px 12px;box-shadow:0 6px 22px rgba(0,0,0,.10);
-      text-decoration:none;color:inherit;display:block;
-      transition:opacity .22s ease,transform .22s ease}
-    .fpb-k{font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--accent)}
-    .fpb-t{font-size:14.5px;font-weight:800;margin:5px 0 4px;letter-spacing:-.2px}
-    .fpb-s{font-size:11.5px;line-height:1.55;color:var(--text-secondary);word-break:keep-all}
-    .fpb-go{display:inline-flex;align-items:center;gap:4px;margin-top:9px;
-      font-size:11.5px;font-weight:700;color:var(--accent)}
-    .fpb:hover{border-color:var(--border-hover)}
+       숨겨지므로 배너도 함께 사라진다. */
+    .fpb{display:none;position:fixed;top:132px;
+      left:max(12px, calc((100vw - 1240px) / 2 - 180px));
+      width:160px;z-index:50;
+      border:1px solid var(--border);border-radius:12px;background:var(--bg-secondary);
+      flex-direction:column;align-items:center;padding:18px 16px;text-align:center;
+      text-decoration:none;color:inherit;
+      transition:border-color .15s,transform .1s,opacity .22s ease}
+    .fpb:hover{border-color:var(--accent)}
+    .fpb:active{transform:scale(.98)}
+    .fpb-ico{width:56px;height:56px;border-radius:14px;margin-bottom:12px;
+      background:var(--accent);display:flex;flex-direction:column;justify-content:center;
+      align-items:center;gap:5px;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+    .fpb-ico i{display:block;background:#fff;border-radius:2px}
+    .fpb-ico i:nth-child(1){width:30px;height:7px}
+    .fpb-ico i:nth-child(2){width:24px;height:4px;opacity:.85}
+    .fpb-ico i:nth-child(3){width:30px;height:2px;opacity:.7}
+    .fpb-t{font-size:13.5px;font-weight:800;color:var(--text-primary);line-height:1.4}
+    .fpb-cta{margin-top:14px;width:100%;background:var(--accent);color:#fff;
+      font-weight:700;font-size:12.5px;padding:9px;border-radius:8px;
+      transition:background-color .15s}
+    .fpb:hover .fpb-cta{background:var(--accent-hover)}
     .fpb-x{position:absolute;top:-9px;right:-9px;width:24px;height:24px;
       border:1px solid var(--border);border-radius:50%;background:var(--bg-card);
       color:var(--text-muted);font-size:15px;line-height:1;cursor:pointer;padding:0;
       display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-    .fpb.hide{opacity:0;transform:translateX(-10px);pointer-events:none}
-    @media(max-width:1100px){.fpb{display:none}}
+    .fpb.hide{opacity:0;pointer-events:none}
+    @media(min-width:1600px){ .fpb{display:flex} }
     @media(prefers-reduced-motion:reduce){.fpb{transition:none}}
 </style>
 </head>
@@ -872,10 +882,9 @@
   <div id="fpbWrap" style="position:relative">
     <a class="fpb" id="fpBanner" href="/font-pair" target="_blank" rel="noopener"
        aria-label="폰트 조합 찾기 열기 (새 창)">
-      <span class="fpb-k">NEW</span>
+      <span class="fpb-ico" aria-hidden="true"><i></i><i></i><i></i></span>
       <span class="fpb-t">폰트 조합 찾기</span>
-      <span class="fpb-s">쓰는 자리를 고르면 제목·본문에 어울리는 폰트 세 가지를 찾아드려요.</span>
-      <span class="fpb-go">지금 열어보기 →</span>
+      <span class="fpb-cta">지금 찾아보기 →</span>
       <button type="button" class="fpb-x" onclick="fpbClose(event)" aria-label="배너 닫기">&times;</button>
     </a>
   </div>
@@ -4303,20 +4312,28 @@ init().catch(function(err){
    사파리가 자신을 Macintosh로 신고한다. 흔한 /iPad/ 검사로는 아이패드가
    통째로 빠진다. 맥에는 터치가 없으므로 'Mac + 터치'면 아이패드로 본다. */
 /* ══ 폰트 조합 찾기 배너 ═══════════════════════════════
-   용도 그리드가 배너 자리까지 올라오면 비켜 준다. 스크롤 위치가 아니라
-   그리드의 현재 좌표를 보는 이유 — 히어로 높이가 글자 크기·줄바꿈에 따라
-   달라져서, 몇 px 스크롤했는지로 잡으면 화면마다 어긋난다.
+   용도 그리드를 **다 지나가면** 비켜 준다.
 
-   용도 그리드는 처음에 display:none 이고 JS가 목록을 받은 뒤 보여준다.
-   그 사이에는 높이가 0이라 좌표가 0으로 나오는데, 그걸 "올라왔다"로 읽으면
-   배너가 뜨자마자 사라진다. 그래서 높이가 잡히기 전에는 손대지 않는다. */
-var FPB_BOTTOM = 250;          // 배너 아래끝(px). 여기까지 오면 비킨다.
+   처음에 "용도가 나타나면 숨김"으로 만들었더니 뜨자마자 사라졌다. 용도
+   그리드는 히어로 바로 아래라 스크롤 0에서 이미 화면에 있기 때문이다 —
+   '나타나는 순간'이 곧 첫 화면이었다. 그래서 기준을 뒤집는다. 히어로와
+   용도를 보는 동안은 따라다니고, 갤러리로 넘어가면 물러난다.
 
+   스크롤 거리가 아니라 그리드의 현재 좌표를 본다. 히어로 높이가 글자
+   크기·줄바꿈에 따라 달라져서, 몇 px 스크롤했는지로 잡으면 화면마다 어긋난다.
+   기준선도 배너의 실제 위치에서 가져온다 — 숫자를 손으로 박아 두면 배너
+   높이를 고칠 때마다 같이 틀어진다.
+
+   용도 그리드는 처음에 display:none 이고 목록을 받은 뒤 보인다. 그 사이
+   높이가 0이라 좌표도 0으로 나오는데, 그걸 '지나갔다'로 읽으면 배너가
+   뜨자마자 사라진다. 높이가 잡히기 전에는 손대지 않는다. */
 function fpbSync(){
   var b = document.getElementById('fpBanner');
   var us = document.getElementById('useSection');
   if(!b || !us || !us.offsetHeight) return;
-  b.classList.toggle('hide', us.getBoundingClientRect().top < FPB_BOTTOM);
+  if(!b.offsetHeight){ b.classList.remove('hide'); return; }   // 좁은 화면 — 안 보임
+  var top = b.getBoundingClientRect().top;
+  b.classList.toggle('hide', us.getBoundingClientRect().bottom < top);
 }
 
 function fpbClose(e){
