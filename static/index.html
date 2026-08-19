@@ -830,44 +830,6 @@
       display:flex;align-items:center;justify-content:center;padding:0;
       box-shadow:0 2px 8px rgba(0,0,0,.14)}
     @media(prefers-reduced-motion:reduce){.fbx.show{animation:none}}
-
-    /* ── 폰트 조합 찾기 배너 ──
-       상세페이지의 글씨사진관 스카이스크래퍼(.skyscraper-ad)와 같은 결이다.
-
-       본문 폭이 1240px이라, 그 **바깥 왼쪽 여백**에 세운다. 앞서 본문 위에
-       겹쳐 놓았더니 히어로 제목을 가렸다. 여백이 생기는 1600px 이상에서만
-       보인다 — 스카이스크래퍼가 같은 이유로 그렇게 한다.
-
-       #homeView 안에 둔다. 폰트 찾기·공지 화면으로 넘어가면 그 부모가
-       숨겨지므로 배너도 함께 사라진다. */
-    .fpb{display:none;position:fixed;top:132px;
-      left:max(12px, calc((100vw - 1240px) / 2 - 180px));
-      width:160px;z-index:50;
-      border:1px solid var(--border);border-radius:12px;background:var(--bg-secondary);
-      flex-direction:column;align-items:center;padding:18px 16px;text-align:center;
-      text-decoration:none;color:inherit;
-      transition:border-color .15s,transform .1s,opacity .22s ease}
-    .fpb:hover{border-color:var(--accent)}
-    .fpb:active{transform:scale(.98)}
-    .fpb-ico{width:56px;height:56px;border-radius:14px;margin-bottom:12px;
-      background:var(--accent);display:flex;flex-direction:column;justify-content:center;
-      align-items:center;gap:5px;box-shadow:0 4px 14px rgba(0,0,0,.15)}
-    .fpb-ico i{display:block;background:#fff;border-radius:2px}
-    .fpb-ico i:nth-child(1){width:30px;height:7px}
-    .fpb-ico i:nth-child(2){width:24px;height:4px;opacity:.85}
-    .fpb-ico i:nth-child(3){width:30px;height:2px;opacity:.7}
-    .fpb-t{font-size:13.5px;font-weight:800;color:var(--text-primary);line-height:1.4}
-    .fpb-cta{margin-top:14px;width:100%;background:var(--accent);color:#fff;
-      font-weight:700;font-size:12.5px;padding:9px;border-radius:8px;
-      transition:background-color .15s}
-    .fpb:hover .fpb-cta{background:var(--accent-hover)}
-    .fpb-x{position:absolute;top:-9px;right:-9px;width:24px;height:24px;
-      border:1px solid var(--border);border-radius:50%;background:var(--bg-card);
-      color:var(--text-muted);font-size:15px;line-height:1;cursor:pointer;padding:0;
-      display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-    .fpb.hide{opacity:0;pointer-events:none}
-    @media(min-width:1600px){ .fpb{display:flex} }
-    @media(prefers-reduced-motion:reduce){.fpb{transition:none}}
 </style>
 </head>
 <body>
@@ -877,17 +839,6 @@
 
 <!-- ━━━━ HOME VIEW (폰트 갤러리) ━━━━ -->
 <div id="homeView">
-
-  <!-- 폰트 조합 찾기 배너 — 용도 그리드가 올라오면 비켜 준다 (아래 fpbSync) -->
-  <div id="fpbWrap" style="position:relative">
-    <a class="fpb" id="fpBanner" href="/font-pair" target="_blank" rel="noopener"
-       aria-label="폰트 조합 찾기 열기 (새 창)">
-      <span class="fpb-ico" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span class="fpb-t">폰트 조합 찾기</span>
-      <span class="fpb-cta">지금 찾아보기 →</span>
-      <button type="button" class="fpb-x" onclick="fpbClose(event)" aria-label="배너 닫기">&times;</button>
-    </a>
-  </div>
 
   <!-- HERO -->
   <section class="hero">
@@ -3753,13 +3704,7 @@ async function init(){
     if(FONTS.length) renderFonts();     // 목록이 이미 그려졌으면 다시 얹는다
   });
 
-  hubsP.then(list => {
-    HUB_CACHE = list;
-    renderUseGrid(list);
-    /* 용도 그리드가 이제야 화면에 생겼다. 뒤로가기로 스크롤된 채 들어오면
-       그때까지 배너가 그리드를 덮고 있으므로 여기서 한 번 맞춘다. */
-    if(typeof fpbSync === 'function') fpbSync();
-  });
+  hubsP.then(list => { HUB_CACHE = list; renderUseGrid(list); });
 
   FONTS = await fontsP;
   const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
@@ -4311,50 +4256,6 @@ init().catch(function(err){
    iOS 판별에 maxTouchPoints를 함께 보는 이유: iPadOS 13부터 아이패드
    사파리가 자신을 Macintosh로 신고한다. 흔한 /iPad/ 검사로는 아이패드가
    통째로 빠진다. 맥에는 터치가 없으므로 'Mac + 터치'면 아이패드로 본다. */
-/* ══ 폰트 조합 찾기 배너 ═══════════════════════════════
-   용도 그리드를 **다 지나가면** 비켜 준다.
-
-   처음에 "용도가 나타나면 숨김"으로 만들었더니 뜨자마자 사라졌다. 용도
-   그리드는 히어로 바로 아래라 스크롤 0에서 이미 화면에 있기 때문이다 —
-   '나타나는 순간'이 곧 첫 화면이었다. 그래서 기준을 뒤집는다. 히어로와
-   용도를 보는 동안은 따라다니고, 갤러리로 넘어가면 물러난다.
-
-   스크롤 거리가 아니라 그리드의 현재 좌표를 본다. 히어로 높이가 글자
-   크기·줄바꿈에 따라 달라져서, 몇 px 스크롤했는지로 잡으면 화면마다 어긋난다.
-   기준선도 배너의 실제 위치에서 가져온다 — 숫자를 손으로 박아 두면 배너
-   높이를 고칠 때마다 같이 틀어진다.
-
-   용도 그리드는 처음에 display:none 이고 목록을 받은 뒤 보인다. 그 사이
-   높이가 0이라 좌표도 0으로 나오는데, 그걸 '지나갔다'로 읽으면 배너가
-   뜨자마자 사라진다. 높이가 잡히기 전에는 손대지 않는다. */
-function fpbSync(){
-  var b = document.getElementById('fpBanner');
-  var us = document.getElementById('useSection');
-  if(!b || !us || !us.offsetHeight) return;
-  if(!b.offsetHeight){ b.classList.remove('hide'); return; }   // 좁은 화면 — 안 보임
-  var top = b.getBoundingClientRect().top;
-  b.classList.toggle('hide', us.getBoundingClientRect().bottom < top);
-}
-
-function fpbClose(e){
-  e.preventDefault();
-  e.stopPropagation();          // 배너 전체가 링크라 막지 않으면 새 창이 열린다
-  var b = document.getElementById('fpBanner');
-  if(b) b.style.display = 'none';
-  try{ localStorage.setItem('ffp-pairbanner-closed', '1'); }catch(err){}
-}
-
-(function(){
-  var b = document.getElementById('fpBanner');
-  if(!b) return;
-  try{
-    if(localStorage.getItem('ffp-pairbanner-closed') === '1'){ b.style.display = 'none'; return; }
-  }catch(err){}
-  window.addEventListener('scroll', fpbSync, {passive:true});
-  window.addEventListener('resize', fpbSync);
-  fpbSync();
-})();
-
 function fbxIsIOS(){
   var ua = navigator.userAgent || '';
   if(/iPhone|iPad|iPod|CriOS|FxiOS/.test(ua)) return true;
