@@ -836,4 +836,10 @@ def font_pair_page(request: Request, db: Session = Depends(get_db)):
                   rf"\g<1>{desc}\g<2>", html, count=1)
     html = re.sub(r'(<meta property="og:url" content=")[^"]*(")',
                   rf"\g<1>{url}\g<2>", html, count=1)
+    # 트위터 카드도 같은 값을 쓴다. og 태그를 이름으로 하나씩 찾아 바꾸는
+    # 방식이라, 여기 안 적으면 마커가 그대로 남는다 — 실제로 남아 있었다.
+    html = re.sub(r'(<meta name="twitter:title" content=")[^"]*(")',
+                  rf"\g<1>{title}\g<2>", html, count=1)
+    html = re.sub(r'(<meta name="twitter:description" content=")[^"]*(")',
+                  rf"\g<1>{desc}\g<2>", html, count=1)
     return HTMLResponse(html)
