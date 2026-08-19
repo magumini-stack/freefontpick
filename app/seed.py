@@ -49,6 +49,7 @@ def init_db():
         _patch_luxury_hub_title(db)
         _migrate_fancy_intros(db)
         _migrate_webfont_weights(db)
+        _migrate_clean_css_urls(db)
         _seed_gif_use_cases(db)
         _seed_gif_templates(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
@@ -1239,3 +1240,48 @@ def _migrate_webfont_weights(db: Session):
     db.commit()
     print("[migrate] 웹폰트 굵기 채움: %d종 · 이미 있어 건너뜀 %d종%s"
           % (filled, len(skipped), (" · 없는 id " + ", ".join(missing)) if missing else ""))
+
+
+# ── 지저분하게 저장된 웹폰트 CSS 주소 정리 (2026-08) ────────────
+#
+# <link> 태그에서 **따옴표 안쪽부터 끝까지** 긁어 붙이면 이런 값이 저장됐다.
+#
+#     https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&display=swap" rel="stylesheet
+#
+# 이 값으로 <link>를 만들면 브라우저가 주소를 못 읽어 폰트가 통째로 안 뜬다.
+# 조용히 실패해서 "등록은 했는데 화면에 안 나온다"로만 보인다. 나눔손글씨붓을
+# 새로 올렸을 때 드러났고, 같은 값이 Noto Sans CJK KR·Noto Serif KR 에도 있었다.
+#
+# 저장할 때 걸러내도록 normalize_css_url 을 고쳤다(app/webfont_check.py).
+# 이건 이미 들어가 있는 값을 한 번 훑어 고치는 쪽이다.
+CSS_URL_CLEAN_KEY = "webfont_css_url_clean_v1"
+
+
+def _migrate_clean_css_urls(db: Session):
+    """주소에 따옴표·꺾쇠·공백이 섞인 행만 골라 정리한다.
+
+    멀쩡한 주소는 건드리지 않는다 — normalize_css_url 을 통과시켜 값이
+    달라지는 것만 바꾼다.
+    """
+    done = db.query(AppMeta).filter(AppMeta.key == CSS_URL_CLEAN_KEY).first()
+    if done and done.value == "1":
+        return
+
+    from .webfont_check import normalize_css_url
+
+    fixed = []
+    rows = db.query(Font).filter(Font.webfont_css_url.isnot(None)).all()
+    for f in rows:
+        raw = f.webfont_css_url or ""
+        clean = normalize_css_url(raw)
+        if clean and clean != raw:
+            f.webfont_css_url = clean
+            fixed.append(f.name)
+
+    if done is None:
+        db.add(AppMeta(key=CSS_URL_CLEAN_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+    print("[migrate] 웹폰트 주소 정리: %d종%s"
+          % (len(fixed), (" — " + ", ".join(fixed)) if fixed else ""))

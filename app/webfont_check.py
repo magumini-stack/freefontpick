@@ -118,7 +118,35 @@ def normalize_css_url(raw: str) -> str:
         return m.group(1).strip()
 
     # 남은 따옴표·세미콜론 정리
-    return s.strip().rstrip(";").strip().strip("'\"").strip()
+    return _trim_url(s)
+
+
+def _trim_url(s: str) -> str:
+    """주소 뒤에 딸려 온 HTML 조각을 잘라낸다.
+
+    <link> 태그를 통째로 붙여넣는 것은 위에서 걸러지는데, **따옴표 안쪽부터
+    끝까지** 긁어 붙이면 안 걸러졌다. 실제로 이렇게 저장돼 있었다:
+
+        https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&display=swap" rel="stylesheet
+
+    이 값으로 <link>를 만들면 브라우저가 주소를 못 읽어 폰트가 통째로 안 뜬다.
+    조용히 실패해서 "등록은 됐는데 화면에 안 나온다"로만 보인다.
+
+    주소에는 따옴표·꺾쇠·공백이 들어갈 수 없으므로(있으면 인코딩된다) 그 앞에서
+    자르면 된다.
+    """
+    s = s.strip().rstrip(";").strip()
+    # 앞뒤를 감싼 따옴표를 먼저 벗긴다
+    if len(s) >= 2 and s[0] == s[-1] and s[0] in "'\"":
+        s = s[1:-1].strip()
+    else:
+        s = s.lstrip("'\"").strip()
+    # 남은 따옴표·꺾쇠·공백부터는 주소가 아니다
+    for ch in ('"', "'", "<", ">", " ", "\t", "\n"):
+        i = s.find(ch)
+        if i > 0:
+            s = s[:i]
+    return s.strip()
 
 
 def _encode_url(url: str) -> str:
