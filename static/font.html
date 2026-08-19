@@ -1069,7 +1069,7 @@
       sub.textContent = '아직 정리된 조합이 없어요.';
       grid.innerHTML =
         '<div class="pair-teaser"><p>분위기와 용도가 맞는 폰트를<br>지금 찾아볼 수 있어요.</p>' +
-        '<a class="pair-teaser-go" href="' + pairUrl(f) + '" target="_blank" rel="noopener">' +
+        '<a class="pair-teaser-go" href="' + pairUrl(FONT) + '" target="_blank" rel="noopener">' +
         '조합 찾아보기</a></div>';
       sec.classList.remove('hidden');
       return;
@@ -1276,6 +1276,9 @@
   ];
 
   function pairUrl(f){
+    /* 폰트를 못 받았으면 그냥 조합 찾기 첫 화면으로. 여기서 예외가 나면
+       상세페이지 그리기가 통째로 멈춘다 — 실제로 그랬다. */
+    if (!f || !f.id) return '/font-pair';
     var tags = (f.tags || []).map(function(t){ return t.name || t; });
     function has(list){
       return list.some(function(t){ return tags.indexOf(t) >= 0; });
