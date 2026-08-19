@@ -50,6 +50,20 @@ async def lifespan(app: FastAPI):
     except Exception:
         pass
 
+    # 조회수 집계의 오래된 칸을 지운다.
+    try:
+        from .database import SessionLocal
+        from .font_views import prune
+        db = SessionLocal()
+        try:
+            n = prune(db)
+        finally:
+            db.close()
+        if n:
+            print(f"[startup] 오래된 조회 기록 {n}행 정리", flush=True)
+    except Exception:
+        pass
+
     yield
 
 

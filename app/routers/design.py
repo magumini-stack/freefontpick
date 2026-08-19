@@ -688,10 +688,19 @@ def _replace_meta_for_font_detail(html: str, font: Font) -> str:
 
 
 @router.get("/font/{font_id}", response_class=HTMLResponse)
-def font_detail_page(font_id: int, db: Session = Depends(get_db)):
+def font_detail_page(font_id: int, request: Request, db: Session = Depends(get_db)):
     font = db.query(Font).filter(Font.id == font_id).first()
     if font is None:
         return RedirectResponse(url="/", status_code=302)
+
+    # 실시간 인기 순위의 근거. 봇과 새로고침은 여기서 걸러진다
+    # (app/font_views.py). 지표 때문에 페이지가 안 뜨면 본말이 뒤집히므로
+    # 무슨 일이 있어도 삼킨다.
+    try:
+        from ..font_views import record_view
+        record_view(request, font.id, db)
+    except Exception:
+        pass
     html = _load_font_page()
     html = inject_header(html, "")  # 상세페이지는 nav 항목 중 활성 표시할 게 없음
     html = _replace_meta_for_font_detail(html, font)

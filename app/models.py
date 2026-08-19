@@ -3,7 +3,7 @@
 테이블: fonts, tags, font_tags, notices, admin_users, font_likes(선택)
 """
 from sqlalchemy import (
-    Column, Integer, String, Boolean, DateTime, Text, ForeignKey,
+    Column, Integer, String, Boolean, DateTime, Date, Text, ForeignKey,
     UniqueConstraint, Index, JSON,
 )
 from sqlalchemy.orm import relationship
@@ -221,6 +221,29 @@ class PreviewPhrase(Base):
     sort_order = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class FontView(Base):
+    """상세페이지 조회수 — 날짜별로 한 칸씩.
+
+    누적 한 칸으로 두면 "최근 7일"을 낼 수 없다. 오래전에 올라온 폰트가
+    영원히 상위를 차지해 '실시간'이 아니게 된다. 그래서 날짜로 쪼갠다.
+
+    세는 규칙은 app/font_views.py 에 있다 — 봇과 새로고침을 거른다.
+    안 거르면 상세페이지가 222장이라 순위를 크롤러가 정한다.
+
+    운영은 MySQL, 로컬은 SQLite다. 양쪽에서 도는 타입만 쓴다.
+    """
+    __tablename__ = "font_views"
+    font_id = Column(Integer, ForeignKey("fonts.id", ondelete="CASCADE"),
+                     primary_key=True)
+    day = Column(Date, primary_key=True)
+    count = Column(Integer, nullable=False, default=0, server_default="0")
+
+    __table_args__ = (
+        # 최근 N일을 날짜로 훑으므로 날짜에 인덱스를 둔다
+        Index("ix_font_views_day", "day"),
+    )
 
 
 class AppMeta(Base):

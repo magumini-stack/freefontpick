@@ -205,6 +205,28 @@ def webfont_audit(
     return {"checked": len(items), "problem_count": broken, "items": items}
 
 
+@router.get("/popular")
+def popular_fonts(days: int = 7, limit: int = 10, db: Session = Depends(get_db)):
+    """최근 N일 상세페이지 조회 기준 인기 폰트. 순위만 준다.
+
+    조회수 숫자는 담지 않는다 — 방문이 적을 때 '조회 3' 같은 수가 보이면
+    오히려 허술해 보인다. 화면은 순위만 쓴다.
+
+    자료가 없으면 빈 목록이다. 그때 갤러리는 예전과 똑같이 보인다.
+
+    ⚠️ 이 경로는 "/{font_id}" 보다 위에 있어야 한다. 아래에 두면
+    'popular' 를 font_id 로 읽으려다 422 가 난다.
+    """
+    days = max(1, min(int(days or 7), 90))
+    limit = max(1, min(int(limit or 10), 50))
+    try:
+        from ..font_views import top_fonts
+        ids = top_fonts(db, days=days, limit=limit)
+    except Exception:
+        ids = []
+    return [{"id": fid, "rank": i + 1} for i, fid in enumerate(ids)]
+
+
 @router.get("/{font_id}", response_model=FontOut)
 def get_font(font_id: int, db: Session = Depends(get_db)):
     font = db.query(Font).filter(Font.id == font_id).first()
