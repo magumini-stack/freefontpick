@@ -14,3 +14,5 @@ venv/
 # 로컬 개발용 SQLite (LOCAL_DB_PATH)
 *.db
 
+# og 이미지를 다시 그릴 때 받아 두는 서체 캐시 (tools/make_og_font_pair.py)
+tools/_ogfonts/
