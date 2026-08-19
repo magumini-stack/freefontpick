@@ -48,6 +48,7 @@ def init_db():
         _migrate_luxury_hub(db)
         _patch_luxury_hub_title(db)
         _migrate_fancy_intros(db)
+        _migrate_webfont_weights(db)
         _seed_gif_use_cases(db)
         _seed_gif_templates(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
@@ -1136,3 +1137,105 @@ def _seed_gif_templates(db: Session):
     print(f"[seed] GIF 템플릿 {len(GIF_TEMPLATES)}종 삽입 (v{GIF_TEMPLATE_SEED_VERSION})")
     if missing:
         print(f"[seed] ⚠ GIF 템플릿 폰트 미발견 {len(missing)}건: {', '.join(missing)}")
+
+
+# ── 웹폰트 굵기를 DB에 채운다 (2026-08) ─────────────────────────
+#
+# 화면에서는 웹폰트인데 DB는 그걸 몰랐다.
+#
+# static/ffp-fontface.js 의 WEBFONT_MAP 이 이 폰트들을 CDN에서 불러온다.
+# 그래서 브라우저는 나눔스퀘어를 700·800으로도 그릴 수 있다. 그런데 DB의
+# webfont_family/webfont_weights 가 비어 있어서, 서버의 _merged_weights 는
+# 대표 파일 하나(400)만 보고 "이 폰트는 400뿐"이라고 답했다.
+#
+# 그 결과 조합 엔진이 타이틀 굵기를 700으로 고르려 해도 400밖에 없다고 보고
+# 400을 내보냈다. 나눔스퀘어가 제목으로 나올 때 얇게 나오던 이유다.
+#
+# 값은 WEBFONT_MAP 에서 그대로 옮겼다. 이미 그 CSS로 화면을 그리고 있으므로
+# 없는 굵기를 지어내는 것이 아니다. Raleway·Noto Sans KR 은 이미 이렇게
+# 등록돼 있고 정상으로 동작한다 — 그 둘과 같은 상태로 맞추는 것이다.
+WEBFONT_WEIGHT_KEY = "webfont_weight_fill_v1"
+
+# (id, 폰트명, 웹폰트 family, CSS 주소, 굵기)
+_WEBFONT_FILL = [
+    (101, '프리텐다드', 'Pretendard Variable',
+     'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css',
+     '100,200,300,400,500,600,700,800,900'),
+    (157, '수트', 'SUIT Variable',
+     'https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css',
+     '100,200,300,400,500,600,700,800,900'),
+    (33, '마루부리', 'MaruBuri',
+     'https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css',
+     '300,400,600,700'),
+    (23, '나눔스퀘어', 'NanumSquare',
+     'https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@master/nanumsquare.css',
+     '300,400,700,800'),
+    (135, 'Montserrat', 'Montserrat',
+     'https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap',
+     '100,200,300,400,500,600,700,800,900'),
+    (136, 'OpenSans', 'Open Sans',
+     'https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap',
+     '300,400,500,600,700,800'),
+    (142, 'Roboto', 'Roboto',
+     'https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap',
+     '100,300,400,500,700,900'),
+    (138, 'Petrona', 'Petrona',
+     'https://fonts.googleapis.com/css2?family=Petrona:wght@100..900&display=swap',
+     '100,200,300,400,500,600,700,800,900'),
+    (139, 'Playfair Display', 'Playfair Display',
+     'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&display=swap',
+     '400,500,600,700,800,900'),
+    (128, 'LibreBodoni', 'Libre Bodoni',
+     'https://fonts.googleapis.com/css2?family=Libre+Bodoni:wght@400..700&display=swap',
+     '400,500,600,700'),
+    (121, 'DancingScript', 'Dancing Script',
+     'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap',
+     '400,500,600,700'),
+    (120, 'CinzelDecorative', 'Cinzel Decorative',
+     'https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&display=swap',
+     '400,700,900'),
+    (115, 'BonaNova', 'Bona Nova',
+     'https://fonts.googleapis.com/css2?family=Bona+Nova:wght@400;700&display=swap',
+     '400,700'),
+]
+
+
+def _migrate_webfont_weights(db: Session):
+    """CDN 웹폰트로 그려지는 폰트에 굵기 정보를 채운다.
+
+    ⚠ 이미 webfont_family 가 있으면 건너뛴다. 어드민이 손으로 등록해 둔 것을
+    배포가 덮어쓰면 안 된다. app_meta 표시로 두 번 돌지도 않는다.
+
+    폰트명이 다르면 손대지 않는다 — id 가 밀렸을 때 남의 폰트에 엉뚱한 CDN을
+    붙이는 것이 가장 나쁘다.
+    """
+    done = db.query(AppMeta).filter(AppMeta.key == WEBFONT_WEIGHT_KEY).first()
+    if done and done.value == "1":
+        return
+
+    filled, skipped, missing = 0, [], []
+    for font_id, name, family, css_url, weights in _WEBFONT_FILL:
+        f = db.query(Font).filter(Font.id == font_id).first()
+        if f is None:
+            missing.append("id=%d(%s)" % (font_id, name))
+            continue
+        if f.name != name:
+            print("[migrate] 웹폰트 굵기 폰트명 불일치 id=%d: DB='%s' 기대='%s' — 건너뜀"
+                  % (font_id, f.name, name))
+            continue
+        if f.webfont_family:
+            skipped.append(f.name)
+            continue
+        f.webfont_family = family
+        f.webfont_css_url = css_url
+        f.webfont_weights = weights
+        f.weights = "%d종" % len(weights.split(","))
+        filled += 1
+
+    if done is None:
+        db.add(AppMeta(key=WEBFONT_WEIGHT_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+    print("[migrate] 웹폰트 굵기 채움: %d종 · 이미 있어 건너뜀 %d종%s"
+          % (filled, len(skipped), (" · 없는 id " + ", ".join(missing)) if missing else ""))
