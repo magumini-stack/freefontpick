@@ -2035,13 +2035,18 @@ function getFilteredFonts(){
     }
   }
 
-  /* 인기 10종을 순위대로 맨 앞으로 당긴다.
+  /* 인기 순위가 있는 폰트를 순위대로 맨 앞으로 당긴다.
 
-     태그를 걸었거나 검색 중일 때는 건드리지 않는다. 걸러 놓은 목록의 순서까지
-     흔들면 "왜 이게 위에 있지"가 된다. 기본 화면에서만 바꾼다.
+     '모양으로 찾기'로 걸러도 마찬가지다 — 손글씨를 고른 사람에게는 손글씨
+     중에서 지금 많이 보는 것이 먼저 나와야 한다. 걸러진 목록 안에 있는
+     것만 올라오므로, 그 분류에 인기 폰트가 없으면 순서가 그대로다.
 
+     순위 숫자는 사이트 전체 기준을 그대로 쓴다. 분류 안에서 1·2·3으로 다시
+     매기면 '인기 1'이 화면마다 다른 폰트를 가리켜 거짓말이 된다.
+
+     검색 중일 때는 건드리지 않는다 — 검색은 찾는 것을 위에 놓는 게 먼저다.
      나머지는 어드민이 정한 저장 순서 그대로다. */
-  if(currentTag === 'all' && !q && Object.keys(POPULAR).length){
+  if(!q && Object.keys(POPULAR).length){
     const top = list.filter(f => POPULAR[f.id]).sort((a, b) => POPULAR[a.id] - POPULAR[b.id]);
     if(top.length){
       const topIds = new Set(top.map(f => f.id));
