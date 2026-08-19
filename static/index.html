@@ -830,6 +830,34 @@
       display:flex;align-items:center;justify-content:center;padding:0;
       box-shadow:0 2px 8px rgba(0,0,0,.14)}
     @media(prefers-reduced-motion:reduce){.fbx.show{animation:none}}
+
+    /* ── 폰트 조합 찾기 배너 ──
+       화면 왼쪽 위에 떠 있다가, 스크롤해서 용도 그리드가 이 자리까지
+       올라오면 비켜 준다. 용도 칸을 덮은 채로 남으면 안 된다.
+
+       #homeView 안에 둔다. 폰트 찾기·공지 화면으로 넘어가면 그 부모가
+       숨겨지므로 배너도 함께 사라진다 — 화면마다 따로 챙기지 않아도 된다.
+
+       좁은 화면에서는 감춘다. 본문 폭이 1240px이라 그보다 좁으면 글 위에
+       바로 얹히고, 모바일은 아래에 앱 안내 배너가 이미 있다. */
+    .fpb{position:fixed;left:20px;top:70px;z-index:840;width:214px;
+      background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+      padding:13px 14px 12px;box-shadow:0 6px 22px rgba(0,0,0,.10);
+      text-decoration:none;color:inherit;display:block;
+      transition:opacity .22s ease,transform .22s ease}
+    .fpb-k{font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--accent)}
+    .fpb-t{font-size:14.5px;font-weight:800;margin:5px 0 4px;letter-spacing:-.2px}
+    .fpb-s{font-size:11.5px;line-height:1.55;color:var(--text-secondary);word-break:keep-all}
+    .fpb-go{display:inline-flex;align-items:center;gap:4px;margin-top:9px;
+      font-size:11.5px;font-weight:700;color:var(--accent)}
+    .fpb:hover{border-color:var(--border-hover)}
+    .fpb-x{position:absolute;top:-9px;right:-9px;width:24px;height:24px;
+      border:1px solid var(--border);border-radius:50%;background:var(--bg-card);
+      color:var(--text-muted);font-size:15px;line-height:1;cursor:pointer;padding:0;
+      display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+    .fpb.hide{opacity:0;transform:translateX(-10px);pointer-events:none}
+    @media(max-width:1100px){.fpb{display:none}}
+    @media(prefers-reduced-motion:reduce){.fpb{transition:none}}
 </style>
 </head>
 <body>
@@ -839,6 +867,18 @@
 
 <!-- ━━━━ HOME VIEW (폰트 갤러리) ━━━━ -->
 <div id="homeView">
+
+  <!-- 폰트 조합 찾기 배너 — 용도 그리드가 올라오면 비켜 준다 (아래 fpbSync) -->
+  <div id="fpbWrap" style="position:relative">
+    <a class="fpb" id="fpBanner" href="/font-pair" target="_blank" rel="noopener"
+       aria-label="폰트 조합 찾기 열기 (새 창)">
+      <span class="fpb-k">NEW</span>
+      <span class="fpb-t">폰트 조합 찾기</span>
+      <span class="fpb-s">쓰는 자리를 고르면 제목·본문에 어울리는 폰트 세 가지를 찾아드려요.</span>
+      <span class="fpb-go">지금 열어보기 →</span>
+      <button type="button" class="fpb-x" onclick="fpbClose(event)" aria-label="배너 닫기">&times;</button>
+    </a>
+  </div>
 
   <!-- HERO -->
   <section class="hero">
@@ -3704,7 +3744,13 @@ async function init(){
     if(FONTS.length) renderFonts();     // 목록이 이미 그려졌으면 다시 얹는다
   });
 
-  hubsP.then(list => { HUB_CACHE = list; renderUseGrid(list); });
+  hubsP.then(list => {
+    HUB_CACHE = list;
+    renderUseGrid(list);
+    /* 용도 그리드가 이제야 화면에 생겼다. 뒤로가기로 스크롤된 채 들어오면
+       그때까지 배너가 그리드를 덮고 있으므로 여기서 한 번 맞춘다. */
+    if(typeof fpbSync === 'function') fpbSync();
+  });
 
   FONTS = await fontsP;
   const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
@@ -4256,6 +4302,42 @@ init().catch(function(err){
    iOS 판별에 maxTouchPoints를 함께 보는 이유: iPadOS 13부터 아이패드
    사파리가 자신을 Macintosh로 신고한다. 흔한 /iPad/ 검사로는 아이패드가
    통째로 빠진다. 맥에는 터치가 없으므로 'Mac + 터치'면 아이패드로 본다. */
+/* ══ 폰트 조합 찾기 배너 ═══════════════════════════════
+   용도 그리드가 배너 자리까지 올라오면 비켜 준다. 스크롤 위치가 아니라
+   그리드의 현재 좌표를 보는 이유 — 히어로 높이가 글자 크기·줄바꿈에 따라
+   달라져서, 몇 px 스크롤했는지로 잡으면 화면마다 어긋난다.
+
+   용도 그리드는 처음에 display:none 이고 JS가 목록을 받은 뒤 보여준다.
+   그 사이에는 높이가 0이라 좌표가 0으로 나오는데, 그걸 "올라왔다"로 읽으면
+   배너가 뜨자마자 사라진다. 그래서 높이가 잡히기 전에는 손대지 않는다. */
+var FPB_BOTTOM = 250;          // 배너 아래끝(px). 여기까지 오면 비킨다.
+
+function fpbSync(){
+  var b = document.getElementById('fpBanner');
+  var us = document.getElementById('useSection');
+  if(!b || !us || !us.offsetHeight) return;
+  b.classList.toggle('hide', us.getBoundingClientRect().top < FPB_BOTTOM);
+}
+
+function fpbClose(e){
+  e.preventDefault();
+  e.stopPropagation();          // 배너 전체가 링크라 막지 않으면 새 창이 열린다
+  var b = document.getElementById('fpBanner');
+  if(b) b.style.display = 'none';
+  try{ localStorage.setItem('ffp-pairbanner-closed', '1'); }catch(err){}
+}
+
+(function(){
+  var b = document.getElementById('fpBanner');
+  if(!b) return;
+  try{
+    if(localStorage.getItem('ffp-pairbanner-closed') === '1'){ b.style.display = 'none'; return; }
+  }catch(err){}
+  window.addEventListener('scroll', fpbSync, {passive:true});
+  window.addEventListener('resize', fpbSync);
+  fpbSync();
+})();
+
 function fbxIsIOS(){
   var ua = navigator.userAgent || '';
   if(/iPhone|iPad|iPod|CriOS|FxiOS/.test(ua)) return true;
