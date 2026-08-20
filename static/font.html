@@ -121,7 +121,10 @@
   .title-block{padding:24px 0 38px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:34px;align-items:end}
   .title-row{min-width:0}
   .foundry{font-family:var(--ui);font-size:13px;color:var(--text-muted);letter-spacing:.2px;margin-bottom:14px;display:block}
-  #fontName{font-weight:800;font-size:clamp(40px,7.5vw,78px);line-height:1.02;letter-spacing:-1px;word-break:keep-all;overflow-wrap:break-word}
+  /* 굵기는 JS 가 폰트의 대표 굵기로 넣는다(위 nameFace). 여기서 800 을
+     박아 두면 400 짜리 폰트에 가짜 볼드가 씌워진다 — 실제로 그랬다.
+     JS 가 뜨기 전에는 서버가 그린 이름이 잠깐 보이므로 normal 로 둔다. */
+  #fontName{font-weight:normal;font-size:clamp(40px,7.5vw,78px);line-height:1.02;letter-spacing:-1px;word-break:keep-all;overflow-wrap:break-word}
   /* 폰트명 아래 한 줄 설명 — 어드민의 meta.summary.
      예전에는 이 자리에 카테고리 태그 알약이 깔렸는데, 폰트 이름 바로 밑이라
      가장 눈에 띄는 자리인데도 "손글씨 · 귀여운 · 3종"처럼 분류값만 나열해서
@@ -1120,9 +1123,21 @@
       }
       document.title = f.name + ' 무료폰트 다운로드 - 어울리는 폰트 조합까지 | 폰트픽';
       document.getElementById('crumbName').textContent = f.name;
+      /* 폰트명은 어드민이 정한 '대표 굵기'로 그린다.
+
+         예전에는 stackOf(f) 로 family 만 주고 CSS 가 font-weight:800 을
+         요구했다. @font-face 는 400 으로 선언돼 있어서, 파일 기반 폰트
+         196종 전부에 브라우저가 가짜 볼드를 씌웠다 — 폰트를 보여주는
+         페이지에서 폰트를 왜곡하고 있었다. 외곽선 방향이 뒤섞인 폰트에서는
+         가짜 볼드가 획 속을 파먹어 글자가 속 빈 채로 나오기까지 했다.
+
+         faceFor 는 그 굵기의 파일이 있으면 그 파일을 쓰고 CSS 굵기는 400 을
+         돌려준다(합성 금지). 없으면 가진 것 중 가까운 쪽으로 간다. */
       var fontNameEl = document.getElementById('fontName');
       fontNameEl.textContent = f.name;
-      fontNameEl.style.fontFamily = stackOf(f);
+      var nameFace = faceFor(f, parseInt(f.primary_weight, 10) || 400);
+      fontNameEl.style.fontFamily = nameFace.stack;
+      fontNameEl.style.fontWeight = nameFace.weight;
       document.getElementById('fontMaker').textContent = (f.maker || '') + ' 배포';
       var introEl = document.getElementById('fontIntro');
       var introText = (f.meta && f.meta.intro) ? String(f.meta.intro).trim() : '';
