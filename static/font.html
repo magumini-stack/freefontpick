@@ -236,7 +236,7 @@
   .app-promo-banner{display:flex;flex-direction:column;gap:12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:16px 18px;transition:border-color .15s;min-width:0}
   .app-promo-banner:hover{border-color:var(--border-hover)}
   .app-promo-top{display:flex;align-items:center;gap:12px;min-width:0}
-  .app-promo-banner img{width:38px;height:38px;border-radius:9px;flex-shrink:0}
+  .app-promo-banner .appico{width:38px;height:38px;border-radius:9px;font-size:19px}
   .app-promo-text{display:flex;flex-direction:column;flex:1;min-width:0}
   .app-promo-title{font-size:13.5px;font-weight:700;color:var(--text-primary)}
   .app-promo-sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
@@ -254,7 +254,7 @@
     padding:11px 12px; border-radius:10px;
   }
   #appPromoSlot .app-promo-top{flex:1; min-width:0; gap:10px}
-  #appPromoSlot .app-promo-banner img{width:34px;height:34px;border-radius:8px}
+  #appPromoSlot .app-promo-banner .appico{width:34px;height:34px;border-radius:8px;font-size:17px}
   #appPromoSlot .app-promo-title{
     font-size:13px; line-height:1.25;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -491,6 +491,11 @@
     .dhl-dot.active{border-color:var(--text-primary)}
     .designer-footer{padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:10px}
     /* 우측 여백 스카이스크래퍼 — 넓은 화면(1600px+)에서만, 스크롤해도 고정 위치 유지 */
+    /* 앱 배너 아이콘 — 앱 세 개를 묶어 소개하는 자리라 특정 앱 아이콘 대신
+       글리프를 쓴다. 크기·모서리는 자리마다 아래에서 따로 정한다. */
+    .appico{display:flex;align-items:center;justify-content:center;
+      background:var(--accent);color:#fff;flex:0 0 auto}
+    .appico i{line-height:1;display:block}
     .skyscraper-ad{
       display:none;
       position:fixed;
@@ -511,7 +516,7 @@
     }
     .skyscraper-ad:hover{border-color:var(--accent)}
     .skyscraper-ad:active{transform:scale(.98)}
-    .skyscraper-ad img{width:56px;height:56px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.15);margin-bottom:12px}
+    .skyscraper-ad .appico{width:56px;height:56px;border-radius:14px;font-size:26px;box-shadow:0 4px 14px rgba(0,0,0,.15);margin-bottom:12px}
     .skyscraper-ad .sky-title{font-size:13.5px;font-weight:800;color:var(--text-primary);line-height:1.4}
     .skyscraper-ad .sky-sub{font-size:11.5px;color:var(--text-secondary);line-height:1.5;margin-top:6px}
     .skyscraper-ad .sky-cta{margin-top:14px;width:100%;background:var(--accent);color:#fff;font-weight:700;font-size:12.5px;padding:9px;border-radius:8px;transition:background-color .15s}
@@ -520,7 +525,7 @@
     .ds-promo-banner{display:flex;flex-direction:row;align-items:center;gap:9px;padding:8px 10px;border-radius:12px;background:var(--bg-secondary);border:1px solid var(--border);text-decoration:none;color:inherit;transition:transform .12s ease,border-color .12s ease}
     .ds-promo-banner:active{transform:scale(.98)}
     .ds-promo-banner:hover{border-color:var(--accent)}
-    .ds-promo-banner img{width:32px;height:32px;border-radius:8px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+    .ds-promo-banner .appico{width:32px;height:32px;border-radius:8px;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
     .ds-promo-banner .ds-promo-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
     .ds-promo-banner .ds-promo-title{font-size:11.5px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .ds-promo-banner .ds-promo-sub{font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -553,7 +558,7 @@
       .fx-grid{grid-template-columns:repeat(5,1fr)}
       .clr-grid{grid-template-columns:repeat(7,1fr)}
     }
-      /* ══ 폰트박스 앱 배너 (iOS 전용) ══
+      /* ══ 앱 배너 (모바일 전용) ══
        하단 고정. 전면 팝업이 아니라 본문을 덮지 않는 형태여야
        구글 모바일 인터스티셜 페널티를 받지 않는다. */
     .fbx{position:fixed;left:12px;right:12px;bottom:12px;z-index:850;
@@ -565,8 +570,7 @@
       margin-bottom:env(safe-area-inset-bottom,0)}
     .fbx.show{display:flex;animation:fbxUp .28s cubic-bezier(.2,.8,.3,1)}
     @keyframes fbxUp{from{transform:translateY(120%);opacity:0}to{transform:none;opacity:1}}
-    .fbx-ico{width:52px;height:52px;border-radius:12px;flex:0 0 auto;
-      border:1px solid var(--border)}
+    .fbx-ico{width:52px;height:52px;border-radius:12px;font-size:25px}
     .fbx-txt{flex:1;min-width:0;line-height:1.35}
     .fbx-txt b{display:block;font-size:14.5px;font-weight:800;margin-bottom:2px}
     /* 주 카피와 부제를 크기·색으로 갈라 위계를 만든다.
@@ -595,12 +599,12 @@
 <!--FFP_HEADER-->
 
 <main class="wrap">
-  <!-- 우측 여백 스카이스크래퍼 — 글씨사진관 앱 프로모 (하단 배너와 동일 앱/링크) -->
-  <a class="skyscraper-ad" id="skyscraperAd" href="https://tosto.re/ktext" target="_blank" rel="noopener">
-    <img src="data:image/png;base64,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" alt="글씨사진관 앱 아이콘">
-    <div class="sky-title">글씨사진관</div>
-    <div class="sky-sub">멋진 사진에<br>감성글 쓰기</div>
-    <span class="sky-cta">무료 받기 →</span>
+  <!-- 우측 여백 스카이스크래퍼 — 와이즈폰트 앱 소개 (사이트의 모든 앱 배너와 같은 곳으로 간다) -->
+  <a class="skyscraper-ad" id="skyscraperAd" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">
+    <span class="appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
+    <div class="sky-title">글자로 노는 앱</div>
+    <div class="sky-sub">사진에 글쓰고,<br>GIF만들고,<br>TTF 다운 받자!</div>
+    <span class="sky-cta">자세히 보기 →</span>
   </a>
 
   <div class="loading" id="loading">폰트 정보를 불러오는 중…</div>
@@ -734,16 +738,16 @@
 
         <!-- 앱 프로모 배너 (모바일에선 JS가 #appPromoSlot으로 이동시킨다) -->
         <section class="blk" id="appPromoSec" style="padding:0;border-bottom:none">
-          <a class="app-promo-banner" href="https://tosto.re/ktext" target="_blank" rel="noopener">
+          <a class="app-promo-banner" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">
             <div class="app-promo-top">
-              <img src="data:image/png;base64,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" alt="글씨사진관 앱 아이콘">
+              <span class="appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
               <div class="app-promo-text">
-                <span class="app-promo-title">글씨사진관</span>
-                <span class="app-promo-sub">멋진 사진에 감성글 쓰기</span>
+                <span class="app-promo-title">글자로 노는 앱</span>
+                <span class="app-promo-sub">사진에 글쓰고, GIF만들고, TTF 다운 받자!</span>
               </div>
             </div>
             <div class="app-promo-cta-row">
-              <span class="app-promo-cta">무료 받기 →</span>
+              <span class="app-promo-cta">자세히 보기 →</span>
             </div>
           </a>
         </section>
@@ -1624,13 +1628,13 @@ window.addEventListener('pageshow', function(e){
         </div>
 
         <div class="designer-footer">
-          <a class="ds-promo-banner" href="https://tosto.re/ktext" target="_blank" rel="noopener">
-            <img src="data:image/png;base64,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" alt="글씨사진관 앱 아이콘">
+          <a class="ds-promo-banner" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">
+            <span class="appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
             <div class="ds-promo-text">
-              <span class="ds-promo-title">글씨사진관</span>
-              <span class="ds-promo-sub">멋진 사진에 감성글 쓰기</span>
+              <span class="ds-promo-title">글자로 노는 앱</span>
+              <span class="ds-promo-sub">사진에 글쓰고, GIF만들고, TTF 다운 받자!</span>
             </div>
-            <span class="ds-promo-cta">무료 받기</span>
+            <span class="ds-promo-cta">자세히 보기</span>
           </a>
           <button class="designer-save" onclick="startDesignerSave()"><i class="ti ti-download" aria-hidden="true"></i> PNG로 저장</button>
         </div>
@@ -2416,7 +2420,7 @@ function dsDownloadFile(){
 </script>
 
 <!-- ══ 앱 배너 (모바일 전용) ══════════════════════════
-     iOS → 폰트박스(App Store) / 안드로이드 → 글씨사진관(원스토어)
+     와이즈폰트 앱 소개 페이지로 보낸다 — 사이트의 앱 배너가 모두 같은 곳으로 간다.
      구글 모바일 인터스티셜 페널티를 피하려고 두 가지를 지킨다.
        ① 진입 즉시가 아니라 화면 높이 1.5배를 스크롤한 뒤에만 뜬다.
           크롤러는 스크롤하지 않으므로 색인·순위에 영향이 없다.
@@ -2424,13 +2428,12 @@ function dsDownloadFile(){
      내용(아이콘·문구·링크)은 JS가 기기를 판별해 채운다. -->
 <div class="fbx" id="fbxBanner" role="complementary" aria-label="앱 안내">
   <button type="button" class="fbx-x" onclick="fbxClose()" aria-label="닫기">&times;</button>
-  <img class="fbx-ico" id="fbxIco" src="" width="52" height="52" alt="" aria-hidden="true">
+  <span class="fbx-ico appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
   <div class="fbx-txt">
-    <b id="fbxName"></b>
-    <span class="fbx-s1" id="fbxS1"></span>
-    <span class="fbx-s2" id="fbxS2"></span>
+    <b>글자로 노는 앱</b>
+    <span class="fbx-s1">사진에 글쓰고, GIF만들고, TTF 다운 받자!</span>
   </div>
-  <a class="fbx-cta" id="fbxCta" href="#" target="_blank" rel="noopener noreferrer" onclick="fbxSeen()">받기</a>
+  <a class="fbx-cta" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">자세히 보기</a>
 </div>
 
 <script>
@@ -2446,42 +2449,21 @@ function fbxIsIOS(){
 function fbxIsAndroid(){
   return /Android/.test(navigator.userAgent || '');
 }
-var FBX_APPS = {
-  ios: {
-    name: '폰트박스',
-    s1: '한글 무료폰트 200종 바로 설치',
-    s2: '카카오톡 서체 바꾸기',
-    url: 'https://apps.apple.com/kr/app/id6795770873',
-    icon: '/static/fontbox-icon.png'
-  },
-  android: {
-    name: '글씨사진관',
-    s1: '멋진 사진에 감성글 쓰기',
-    s2: '감성 문구와 폰트를 한 번에',
-    url: 'https://tosto.re/ktext',
-    icon: 'data:image/png;base64,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'
-  }
-};
-/* 닫기는 '지금 이 화면에서 치운다'는 뜻만 갖는다 — 아무것도 저장하지 않는다.
-   fbxSeen()은 받기 버튼의 onclick이 부르고 있어 이름만 남겨 비워둔다. */
+/* [2026-08] 앱마다 스토어로 갈라 보내던 것을 앱 소개 페이지 하나로 모았다.
+   그래서 앱 목록(FBX_APPS)과 그것을 화면에 꽂던 코드가 통째로 필요 없어졌다 —
+   문구와 링크는 위 마크업에 그대로 적혀 있다.
+   OS 판별은 남긴다. 띄울지 말지를 정하는 데는 계속 쓴다(데스크톱은 제외). */
 function fbxSeen(){}
 function fbxClose(){
   var el = document.getElementById('fbxBanner');
   if(el) el.classList.remove('show');
 }
 (function(){
-  var app = fbxIsIOS() ? FBX_APPS.ios : (fbxIsAndroid() ? FBX_APPS.android : null);
-  if(!app) return;                       // 데스크톱은 대상이 아니다
+  // 데스크톱은 대상이 아니다 — 사이드바와 스카이스크래퍼가 이미 있다
+  if(!fbxIsIOS() && !fbxIsAndroid()) return;
 
   var el = document.getElementById('fbxBanner');
   if(!el) return;
-  document.getElementById('fbxIco').src = app.icon;
-  document.getElementById('fbxName').textContent = app.name;
-  document.getElementById('fbxS1').textContent = app.s1;
-  document.getElementById('fbxS2').textContent = app.s2;
-  var cta = document.getElementById('fbxCta');
-  cta.href = app.url;
-  cta.setAttribute('aria-label', app.name + ' 받기');
 
   var shown = false;
   function check(){

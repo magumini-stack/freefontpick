@@ -210,8 +210,22 @@ footer{border-top:1px solid var(--border);padding:32px 24px;max-width:1240px;mar
 .adm-head{padding:18px 52px 14px 20px;border-bottom:1px solid var(--border)}
 .adm-head b{display:block;font-size:15.5px;font-weight:800;margin-bottom:3px}
 .adm-head span{font-size:13px;color:var(--text-secondary);line-height:1.6}
-.adm-img{display:block;line-height:0}
-.adm-img img{width:100%;height:auto;display:block}
+/* 다운로드 후 모달의 앱 안내 띠. 예전에는 글씨사진관 사진 한 장이 있던
+   자리다 — 이제 앱 세 개를 묶어 소개하므로 사진 대신 문구로 둔다. */
+/* 앱 배너 아이콘 — 앱 세 개를 묶어 소개하는 자리라 특정 앱 아이콘 대신
+   글리프를 쓴다. 크기·모서리는 자리마다 아래에서 따로 정한다. */
+.appico{display:flex;align-items:center;justify-content:center;
+  background:var(--accent);color:#fff;flex:0 0 auto}
+.appico i{line-height:1;display:block}
+.adm-band{display:flex;align-items:center;gap:12px;margin:0 20px 14px;
+  padding:13px 14px;border-radius:12px;background:var(--bg-secondary,#F3F3EF);
+  border:1px solid var(--border);text-decoration:none}
+.adm-band:hover{border-color:var(--accent)}
+.adm-band .appico{width:40px;height:40px;border-radius:10px;font-size:20px}
+.adm-band-txt{flex:1;min-width:0;line-height:1.4}
+.adm-band-txt b{display:block;font-size:14.5px;font-weight:800;color:var(--text-primary)}
+.adm-band-txt span{display:block;font-size:12px;color:var(--text-secondary);
+  margin-top:2px;word-break:keep-all}
 .adm-cta{
   display:block;padding:16px 20px;text-align:center;background:var(--accent);
   color:#fff;font-weight:800;font-size:15.5px;text-decoration:none;
@@ -316,13 +330,19 @@ footer{border-top:1px solid var(--border);padding:32px 24px;max-width:1240px;mar
     <button type="button" class="adm-x" onclick="closeAdModal()" aria-label="닫기">&times;</button>
     <div class="adm-head">
       <b id="admTitle">다운로드를 시작했어요</b>
-      <span>받은 폰트, 사진 위에 바로 써보시겠어요?</span>
+      <span>받은 폰트로 뭘 해볼까요?</span>
     </div>
-    <a class="adm-img" href="https://tosto.re/ktext" target="_blank" rel="noopener">
-      <img src="/static/photoAD.jpg" width="400" height="400" loading="lazy"
-           alt="글씨사진관 — 멋진 사진에 감성글 쓰기">
+    <!-- [2026-08] 글씨사진관 한 앱을 보여주던 자리다. 이제 앱 세 개를 묶어
+         소개하므로 특정 앱 사진(photoAD.jpg)을 쓰지 않는다 — 어느 앱 광고인지
+         잘못 읽힌다. 사이트의 다른 앱 배너와 같은 문구·같은 곳으로 보낸다. -->
+    <a class="adm-band" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">
+      <span class="appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
+      <span class="adm-band-txt">
+        <b>글자로 노는 앱</b>
+        <span>사진에 글쓰고, GIF만들고, TTF 다운 받자!</span>
+      </span>
     </a>
-    <a class="adm-cta" href="https://tosto.re/ktext" target="_blank" rel="noopener">앱 무료로 받기 →</a>
+    <a class="adm-cta" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">자세히 보기 →</a>
   </div>
 </div>
 
