@@ -101,3 +101,55 @@ nav a.nav-gif:hover{filter:saturate(1.25) brightness(1.05)}
   .search-wrap input:focus{width:100%}
   .btn-subscribe{display:none}
 }
+
+/* ── 폰트 조합 찾기 띠 ──
+   헤더(fixed, 60px) 바로 아래에 붙어 따라다닌다. 닫으면 사라지고
+   브라우저가 그것을 기억한다(localStorage → html.pairband-off).
+
+   ⚠ 고정 요소끼리 자리를 다툰다.
+   .tags-bar 가 top:60px, .hub-rail 이 top:124px 로 같은 자리를 노린다.
+   띠가 보이는 동안에는 둘 다 띠 높이만큼 내려가야 겹치지 않으므로,
+   JS(syncBandOffset)가 실제 높이를 재서 --band-h 에 넣고 두 규칙이
+   calc() 로 더한다. 띠 높이를 상수로 박으면 화면 폭이 바뀔 때 어긋난다. */
+html{--band-h:0px}
+.pair-band{position:sticky;top:60px;z-index:30;
+  background:var(--accent-light);border-bottom:1px solid var(--border)}
+html.pairband-off .pair-band{display:none}
+.pair-band-in{max-width:1240px;margin:0 auto;padding:0 24px;
+  display:flex;align-items:center;gap:8px}
+.pair-band a{flex:1;min-width:0;display:flex;align-items:center;gap:11px;
+  padding:9px 0;text-decoration:none}
+.pair-band-ico{flex:none;width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--accent);color:#fff;font-size:14px}
+/* 제목과 설명을 한 줄에 둔다. 좁아지면 설명부터 줄임표로 접힌다 —
+   줄바꿈을 허용하면 띠 높이가 화면 폭에 따라 들쭉날쭉해지고, 그 높이를
+   아래 고정 요소들이 따라 쓰므로 흔들림이 화면 전체로 번진다. */
+.pair-band-txt{flex:1;min-width:0;display:flex;align-items:baseline;gap:9px}
+.pair-band-t{flex:none;font-size:14.5px;font-weight:800;letter-spacing:-.35px;
+  color:var(--text-primary)}
+.pair-band-d{flex:1;min-width:0;font-size:12.5px;color:var(--text-secondary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pair-band-go{flex:none;display:inline-flex;align-items:center;gap:3px;
+  font-size:12.5px;font-weight:700;color:var(--accent);white-space:nowrap}
+.pair-band-go i{font-size:14px}
+.pair-band-x{flex:none;width:26px;height:26px;padding:0;border:none;
+  background:none;border-radius:50%;color:var(--text-muted);font-size:15px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:color .15s,background .15s}
+.pair-band-x:hover{color:var(--text-primary);background:var(--bg-card)}
+/* 좌우 여백은 본문 폭 규칙(각 페이지의 768px 분기)과 맞춘다.
+   index.html 에만 있던 것을 띠와 함께 올렸다 — 안 올리면 다른 페이지에서는
+   좁은 화면인데도 여백이 24px 로 남는다. */
+@media(max-width:768px){
+  .pair-band-in{padding:0 16px}
+}
+/* 좁은 화면에서는 설명과 '조합 보기' 글자를 걷어내고 제목·화살표만 남긴다.
+   닫기 버튼은 어느 폭에서도 남는다 — 닫을 수 없으면 띠가 아니라 덫이다. */
+@media(max-width:560px){
+  .pair-band a{gap:9px;padding:8px 0}
+  .pair-band-ico{width:23px;height:23px;font-size:13px}
+  .pair-band-t{font-size:13.5px}
+  .pair-band-d{display:none}
+  .pair-band-go b{display:none}
+}
