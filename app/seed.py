@@ -50,6 +50,7 @@ def init_db():
         _migrate_fancy_intros(db)
         _migrate_webfont_weights(db)
         _migrate_clean_css_urls(db)
+        _migrate_arita_weights(db)
         _seed_gif_use_cases(db)
         _seed_gif_templates(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
@@ -1285,3 +1286,47 @@ def _migrate_clean_css_urls(db: Session):
     db.commit()
     print("[migrate] 웹폰트 주소 정리: %d종%s"
           % (len(fixed), (" — " + ", ".join(fixed)) if fixed else ""))
+
+
+# ── 아리따 굵기 표기 맞추기 (2026-08) ───────────────────────────
+#
+# 아리따 부리·돋움에 굵기 5종씩(100·300·500·600·700)을 fonts/weights/ 에 넣고
+# manifest.json 으로 이어 붙였다. 그런데 카드와 상세페이지에 찍히는 "1종/5종"
+# 글자는 그 파일들과 다른 값이다 — DB 의 Font.weights 필드다.
+#
+# 파일만 넣으면 '굵기별 보기'는 5줄이 되는데 표기는 1종으로 남아 어긋난다.
+# manifest 에 든 다른 45종은 파일 수와 표기가 모두 맞아 있다.
+#
+# ⚠ 대표 굵기(primary_weight)는 건드리지 않는다. 둘 다 400인데 400짜리 파일은
+#   없다. 어드민이 올려 둔 대표 파일이 따로 있어 화면은 그것으로 그려지므로,
+#   여기서 400을 300이나 500으로 바꾸면 폰트 이름의 인상이 말없이 달라진다.
+#   바꿀지는 눈으로 보고 정할 일이라 어드민에 맡긴다.
+ARITA_WEIGHTS_KEY = "arita_weights_v1"
+
+# (폰트명, 굵기 표기) — 폰트명이 다르면 손대지 않는다
+_ARITA = [("아리따 부리", "5종"), ("아리따 돋움", "5종")]
+
+
+def _migrate_arita_weights(db: Session):
+    done = db.query(AppMeta).filter(AppMeta.key == ARITA_WEIGHTS_KEY).first()
+    if done and done.value == "1":
+        return
+
+    changed = []
+    for name, label in _ARITA:
+        f = db.query(Font).filter(Font.name == name).first()
+        if f is None:
+            print("[migrate] 아리따 굵기: '%s' 를 못 찾음 — 건너뜀" % name)
+            continue
+        if f.weights == label:
+            continue
+        changed.append("%s %s→%s" % (name, f.weights, label))
+        f.weights = label
+
+    if done is None:
+        db.add(AppMeta(key=ARITA_WEIGHTS_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+    print("[migrate] 아리따 굵기 표기: %d종%s"
+          % (len(changed), (" — " + ", ".join(changed)) if changed else ""))
