@@ -186,9 +186,16 @@ PAIR_CATEGORIES = [
     },
 ]
 
-# 처음 열었을 때 보여줄 자리. 포스터는 글자가 가장 크게 앉는 틀이라
-# 폰트 모양이 한눈에 들어온다.
-DEFAULT_CATEGORY = "poster"
+# 처음 열었을 때 보여줄 자리.
+#
+# 영상·자막으로 둔다 — 사람들이 조합을 가장 많이 찾는 자리이고, 16:9 썸네일은
+# 제목과 자막의 크기 차이가 뚜렷해 세 폰트가 어떻게 나뉘어 일하는지가 한눈에
+# 보인다. (예전에는 포스터였다. 글자는 가장 크게 앉지만 제목 하나가 화면을
+# 채워서 '조합'이라는 것이 잘 안 읽혔다.)
+#
+# ⚠ static/font-pair.html 의 DEFAULT_CAT 과 반드시 같아야 한다. 어긋나면
+# 첫 화면 주소에 cat= 이 붙거나, 서버가 그린 것과 화면이 고른 것이 달라진다.
+DEFAULT_CATEGORY = "video"
 SURPRISE_CATEGORY = "surprise"
 
 _BY_KEY = {c["key"]: c for c in PAIR_CATEGORIES}

@@ -1498,8 +1498,24 @@ function closePairBand(){
 }
 
 syncBandOffset();
-window.addEventListener('load', syncBandOffset);
-window.addEventListener('resize', syncBandOffset);
+
+/* 띠 높이는 화면 폭 말고도 여러 이유로 바뀐다. 실제로 어긋났던 경우:
+   Noto Sans KR 이 늦게 실리면서 글자 줄 높이가 커져 띠가 40px → 45px 이 됐는데,
+   resize 이벤트는 그때 울리지 않아 --band-h 가 40 에 머물렀다. 스크롤하면
+   모양으로 찾기 바가 띠를 5px 파고들었다.
+
+   그래서 '언제 바뀔지'를 헤아리지 않고 요소 크기를 직접 지켜본다. */
+(function(){
+  var band = document.getElementById('pairBand');
+  if(band && window.ResizeObserver){
+    new ResizeObserver(syncBandOffset).observe(band);
+  } else {
+    window.addEventListener('resize', syncBandOffset);   // 아주 옛 브라우저용
+  }
+  window.addEventListener('load', syncBandOffset);
+  /* 웹폰트가 늦게 실리는 경우까지 확실히 잡는다 (ResizeObserver 가 없을 때의 보험) */
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(syncBandOffset);
+})();
 
 function scrollBelowFilter(el){
   if(!el) return;

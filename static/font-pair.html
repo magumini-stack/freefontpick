@@ -350,9 +350,10 @@
 (function(){
   'use strict';
 
-  /* 처음 열었을 때 — 서버의 DEFAULT_CATEGORY 와 같아야 주소가 깔끔하다.
-     포스터는 글자가 가장 크게 앉는 틀이라 폰트 모양이 한눈에 들어온다. */
-  var DEFAULT_CAT = 'poster';
+  /* 처음 열었을 때 — 서버의 DEFAULT_CATEGORY(app/pair_specimens.py) 와
+     같아야 주소가 깔끔하다. 영상·자막은 제목과 자막의 크기 차이가 뚜렷해
+     세 폰트가 어떻게 나뉘어 일하는지가 한눈에 보인다. */
+  var DEFAULT_CAT = 'video';
 
   /* 첫 화면에 앉힐 세 폰트. 무작위로 뽑으면 열 때마다 다른 인상을 주는데,
      첫 인상은 정해 두는 편이 낫다. 주소에 폰트가 지정돼 있으면 그쪽이 이긴다.
