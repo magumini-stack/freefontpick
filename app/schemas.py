@@ -75,6 +75,10 @@ class FontOut(FontBase):
     # 상세페이지 '글자 견본' 자리를 대체하는 샘플 이미지 보유 여부.
     # 실제 이미지는 GET /api/fonts/{id}/sample-image 로 받는다.
     has_sample: bool = False
+    # 이 폰트가 실제로 쓸 수 있는 굵기. 목록 조회에서는 ?weights=1 로 물어볼
+    # 때만 채워지고, 평소에는 빈 배열이다 — 폰트마다 파일을 확인해야 해서
+    # 홈 갤러리(모든 방문자)가 늘 낼 비용은 아니기 때문이다.
+    available_weights: List[int] = Field(default_factory=list)
     # 배포용 ZIP(어드민 업로드)이 있는가. 있으면 상세페이지 다운로드 버튼이
     # 배포처(url) 대신 우리 서버의 파일을 바로 내려준다.
     has_zip: bool = False

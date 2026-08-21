@@ -76,7 +76,17 @@ def _has_zip(font_id: int) -> bool:
         return False
 
 
-def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
+def _available_weights(font: Font) -> list:
+    """이 폰트가 실제로 쓸 수 있는 굵기. 파일을 확인하므로 부를 때만 부른다."""
+    try:
+        from .files import _merged_weights
+        return [w["weight"] for w in _merged_weights(font)]
+    except Exception:
+        return []
+
+
+def _to_out(font: Font, paired_ids: set = frozenset(),
+            with_weights: bool = False) -> FontOut:
     return FontOut(
         has_pairing=font.id in paired_ids,
         id=font.id,
@@ -98,6 +108,7 @@ def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
         like_count=font.like_count or 0,
         has_sample=_has_sample(font.id),
         has_zip=_has_zip(font.id),
+        available_weights=_available_weights(font) if with_weights else [],
         file_source=_file_source(font.id),
         file_version=_file_version(font.id),
     )
@@ -142,8 +153,13 @@ def _resolve_tags(db: Session, tag_names: list) -> List[Tag]:
 
 # 공개 API
 @router.get("", response_model=List[FontOut])
-def list_fonts(db: Session = Depends(get_db)):
+def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
     """모든 방문자가 호출. sort_order 순으로 정렬.
+
+    weights=1 이면 폰트마다 쓸 수 있는 굵기(available_weights)를 함께 싣는다.
+    기본으로 싣지 않는 이유: 폰트마다 파일 존재를 확인해야 해서 227종이면
+    약 30ms 가 는다. 그 값이 필요한 곳은 조합 페이지의 폰트 선택창 하나뿐이라,
+    홈 갤러리를 여는 모든 사람이 낼 비용은 아니다.
 
     meta.license는 응답에서 뺀다 — 라이선스 요약표는 상세페이지에서만 쓰는데
     약관 원문이 길어 목록 응답의 35%(127KB)를 차지했다. 상세페이지는
@@ -154,7 +170,7 @@ def list_fonts(db: Session = Depends(get_db)):
     paired = _paired_font_ids(db)
     out = []
     for f in fonts:
-        item = _to_out(f, paired)
+        item = _to_out(f, paired, with_weights=bool(weights))
         if item.meta and "license" in item.meta:
             # font.meta를 직접 지우면 SQLAlchemy가 변경으로 보고 DB에 반영한다.
             # 반드시 복사본에서 뺀다.
