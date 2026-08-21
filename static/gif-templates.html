@@ -185,6 +185,23 @@ button{font-family:inherit;cursor:pointer}
   <div class="acts"><a class="btn btn-primary" href="/gif">직접 편집하기</a></div>
 </div>
 
+<style>
+/* 서버가 그리는 템플릿 목록 — JS 갤러리가 뜨면 감춘다.
+   감춰 두고 크롤러에게만 보여주는 것이 아니다. JS 가 안 도는 동안에는
+   사람에게도 이 목록이 보이고, 눌러서 편집기로 갈 수 있다. */
+.tplssr{margin-top:26px;padding-top:22px;border-top:1px solid var(--border)}
+.tplssr h2{font-size:15px;font-weight:800;margin-bottom:6px}
+.tplssr .lead{font-size:13px;line-height:1.7;color:var(--text-secondary);
+  margin-bottom:16px;word-break:keep-all}
+.tplssr h3{font-size:12.5px;font-weight:800;color:var(--text-secondary);
+  margin:16px 0 7px}
+.tplssr ul{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 18px}
+@media(max-width:700px){.tplssr ul{grid-template-columns:1fr}}
+.tplssr li{font-size:12.5px;line-height:1.6;color:var(--text-secondary)}
+.tplssr b{color:var(--text-primary);font-weight:700}
+.tplssr .no{font-family:ui-monospace,monospace;font-size:11px;color:var(--text-muted);
+  margin-right:5px}
+</style>
 <div class="filters">
   <div class="wrap">
     <div class="frow">
@@ -196,6 +213,10 @@ button{font-family:inherit;cursor:pointer}
 
 <div class="wrap">
   <div class="grid" id="grid"><div class="empty">불러오는 중…</div></div>
+  <!-- 서버가 그리는 목록. 위 갤러리는 JS 가 채우기 때문에, 이게 없으면
+       크롤러와 JS 차단 환경에서 이 페이지의 본문이 "불러오는 중…" 뿐이다.
+       갤러리가 그려지면 JS 가 이 블록을 감춘다(아래 renderGrid 끝). -->
+  {{FFP_GIF_TPL_SSR}}
 </div>
 
 <div class="ovl" id="ovl">
@@ -273,6 +294,10 @@ function filtered(){
 
 function render(){
   const list = filtered();
+  /* 서버가 그려 둔 목록은 진짜 갤러리가 뜨면 감춘다. 둘 다 보이면 같은 목록이
+     두 번 나온다 — index.html 의 #homeSsr 과 같은 방식이다. */
+  const _ssr = document.getElementById('tplSsr');
+  if(_ssr) _ssr.style.display = 'none';
   $('cnt').textContent = list.length;
   stopAll();
   const g = $('grid');

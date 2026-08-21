@@ -775,6 +775,54 @@ def find_font_page():
 # 헤더 메뉴에는 아직 넣지 않는다 — 화면이 자리를 잡을 때까지 주소로만 들어간다.
 # 사이트맵에도 그때 함께 넣는다(미완성 페이지를 검색엔진에 먼저 알릴 이유가 없다).
 
+def _pair_guide_block() -> str:
+    """캔버스 아래 안내 글 — 화면에도 그대로 보이는 자리다.
+
+    이 페이지는 화면을 전부 JS가 그려서, 크롤러가 읽는 본문이 메뉴 이름뿐이었다
+    (실측 346자, 대부분 헤더·푸터). 광고가 붙은 페이지가 그 상태면 저가치
+    콘텐츠로 읽힌다. 감춰 두고 크롤러에게만 보여주는 것은 위반이므로 사람이
+    읽어도 쓸모 있는 글로 둔다.
+
+    설명은 지어내지 않는다 — PAIR_CATEGORIES 가 이미 자리마다 desc 와 themes 를
+    갖고 있고, 화면 위 칩은 고른 하나의 desc 만 보여준다. 나머지 여섯을 펼치는 것이
+    이 블록이 하는 일이다.
+    """
+    from ..pair_specimens import PAIR_CATEGORIES
+
+    cells = []
+    for c in PAIR_CATEGORIES:
+        themes = c.get("themes") or []
+        t = ('<span class="themes">%s</span>' % _esc(" · ".join(themes))) if themes else ""
+        cells.append(
+            '<div class="fp-guide-cell"><h3>%s</h3><p>%s</p>%s</div>'
+            % (_esc(c["label"]), _esc(c["desc"]), t)
+        )
+
+    return (
+        '<section class="fp-guide">'
+        "<h2>어디에 쓸지부터 고르세요</h2>"
+        '<p class="lead">같은 폰트라도 자막에서 좋은 짝과 본문에서 좋은 짝이 다릅니다. '
+        "쓰는 자리를 먼저 고르면 그 자리의 실제 틀 위에 제목·부제·본문 세 폰트를 얹어 "
+        "보여드립니다. 일곱 자리가 각각 어떤 자리인지 아래에 적었습니다.</p>"
+        '<div class="fp-guide-grid">' + "".join(cells) + "</div>"
+        '<div class="fp-guide-note">'
+        "<h3>조합이 어긋나는 흔한 자리</h3>"
+        "<ul>"
+        "<li><b>제목과 본문의 굵기 차이가 모자랄 때.</b> 둘 다 700이면 어느 쪽을 "
+        "먼저 읽어야 할지 알 수 없습니다. 제목을 올리기보다 본문을 400이나 300으로 "
+        "내리는 편이 대개 낫습니다.</li>"
+        "<li><b>개성이 강한 서체를 둘 이상 쓸 때.</b> 손글씨나 장식체는 한 자리에만 "
+        "두고 나머지는 받쳐 주는 역할로 두세요.</li>"
+        "<li><b>본문에 제목용 서체를 쓸 때.</b> 획이 굵고 자간이 좁은 서체는 크게 쓸 때 "
+        "좋지만, 작게 여러 줄을 쌓으면 글자가 서로 붙어 읽기 어렵습니다.</li>"
+        "<li><b>영문 폰트에 한글을 얹을 때.</b> 한글 글리프가 없으면 대체 서체로 "
+        "떨어져서, 고른 폰트와 전혀 다른 모양이 나옵니다.</li>"
+        "</ul>"
+        "</div>"
+        "</section>"
+    )
+
+
 def _pair_ssr_block(db: Session) -> str:
     """오른쪽 칸 아래 사용팁 — 화면에도 그대로 보이는 자리다.
 
@@ -809,6 +857,7 @@ def font_pair_page(request: Request, db: Session = Depends(get_db)):
     html = (STATIC_DIR / "font-pair.html").read_text(encoding="utf-8")
     html = inject_header(html, "fontpair")   # 헤더에서 이 메뉴에 활성 표시
     html = html.replace("{{FFP_PAIR_SSR}}", _pair_ssr_block(db), 1)
+    html = html.replace("{{FFP_PAIR_GUIDE}}", _pair_guide_block(), 1)
 
     # 칩 아래 설명 한 줄. JS가 카테고리를 바꿀 때마다 갈아끼우지만, 첫 줄은
     # 서버가 박아 넣는다 — 안 그러면 로드 직후 한 줄이 비었다가 채워지고,

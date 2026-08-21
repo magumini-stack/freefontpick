@@ -27,6 +27,56 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 STATIC_DIR = BASE_DIR / "static"
 
 
+def _tpl_ssr() -> str:
+    """템플릿 목록을 서버가 글로 그린다.
+
+    이 페이지의 내용은 템플릿 50개인데 전부 JS 가 그린다. 크롤러가 읽는 본문이
+    "불러오는 중…" 뿐이면 광고가 붙은 페이지로서 저가치 콘텐츠로 읽힌다.
+
+    지어낸 글이 아니라 실제 데이터다 — 번호·이름·예시 문구·용도 모두
+    app/gif_template_data.py 에 이미 있는 값이고, 화면 갤러리가 보여주는 것과
+    같은 목록이다.
+    """
+    import html as _h
+
+    from ..gif_template_data import GIF_TEMPLATES
+    try:
+        from ..gif_use_case_data import GIF_USE_CASES
+        hubs = {u["slug"]: u.get("title") or u["slug"] for u in GIF_USE_CASES}
+    except Exception:
+        hubs = {}
+
+    def esc(x):
+        return _h.escape(str(x or ""))
+
+    live = [t for t in GIF_TEMPLATES if t.get("is_active", True)]
+    live.sort(key=lambda t: t.get("sort_order", 0))
+
+    # 용도별로 묶는다. 50개를 한 줄로 늘어놓으면 읽히지 않는다.
+    groups = {}
+    for t in live:
+        groups.setdefault(t.get("hub_slug", ""), []).append(t)
+
+    out = []
+    for slug, items in groups.items():
+        rows = "".join(
+            '<li><span class="no">%s</span><b>%s</b> — %s</li>'
+            % (esc(t.get("number")), esc(t.get("title")), esc(t.get("sample_text")))
+            for t in items
+        )
+        out.append("<h3>%s (%d)</h3><ul>%s</ul>" % (esc(hubs.get(slug, slug)), len(items), rows))
+
+    return (
+        '<section class="tplssr" id="tplSsr">'
+        "<h2>템플릿 %d종</h2>"
+        '<p class="lead">문구·폰트·색을 그대로 두고 내려받아도 되고, 편집기에서 '
+        "고쳐 써도 됩니다. 모두 서버에 올리지 않고 브라우저에서 바로 만들어집니다. "
+        "아래는 준비된 템플릿과 그 예시 문구입니다.</p>" % len(live)
+        + "".join(out)
+        + "</section>"
+    )
+
+
 def _page(filename: str, active: str = "gif") -> HTMLResponse:
     html = (STATIC_DIR / filename).read_text(encoding="utf-8")
     return HTMLResponse(inject_header(html, active))
@@ -39,7 +89,9 @@ def gif_editor():
 
 @router.get("/gif/templates", response_class=HTMLResponse)
 def gif_gallery():
-    return _page("gif-templates.html")
+    html = (STATIC_DIR / "gif-templates.html").read_text(encoding="utf-8")
+    html = html.replace("{{FFP_GIF_TPL_SSR}}", _tpl_ssr(), 1)
+    return HTMLResponse(inject_header(html, "gif"))
 
 
 @router.get("/admin/gif", response_class=HTMLResponse)

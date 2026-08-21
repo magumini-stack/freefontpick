@@ -284,6 +284,30 @@
            color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .fp-more a{color:var(--accent);font-weight:700;text-decoration:none}
   .fp-more a:hover{text-decoration:underline}
+
+  /* ── 캔버스 아래 안내 글 ──
+     화면 위쪽 칩은 '지금 고른 자리' 하나의 설명만 보여준다. 나머지 여섯은
+     눌러 보기 전에는 읽을 수 없어서, 무엇을 고를 수 있는 자리인지 한눈에
+     들어오지 않았다. 일곱을 여기 펼친다.
+     크롤러가 읽을 글이기도 하다 — 이 페이지는 화면을 전부 JS가 그려서,
+     이 블록이 없으면 본문이 메뉴 이름뿐이 된다. */
+  .fp-guide{margin-top:44px;padding-top:34px;border-top:1px solid var(--border)}
+  .fp-guide h2{font-size:17px;font-weight:800;letter-spacing:-.4px;margin-bottom:6px}
+  .fp-guide .lead{font-size:13.5px;color:var(--text-secondary);line-height:1.7;
+    margin-bottom:22px;word-break:keep-all}
+  .fp-guide-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;
+    background:var(--border);border:1px solid var(--border)}
+  @media(max-width:760px){.fp-guide-grid{grid-template-columns:1fr}}
+  .fp-guide-cell{background:var(--bg-card);padding:16px 17px}
+  .fp-guide-cell h3{font-size:14px;font-weight:800;letter-spacing:-.3px;margin-bottom:5px}
+  .fp-guide-cell p{font-size:12.8px;line-height:1.65;color:var(--text-secondary);
+    word-break:keep-all}
+  .fp-guide-cell .themes{display:block;margin-top:8px;font-size:11.5px;
+    color:var(--text-muted);line-height:1.6}
+  .fp-guide-note{margin-top:26px}
+  .fp-guide-note h3{font-size:14.5px;font-weight:800;margin-bottom:9px}
+  .fp-guide-note li{font-size:13px;line-height:1.75;color:var(--text-secondary);
+    margin-left:17px;word-break:keep-all}
   .fp-about p{font-size:12.5px;color:var(--text-secondary);line-height:1.8;
               word-break:keep-all}
 </style>
@@ -331,6 +355,8 @@
   </div>
 
   <p class="fp-err" id="fpErr" hidden></p>
+
+  {{FFP_PAIR_GUIDE}}
 
 </main>
 

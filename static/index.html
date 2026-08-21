@@ -515,7 +515,7 @@
 
        position:fixed 라 페이지 흐름과 무관하다. 조합 찾기 띠(sticky, 60~105px)
        와도 겹치지 않는다 — 이쪽은 132px 부터 시작한다. */
-    .skyscraper-ad{
+    .side-promo{
       display:none;
       position:fixed;
       top:132px;
@@ -533,14 +533,14 @@
       color:inherit;
       transition:border-color .15s,transform .1s;
     }
-    .skyscraper-ad:hover{border-color:var(--accent)}
-    .skyscraper-ad:active{transform:scale(.98)}
-    .skyscraper-ad .appico{width:56px;height:56px;border-radius:14px;font-size:26px;box-shadow:0 4px 14px rgba(0,0,0,.15);margin-bottom:12px}
-    .skyscraper-ad .sky-title{font-size:13.5px;font-weight:800;color:var(--text-primary);line-height:1.4}
-    .skyscraper-ad .sky-sub{font-size:11.5px;color:var(--text-secondary);line-height:1.5;margin-top:6px}
-    .skyscraper-ad .sky-cta{margin-top:14px;width:100%;background:var(--accent);color:#fff;font-weight:700;font-size:12.5px;padding:9px;border-radius:8px;transition:background-color .15s}
-    .skyscraper-ad:hover .sky-cta{background:var(--accent-hover)}
-    @media(min-width:1600px){ .skyscraper-ad{display:flex} }
+    .side-promo:hover{border-color:var(--accent)}
+    .side-promo:active{transform:scale(.98)}
+    .side-promo .appico{width:56px;height:56px;border-radius:14px;font-size:26px;box-shadow:0 4px 14px rgba(0,0,0,.15);margin-bottom:12px}
+    .side-promo .sky-title{font-size:13.5px;font-weight:800;color:var(--text-primary);line-height:1.4}
+    .side-promo .sky-sub{font-size:11.5px;color:var(--text-secondary);line-height:1.5;margin-top:6px}
+    .side-promo .sky-cta{margin-top:14px;width:100%;background:var(--accent);color:#fff;font-weight:700;font-size:12.5px;padding:9px;border-radius:8px;transition:background-color .15s}
+    .side-promo:hover .sky-cta{background:var(--accent-hover)}
+    @media(min-width:1600px){ .side-promo{display:flex} }
 
     .view-toolbar{display:flex;gap:2px;flex:0 0 auto;align-items:center}
     .view-btn{color:var(--text-muted);background:none;border:1px solid transparent;border-radius:2px;
@@ -818,15 +818,18 @@
       /* ══ 앱 배너 (모바일 전용) ══
        하단 고정. 전면 팝업이 아니라 본문을 덮지 않는 형태여야
        구글 모바일 인터스티셜 페널티를 받지 않는다. */
-    .fbx{position:fixed;left:12px;right:12px;bottom:12px;z-index:850;
-      display:none;align-items:center;gap:12px;
-      background:var(--bg-card);border:1px solid var(--border);
-      border-radius:14px;padding:12px 14px;
-      box-shadow:0 8px 28px rgba(0,0,0,.18);
-      /* 아이폰 하단 홈 인디케이터에 가리지 않게 */
-      margin-bottom:env(safe-area-inset-bottom,0)}
-    .fbx.show{display:flex;animation:fbxUp .28s cubic-bezier(.2,.8,.3,1)}
-    @keyframes fbxUp{from{transform:translateY(120%);opacity:0}to{transform:none;opacity:1}}
+    /* ── 앱 배너 ──
+       예전에는 화면 하단에 고정된 배너였다. 자동 광고의 앵커 광고가 같은
+       자리에 붙어서, 둘 중 하나가 다른 하나를 덮었다 — 광고를 가리는 것은
+       정책 위반이고, 하단 바가 두 겹이면 인터스티셜처럼 보인다.
+       그래서 본문 흐름 안으로 내렸다. 겹칠 자리가 아예 없어진다.
+
+       1600px 이상에서는 우측 세로 배너(.side-promo)가 같은 일을 하므로 감춘다. */
+    .fbx{text-decoration:none;max-width:1240px;margin:8px auto 0;padding:14px 16px;
+      display:flex;align-items:center;gap:12px;
+      background:var(--bg-card);border:1px solid var(--border);border-radius:14px}
+    .fbx:hover{border-color:var(--accent)}
+    @media(min-width:1600px){.fbx{display:none}}
     .fbx-ico{width:52px;height:52px;border-radius:12px;font-size:25px}
     .fbx-txt{flex:1;min-width:0;line-height:1.35}
     .fbx-txt b{display:block;font-size:14.5px;font-weight:800;margin-bottom:2px}
@@ -838,15 +841,10 @@
     .fbx-s2{font-size:10.5px;color:var(--text-muted,#9A9A9A);margin-top:1px}
     .fbx-cta{flex:0 0 auto;background:var(--accent);color:#fff;
       font-size:13.5px;font-weight:800;padding:10px 18px;border-radius:999px;
-      text-decoration:none;white-space:nowrap}
-    .fbx-cta:active{opacity:.85}
+      white-space:nowrap}
+    .fbx:active .fbx-cta{opacity:.85}
     /* 닫기는 배너 바깥 위쪽에 띄워 터치 영역이 겹치지 않게 한다 */
-    .fbx-x{position:absolute;top:-10px;right:-4px;width:28px;height:28px;
-      border:1px solid var(--border);border-radius:50%;background:var(--bg-card);
-      color:var(--text-secondary);font-size:17px;line-height:1;cursor:pointer;
-      display:flex;align-items:center;justify-content:center;padding:0;
-      box-shadow:0 2px 8px rgba(0,0,0,.14)}
-    @media(prefers-reduced-motion:reduce){.fbx.show{animation:none}}
+
 </style>
 </head>
 <body>
@@ -854,11 +852,11 @@
 <!-- HEADER -->
 <!--FFP_HEADER-->
 
-<!-- 우측 여백 스카이스크래퍼 — 와이즈폰트 앱 소개 (사이트의 모든 앱 배너와 같은 곳으로 간다).
+<!-- 우측 여백 세로 배너 — 와이즈폰트 앱 소개 (사이트의 모든 앱 배너와 같은 곳으로 간다).
      폰트 상세페이지의 같은 배너와 문구·자리·크기를 맞춘다.
      ⚠ 이 자리는 홈 전용이다. 헤더(app/header.py)로 옮기지 말 것 — 조합 찾기 띠를
        헤더로 올릴 때 이 블록이 딸려가 용도·소개·FAQ 까지 앱 배너가 붙었다. -->
-<a class="skyscraper-ad" id="skyscraperAd" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">
+<a class="side-promo" id="sidePromo" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">
   <span class="appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
   <div class="sky-title">글자로 노는 앱</div>
   <div class="sky-sub">사진에 글쓰고,<br>GIF만들고,<br>TTF 다운 받자!</div>
@@ -924,6 +922,18 @@
     </aside>
     <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
   </div>
+
+
+  <!-- 앱 배너 — 본문 흐름 안이다(고정 아님). 자동 광고의 앵커 광고와 자리를
+       다투지 않게 하려는 것이다. 1600px 이상에서는 우측 세로 배너가 대신한다. -->
+  <a class="fbx" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">
+    <span class="fbx-ico appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
+    <div class="fbx-txt">
+      <b>글자로 노는 앱</b>
+      <span class="fbx-s1">사진에 글쓰고, GIF만들고, TTF 다운 받자!</span>
+    </div>
+    <span class="fbx-cta">자세히 보기</span>
+  </a>
 
   <!-- 서버가 채우는 목록 (용도 허브 + 전체 폰트).
        용도 그리드는 display:none으로, 갤러리는 빈 채로 시작하기 때문에
@@ -3772,77 +3782,6 @@ init().catch(function(err){
   var ssr = document.getElementById('homeSsr');
   if(ssr) ssr.style.display = '';
 });
-</script>
-
-<!-- ══ 앱 배너 (모바일 전용) ══════════════════════════
-     와이즈폰트 앱 소개 페이지로 보낸다 — 사이트의 앱 배너가 모두 같은 곳으로 간다.
-     구글 모바일 인터스티셜 페널티를 피하려고 두 가지를 지킨다.
-       ① 진입 즉시가 아니라 화면 높이 1.5배를 스크롤한 뒤에만 뜬다.
-          크롤러는 스크롤하지 않으므로 색인·순위에 영향이 없다.
-       ② 본문을 덮지 않는 하단 고정 배너다. 전면 팝업이 아니다.
-     내용(아이콘·문구·링크)은 JS가 기기를 판별해 채운다. -->
-<div class="fbx" id="fbxBanner" role="complementary" aria-label="앱 안내">
-  <button type="button" class="fbx-x" onclick="fbxClose()" aria-label="닫기">&times;</button>
-  <span class="fbx-ico appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
-  <div class="fbx-txt">
-    <b>글자로 노는 앱</b>
-    <span class="fbx-s1">사진에 글쓰고, GIF만들고, TTF 다운 받자!</span>
-  </div>
-  <a class="fbx-cta" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">자세히 보기</a>
-</div>
-
-<script>
-/* ══ 앱 배너 ══════════════════════════════════════════
-   iOS 판별에 maxTouchPoints를 함께 보는 이유: iPadOS 13부터 아이패드
-   사파리가 자신을 Macintosh로 신고한다. 흔한 /iPad/ 검사로는 아이패드가
-   통째로 빠진다. 맥에는 터치가 없으므로 'Mac + 터치'면 아이패드로 본다. */
-function fbxIsIOS(){
-  var ua = navigator.userAgent || '';
-  if(/iPhone|iPad|iPod|CriOS|FxiOS/.test(ua)) return true;
-  return /Mac/.test(ua) && navigator.maxTouchPoints > 1;   // iPadOS 13+
-}
-function fbxIsAndroid(){
-  return /Android/.test(navigator.userAgent || '');
-}
-/* [2026-08] 앱마다 스토어로 갈라 보내던 것을 앱 소개 페이지 하나로 모았다.
-   그래서 앱 목록(FBX_APPS)과 그것을 화면에 꽂던 코드가 통째로 필요 없어졌다 —
-   문구와 링크는 위 마크업에 그대로 적혀 있다.
-   OS 판별은 남긴다. 띄울지 말지를 정하는 데는 계속 쓴다(데스크톱은 제외). */
-function fbxSeen(){}
-function fbxClose(){
-  var el = document.getElementById('fbxBanner');
-  if(el) el.classList.remove('show');
-}
-(function(){
-  // 데스크톱은 대상이 아니다 — 사이드바와 스카이스크래퍼가 이미 있다
-  if(!fbxIsIOS() && !fbxIsAndroid()) return;
-
-  var el = document.getElementById('fbxBanner');
-  if(!el) return;
-
-  var shown = false;
-  function check(){
-    if(shown) return;
-    var h = document.documentElement;
-    var y = h.scrollTop || document.body.scrollTop || 0;
-    /* 기준을 '페이지 길이의 비율'이 아니라 '화면 높이의 배수'로 잡는다.
-       비율로 하면 페이지가 길수록 조건이 가혹해진다 — 폰트 200종이 깔린
-       메인은 60%가 한참 아래라 사실상 도달하지 못했다. */
-    if(y < h.clientHeight * 1.5) return;
-    shown = true;
-    window.removeEventListener('scroll', check);
-    el.classList.add('show');
-  }
-  window.addEventListener('scroll', check, {passive:true});
-  // 스크롤할 여지가 아예 없는 짧은 페이지 대비
-  setTimeout(function(){
-    var h = document.documentElement;
-    if(!shown && h.scrollHeight - h.clientHeight < h.clientHeight * 1.5){
-      shown = true;
-      el.classList.add('show');
-    }
-  }, 6000);
-})();
 </script>
 
 </body>
