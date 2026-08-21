@@ -756,6 +756,18 @@
         <div class="field-hint" id="fmSizeWarning" style="display:none;color:var(--danger,#d33);font-weight:600">⚠ 파일이 큽니다 (1MB 초과). 사용자 페이지 로딩이 느려질 수 있으니 서브셋으로 용량을 줄이는 것을 권장합니다.</div>
       </div>
 
+      <div class="field">
+        <label>배포용 ZIP 업로드 (선택) <span class="meta-sub">— 올리면 상세페이지 '다운로드'가 배포처 대신 이 파일을 바로 내려줍니다</span></label>
+        <div class="drop-zone" id="fmZipZone" onclick="document.getElementById('fmZipInput').click()">
+          <i class="ti ti-file-zip" aria-hidden="true"></i>
+          <p>클릭하거나 ZIP 파일을 끌어다 놓기</p>
+          <small>ZIP 전용 (최대 30MB)</small>
+          <input type="file" id="fmZipInput" accept=".zip" onchange="handleFmZip(this.files[0])">
+        </div>
+        <div id="fmZipPreview"></div>
+        <div class="field-hint">사용자가 받을 때의 파일 이름은 <strong>폰트명.zip</strong> 이 됩니다. 위 '배포처 URL'은 지우지 않아도 됩니다 — ZIP이 있으면 ZIP이 이기고, ZIP을 지우면 다시 배포처로 갑니다.</div>
+      </div>
+
       <div class="field meta-section" id="fmSampleSection">
         <div class="meta-header">
           <label>
@@ -1374,6 +1386,7 @@ let FONTS = [];
 let TAGS = [];
 let editingId = null;       // 폰트 수정 중인 id
 let pendingFile = null;     // 업로드 대기 중인 파일
+let pendingZip = null;      // 업로드 대기 중인 배포용 ZIP
 let fmSelectedTags = new Set();
 let pendingDelete = null;   // {type:'font'|'category', id|name}
 let catEditingName = null;
@@ -1612,6 +1625,7 @@ function clearDropMarkers(tbody){
 function openFontModal(){
   editingId = null;
   pendingFile = null;
+  pendingZip = null;
   fmSelectedTags = new Set();
   fmMeta = null;
   fmMetaAuto = null;
@@ -1625,6 +1639,8 @@ function openFontModal(){
   document.getElementById('fmUrl').value = '';
   document.getElementById('fmPreviewText').value = '';
   document.getElementById('fmFileInput').value = '';
+  document.getElementById('fmZipInput').value = '';
+  renderFmZipPreview('');
   loadLicenseForm(null);
   renderFmTags();
   document.getElementById('fmWebfontName').value = '';
@@ -1666,6 +1682,7 @@ async function editFont(id){
   }
   editingId = id;
   pendingFile = null;
+  pendingZip = null;
   fmSelectedTags = new Set(f.tags);
   document.getElementById('fontModalTitle').textContent = '폰트 수정';
   document.getElementById('fmName').value = f.name;
@@ -1677,6 +1694,9 @@ async function editFont(id){
   document.getElementById('fmUrl').value = f.url || '';
   document.getElementById('fmPreviewText').value = (f.meta && f.meta.preview_text) || '';
   document.getElementById('fmFileInput').value = '';
+  document.getElementById('fmZipInput').value = '';
+  // 이미 올려둔 ZIP 이 있으면 그 사실과 삭제 버튼을 보여준다
+  renderFmZipPreview(f.hasZip ? '배포용 ZIP이 올라가 있습니다' : '');
   renderFmTags();
   document.getElementById('fmWebfontName').value = f.webfontFamily || '';
   document.getElementById('fmWebfontCssUrl').value = f.webfontCssUrl || '';
@@ -1970,6 +1990,52 @@ function renderFmFilePreview(infoText){
   }
 }
 function clearFmFile(){ pendingFile=null; document.getElementById('fmFileInput').value=''; renderFmFilePreview(); }
+
+/* ── 배포용 ZIP ──────────────────────────────────────────────
+   상세페이지 '다운로드'가 바로 내려주는 원본 묶음이다. 위 woff2(미리보기용)와
+   자리도 쓰임도 다르므로 함수를 나눠 둔다. */
+function handleFmZip(file){
+  if(!file) return;
+  if(!/\.zip$/i.test(file.name)){ showToast('ZIP 파일만 올릴 수 있어요.'); return; }
+  if(file.size > 30*1024*1024){ showToast('30MB를 초과할 수 없어요.'); return; }
+  pendingZip = file;
+  renderFmZipPreview();
+}
+function renderFmZipPreview(infoText){
+  const box = document.getElementById('fmZipPreview');
+  if(!box) return;
+  if(pendingZip){
+    box.innerHTML = `<div class="selected-file">
+      <i class="ti ti-file-zip" aria-hidden="true"></i>
+      <span class="name">${escapeHtml(pendingZip.name)}</span>
+      <span style="font-size:11px;color:var(--text-muted)">${(pendingZip.size/1024).toFixed(0)}KB</span>
+      <button onclick="clearFmZip()" aria-label="파일 제거"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>`;
+  } else if(infoText){
+    box.innerHTML = `<div class="selected-file" style="background:var(--bg-secondary);color:var(--text-secondary)">
+      <i class="ti ti-check" aria-hidden="true"></i>
+      <span class="name">${escapeHtml(infoText)}</span>
+    </div>` + (editingId ? `<button type="button" class="btn-secondary"
+        style="margin-top:6px;font-size:12px;padding:4px 10px" onclick="deleteServerZip()">
+        <i class="ti ti-trash" aria-hidden="true"></i> 서버에서 이 ZIP 삭제</button>` : '');
+  } else {
+    box.innerHTML = '';
+  }
+}
+function clearFmZip(){ pendingZip=null; document.getElementById('fmZipInput').value=''; renderFmZipPreview(); }
+
+async function deleteServerZip(){
+  if(!editingId) return;
+  if(!confirm('올려둔 배포용 ZIP을 삭제할까요?\n삭제하면 상세페이지 다운로드가 다시 배포처 URL로 갑니다.')) return;
+  try{
+    await FontFileStore.deleteZip(editingId);
+    renderFmZipPreview('');
+    showToast('배포용 ZIP을 삭제했어요');
+    await refresh();
+  }catch(e){
+    showToast('삭제 실패: ' + e.message);
+  }
+}
 
 /* 서버에 올라간 대표 파일을 지운다. 웹폰트(CDN)로 등록된 폰트라면 파일을 지워야
    비로소 CDN 굵기가 제대로 나온다. 번들 폰트는 배포에 묶여 있어 이걸로 안 지워진다. */
@@ -2306,6 +2372,16 @@ async function saveFont(){
       fileUploadOk = false;
       fileUploadError = e.message || '알 수 없는 오류';
       console.error('파일 업로드 실패:', e);
+    }
+  }
+
+  // 배포용 ZIP 업로드 — 폰트 저장이 끝난 뒤라야 id 가 있다
+  if(pendingZip && saved){
+    try {
+      await FontFileStore.saveZip(saved.id, pendingZip);
+    } catch(e) {
+      // ZIP 실패를 폰트 저장 실패로 묶지 않는다. 폰트는 이미 저장됐다.
+      showToast('폰트는 저장됐지만 ZIP 업로드 실패: ' + (e.message || '알 수 없는 오류'));
     }
   }
 

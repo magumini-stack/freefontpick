@@ -55,6 +55,29 @@ router = APIRouter(prefix="/api/fonts", tags=["files"])
 FONTS_DIR = Path(os.getenv("FONTS_DIR", "/app/user_data/fonts"))
 FONTS_DIR.mkdir(parents=True, exist_ok=True)
 
+# ─── 배포용 ZIP ───────────────────────────────────────────
+# 어드민이 올린 원본 폰트 묶음(ttf/otf 등). 사용자가 '다운로드'를 눌렀을 때만
+# 나간다 — 화면에 글자를 그리는 woff2(FONTS_DIR)와 쓰임이 달라 자리도 나눈다.
+#
+# /app/user_data/ 아래에 두는 이유는 FONTS_DIR 과 같다 — 카페24는 이 경로만
+# 배포 사이에 보존한다. 저장소에 넣으면 폰트를 하나 추가할 때마다 push 해야 한다.
+ZIPS_DIR = Path(os.getenv("FONT_ZIPS_DIR", "/app/user_data/fontzips"))
+# woff2(5MB)보다 넉넉히 잡는다. ttf/otf 여러 굵기가 한 묶음에 들어온다.
+MAX_ZIP_SIZE = 30 * 1024 * 1024
+
+
+def zip_path(font_id: int) -> Path:
+    return ZIPS_DIR / f"font-{font_id:03d}.zip"
+
+
+def has_zip(font_id: int) -> bool:
+    """이 폰트에 올려둔 ZIP 이 있는가. 목록 조회에서 폰트마다 불리므로 가볍게."""
+    try:
+        return zip_path(font_id).is_file()
+    except OSError:
+        return False
+
+
 # 배포에 묶인 시드 폰트 경로 (읽기 전용 fallback)
 BUNDLED_FONTS_DIR = Path(__file__).resolve().parent.parent.parent / "static" / "fonts"
 # 저장소 루트 /fonts (시드 번들의 실제 위치일 수 있음)
@@ -778,3 +801,98 @@ def delete_font_file(
     if not bundled_font_path(font_id).exists():
         font.has_file = False
     db.commit()
+
+
+# ══════════════════════════════════════════════════════════════
+# 배포용 ZIP
+# ══════════════════════════════════════════════════════════════
+
+@router.post("/{font_id}/zip")
+async def upload_font_zip(
+    font_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    _admin = Depends(require_password_changed),
+):
+    """어드민이 배포용 폰트 묶음을 올린다."""
+    font = db.query(Font).filter(Font.id == font_id).first()
+    if not font:
+        raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
+
+    if not (file.filename or "").lower().endswith(".zip"):
+        raise HTTPException(status_code=400, detail="ZIP 파일만 올릴 수 있습니다")
+
+    try:
+        content = await file.read()
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=400, detail=f"파일을 읽을 수 없어요: {e}")
+
+    if not content:
+        raise HTTPException(status_code=400, detail="빈 파일입니다")
+    if len(content) > MAX_ZIP_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"파일이 너무 큽니다 (최대 {MAX_ZIP_SIZE // 1024 // 1024}MB). "
+                   f"올리신 파일은 {len(content) / 1024 / 1024:.1f}MB 입니다.",
+        )
+    # 확장자만 믿지 않는다. 이름만 .zip 인 파일을 받아 두면 사용자가 눌렀을 때
+    # 열리지 않는 파일이 내려가고, 그 사실을 아무도 모른 채 남는다.
+    if not content.startswith(b"PK"):
+        raise HTTPException(
+            status_code=400,
+            detail="ZIP 파일이 아닙니다. 압축 파일이 맞는지 확인해 주세요.",
+        )
+
+    out = zip_path(font_id)
+    try:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_bytes(content)
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"파일 저장 실패 (디스크 권한 문제일 수 있어요): {type(e).__name__}: {e}",
+        )
+    return {"font_id": font_id, "size": len(content), "has_zip": True}
+
+
+@router.delete("/{font_id}/zip", status_code=status.HTTP_204_NO_CONTENT)
+def delete_font_zip(
+    font_id: int,
+    db: Session = Depends(get_db),
+    _admin = Depends(require_password_changed),
+):
+    font = db.query(Font).filter(Font.id == font_id).first()
+    if not font:
+        raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
+    p = zip_path(font_id)
+    if p.exists():
+        p.unlink()
+
+
+@router.get("/{font_id}/download")
+def download_font_zip(font_id: int, db: Session = Depends(get_db)):
+    """상세페이지 다운로드 버튼이 여는 주소. 누르면 바로 파일이 내려간다.
+
+    FileResponse 는 파일을 통째로 메모리에 올리지 않고 흘려보내므로, 큰
+    파일이어도 워커 메모리를 붙잡지 않는다.
+    """
+    font = db.query(Font).filter(Font.id == font_id).first()
+    if not font:
+        raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
+
+    p = zip_path(font_id)
+    if not p.is_file():
+        raise HTTPException(status_code=404, detail="이 폰트에는 올려둔 파일이 없습니다")
+
+    # 받는 사람에게는 font-062.zip 이 아니라 폰트 이름으로 보여야 한다.
+    # 한글·공백이 섞인 이름은 Starlette 가 RFC 5987 로 안전하게 인코딩한다.
+    name = (font.name or f"font-{font_id}").strip() or f"font-{font_id}"
+    for ch in '\\/:*?"<>|':
+        name = name.replace(ch, "")
+    return FileResponse(
+        p,
+        media_type="application/zip",
+        filename=f"{name}.zip",
+    )

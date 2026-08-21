@@ -63,6 +63,7 @@ const FontStore = {
       // 파일의 판. 주소에 ?v= 로 붙여 캐시를 가른다 — 없으면 폰트를 매번 다시 받는다
       fileVersion: f.file_version || 0,
       hasSample: !!f.has_sample,
+      hasZip: !!f.has_zip,
       hasPairing: !!f.has_pairing,
       sort_order: f.sort_order,
       meta: f.meta || {},
@@ -170,6 +171,7 @@ function _fromServer(f) {
     fileSource: f.file_source || '',
     fileVersion: f.file_version || 0,
     hasSample: !!f.has_sample,
+    hasZip: !!f.has_zip,
     hasPairing: !!f.has_pairing,
     sort_order: f.sort_order,
     meta: f.meta || {},
@@ -466,6 +468,18 @@ const FontFileStore = {
 
   async deleteFile(fontId) {
     await apiFetch(`/fonts/${fontId}/file`, {method: 'DELETE'});
+  },
+
+  /* 배포용 ZIP — 사용자가 '다운로드'를 눌렀을 때 내려가는 원본 묶음.
+     위 saveFile(woff2)과 쓰임이 다르다. 그쪽은 화면에 글자를 그리는 파일이다. */
+  async saveZip(fontId, file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    return await apiFetch(`/fonts/${fontId}/zip`, {method: 'POST', body: fd});
+  },
+
+  async deleteZip(fontId) {
+    await apiFetch(`/fonts/${fontId}/zip`, {method: 'DELETE'});
   },
 
   async listIds() {

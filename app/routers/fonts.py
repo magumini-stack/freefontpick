@@ -67,6 +67,15 @@ def _file_version(font_id: int) -> int:
         return 0
 
 
+def _has_zip(font_id: int) -> bool:
+    """배포용 ZIP 보유 여부. files 라우터가 파일 자리를 안다."""
+    try:
+        from .files import has_zip
+        return has_zip(font_id)
+    except Exception:
+        return False
+
+
 def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
     return FontOut(
         has_pairing=font.id in paired_ids,
@@ -88,6 +97,7 @@ def _to_out(font: Font, paired_ids: set = frozenset()) -> FontOut:
         meta=font.meta or {},
         like_count=font.like_count or 0,
         has_sample=_has_sample(font.id),
+        has_zip=_has_zip(font.id),
         file_source=_file_source(font.id),
         file_version=_file_version(font.id),
     )

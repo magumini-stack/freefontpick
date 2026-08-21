@@ -1245,7 +1245,14 @@
       syncTryPlaceholder();
       renderPreviewRows();
 
-      var dl = f.url || ('https://noonnu.cc/index?keyword=' + encodeURIComponent(f.name));
+      /* 우리 서버에 올려둔 배포용 ZIP 이 있으면 그것이 이긴다 — 구글 드라이브
+         같은 남의 화면을 거치지 않고 누르는 즉시 파일이 내려간다.
+         DB 의 배포처(url)는 그대로 두므로, 어드민에서 ZIP 을 지우면 예전
+         동작으로 돌아간다. 아래 isInternal 검사가 '/'로 시작하는 주소를
+         같은 탭 이동으로 처리하고, 서버가 attachment 로 내보내므로
+         페이지는 그대로 있고 다운로드만 시작된다. */
+      var dl = f.has_zip ? ('/api/fonts/' + f.id + '/download')
+             : (f.url || ('https://noonnu.cc/index?keyword=' + encodeURIComponent(f.name)));
       document.getElementById('downloadBtn').addEventListener('click', function(){
         /* 외부 배포처는 새 탭으로 열어 폰트픽 페이지를 잃지 않게 하고,
            폰트픽 안의 페이지(예: /wisefont/{slug} 자사 폰트 배포 페이지)는
