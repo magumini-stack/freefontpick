@@ -183,32 +183,38 @@
     @media(max-width:520px){.use-nm{font-size:15.5px}.use-cell{padding:15px 13px 14px}}
 
     /* ── 폰트 조합 찾기 띠 배너 ──
-       바로 위 용도 그리드와 같은 폭·같은 테두리를 쓴다. 배경만 달리해서
-       표의 한 줄이 아니라 별개의 진입로로 읽히게 했다.
+       바로 위 용도 그리드와 폭·테두리·배경까지 같게 맞춘다. 색으로 튀지
+       않아도 그리드 아래 한 줄만 홀로 가로로 누워 있어 눈에 걸린다 —
        용도 그리드가 '어디에 쓸지'를 고르는 자리라 그 다음 칸이 자연스럽다. */
-    .pair-band{max-width:1240px;margin:0 auto;padding:0 24px 30px}
-    .pair-band>a{display:flex;align-items:center;gap:16px;padding:17px 20px;
-      background:var(--accent-light);border:1px solid var(--border);
-      text-decoration:none;transition:border-color .15s,background .15s}
-    .pair-band>a:hover{border-color:var(--accent);background:var(--bg-card)}
-    .pair-band-ico{flex:none;width:40px;height:40px;border-radius:50%;
+    /* 아래 여백 20px + .main 위 여백 22px = 42px.
+       모양으로 찾기 바와의 간격을 예전 52px에서 20% 줄인 값이다. */
+    .pair-band{max-width:1240px;margin:0 auto;padding:0 24px 20px}
+    /* 배경·테두리를 용도 칸(.use-cell)과 똑같이 맞춘다 — 흰 배경에 hover 때만
+       연한 남색. 같은 표의 연장선으로 읽히게 하려는 것이다. */
+    .pair-band>a{display:flex;align-items:center;gap:12px;padding:11px 16px;
+      background:var(--bg-card);border:1px solid var(--border);
+      text-decoration:none;transition:background .15s}
+    .pair-band>a:hover{background:var(--accent-light)}
+    .pair-band-ico{flex:none;width:28px;height:28px;border-radius:50%;
       display:flex;align-items:center;justify-content:center;
-      background:var(--accent);color:#fff;font-size:20px}
-    .pair-band-txt{flex:1;min-width:0}
-    .pair-band-t{display:block;font-size:16.5px;font-weight:800;letter-spacing:-.4px;
+      background:var(--accent);color:#fff;font-size:15px}
+    /* 제목과 설명을 한 줄에 둔다. 좁아지면 설명부터 줄임표로 접힌다 —
+       줄바꿈을 허용하면 띠 높이가 화면 폭에 따라 들쭉날쭉해진다. */
+    .pair-band-txt{flex:1;min-width:0;display:flex;align-items:baseline;gap:9px}
+    .pair-band-t{flex:none;font-size:15px;font-weight:800;letter-spacing:-.35px;
       color:var(--text-primary)}
-    .pair-band-d{display:block;font-size:13px;color:var(--text-secondary);
-      margin-top:3px;line-height:1.5;word-break:keep-all}
+    .pair-band-d{flex:1;min-width:0;font-size:12.5px;color:var(--text-secondary);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .pair-band-go{flex:none;display:inline-flex;align-items:center;gap:3px;
-      font-size:13px;font-weight:700;color:var(--accent);white-space:nowrap}
-    .pair-band-go i{font-size:15px}
-    /* 좁은 화면에서는 설명이 두세 줄이 되어 'go'까지 두면 글자가 눌린다.
-       화살표만 남긴다 — 줄 전체가 링크라 누를 곳은 그대로다. */
+      font-size:12.5px;font-weight:700;color:var(--accent);white-space:nowrap}
+    .pair-band-go i{font-size:14px}
+    /* 좁은 화면에서는 설명과 'go' 글자를 걷어내고 제목·화살표만 남긴다.
+       줄 전체가 링크라 누를 곳은 그대로다. */
     @media(max-width:560px){
-      .pair-band>a{gap:13px;padding:15px 16px}
-      .pair-band-ico{width:34px;height:34px;font-size:17px}
-      .pair-band-t{font-size:15.5px}
-      .pair-band-d{font-size:12.5px}
+      .pair-band>a{gap:10px;padding:10px 13px}
+      .pair-band-ico{width:25px;height:25px;font-size:14px}
+      .pair-band-t{font-size:14px}
+      .pair-band-d{display:none}
       .pair-band-go b{display:none}
     }
 
@@ -817,7 +823,7 @@
       .header-inner .search-wrap input:focus{width:100%}
       .hero{padding:28px 16px 20px}.hero-title{font-size:22px}
       .use-section{padding:0 16px 24px}
-      .pair-band{padding:0 16px 24px}
+      .pair-band{padding:0 16px 16px}
       .main{padding:18px 16px 60px}
       .preview-bar{flex-wrap:wrap}
       .preview-bar .preview-divider{display:none}
@@ -897,7 +903,7 @@
       <span class="pair-band-ico" aria-hidden="true"><i class="ti ti-typography"></i></span>
       <span class="pair-band-txt">
         <span class="pair-band-t">폰트 조합 찾기</span>
-        <span class="pair-band-d">타이틀 · 서브타이틀 · 본문에 어울리는 무료 폰트 세 가지를 실제 쓰이는 화면에 얹어 보여드려요.</span>
+        <span class="pair-band-d">타이틀 · 서브타이틀 · 본문에 어울리는 무료 폰트 세 가지</span>
       </span>
       <span class="pair-band-go"><b>조합 보기</b><i class="ti ti-chevron-right" aria-hidden="true"></i></span>
     </a>
