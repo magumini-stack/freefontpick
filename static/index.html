@@ -151,20 +151,18 @@
     body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;line-height:1.6}
 
     /* HERO */
-    .hero{max-width:1240px;margin:0 auto;padding:40px 24px 26px}
-    .hero-kicker{font-size:13px;color:var(--accent);font-weight:700;margin-bottom:14px}
+    .hero{max-width:1240px;margin:0 auto;padding:28px 24px 24px}
+    .hero-kicker{font-size:13px;color:var(--accent);font-weight:700;margin-bottom:12px}
     /* 히어로 타이틀은 본문과 같은 고딕(Noto Sans KR)을 그대로 쓴다.
        v7 시안은 명조였지만, 사이트 전체가 고딕이라 여기만 세리프면 겉돈다. */
     .hero-title{font-size:clamp(21px,3.1vw,32px);font-weight:800;color:var(--text-primary);line-height:1.32;letter-spacing:-.8px;word-break:keep-all}
     .hero-title em{font-style:normal;box-shadow:inset 0 -.3em 0 var(--accent-light)}
-    .hero-sub{font-size:14px;color:var(--text-secondary);margin-top:9px}
-    .hero-rule{border-top:1px solid var(--border);margin-top:26px}
 
     /* ── 용도 그리드 ("어디에 쓰실 건가요?") ──
        각 칸은 /use/{slug} 허브 페이지로 가는 진짜 링크다.
        홈에서 브리핑까지 펼치면 허브 페이지와 같은 화면이 두 벌 생기므로,
        홈은 진입만 만들고 답은 허브 페이지가 한다. */
-    .use-section{max-width:1240px;margin:0 auto;padding:0 24px 30px}
+    .use-section{max-width:1240px;margin:0 auto;padding:0 24px}
     /* 6열 × 2줄 = 12칸 고정.
        격자선은 gap 1px 사이로 배경색이 비쳐 만들어진다. 그래서 마지막 줄에
        빈칸이 생기면 그 자리에 회색 배경이 그대로 드러나 '깨진 표'처럼 보인다.
@@ -175,20 +173,25 @@
     @media(max-width:1080px){.use-grid{grid-template-columns:repeat(4,1fr)}}
     @media(max-width:820px){.use-grid{grid-template-columns:repeat(3,1fr)}}
     @media(max-width:520px){.use-grid{grid-template-columns:repeat(2,1fr)}}
-    .use-cell{background:var(--bg-card);padding:19px 15px 18px;cursor:pointer;text-decoration:none;
+    .use-cell{background:var(--bg-card);padding:15px 15px 14px;cursor:pointer;text-decoration:none;
       display:block;min-width:0;transition:background .15s}
     .use-cell:hover{background:var(--accent-light)}
     .use-nm{font-size:18px;font-weight:700;letter-spacing:-.035em;line-height:1.25;color:var(--text-primary);
       display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    @media(max-width:520px){.use-nm{font-size:15.5px}.use-cell{padding:15px 13px 14px}}
+    @media(max-width:520px){.use-nm{font-size:15.5px}.use-cell{padding:12px 12px 11px}}
 
     /* ── 폰트 조합 찾기 띠 배너 ──
        바로 위 용도 그리드와 폭·테두리·배경까지 같게 맞춘다. 색으로 튀지
        않아도 그리드 아래 한 줄만 홀로 가로로 누워 있어 눈에 걸린다 —
        용도 그리드가 '어디에 쓸지'를 고르는 자리라 그 다음 칸이 자연스럽다. */
-    /* 아래 여백 20px + .main 위 여백 22px = 42px.
-       모양으로 찾기 바와의 간격을 예전 52px에서 20% 줄인 값이다. */
-    .pair-band{max-width:1240px;margin:0 auto;padding:0 24px 20px}
+    /* 위 용도 그리드에 붙여 한 표로 만든다. margin-top:-1px 이 배너의 1px
+       윗선을 그리드의 1px 아랫선과 겹치게 해 한 줄로 만든다 — 그래야 표가
+       둘로 보이지 않고 그리드의 마지막 가로줄로 읽힌다.
+
+       그리드 안(#useGrid)에 넣지 않은 이유: 용도 허브를 못 받으면
+       renderUseGrid 가 #useSection 을 통째로 숨긴다. 배너는 딸린 자료가 없는
+       정적 링크라 그때도 남아 있어야 한다. */
+    .pair-band{max-width:1240px;margin:-1px auto 0;padding:0 24px 28px}
     /* 배경·테두리를 용도 칸(.use-cell)과 똑같이 맞춘다 — 흰 배경에 hover 때만
        연한 남색. 같은 표의 연장선으로 읽히게 하려는 것이다. */
     .pair-band>a{display:flex;align-items:center;gap:12px;padding:11px 16px;
@@ -324,7 +327,7 @@
        .picks-* / .pick-* 스타일도 함께 지웠다. 되살리려면 git 히스토리 참고. */
 
     /* MAIN */
-    .main{max-width:1240px;margin:0 auto;padding:22px 24px 80px}
+    .main{max-width:1240px;margin:0 auto;padding:20px 24px 80px}
 
     .preview-toggle{
       flex-shrink:0;
@@ -411,9 +414,12 @@
       /* 고정된 채 뒤로 카드가 지나가므로 배경은 반드시 불투명해야 한다 */
       background:var(--bg);border-bottom:1px solid var(--border);
       /* 고정되면 margin은 시각적으로 의미가 없어 padding으로 옮겼다 */
-      padding:10px 0;margin-bottom:16px;scroll-margin-top:60px}
+      padding:10px 0;margin-bottom:14px;scroll-margin-top:60px}
     .tags-label{font-size:13px;font-weight:700;color:var(--text-secondary);
       letter-spacing:-.02em;flex:0 0 auto;white-space:nowrap}
+    /* 태그와 보기 버튼 사이. 태그 스크롤 오른쪽 끝이 마스크로 흐려지므로
+       이 선이 없으면 흐려진 태그가 버튼 쪽으로 흘러든 것처럼 보인다. */
+    .tags-sep{width:1px;height:18px;background:var(--border);flex:0 0 auto;margin:0 2px}
     /* 형태 카테고리는 항상 한 줄로 둔다.
        줄바꿈을 허용하면 태그가 늘 때마다 바 높이가 들쭉날쭉해지고,
        고정 바라서 그 변화가 갤러리 전체를 흔든다. 대신 넘치면 가로 스크롤. */
@@ -439,8 +445,6 @@
     }
 
     /* FILTER BAR */
-    .count-label{font-size:13px;color:var(--text-secondary)}
-    .count-label strong{color:var(--text-primary);font-weight:800}
 
     /* GRID */
     /* 갤러리 — 카드마다 상자를 그리지 않는다.
@@ -534,7 +538,10 @@
     @media(min-width:1700px){.font-grid{grid-template-columns:repeat(4,1fr)}}
 
     /* 보기 전환 */
-    .view-toolbar{display:flex;justify-content:flex-end;gap:2px;margin-bottom:10px}
+    /* 모양으로 찾기 바 오른쪽 끝. 예전에는 갤러리 위 전용 줄이었다.
+       바 높이는 그대로다 — 태그가 34px, 버튼이 30px 이라 큰 쪽이 안 바뀐다.
+       (.hub-rail{top:124px} 이 바 높이를 전제로 하므로 바뀌면 그쪽도 고쳐야 한다) */
+    .view-toolbar{display:flex;gap:2px;flex:0 0 auto;align-items:center}
     .view-btn{color:var(--text-muted);background:none;border:1px solid transparent;border-radius:2px;
       padding:6px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;
       justify-content:center;width:30px;height:30px}
@@ -799,9 +806,9 @@
       .header-inner .search-wrap input{width:100%}
       .header-inner .search-wrap input:focus{width:100%}
       .hero{padding:28px 16px 20px}.hero-title{font-size:22px}
-      .use-section{padding:0 16px 24px}
-      .pair-band{padding:0 16px 16px}
-      .main{padding:18px 16px 60px}
+      .use-section{padding:0 16px}
+      .pair-band{padding:0 16px 22px}
+      .main{padding:16px 16px 60px}
       .preview-presets{padding:12px 14px 14px}
       .preset-chip{font-size:13px;padding:8px 12px}
       .preview-toggle{padding:7px;border-radius:50%}
@@ -855,7 +862,6 @@
   <section class="hero">
     <div class="hero-kicker">무료폰트 큐레이션 및 폰트 조합 찾기</div>
     <h1 class="hero-title">어디에 쓰실 건가요? <em>딱 맞는 폰트</em> 추천해드릴게요!</h1>
-    <p class="hero-sub">용도를 선택하면 샘플 문구와 함께 활용방법까지 추천해드려요.</p>
   </section>
 
   <!-- USE CASE GRID — 각 칸은 /use/{slug} 허브 페이지 링크 -->
@@ -899,6 +905,17 @@
   <div class="tags-bar" id="tagsBar">
     <span class="tags-label">모양으로 찾기</span>
     <div class="tags-scroll" id="tagsScroll" role="group" aria-label="폰트 모양 카테고리 필터"></div>
+    <!-- [이동 2026-08] 보기 방식은 아이콘 두 개짜리 전용 줄을 따로 쓰고 있었다.
+         둘 다 갤러리를 다루는 도구라 같은 줄에 둔다 — 줄 하나(40px)가 사라진다. -->
+    <span class="tags-sep" aria-hidden="true"></span>
+    <div class="view-toolbar" role="group" aria-label="갤러리 보기 방식">
+      <button type="button" class="view-btn on" id="viewBtnList" onclick="setGalleryView('list')" aria-pressed="true" title="한 줄 보기" aria-label="한 줄 보기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <button type="button" class="view-btn" id="viewBtnGrid" onclick="setGalleryView('grid')" aria-pressed="false" title="격자 보기" aria-label="격자 보기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </button>
+    </div>
   </div>
 
   <!-- [제거 2026-08] 정렬 드롭다운(추천순/최신순/이름순).
@@ -910,14 +927,6 @@
        (getPreviewTextFor). 카드를 누르면 그 문구가 상세페이지 입력창으로
        이어진다(stashPreviewText → sessionStorage). -->
 
-  <div class="view-toolbar" role="group" aria-label="갤러리 보기 방식">
-    <button type="button" class="view-btn on" id="viewBtnList" onclick="setGalleryView('list')" aria-pressed="true" title="한 줄 보기" aria-label="한 줄 보기">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <button type="button" class="view-btn" id="viewBtnGrid" onclick="setGalleryView('grid')" aria-pressed="false" title="격자 보기" aria-label="격자 보기">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-    </button>
-  </div>
   <div class="body-cols">
     <aside class="hub-rail" id="hubRail" aria-label="용도별 바로가기">
       <h2>용도별 추천</h2>
@@ -2724,17 +2733,6 @@ function renderFonts(){
   const list=getFilteredFonts();
   const grid=document.getElementById('fontGrid');
   const isRecommendMode = list.length > 0 && list[0]._isRecommend === true;
-  const countLabel = document.getElementById('countLabel');
-
-  if(countLabel){
-    if(isRecommendMode){
-      const total = (_lastRecommended || []).length;
-      countLabel.innerHTML = `<i class="ti ti-sparkles" style="color:var(--accent);font-size:14px;vertical-align:-2px"></i> 추천 폰트 <strong>${list.length}</strong>개 <span style="color:var(--text-muted);font-size:12px">(총 ${total}개 후보 중)</span>`;
-    } else {
-      countLabel.innerHTML=`폰트 <strong>${list.length}</strong>종`;
-    }
-  }
-
   if(!list.length){
     grid.innerHTML=`<div class="no-results" role="status"><i class="ti ti-mood-sad" aria-hidden="true"></i><p>검색 결과가 없어요</p><small>다른 키워드를 시도해보세요</small></div>`;
     return;
@@ -3140,7 +3138,7 @@ document.getElementById('globalSearch')?.addEventListener('keydown', function(e)
   if(e.key === 'Enter'){
     e.preventDefault();
     // 미리보기 바부터 보이게 — 여기서 결과 목록이 시작된다
-    requestAnimationFrame(()=> scrollBelowFilter(document.querySelector('.view-toolbar')));
+    requestAnimationFrame(()=> scrollBelowFilter(document.getElementById('fontGrid')));
   }
 });
 
@@ -3352,7 +3350,7 @@ async function route(){
     // hash로부터 검색어 복원
     const query = decodeURIComponent(hash.slice('#search/'.length));
     applySearch(query, /*pushHash*/ false);
-    requestAnimationFrame(()=> scrollBelowFilter(document.querySelector('.view-toolbar')));
+    requestAnimationFrame(()=> scrollBelowFilter(document.getElementById('fontGrid')));
   } else if(hash.startsWith('#tag/')){
     // 뒤로/앞으로가기로 카테고리 상태 복원
     showHomeView();
