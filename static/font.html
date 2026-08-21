@@ -956,6 +956,64 @@
     return (carried && hasHangul(carried)) ? carried : DEFAULT_TEXT;
   }
 
+  /* ── '실제 사용 예시' 세 줄의 굵기 ──────────────────────────────
+     서버가 Headline 800 / Subhead 700 / Body 400 을 적어 보내는데, 그 굵기의
+     파일이 없는 폰트가 대부분이다. stackOf(f) 가 주는 FFP-{id} 는 대표 굵기
+     파일 한 벌짜리라, 셋이 같은 굵기로 그려지고 그 위에 가짜 볼드만 씌워졌다.
+
+     그래서 요구한 굵기를 이 폰트가 실제로 가진 값으로 당긴다. 위 '굵기별
+     보기'가 FFP-{id}-{굵기} 전용 페이스로 제대로 그리는 것과 같은 방식이다. */
+  function usageWeights(avail){
+    var ws = avail.slice().sort(function(a, b){ return a - b; });
+    if (!ws.length) return null;
+    /* 동점이면 어느 쪽으로 붙일지가 자리마다 다르다. 제목은 굵은 쪽 —
+       [400,700,900] 폰트에서 800 은 700·900 과 똑같이 떨어져 있는데, 가벼운
+       쪽을 잡으면 900 이 놀고 제목이 서브와 700 으로 겹친다.
+       본문은 반대다. 읽는 자리라 같은 거리면 가벼운 쪽이 맞다. */
+    function near(t, heavier){
+      return ws.reduce(function(a, b){
+        var da = Math.abs(a - t), db = Math.abs(b - t);
+        return db < da || (heavier && db === da) ? b : a;
+      });
+    }
+    var head = near(800, true), body = near(400, false), sub = near(700, true);
+    /* 셋이 겹치면 벌린다. 아리따 부리처럼 800 이 없는 폰트는 Headline 과
+       Subhead 가 둘 다 700 으로 붙어, 크기 말고는 구분이 안 된다.
+       벌릴 자리가 없으면(굵기 2종 등) 그대로 둔다 — 없는 굵기를 지어내는 것보다
+       같은 굵기로 두는 편이 정직하다. */
+    if (sub === head) {
+      var i = ws.indexOf(head) - 1;
+      if (i >= 0 && ws[i] > body) sub = ws[i];
+    }
+    if (sub === body) {
+      var j = ws.indexOf(body) + 1;
+      if (j < ws.length && ws[j] < head) sub = ws[j];
+    }
+    return { head: head, sub: sub, body: body };
+  }
+
+  function applyUsageWeights(f){
+    /* CDN 웹폰트 굵기는 파일이 없어 전용 페이스를 만들 수 없다. 그쪽은 CDN 이
+       굵기를 제대로 들고 있으므로 CSS font-weight 가 그대로 듣는다 — 손대지 않는다. */
+    var local = FILE_WEIGHTS
+      .filter(function(w){ return w.source !== 'webfont'; })
+      .map(function(w){ return w.weight; });
+    if (local.length < 2) return;        // 굵기가 하나뿐이면 바꿀 것이 없다
+    var pick = usageWeights(local);
+    if (!pick) return;
+    var rest = (f.stack || "'Nanum Gothic',sans-serif")
+      .replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
+    [['.u-h1', pick.head], ['.u-h2', pick.sub], ['.u-body', pick.body]]
+      .forEach(function(p){
+        var el = document.querySelector(p[0]);
+        if (!el) return;
+        el.style.fontFamily = "'" + weightFamily(f.id, p[1]) + "'," + rest;
+        /* 굵기 파일이 직접 그리므로 CSS 로 굵기를 또 요구하지 않는다.
+           요구하면 그 위에 가짜 볼드가 덧씌워진다. */
+        el.style.fontWeight = '400';
+      });
+  }
+
   function renderPreviewRows(){
     var wl = document.getElementById('weightRows');
     var wf = webfontOf(FONT.name);
@@ -1245,6 +1303,7 @@
             if (en) el.textContent = en;
           }
         });
+        applyUsageWeights(f);
         var _glyphKo = document.getElementById('glyphKo');
         if (_glyphKo && f.is_english) _glyphKo.classList.add('hidden');
 
