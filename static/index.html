@@ -557,18 +557,39 @@
     /* 모양으로 찾기 바 오른쪽 끝. 예전에는 갤러리 위 전용 줄이었다.
        바 높이는 그대로다 — 태그가 34px, 버튼이 30px 이라 큰 쪽이 안 바뀐다.
        (.hub-rail{top:124px} 이 바 높이를 전제로 하므로 바뀌면 그쪽도 고쳐야 한다) */
-    /* 좌측 레일 맨 아래 앱 배너 — 상세페이지 사이드바 배너와 같은 자리 */
-    .rail-app{display:block;margin-top:14px;padding:13px 12px;border-radius:10px;
-      background:var(--bg-secondary);border:1px solid var(--border);
-      text-decoration:none;transition:border-color .15s}
-    .rail-app:hover{border-color:var(--accent)}
-    .rail-app .appico{width:30px;height:30px;border-radius:8px;font-size:15px;margin-bottom:9px}
-    .rail-app-t{display:block;font-size:13px;font-weight:800;color:var(--text-primary);
-      letter-spacing:-.3px}
-    .rail-app-d{display:block;font-size:11.5px;color:var(--text-secondary);
-      line-height:1.5;margin-top:4px;word-break:keep-all}
-    .rail-app-go{display:block;margin-top:10px;font-size:12px;font-weight:700;
-      color:var(--accent)}
+    /* ── 우측 여백 스카이스크래퍼 (앱 배너) ──
+       폰트 상세페이지와 같은 자리·같은 값이다(static/font.html 참고).
+       본문 폭 1240px 바깥 여백에 놓이므로 1600px 이상에서만 나온다 —
+       그보다 좁으면 갤러리를 밀어낸다. 좁은 화면은 스크롤 하단 팝업이 맡는다.
+
+       position:fixed 라 페이지 흐름과 무관하다. 조합 찾기 띠(sticky, 60~105px)
+       와도 겹치지 않는다 — 이쪽은 132px 부터 시작한다. */
+    .skyscraper-ad{
+      display:none;
+      position:fixed;
+      top:132px;
+      right:max(12px, calc((100vw - 1240px) / 2 - 180px));
+      width:160px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:var(--bg-secondary);
+      z-index:50;
+      flex-direction:column;
+      align-items:center;
+      padding:18px 16px;
+      text-align:center;
+      text-decoration:none;
+      color:inherit;
+      transition:border-color .15s,transform .1s;
+    }
+    .skyscraper-ad:hover{border-color:var(--accent)}
+    .skyscraper-ad:active{transform:scale(.98)}
+    .skyscraper-ad .appico{width:56px;height:56px;border-radius:14px;font-size:26px;box-shadow:0 4px 14px rgba(0,0,0,.15);margin-bottom:12px}
+    .skyscraper-ad .sky-title{font-size:13.5px;font-weight:800;color:var(--text-primary);line-height:1.4}
+    .skyscraper-ad .sky-sub{font-size:11.5px;color:var(--text-secondary);line-height:1.5;margin-top:6px}
+    .skyscraper-ad .sky-cta{margin-top:14px;width:100%;background:var(--accent);color:#fff;font-weight:700;font-size:12.5px;padding:9px;border-radius:8px;transition:background-color .15s}
+    .skyscraper-ad:hover .sky-cta{background:var(--accent-hover)}
+    @media(min-width:1600px){ .skyscraper-ad{display:flex} }
 
     .view-toolbar{display:flex;gap:2px;flex:0 0 auto;align-items:center}
     .view-btn{color:var(--text-muted);background:none;border:1px solid transparent;border-radius:2px;
@@ -906,6 +927,15 @@
   </div>
 </div>
 
+<!-- 우측 여백 스카이스크래퍼 — 와이즈폰트 앱 소개 (사이트의 모든 앱 배너와 같은 곳으로 간다).
+     폰트 상세페이지의 같은 배너와 문구·자리·크기를 맞춘다. -->
+<a class="skyscraper-ad" id="skyscraperAd" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">
+  <span class="appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
+  <div class="sky-title">글자로 노는 앱</div>
+  <div class="sky-sub">사진에 글쓰고,<br>GIF만들고,<br>TTF 다운 받자!</div>
+  <span class="sky-cta">자세히 보기 →</span>
+</a>
+
 <!-- ━━━━ HOME VIEW (폰트 갤러리) ━━━━ -->
 <div id="homeView">
 
@@ -962,16 +992,6 @@
     <aside class="hub-rail" id="hubRail" aria-label="용도별 바로가기">
       <h2>용도별 추천</h2>
       <div class="rail-boxes" id="hubRailNav"></div>
-      <!-- 앱 배너 — 폰트 상세페이지의 사이드바 배너와 같은 자리(옆 칸 맨 아래).
-           레일은 1000px 아래에서 숨는데, 그 폭에서는 스크롤 하단 팝업이
-           같은 문구로 대신한다. -->
-      <a class="rail-app" href="https://www.wisefont.co.kr/apps.html"
-         target="_blank" rel="noopener noreferrer">
-        <span class="appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
-        <span class="rail-app-t">글자로 노는 앱</span>
-        <span class="rail-app-d">사진에 글쓰고, GIF만들고, TTF 다운 받자!</span>
-        <span class="rail-app-go">자세히 보기 →</span>
-      </a>
     </aside>
     <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
   </div>
