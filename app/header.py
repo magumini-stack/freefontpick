@@ -254,16 +254,16 @@ document.documentElement.classList.add('pairband-off');}catch(e){}})();
 <div class="pair-band" id="pairBand" role="region" aria-label="폰트 조합 찾기 안내">
   <div class="pair-band-in">
     <a href="/font-pair" target="_blank" rel="noopener noreferrer">
-      <span class="pair-band-ico" aria-hidden="true"><i class="ti ti-typography"></i></span>
+      <span class="pair-band-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h3"/><path d="M14 20h7"/><path d="M6.9 15h6.9"/><path d="M10.2 6.3l5.8 13.7"/><path d="M5 20l6-16h2l7 16"/></svg></span>
       <span class="pair-band-txt">
         <span class="pair-band-t">폰트 조합 찾기</span>
         <span class="pair-band-d">타이틀 · 서브타이틀 · 본문에 어울리는 무료 폰트 세 가지</span>
       </span>
-      <span class="pair-band-go"><b>조합 보기</b><i class="ti ti-chevron-right" aria-hidden="true"></i></span>
+      <span class="pair-band-go"><b>조합 보기</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg></span>
     </a>
     <button type="button" class="pair-band-x" onclick="closePairBand()"
             title="닫기" aria-label="폰트 조합 찾기 안내 닫기">
-      <i class="ti ti-x" aria-hidden="true"></i>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
     </button>
   </div>
 </div>

@@ -121,7 +121,11 @@ html.pairband-off .pair-band{display:none}
   padding:9px 0;text-decoration:none}
 .pair-band-ico{flex:none;width:26px;height:26px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  background:var(--accent);color:#fff;font-size:14px}
+  background:var(--accent);color:#fff}
+/* 아이콘은 인라인 SVG 다(app/header.py). 헤더가 붙는 페이지 중 넷은 tabler
+   아이콘 폰트를 안 불러와서, 글리프로 두면 원 안이 빈칸이 된다.
+   SVG 는 font-size 가 안 듣는다 — width/height 로 정해야 한다. */
+.pair-band-ico svg{width:15px;height:15px;display:block}
 /* 제목과 설명을 한 줄에 둔다. 좁아지면 설명부터 줄임표로 접힌다 —
    줄바꿈을 허용하면 띠 높이가 화면 폭에 따라 들쭉날쭉해지고, 그 높이를
    아래 고정 요소들이 따라 쓰므로 흔들림이 화면 전체로 번진다. */
@@ -132,12 +136,13 @@ html.pairband-off .pair-band{display:none}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pair-band-go{flex:none;display:inline-flex;align-items:center;gap:3px;
   font-size:12.5px;font-weight:700;color:var(--accent);white-space:nowrap}
-.pair-band-go i{font-size:14px}
+.pair-band-go svg{width:14px;height:14px;display:block}
 .pair-band-x{flex:none;width:26px;height:26px;padding:0;border:none;
-  background:none;border-radius:50%;color:var(--text-muted);font-size:15px;
+  background:none;border-radius:50%;color:var(--text-muted);
   cursor:pointer;display:flex;align-items:center;justify-content:center;
   transition:color .15s,background .15s}
 .pair-band-x:hover{color:var(--text-primary);background:var(--bg-card)}
+.pair-band-x svg{width:15px;height:15px;display:block}
 /* 좌우 여백은 본문 폭 규칙(각 페이지의 768px 분기)과 맞춘다.
    index.html 에만 있던 것을 띠와 함께 올렸다 — 안 올리면 다른 페이지에서는
    좁은 화면인데도 여백이 24px 로 남는다. */
@@ -148,7 +153,8 @@ html.pairband-off .pair-band{display:none}
    닫기 버튼은 어느 폭에서도 남는다 — 닫을 수 없으면 띠가 아니라 덫이다. */
 @media(max-width:560px){
   .pair-band a{gap:9px;padding:8px 0}
-  .pair-band-ico{width:23px;height:23px;font-size:13px}
+  .pair-band-ico{width:23px;height:23px}
+  .pair-band-ico svg{width:13px;height:13px}
   .pair-band-t{font-size:13.5px}
   .pair-band-d{display:none}
   .pair-band-go b{display:none}
