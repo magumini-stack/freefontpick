@@ -660,6 +660,18 @@
     });
     S.fonts[pickerSlot] = f;
     S.lock[pickerSlot] = true;    // 직접 고른 것은 새로 뽑아도 지킨다
+    /* 굵기도 새 폰트에 맞춘다. S.weights 는 조합 API 가 정해 준 값이라
+       폰트만 바꾸면 앞 폰트의 굵기가 그대로 남는다 — 800짜리 자리에 800이
+       없는 폰트를 넣으면 faceFor 가 굵기 전용 파일을 못 찾아 대표 파일을
+       1~999 범위로 깔고, 고른 굵기와 무관하게 대표 파일의 굵기가 그려진다.
+       가까운 값으로 당긴다. 같은 거리면 가벼운 쪽 — 서버 pick_weight 과 같다. */
+    var ws = f.available_weights || [];
+    var want = S.weights[pickerSlot];
+    if (ws.length && ws.indexOf(want) < 0) {
+      S.weights[pickerSlot] = ws.reduce(function(a, b){
+        return Math.abs(b - want) < Math.abs(a - want) ? b : a;
+      });
+    }
     $('fpPicker').classList.remove('open');
     renderStage(); renderSlots(); syncUrl();
   }
