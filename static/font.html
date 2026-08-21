@@ -129,8 +129,11 @@
      예전에는 이 자리에 카테고리 태그 알약이 깔렸는데, 폰트 이름 바로 밑이라
      가장 눈에 띄는 자리인데도 "손글씨 · 귀여운 · 3종"처럼 분류값만 나열해서
      이 폰트가 어떤 폰트인지는 알려주지 못했다. */
+  /* 32em(544px)이었다. 한 줄 설명 자리인데 본문용 폭이라, 오른쪽이 비어 있는데도
+     46자짜리 설명이 두 줄로 접혔다. 42em(714px)이면 짧은 설명은 한 줄에 들어가고
+     긴 것만 두 줄이 된다 — 아예 풀면 넓은 화면에서 한 줄이 60자를 넘는다. */
   .font-summary{margin-top:18px;font-size:17px;line-height:1.55;color:var(--text-secondary);
-    letter-spacing:-.02em;word-break:keep-all;max-width:32em}
+    letter-spacing:-.02em;word-break:keep-all;max-width:42em}
   @media(max-width:768px){ .font-summary{font-size:15.5px;margin-top:14px} }
   .title-actions{display:flex;flex-direction:column;gap:10px;min-width:210px}
   .btn-dl{background:var(--accent);color:#fff;font-size:15px;font-weight:700;padding:14px 20px;border-radius:3px;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer}
