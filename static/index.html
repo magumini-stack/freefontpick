@@ -396,9 +396,9 @@
       mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);
       -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
     .tags-scroll::-webkit-scrollbar{display:none}
-    .tag{font-size:13px;padding:6px 11px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500;flex:0 0 auto}
+    .tag{font-size:13px;padding:6px 11px;border-radius:2px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500;flex:0 0 auto}
     .tag:hover{border-color:var(--text-primary);color:var(--text-primary)}
-    .tag.active{color:var(--accent);border-color:var(--accent);font-weight:700;background:none}
+    .tag.active{color:var(--accent);border-color:var(--accent);font-weight:700;background:var(--bg-card)}
     /* 좁은 화면에서는 라벨이 칩 자리를 너무 먹는다 */
     @media(max-width:520px){
       .tags-label{display:none}
