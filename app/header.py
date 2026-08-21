@@ -267,15 +267,6 @@ document.documentElement.classList.add('pairband-off');}catch(e){}})();
     </button>
   </div>
 </div>
-
-<!-- 우측 여백 스카이스크래퍼 — 와이즈폰트 앱 소개 (사이트의 모든 앱 배너와 같은 곳으로 간다).
-     폰트 상세페이지의 같은 배너와 문구·자리·크기를 맞춘다. -->
-<a class="skyscraper-ad" id="skyscraperAd" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">
-  <span class="appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
-  <div class="sky-title">글자로 노는 앱</div>
-  <div class="sky-sub">사진에 글쓰고,<br>GIF만들고,<br>TTF 다운 받자!</div>
-  <span class="sky-cta">자세히 보기 →</span>
-</a>
 <script>
 /* 띠는 헤더 아래에 고정돼 따라다닌다. 그런데 홈의 .tags-bar 와 .hub-rail 도
    같은 자리를 노리는 고정 요소라, 띠가 있는 동안에는 그 높이만큼 내려가야
