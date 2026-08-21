@@ -66,16 +66,38 @@ ZIPS_DIR = Path(os.getenv("FONT_ZIPS_DIR", "/app/user_data/fontzips"))
 MAX_ZIP_SIZE = 30 * 1024 * 1024
 
 
+# 저장소에 함께 배포되는 ZIP (읽기 전용). 폰트 파일이 FONTS_DIR(업로드) 과
+# ROOT_FONTS_DIR(저장소) 두 겹인 것과 같은 구조다.
+#
+# 한 번에 여러 종을 넣을 때는 이쪽이 훨씬 낫다 — 어드민에서 30번 올리는 대신
+# 폴더에 넣고 push 한 번이면 된다. 대신 배포로만 바뀌므로, 운영 중에 한 종만
+# 갈아끼울 때는 어드민 업로드가 편하다.
+BUNDLED_ZIPS_DIR = Path(__file__).resolve().parent.parent.parent / "fontzips"
+
+
 def zip_path(font_id: int) -> Path:
+    """업로드가 저장되는 자리 (쓰기용)."""
     return ZIPS_DIR / f"font-{font_id:03d}.zip"
 
 
+def resolve_zip(font_id: int):
+    """실제로 내보낼 파일 (읽기용). 없으면 None.
+
+    어드민이 올린 것이 저장소에 묶인 것을 이긴다 — 나중에 올린 쪽이 최신이다.
+    """
+    name = f"font-{font_id:03d}.zip"
+    for p in (ZIPS_DIR / name, BUNDLED_ZIPS_DIR / name):
+        try:
+            if p.is_file():
+                return p
+        except OSError:
+            pass
+    return None
+
+
 def has_zip(font_id: int) -> bool:
-    """이 폰트에 올려둔 ZIP 이 있는가. 목록 조회에서 폰트마다 불리므로 가볍게."""
-    try:
-        return zip_path(font_id).is_file()
-    except OSError:
-        return False
+    """이 폰트에 내보낼 ZIP 이 있는가. 목록 조회에서 폰트마다 불리므로 가볍게."""
+    return resolve_zip(font_id) is not None
 
 
 # 배포에 묶인 시드 폰트 경로 (읽기 전용 fallback)
@@ -866,6 +888,9 @@ def delete_font_zip(
     font = db.query(Font).filter(Font.id == font_id).first()
     if not font:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
+    # 지울 수 있는 것은 어드민이 올린 것뿐이다. 저장소에 묶여 배포된 ZIP 은
+    # 파일을 지워도 다음 배포에 되살아나므로 손대지 않는다
+    # (폰트 파일의 delete_font_file 이 번들 파일을 다루는 방식과 같다).
     p = zip_path(font_id)
     if p.exists():
         p.unlink()
@@ -882,8 +907,8 @@ def download_font_zip(font_id: int, db: Session = Depends(get_db)):
     if not font:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
 
-    p = zip_path(font_id)
-    if not p.is_file():
+    p = resolve_zip(font_id)
+    if p is None:
         raise HTTPException(status_code=404, detail="이 폰트에는 올려둔 파일이 없습니다")
 
     # 받는 사람에게는 font-062.zip 이 아니라 폰트 이름으로 보여야 한다.
