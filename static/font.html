@@ -755,13 +755,19 @@
       </div>
     </div>
 
-    <!-- ⑨ 디자인 CTA -->
+    <!-- ⑨ GIF 생성기 CTA
+         새 창으로 여는 이유는 헤더 메뉴·조합 찾기와 같다 — 만들어 가는 화면이라
+         보던 상세페이지를 덮으면 뒤로 가기로 돌아왔을 때 작업이 사라진다.
+
+         지금은 폰트를 넘기지 않는다. /gif 는 ?t=(템플릿)만 읽고, 편집기가
+         임시 저장본을 되살리는 규칙과 얽혀 있어서 따로 손봐야 한다.
+         그래서 문구도 '이 폰트로'라고 쓰지 않는다. -->
     <section class="cta">
       <div>
-        <h3>다운로드 없이, 바로 텍스트 디자인</h3>
-        <p>이 폰트로 문구를 입력하고 색·외곽선·그림자 효과를 얹어 투명 PNG로 저장하세요. 설치 없이 브라우저에서 바로.</p>
+        <h3>움직이는 글자, 브라우저에서 바로</h3>
+        <p>문구를 넣고 애니메이션을 얹어 GIF로 저장하세요. 텍스트 · 사진 · 영상 세 가지 모드를 설치 없이 씁니다.</p>
       </div>
-      <a class="btn" id="designBtn" href="#">텍스트 디자인 열기 →</a>
+      <a class="btn" href="/gif" target="_blank" rel="noopener noreferrer">GIF 생성기 열기 →</a>
     </section>
   </div>
 </main>
@@ -1250,8 +1256,6 @@
         if (isInternal) { location.href = dl; }
         else { window.open(dl, '_blank', 'noopener'); }
       });
-      document.getElementById('designBtn').setAttribute('href', '/font/' + f.id + '/design');
-      document.getElementById('designBtn').onclick = function(ev){ ev.preventDefault(); dsOpenFor(f); };
 
       document.getElementById('loading').classList.add('hidden');
       /* #fontSsr은 fetch를 걸기 전에 이미 감췄다 (위 _ssrEl 참조) */
