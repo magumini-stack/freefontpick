@@ -131,6 +131,10 @@ button{font-family:inherit;cursor:pointer}
          border-bottom:1px solid var(--border);background:var(--bg-secondary);flex-wrap:wrap}
 .crumb{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-muted)}
 .crumb b{color:var(--text-primary);font-weight:700}
+/* 이 페이지에는 제목이 하나도 없었다 — 검색엔진에게 무슨 페이지인지 알릴
+   자리가 없다는 뜻이다. 빵부스러기의 첫 칸을 h1 으로 올린다.
+   전역 리셋이 없는 파일이라 기본 굵기·여백이 튀지 않게 물려받게 한다. */
+.crumb h1{font:inherit;font-weight:inherit;color:inherit;margin:0;display:inline}
 .tag{display:inline-flex;align-items:center;font-size:11px;padding:3px 9px;border-radius:20px}
 .tag-out{border:1px solid var(--border-hover);color:var(--text-secondary)}
 .tag-acc{background:var(--accent-light);color:var(--accent)}
@@ -540,7 +544,7 @@ select.inp{appearance:none;cursor:pointer}
 
 <div class="toolbar">
   <div class="crumb">
-    <span>GIF 생성기</span>
+    <h1>GIF 생성기</h1>
     <svg class="ic" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="m9 6 6 6-6 6"/></svg>
     <b id="crumbTpl">불러오는 중…</b>
   </div>

@@ -792,6 +792,12 @@
     .footer-company-info span::before{content:"";display:inline-block;width:3px;height:3px;border-radius:50%;background:var(--text-muted);margin-right:14px;flex-shrink:0;opacity:.5}
     .footer-company-info a{color:var(--text-muted);text-decoration:none}
     .footer-company-info a:hover{color:var(--accent)}
+    /* 이 사이트가 무엇을 하는 곳인지 말하는 문장이 홈 어디에도 없었다.
+       히어로는 이미 빽빽해서 더 넣을 자리가 아니고, 푸터는 원래 그런 말을
+       두는 자리다. 사람이 읽어도 쓸모 있고, 크롤러도 여기서 주제를 읽는다. */
+    .footer-about{max-width:720px;margin:18px auto 0;font-size:12.5px;line-height:1.75;
+      color:var(--text-muted);text-align:center;word-break:keep-all}
+    .footer-about b{color:var(--text-secondary);font-weight:700}
     .footer-copyright{font-size:11px;color:var(--text-muted);margin-top:14px;letter-spacing:.3px;text-align:center}
 
     /* SCROLL TOP */
@@ -869,7 +875,7 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-kicker">무료폰트 큐레이션 및 폰트 조합 찾기</div>
-    <h1 class="hero-title">어디에 쓰실 건가요? <em>딱 맞는 폰트</em> 추천해드릴게요!</h1>
+    <h1 class="hero-title">어디에 쓰실 건가요? <em>딱 맞는 무료폰트</em> 추천해드릴게요!</h1>
   </section>
 
   <!-- USE CASE GRID — 각 칸은 /use/{slug} 허브 페이지 링크 -->
@@ -917,7 +923,7 @@
 
   <div class="body-cols">
     <aside class="hub-rail" id="hubRail" aria-label="용도별 바로가기">
-      <h2>용도별 추천</h2>
+      <h2>용도별 무료폰트 추천</h2>
       <div class="rail-boxes" id="hubRailNav"></div>
     </aside>
     <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
@@ -948,7 +954,7 @@
 <div id="noticeView" style="display:none">
   <section class="notice-hero">
     <div class="hero-eyebrow"><i class="ti ti-speakerphone" aria-hidden="true"></i> NOTICE</div>
-    <h1 class="hero-title">공지사항</h1>
+    <h2 class="hero-title">공지사항</h2>
     <p class="notice-hero-sub">FreeFontPick에서 알려드리는 최신 소식</p>
   </section>
 
@@ -978,7 +984,7 @@
 <div id="submitView" style="display:none">
   <section class="notice-hero">
     <div class="hero-eyebrow"><i class="ti ti-search" aria-hidden="true"></i> FIND</div>
-    <h1 class="hero-title">폰트 찾기</h1>
+    <h2 class="hero-title">폰트 찾기</h2>
     <p class="notice-hero-sub">어디선가 본 폰트, 사진을 올려주시면 누구나 답변해드려요</p>
   </section>
 
@@ -1065,6 +1071,12 @@
     <span>통신판매업신고 제 2024-서울영등포-3037호</span>
     <span>제휴문의 <a href="mailto:biz@wisefont.co.kr">biz@wisefont.co.kr</a></span>
   </div>
+  <p class="footer-about">
+    폰트픽은 <b>상업적 이용이 가능한 무료폰트</b>를 용도별로 골라 소개하고,
+    제목·본문에 어울리는 폰트 조합까지 한 화면에서 찾아 드립니다.
+    폰트마다 허용 범위(인쇄물·웹사이트·영상·포장지·BI/CI)가 다르니,
+    내려받기 전에 각 폰트의 라이선스를 확인해 주세요.
+  </p>
   <div class="footer-copyright">COPYRIGHT © (주)와이즈폰트 CO., LTD. ALL RIGHTS RESERVED.</div>
 </footer>
 
@@ -1106,7 +1118,7 @@
     <div class="license-head">
       <div class="license-head-eyebrow"><i class="ti ti-license" aria-hidden="true"></i> LICENSE</div>
       <h2 id="licenseTitle">라이선스 요약표</h2>
-      <p>큐레이션된 폰트의 일반적인 사용 범위 안내</p>
+      <p>큐레이션된 무료폰트의 상업적 이용 범위 안내</p>
       <button class="license-close" onclick="closeLicense()" aria-label="닫기">
         <svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
