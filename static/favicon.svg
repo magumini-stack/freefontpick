@@ -1,10 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <title>폰트픽</title>
-  <defs>
-    <clipPath id="sq"><rect x="4.5" y="4.5" width="56.0" height="54.0" rx="7.0"/></clipPath>
-  </defs>
-  <g clip-path="url(#sq)">
-    <rect x="4.5" y="4.5" width="56.0" height="54.0" rx="7.0" fill="#12318B"/>
-    <polygon points="18.4,22.5 29.5,32.4 69.1,-5.0 75.7,-5.0 29.5,47.5 12.1,27.5" fill="#fff"/>
-  </g>
+  <!-- 체크를 원 안에 온전히 담는다. 예전에는 획이 밖으로 뻗고 clipPath 로 잘라서,
+       오른쪽 위 모서리가 평평하게 깎인 채로 검색 결과에 나왔다.
+       좌표는 static/ 의 favicon-*.png 와 한 벌이다 — 한쪽만 고치지 말 것. -->
+  <circle cx="32" cy="32" r="30.5" fill="#12318B"/>
+  <path d="M15.5 33.5 L26.5 44.5 L48.5 19.5" fill="none" stroke="#fff" stroke-width="9"
+        stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
