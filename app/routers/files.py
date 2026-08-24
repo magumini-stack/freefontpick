@@ -63,7 +63,10 @@ FONTS_DIR.mkdir(parents=True, exist_ok=True)
 # 배포 사이에 보존한다. 저장소에 넣으면 폰트를 하나 추가할 때마다 push 해야 한다.
 ZIPS_DIR = Path(os.getenv("FONT_ZIPS_DIR", "/app/user_data/fontzips"))
 # woff2(5MB)보다 넉넉히 잡는다. ttf/otf 여러 굵기가 한 묶음에 들어온다.
-MAX_ZIP_SIZE = 30 * 1024 * 1024
+# 30MB 였다. 굵기 5종짜리 한글 폰트 묶음이 이 문턱을 넘는다(스포카 한 산스 37.1MB).
+# 서버가 파일을 통째로 메모리에 읽으므로 이 값이 곧 요청 하나가 쓰는 메모리다 —
+# 일괄 업로드가 하나씩 차례로 보내는 것도 그래서다.
+MAX_ZIP_SIZE = 50 * 1024 * 1024
 
 
 # 저장소에 함께 배포되는 ZIP (읽기 전용). 폰트 파일이 FONTS_DIR(업로드) 과

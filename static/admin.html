@@ -246,6 +246,32 @@
     .drop-zone i{font-size:28px;color:var(--text-muted);display:block;margin-bottom:6px}
     .drop-zone p{font-size:13px;color:var(--text-secondary);font-weight:700;margin-bottom:2px}
     .drop-zone small{font-size:11px;color:var(--text-muted)}
+
+    /* ── ZIP 일괄 업로드 ──
+       배포용 ZIP 을 폰트 하나씩 올리면 150번을 눌러야 한다. 파일 이름의
+       번호(font-058.zip → 58번 폰트)로 짝을 지어 한꺼번에 올린다. */
+    .bz-sum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .bz-chip{font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;
+      background:var(--bg-secondary);color:var(--text-secondary)}
+    .bz-chip.ok{background:#e8f5e9;color:#1b5e20}
+    .bz-chip.warn{background:#fff4e5;color:#8a4b00}
+    .bz-chip.bad{background:#fdecea;color:#8a1c12}
+    .bz-list{border:1px solid var(--border);border-radius:var(--radius-md);max-height:46vh;overflow-y:auto}
+    .bz-row{display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:12.5px;
+      border-bottom:1px solid var(--border)}
+    .bz-row:last-child{border-bottom:none}
+    .bz-row .id{flex:0 0 42px;color:var(--text-muted);font-variant-numeric:tabular-nums}
+    .bz-row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+    .bz-row .sz{flex:0 0 66px;text-align:right;color:var(--text-muted);font-variant-numeric:tabular-nums}
+    .bz-row .st{flex:0 0 110px;text-align:right;font-weight:700}
+    .bz-row .st.wait{color:var(--text-muted)}
+    .bz-row .st.go{color:var(--accent)}
+    .bz-row .st.ok{color:#1b5e20}
+    .bz-row .st.bad{color:#8a1c12;font-weight:700}
+    .bz-row.dim{opacity:.5}
+    .bz-bar{height:6px;border-radius:99px;background:var(--bg-secondary);overflow:hidden;margin:12px 0 4px}
+    .bz-bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+    .bz-note{font-size:11.5px;color:var(--text-muted);line-height:1.6}
     .drop-zone input{display:none}
     .selected-file{display:flex;align-items:center;gap:10px;background:var(--success-light);color:var(--success);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px;font-size:13px;font-weight:700}
     .selected-file i{font-size:18px}
@@ -388,6 +414,7 @@
       </select>
       <button class="btn-secondary" id="reorderToggleBtn" onclick="toggleReorderMode()"><i class="ti ti-arrows-sort" aria-hidden="true"></i> 순서 변경</button>
       <button class="btn-secondary" id="ogWarmBtn" onclick="warmOgImages()"><i class="ti ti-refresh" aria-hidden="true"></i> OG 이미지 생성</button>
+      <button class="btn-secondary" onclick="openBulkZip()"><i class="ti ti-file-zip" aria-hidden="true"></i> ZIP 일괄 업로드</button>
       <button class="btn-primary" onclick="openFontModal()"><i class="ti ti-plus" aria-hidden="true"></i> 새 폰트 등록</button>
     </div>
     <div class="reorder-hint" id="reorderHint" style="display:none">
@@ -872,6 +899,35 @@
 </div>
 
 <!-- CATEGORY EDIT MODAL -->
+<!-- ZIP 일괄 업로드 -->
+<div class="modal-overlay" id="bulkZipModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-head">
+      <h3>배포용 ZIP 일괄 업로드</h3>
+      <button class="modal-close" onclick="closeBulkZip()"><svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="drop-zone" id="bzZone" onclick="document.getElementById('bzInput').click()">
+        <i class="ti ti-file-zip" aria-hidden="true"></i>
+        <p>ZIP 파일들을 끌어다 놓거나 눌러서 고르세요</p>
+        <small>파일 이름이 <b>font-058.zip</b> 처럼 폰트 번호를 담고 있어야 짝을 찾습니다</small>
+      </div>
+      <input type="file" id="bzInput" accept=".zip" multiple hidden onchange="bzPick(this.files)">
+
+      <div id="bzResult" style="display:none;margin-top:16px">
+        <div class="bz-sum" id="bzSum"></div>
+        <div class="bz-bar"><i id="bzBar"></i></div>
+        <div class="bz-note" id="bzNote"></div>
+        <div class="bz-list" id="bzList" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeBulkZip()">닫기</button>
+      <button class="btn-save" id="bzGo" onclick="bzRun()" disabled>업로드 시작</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="catEditModal">
   <div class="modal" style="max-width:420px">
     <div class="modal-head">
@@ -1395,6 +1451,139 @@ let editingPairingId = null;  // 페어링 수정 중인 id
 let PHRASES = [];
 let editingPhraseId = null;   // 문구 수정 중인 id
 let ppMeta = null;            // 문구 모달의 현재 태그 상태
+
+/* ════════════════════════════════════════
+   ZIP 일괄 업로드
+
+   폰트 하나씩 올리면 150번을 눌러야 한다. 파일 이름에 든 번호로 폰트를 찾아
+   한꺼번에 올린다 — font-058.zip 이면 58번 폰트.
+
+   하나씩 차례로 보낸다. 서버가 ZIP 을 통째로 메모리에 읽기 때문에(files.py의
+   upload_font_zip) 여러 개를 동시에 던지면 50MB × 동시 개수가 한꺼번에 잡힌다.
+   스페이스 메모리가 512MB 라 그러다 앱이 죽는다. 느린 대신 안전한 쪽을 고른다.
+════════════════════════════════════════ */
+let bzItems = [];        // {file, id, name, status, msg}
+let bzBusy  = false;
+
+function openBulkZip(){
+  bzItems = []; bzBusy = false;
+  document.getElementById('bzInput').value = '';
+  document.getElementById('bzResult').style.display = 'none';
+  document.getElementById('bzGo').disabled = true;
+  document.getElementById('bzGo').textContent = '업로드 시작';
+  document.getElementById('bulkZipModal').classList.add('open');
+}
+
+function closeBulkZip(){
+  if(bzBusy && !confirm('업로드가 진행 중입니다. 정말 닫을까요?')) return;
+  document.getElementById('bulkZipModal').classList.remove('open');
+  if(!bzBusy) refresh();          // 올린 결과를 표에 반영
+}
+
+/* 파일 이름에서 폰트 번호를 뽑는다.
+   font-058.zip / font_58.zip / 58.zip 모두 받아들이되, 숫자가 하나도 없거나
+   그 번호의 폰트가 없으면 '못 찾음'으로 두고 올리지 않는다 — 엉뚱한 폰트에
+   덮어씌우는 것이 제일 나쁜 결과다. */
+function bzIdOf(name){
+  const m = name.match(/(\d{1,4})/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+function bzPick(files){
+  const arr = Array.from(files || []).filter(f => f.name.toLowerCase().endsWith('.zip'));
+  bzItems = arr.map(f => {
+    const id = bzIdOf(f.name);
+    const font = id != null ? FONTS.find(x => x.id === id) : null;
+    return {
+      file: f, id: id, font: font,
+      name: font ? font.name : (id != null ? '(' + id + '번 폰트 없음)' : '(번호를 못 읽음)'),
+      status: font ? 'wait' : 'skip',
+      msg: font ? (font.hasZip ? '덮어씀' : '대기') : '건너뜀',
+    };
+  }).sort((a, b) => (a.id || 0) - (b.id || 0));
+  bzRender();
+  document.getElementById('bzResult').style.display = bzItems.length ? '' : 'none';
+  document.getElementById('bzGo').disabled = !bzItems.some(i => i.status === 'wait');
+}
+
+function bzRender(){
+  const ok    = bzItems.filter(i => i.status === 'done').length;
+  const bad   = bzItems.filter(i => i.status === 'fail').length;
+  const skip  = bzItems.filter(i => i.status === 'skip').length;
+  const over  = bzItems.filter(i => i.status === 'wait' && i.file.size > 50*1024*1024).length;
+  const total = bzItems.reduce((a, i) => a + i.file.size, 0);
+
+  const sum = [];
+  sum.push('<span class="bz-chip">파일 ' + bzItems.length + '개 · ' + (total/1048576).toFixed(0) + 'MB</span>');
+  if(ok)   sum.push('<span class="bz-chip ok">올림 ' + ok + '</span>');
+  if(bad)  sum.push('<span class="bz-chip bad">실패 ' + bad + '</span>');
+  if(skip) sum.push('<span class="bz-chip warn">짝 못 찾음 ' + skip + '</span>');
+  if(over) sum.push('<span class="bz-chip bad">50MB 초과 ' + over + '</span>');
+  document.getElementById('bzSum').innerHTML = sum.join('');
+
+  const done = ok + bad;
+  const todo = bzItems.filter(i => i.status !== 'skip').length;
+  document.getElementById('bzBar').style.width = todo ? (done/todo*100) + '%' : '0';
+  document.getElementById('bzNote').textContent = bzBusy
+    ? ('올리는 중 ' + done + ' / ' + todo + ' — 하나씩 차례로 보냅니다. 창을 닫지 마세요.')
+    : (todo ? todo + '개를 올립니다. 이미 ZIP 이 있는 폰트는 덮어씁니다.' : '올릴 것이 없습니다.');
+
+  const LBL = {wait:'대기', going:'올리는 중', done:'완료', fail:'실패', skip:'건너뜀'};
+  const CLS = {wait:'wait', going:'go', done:'ok', fail:'bad', skip:'wait'};
+  document.getElementById('bzList').innerHTML = bzItems.map(i =>
+    '<div class="bz-row' + (i.status === 'skip' ? ' dim' : '') + '">' +
+      '<span class="id">' + (i.id != null ? i.id : '—') + '</span>' +
+      '<span class="nm">' + escapeHtml(i.name) + '</span>' +
+      '<span class="sz">' + (i.file.size/1048576).toFixed(1) + 'MB</span>' +
+      '<span class="st ' + CLS[i.status] + '" title="' + escapeHtml(i.msg || '') + '">' +
+        (i.status === 'fail' ? escapeHtml(i.msg) : LBL[i.status]) + '</span>' +
+    '</div>').join('');
+}
+
+async function bzRun(){
+  if(bzBusy) return;
+  bzBusy = true;
+  document.getElementById('bzGo').disabled = true;
+  document.getElementById('bzGo').textContent = '올리는 중…';
+
+  for(const it of bzItems){
+    if(it.status !== 'wait') continue;
+    it.status = 'going'; bzRender();
+    try {
+      await FontFileStore.saveZip(it.id, it.file);
+      it.status = 'done'; it.msg = '';
+      if(it.font) it.font.hasZip = true;
+    } catch(e) {
+      it.status = 'fail';
+      // 서버가 알려 준 이유를 그대로 남긴다 — '실패'만 보면 무엇을 고쳐야 할지 모른다
+      it.msg = (e.message || '알 수 없는 오류').slice(0, 40);
+    }
+    bzRender();
+  }
+
+  bzBusy = false;
+  const bad = bzItems.filter(i => i.status === 'fail');
+  document.getElementById('bzGo').textContent = bad.length ? '실패한 것만 다시' : '완료';
+  document.getElementById('bzGo').disabled = !bad.length;
+  if(bad.length) bad.forEach(i => { i.status = 'wait'; });   // 다시 누르면 실패분만 재시도
+  bzRender();
+  showToast(bad.length
+    ? (bzItems.filter(i=>i.status==='done').length + '개 완료, ' + bad.length + '개 실패')
+    : '모두 올렸습니다');
+}
+
+/* 드래그해서 놓기 */
+(function(){
+  const z = document.getElementById('bzZone');
+  if(!z) return;
+  ['dragenter','dragover'].forEach(t => z.addEventListener(t, e => {
+    e.preventDefault(); z.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(t => z.addEventListener(t, e => {
+    e.preventDefault(); z.classList.remove('dragover');
+  }));
+  z.addEventListener('drop', e => bzPick(e.dataTransfer.files));
+})();
 
 /* ════════════════════════════════════════
    탭 전환
