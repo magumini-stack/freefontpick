@@ -999,24 +999,46 @@
 
   function applyUsageWeights(f){
     /* CDN 웹폰트 굵기는 파일이 없어 전용 페이스를 만들 수 없다. 그쪽은 CDN 이
-       굵기를 제대로 들고 있으므로 CSS font-weight 가 그대로 듣는다 — 손대지 않는다. */
+       굵기를 제대로 들고 있으면 CSS font-weight 가 그대로 듣는다 — 손대지 않는다. */
     var local = FILE_WEIGHTS
       .filter(function(w){ return w.source !== 'webfont'; })
       .map(function(w){ return w.weight; });
-    if (local.length < 2) return;        // 굵기가 하나뿐이면 바꿀 것이 없다
-    var pick = usageWeights(local);
-    if (!pick) return;
-    var rest = (f.stack || "'Nanum Gothic',sans-serif")
-      .replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
-    [['.u-h1', pick.head], ['.u-h2', pick.sub], ['.u-body', pick.body]]
-      .forEach(function(p){
-        var el = document.querySelector(p[0]);
-        if (!el) return;
-        el.style.fontFamily = "'" + weightFamily(f.id, p[1]) + "'," + rest;
-        /* 굵기 파일이 직접 그리므로 CSS 로 굵기를 또 요구하지 않는다.
-           요구하면 그 위에 가짜 볼드가 덧씌워진다. */
-        el.style.fontWeight = '400';
+    if (local.length >= 2) {
+      var pick = usageWeights(local);
+      if (!pick) return;
+      var rest = (f.stack || "'Nanum Gothic',sans-serif")
+        .replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
+      [['.u-h1', pick.head], ['.u-h2', pick.sub], ['.u-body', pick.body]]
+        .forEach(function(p){
+          var el = document.querySelector(p[0]);
+          if (!el) return;
+          el.style.fontFamily = "'" + weightFamily(f.id, p[1]) + "'," + rest;
+          /* 굵기 파일이 직접 그리므로 CSS 로 굵기를 또 요구하지 않는다.
+             요구하면 그 위에 가짜 볼드가 덧씌워진다. */
+          el.style.fontWeight = '400';
+        });
+      return;
+    }
+
+    /* 여기 왔다는 것은 로컬 파일로는 헤드라인·서브헤드·본문을 나눠 그릴 수
+       없다는 뜻이다. CDN 쪽에 진짜 굵기가 여럿 있으면(예: 구글폰트 가변폰트)
+       그 face 들이 실제로 있으므로 CSS 요청 굵기(800/700/400)를 그대로 두고
+       브라우저에 맡긴다 — 여기서도 손대지 않는다.
+
+       CDN 도 굵기가 하나뿐이거나 아예 없으면, 이 폰트는 정말로 굵기가 1종뿐인
+       것이다. 그런데 .u-h1/.u-h2 는 CSS 로 800/700 을 요구하고 있어서, 실제로는
+       없는 그 굵기를 브라우저가 가짜 볼드로 지어낸다. 있지도 않은 굵기를
+       지어내느니 있는 그대로(400)를 쓰고 크기 차이(font-size)만으로 위계를
+       준다 — 순수 시스템 대체 폰트(Nanum Gothic 등, 이 폰트 고유 face 가
+       하나도 없는 경우)는 그 대체 폰트 자체가 진짜 굵기를 여러 개 갖고
+       있으므로 여기서 건드리지 않는다. */
+    var hasOwnFace = !!f.has_file || !!f.webfont_family || !!webfontOf(f.name);
+    if (hasOwnFace && FILE_WEIGHTS.length < 2) {
+      ['.u-h1', '.u-h2', '.u-body'].forEach(function(sel){
+        var el = document.querySelector(sel);
+        if (el) el.style.fontWeight = '400';
       });
+    }
   }
 
   function renderPreviewRows(){

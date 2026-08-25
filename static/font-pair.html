@@ -243,6 +243,14 @@
   @media(max-width:560px){
     .fp-stage{aspect-ratio:auto;min-height:340px}
     .mk-magazine .fp-blk-body{column-count:1}
+    /* 데스크톱은 16:9 비율이라 justify-content:flex-start(위 붙임)로 놓아도
+       박스 자체가 낮아서 자연스럽다. 모바일은 그 비율을 버리고 최소높이
+       340px만 남기는데, 폭이 좁아지면서 박스가 훨씬 세로로 길어져 글이
+       위쪽에만 뜨고 아래가 텅 빈다 — 실측: brand(namecard) 위26/아래238px,
+       sns(card) 위26/아래208px, read(magazine) 위13/아래203px. 세 자리
+       모두 flex-start를 쓰던 곳이다. 이미 center인 hand·poster는
+       118/118, 128/128로 문제가 없었다. 같은 규칙으로 맞춘다. */
+    .mk-namecard,.mk-card,.mk-magazine{justify-content:center}
   }
 
   /* ── 폰트 고르기 ────────────────────────────────────── */
