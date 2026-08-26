@@ -3826,10 +3826,6 @@ async function saveUseCase(){
   }
 }
 
-document.getElementById('useCaseModal').addEventListener('click', function(e){
-  if(e.target===this) closeUseCaseModal();
-});
-
 let _toastTimer = null;
 /* OG 이미지 캐시 예열 — 아직 안 만들어진 폰트별 OG 이미지를 서버에서 순차 생성.
    서버가 생성을 한 번에 하나씩만 하도록 락을 걸어두었기 때문에(메모리 보호),
@@ -3891,11 +3887,6 @@ function showToast(msg){
   _toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
-// 모달 바깥 클릭 닫기
-document.getElementById('fontModal').addEventListener('click',function(e){if(e.target===this) closeFontModal();});
-document.getElementById('catEditModal').addEventListener('click',function(e){if(e.target===this) closeCatEdit();});
-document.getElementById('confirmModal').addEventListener('click',function(e){if(e.target===this) closeConfirm();});
-document.getElementById('noticeModal').addEventListener('click',function(e){if(e.target===this) closeNoticeModal();});
 // ESC 키
 document.addEventListener('keydown',(e)=>{
   if(e.key==='Escape'){
@@ -4049,10 +4040,6 @@ function deleteSubmissionFromModal(){
   if(!currentSubmissionId) return;
   askDeleteSubmission(currentSubmissionId);
 }
-
-document.getElementById('submissionModal').addEventListener('click', function(e){
-  if(e.target===this) closeSubmissionModal();
-});
 
 /* ════════════════════════════════════════
    초기 진입
