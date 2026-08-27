@@ -176,9 +176,12 @@ def _replace_meta_for_design(html: str, font: Font) -> str:
     }, ensure_ascii=False)
     json_ld_tag = f'<script type="application/ld+json" id="serverJsonLd">{json_ld}</script>'
 
-    html = html.replace("{{FFP_TITLE}}", m["title"])
-    html = html.replace("{{FFP_DESC}}", m["desc"])
-    html = html.replace("{{FFP_KEYWORDS}}", m["keywords"])
+    # 제목·설명은 <title> 말고도 og/twitter 속성 여러 곳에 들어간다.
+    # 폰트 이름이나 소개문에 따옴표가 하나만 섞여도 <head>가 깨지므로
+    # 어드민에서 무엇이 들어오든 이스케이프해서 넣는다.
+    html = html.replace("{{FFP_TITLE}}", _esc(m["title"]))
+    html = html.replace("{{FFP_DESC}}", _esc(m["desc"]))
+    html = html.replace("{{FFP_KEYWORDS}}", _esc(m["keywords"]))
     html = html.replace("{{FFP_CANONICAL}}", m["url"])
     html = html.replace("{{FFP_OG_IMAGE}}", m["og_image"])
     html = html.replace("{{FFP_JSONLD}}", json_ld_tag)
@@ -704,9 +707,12 @@ def _replace_meta_for_font_detail(html: str, font: Font) -> str:
     }, ensure_ascii=False)
     json_ld_tag = f'<script type="application/ld+json" id="serverJsonLd">{json_ld}</script>'
 
-    html = html.replace("{{FFP_TITLE}}", m["title"])
-    html = html.replace("{{FFP_DESC}}", m["desc"])
-    html = html.replace("{{FFP_KEYWORDS}}", m["keywords"])
+    # 제목·설명은 <title> 말고도 og/twitter 속성 여러 곳에 들어간다.
+    # 폰트 이름이나 소개문에 따옴표가 하나만 섞여도 <head>가 깨지므로
+    # 어드민에서 무엇이 들어오든 이스케이프해서 넣는다.
+    html = html.replace("{{FFP_TITLE}}", _esc(m["title"]))
+    html = html.replace("{{FFP_DESC}}", _esc(m["desc"]))
+    html = html.replace("{{FFP_KEYWORDS}}", _esc(m["keywords"]))
     html = html.replace("{{FFP_CANONICAL}}", m["url"])
     html = html.replace("{{FFP_OG_IMAGE}}", m["og_image"])
     html = html.replace("{{FFP_JSONLD}}", json_ld_tag)

@@ -14,7 +14,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from starlette.middleware.sessions import SessionMiddleware
 
 from .header import not_found_page
@@ -158,6 +158,40 @@ def _stamp_assets(html: str) -> str:
     return _ASSET_REF.sub(rep, html)
 
 
+# ── 정규 주소로 모으기 (http→https, www 제거) ────────────────────
+# 같은 사이트가 http/https × www 유무로 네 주소에서 열리면 검색엔진이
+# 중복으로 본다. canonical 태그로 한 번 정리해 두었지만, 리다이렉트로
+# 실제 응답을 하나로 모으는 편이 낫다.
+#
+# 주의: TLS 는 카페24 엣지에서 끊기므로 앱이 보는 request.url.scheme 은
+# 늘 http 다. 그걸로 판단하면 https 로 들어온 요청까지 https 로 다시
+# 보내 무한 루프가 된다. 그래서 **엣지가 붙여 주는 X-Forwarded-Proto 가
+# 명시적으로 http 일 때만** 움직인다. 헤더가 없으면 아무것도 하지 않는다
+# (판단할 근거가 없을 때는 건드리지 않는 쪽이 안전하다).
+CANONICAL_HOST = "freefontpick.co.kr"
+
+
+@app.middleware("http")
+async def canonical_redirect(request: Request, call_next):
+    proto = (request.headers.get("x-forwarded-proto") or "").split(",")[0].strip().lower()
+    host = (request.headers.get("host") or "").split(":")[0].lower()
+
+    # 운영 도메인이 아닐 때(로컬, 카페24 컨테이너 주소, 헬스체크)는 그대로 둔다.
+    if host not in (CANONICAL_HOST, "www." + CANONICAL_HOST):
+        return await call_next(request)
+
+    need_https = proto == "http"          # 헤더가 없으면 False — 손대지 않는다
+    need_apex = host.startswith("www.")
+    if need_https or need_apex:
+        target = f"https://{CANONICAL_HOST}{request.url.path}"
+        if request.url.query:
+            target += "?" + request.url.query
+        # 301: 검색엔진이 색인을 옮기도록. 주소 정책은 되돌릴 일이 없다.
+        return RedirectResponse(target, status_code=301)
+
+    return await call_next(request)
+
+
 @app.middleware("http")
 async def stamp_static_assets(request: Request, call_next):
     response = await call_next(request)
@@ -224,9 +258,19 @@ app.include_router(design.router)
 
 # 헬스체크 — DB 종류와 경로/호스트도 함께 노출 (운영 데이터 보존 진단용)
 @app.get("/api/health")
-def health():
-    """기본 헬스 + DB 연결 상태 + 폰트/태그 카운트 + DB 종류"""
+def health(request: Request):
+    """기본 헬스 + DB 연결 상태 + 폰트/태그 카운트 + DB 종류
+
+    canonical_redirect 가 제대로 판단하는지 보려면 proxy 항목을 확인한다.
+    x_forwarded_proto 가 빈 값이면 엣지가 프로토콜을 알려 주지 않는다는
+    뜻이고, 그때는 http→https 리다이렉트가 (안전하게) 동작하지 않는다."""
     info = {"status": "ok", "service": "freefontpick-api", "version": "1.0.0"}
+    info["proxy"] = {
+        "host": request.headers.get("host"),
+        "x_forwarded_proto": request.headers.get("x-forwarded-proto"),
+        "x_forwarded_host": request.headers.get("x-forwarded-host"),
+        "x_forwarded_for": request.headers.get("x-forwarded-for"),
+    }
     try:
         from .database import SessionLocal, DATABASE_URL
         from .models import Font, Tag, AdminUser
