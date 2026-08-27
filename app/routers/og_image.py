@@ -206,36 +206,60 @@ def _generate(font: Font) -> bytes:
     if font_file:
         try:
             name_font_bytes = _subset_font_to_fontobject(font_file, font_name_text)
+            # 서브셋 파싱은 성공해도 실제 래스터라이즈 단계에서 FreeType이
+            # 실패하는 폰트가 실제로 있었다("Bitmap missing for glyph" —
+            # id=223, 손상된 힌팅 바이트코드로 추정). 본 렌더링 전에 미리
+            # 한 번 그려서 검증해두면, og-warm이 그 폰트 하나에 걸려
+            # remaining이 0이 되지 않고 끝없이 재시도하는 일을 막을 수 있다.
+            name_font_bytes.seek(0)
+            canary = ImageFont.truetype(name_font_bytes, 64)
+            ImageDraw.Draw(Image.new("RGB", (4, 4))).text((0, 0), font_name_text, font=canary, fill=(0, 0, 0))
+            name_font_bytes.seek(0)
         except Exception:
             name_font_bytes = None
-
-    def load_name_font(size):
-        if name_font_bytes is not None:
-            name_font_bytes.seek(0)
-            try:
-                return ImageFont.truetype(name_font_bytes, size)
-            except Exception:
-                pass
-        return _ui_font(size, ui_bold_bytes)
 
     square_size = min(W, H)
     target_w = square_size * 0.9
 
-    def measure_w(size):
-        f = load_name_font(int(size))
-        bbox = d.textbbox((0, 0), font_name_text, font=f)
-        return bbox[2] - bbox[0]
+    def _fit_and_render(own_font_bytes):
+        """이진 탐색으로 폭에 맞는 크기를 찾고 실제로 렌더링까지 해 본다.
 
-    lo, hi = 10, 300
-    for _ in range(24):
-        mid = (lo + hi) / 2
-        if measure_w(mid) < target_w:
-            lo = mid
-        else:
-            hi = mid
-    name_size = max(int(lo), 10)
-    name_font = load_name_font(name_size)
-    name_bbox = d.textbbox((0, 0), font_name_text, font=name_font)
+        own_font_bytes가 None이면 처음부터 UI 폰트로만 계산한다.
+        """
+        def load(size):
+            if own_font_bytes is not None:
+                own_font_bytes.seek(0)
+                return ImageFont.truetype(own_font_bytes, size)
+            return _ui_font(size, ui_bold_bytes)
+
+        def measure(size):
+            f = load(int(size))
+            bbox = d.textbbox((0, 0), font_name_text, font=f)
+            return bbox[2] - bbox[0]
+
+        lo, hi = 10, 300
+        for _ in range(24):
+            mid = (lo + hi) / 2
+            if measure(mid) < target_w:
+                lo = mid
+            else:
+                hi = mid
+        size = max(int(lo), 10)
+        f = load(size)
+        bbox = d.textbbox((0, 0), font_name_text, font=f)
+        return f, bbox, size
+
+    try:
+        name_font, name_bbox, name_size = _fit_and_render(name_font_bytes)
+    except Exception:
+        # 폰트 파일 자체는 열리지만(_subset_font_to_fontobject 성공) 특정
+        # 글자에서 FreeType 렌더링 단계가 실패하는 폰트가 실제로 있었다
+        # (예: "Bitmap missing for glyph" — id=223). 이 경우를 못 잡으면
+        # og-warm 이 이 폰트 하나에 걸려 remaining 이 0이 되지 않고
+        # 끝없이 반복된다. 실제 폰트 대신 UI 폰트로 폴백해 카드 생성을
+        # 계속 진행한다 — 그 폰트 자체가 깨졌다는 신호이니 반쯤 깨진
+        # 카드보다 완성된 카드가 낫다.
+        name_font, name_bbox, name_size = _fit_and_render(None)
     name_h = name_bbox[3] - name_bbox[1]
 
     sub_text = f"{font.maker or ''} 배포"
@@ -252,7 +276,12 @@ def _generate(font: Font) -> bytes:
 
     # 폰트명 (실제 폰트로 렌더링)
     name_y = by
-    center_text(name_y, font_name_text, name_font, TEXT_COLOR)
+    try:
+        center_text(name_y, font_name_text, name_font, TEXT_COLOR)
+    except Exception:
+        # 크기 탐색 단계(_fit_and_render)는 통과했지만 최종 크기에서만
+        # 그리기가 실패하는 경우까지 대비한 마지막 안전망.
+        center_text(name_y, font_name_text, _ui_font(name_size, ui_bold_bytes), TEXT_COLOR)
 
     # 배포처
     sub_y = name_y + name_h + gap2
