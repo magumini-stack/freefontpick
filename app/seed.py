@@ -48,6 +48,7 @@ def init_db():
         _migrate_luxury_hub(db)
         _patch_luxury_hub_title(db)
         _migrate_fancy_intros(db)
+        _migrate_curator_intros(db)
         _migrate_webfont_weights(db)
         _migrate_clean_css_urls(db)
         _migrate_arita_weights(db)
@@ -735,6 +736,63 @@ def _migrate_fancy_intros(db: Session):
         msg += f" (이미 있어 건너뜀: {', '.join(skipped)})"
     if missing:
         msg += f" (미발견: {', '.join(missing)})"
+    print(msg)
+
+
+def _migrate_curator_intros(db: Session):
+    """큐레이터 코멘트를 조사한 확장본으로 교체한다 (app/curator_intros.py).
+
+    ⚠ 이 마이그레이션만 유일하게 **기존 값을 덮어쓴다**. 그래서 표에 적힌
+    old(교체 전 원문)와 DB의 현재 값이 정확히 같을 때만 손댄다. 어드민에서
+    사람이 고쳐 쓴 글은 old와 달라지므로 그대로 남는다 — 배포가 사람 손을
+    되돌리는 일은 없어야 한다.
+
+    meta는 JSON 컬럼이라 딕셔너리를 제자리에서 고치면 SQLAlchemy가 변경을
+    알아채지 못한다. 새 딕셔너리로 통째로 갈아끼운다.
+    """
+    from .curator_intros import CURATOR_INTRO_KEY, EXPANDED_INTROS
+
+    if not EXPANDED_INTROS:
+        return
+
+    done = db.query(AppMeta).filter(AppMeta.key == CURATOR_INTRO_KEY).first()
+    if done and done.value == "1":
+        return
+
+    replaced, edited, missing, mismatched = 0, [], [], []
+    for item in EXPANDED_INTROS:
+        font_id, name = item["id"], item["name"]
+        f = db.query(Font).filter(Font.id == font_id).first()
+        if f is None:
+            missing.append(f"id={font_id}({name})")
+            continue
+        if f.name != name:
+            # 이름이 다르면 다른 폰트에 남의 글을 붙이는 것이라 손대지 않는다.
+            mismatched.append(f"id={font_id}: DB='{f.name}' 기대='{name}'")
+            continue
+        meta = dict(f.meta or {})
+        current = (meta.get("intro") or "").strip()
+        if current != item["old"].strip():
+            # 어드민에서 고쳐 쓴 글 — 덮어쓰지 않는다.
+            edited.append(f.name)
+            continue
+        meta["intro"] = item["new"].strip()
+        f.meta = meta
+        replaced += 1
+
+    if done is None:
+        db.add(AppMeta(key=CURATOR_INTRO_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+
+    msg = f"[migrate] 큐레이터 코멘트 확장 {replaced}종 교체"
+    if edited:
+        msg += f" (어드민 수정본이라 보존: {', '.join(edited)})"
+    if missing:
+        msg += f" (미발견: {', '.join(missing)})"
+    if mismatched:
+        msg += f" (폰트명 불일치: {'; '.join(mismatched)})"
     print(msg)
 
 

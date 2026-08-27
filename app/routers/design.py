@@ -535,9 +535,13 @@ def _font_ssr_block(font: Font, db: Session) -> str:
     # additional commentary 에 가장 정확히 대응하므로 위쪽에 둔다.
     intro = str(meta.get("intro") or "").strip()
     if intro:
+        # 소개글은 빈 줄로 나뉜 여러 문단일 수 있다. 한 덩어리로 넣으면
+        # 화면(font.html)과 문단 구성이 달라지므로 여기서도 같게 나눈다.
+        paras = [p.strip() for p in re.split(r"\n\s*\n", intro) if p.strip()]
+        body = "".join(f"<p>{_esc(' '.join(p.split()))}</p>" for p in paras)
         parts.append(
             "<section><h2>왜 골랐나요</h2>"
-            f"<p>{_esc(intro)}</p>"
+            f"{body}"
             "<p>— 폰트픽 큐레이션팀</p></section>"
         )
 
@@ -634,14 +638,23 @@ def _font_detail_meta(font: Font) -> dict:
     maker = font.maker or ""
     tags = [t.name for t in font.tags] if font.tags else []
     intro = ""
+    summary = ""
     if font.meta and isinstance(font.meta, dict):
         intro = str(font.meta.get("intro") or "").strip()
+        summary = str(font.meta.get("summary") or "").strip()
 
     title = f"{name} 무료폰트 다운로드 - 어울리는 폰트 조합까지 | 폰트픽"
-    desc = intro or (
+    # meta description 은 검색결과에 잘려 나오는 자리라 짧아야 한다. 소개글은
+    # 본문용으로 길게 쓰므로 그대로 쓰지 않고, 한 줄 요약 → 소개글 첫 문단
+    # → 기본 문구 순으로 고른 뒤 길이를 자른다.
+    first_para = re.split(r"\n\s*\n", intro)[0].strip() if intro else ""
+    desc = summary or first_para or (
         f"{name}({maker}) 무료 한글 폰트를 미리 써보고 다운로드하세요. "
         f"상업적 사용 가능, 어울리는 폰트 조합까지 폰트픽에서 한 번에 확인할 수 있습니다."
     )
+    desc = " ".join(desc.split())
+    if len(desc) > 155:
+        desc = desc[:154].rstrip() + "…"
     keywords = ", ".join(
         [name, f"{name} 다운로드", "무료폰트", "무료 한글 폰트", maker] + tags[:4]
     )

@@ -233,6 +233,7 @@
   .curator{background:var(--bg-secondary);border-left:3px solid var(--accent);padding:24px 26px;border-radius:0 3px 3px 0}
   .curator .c-lbl{font-family:var(--ui);font-size:12.5px;letter-spacing:.2px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:12px}
   .curator p{font-size:15.5px;line-height:1.85;color:var(--text-primary);max-width:42em;margin:0;word-break:keep-all;overflow-wrap:break-word}
+  .curator p + p{margin-top:1.1em}
   .curator .sign{font-family:var(--ui);font-size:13px;color:var(--text-muted);margin-top:14px}
 
   /* ── APP PROMO (사이드바) ── */
@@ -666,7 +667,8 @@
           <div class="lbl">큐레이터 코멘트</div>
           <div class="curator">
             <div class="c-lbl">✎ 왜 골랐나요</div>
-            <p id="fontIntro"></p>
+            <!-- 소개글은 여러 문단일 수 있다. 문단은 JS가 <p>로 나눠 넣는다. -->
+            <div id="fontIntro"></div>
             <div class="sign">— 폰트픽 큐레이션팀</div>
           </div>
         </section>
@@ -1272,7 +1274,16 @@
       var introText = (f.meta && f.meta.intro) ? String(f.meta.intro).trim() : '';
       var introSec = document.getElementById('introSec');
       if (introText) {
-        introEl.textContent = introText;
+        /* 빈 줄로 나뉜 문단을 각각 <p>로 넣는다. textContent 로 넣으므로
+           본문에 태그가 섞여 있어도 그대로 글자로만 나온다. */
+        introEl.textContent = '';
+        introText.split(/\n\s*\n/).forEach(function(para){
+          var t = para.replace(/\s*\n\s*/g, ' ').trim();
+          if (!t) return;
+          var p = document.createElement('p');
+          p.textContent = t;
+          introEl.appendChild(p);
+        });
         introSec.classList.remove('hidden');
       } else {
         introSec.classList.add('hidden');
