@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.middleware.sessions import SessionMiddleware
 
+from .header import not_found_page
 from .seed import init_db
 from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, sample_image, db_migrate, gif_templates, gif, font_pair
 
@@ -275,8 +276,18 @@ if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
+def _static_not_found(request: Request):
+    """정적 경로에서 못 찾았을 때.
+
+    브라우저에는 404 페이지를, 그 밖(API 클라이언트·크롤러의 자산 요청 등)
+    에는 기존처럼 JSON 을 준다. 어느 쪽이든 상태 코드는 404 다."""
+    if "text/html" in (request.headers.get("accept") or ""):
+        return not_found_page()
+    return JSONResponse({"detail": "Not Found"}, status_code=404)
+
+
 @app.get("/{full_path:path}")
-async def serve_static(full_path: str):
+async def serve_static(full_path: str, request: Request):
     """루트의 모든 경로 → static/ 폴더의 파일로 서빙
 
     - / → static/index.html
@@ -293,11 +304,11 @@ async def serve_static(full_path: str):
     try:
         target = target.resolve()
         if not str(target).startswith(str(STATIC_DIR.resolve())):
-            return JSONResponse({"detail": "Not Found"}, status_code=404)
+            return _static_not_found(request)
     except Exception:
-        return JSONResponse({"detail": "Not Found"}, status_code=404)
+        return _static_not_found(request)
 
     if not target.exists() or not target.is_file():
-        return JSONResponse({"detail": "Not Found"}, status_code=404)
+        return _static_not_found(request)
 
     return FileResponse(target)

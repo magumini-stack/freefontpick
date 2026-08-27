@@ -23,7 +23,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Font, FontPairing, UseCase, UseCaseFont
-from ..header import inject_header
+from ..header import inject_header, not_found_page
 
 
 def _esc(s) -> str:
@@ -205,9 +205,7 @@ def font_design_page(font_id: int, db: Session = Depends(get_db)):
      간 내부링크가 같은 폰트 안에서의 이동임을 크롤러도 이해하기 쉬워진다.)"""
     font = db.query(Font).filter(Font.id == font_id).first()
     if font is None:
-        # 폰트 없으면 홈으로 리다이렉트 (soft 404 방지: index를 그냥 주면
-        # 검색엔진이 실제 없는 폰트 URL을 계속 재방문할 수 있어 302로 홈 유도)
-        return RedirectResponse(url="/", status_code=302)
+        return not_found_page()
     html = _load_font_page()
     html = inject_header(html, "")
     html = _replace_meta_for_design(html, font)
@@ -720,7 +718,7 @@ def _replace_meta_for_font_detail(html: str, font: Font) -> str:
 def font_detail_page(font_id: int, request: Request, db: Session = Depends(get_db)):
     font = db.query(Font).filter(Font.id == font_id).first()
     if font is None:
-        return RedirectResponse(url="/", status_code=302)
+        return not_found_page()
 
     # 실시간 인기 순위의 근거. 봇과 새로고침은 여기서 걸러진다
     # (app/font_views.py). 지표 때문에 페이지가 안 뜨면 본말이 뒤집히므로

@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import UseCase, Font, Tag
-from ..header import inject_header
+from ..header import inject_header, not_found_page
 
 router = APIRouter(tags=["use-case-page"])
 
@@ -57,8 +57,7 @@ def hub_font_total(db: Session, uc: UseCase) -> int:
 def use_case_page(slug: str, db: Session = Depends(get_db)):
     uc = db.query(UseCase).filter(UseCase.slug == slug).first()
     if uc is None or not uc.is_active:
-        # 없는 허브는 홈으로 — soft 404 방지 (wisefont.py와 동일한 처리)
-        return RedirectResponse(url="/", status_code=302)
+        return not_found_page()
 
     linked = [f for f in uc.fonts if f.font is not None]
     picks = linked[:PICK_CARD_LIMIT]

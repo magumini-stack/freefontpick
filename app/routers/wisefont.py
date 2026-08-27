@@ -21,7 +21,7 @@ from urllib.parse import quote as _q
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 
-from ..header import inject_header
+from ..header import inject_header, not_found_page
 
 router = APIRouter(tags=["wisefont"])
 
@@ -222,8 +222,7 @@ def _thumb_url(slug: str) -> str:
 def wisefont_page(slug: str):
     font = _BY_SLUG.get(slug)
     if font is None:
-        # 없는 폰트는 홈으로 — soft 404 방지
-        return RedirectResponse(url="/", status_code=302)
+        return not_found_page()
 
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
     html = inject_header(html, "")

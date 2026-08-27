@@ -308,3 +308,28 @@ syncBandOffset();
 })();
 </script>
 '''
+
+
+# ── 404 페이지 ──────────────────────────────────────────────────
+# 없는 폰트·허브를 홈으로 302 하던 자리를 대신한다.
+#
+# 예전 주석은 홈 리다이렉트가 soft 404 를 막는다고 적혀 있었는데 사실은
+# 반대다. 검색엔진은 "없는 주소가 200 이나 3xx 로 응답하고 내용이 엉뚱함"을
+# soft 404 로 판정한다. 홈으로 보내는 것이 바로 그 형태였고, 실제로
+# Search Console 에 /use/* 가 soft 404 로 잡혔다. 상태 코드 404 를 제대로
+# 주는 것이 색인에도, 사람이 보기에도 낫다.
+from pathlib import Path as _Path
+
+from fastapi.responses import HTMLResponse as _HTMLResponse
+
+_NOT_FOUND_PATH = _Path(__file__).resolve().parent.parent / "static" / "404.html"
+
+
+def not_found_page() -> _HTMLResponse:
+    """브랜드 404 페이지를 상태 코드 404 와 함께 돌려준다."""
+    try:
+        html = inject_header(_NOT_FOUND_PATH.read_text(encoding="utf-8"), "")
+    except Exception:
+        # 파일이 없어도 404 자체는 정확히 내보낸다 — 상태 코드가 본질이다.
+        html = "<!DOCTYPE html><html lang=ko><meta charset=utf-8>"                "<title>404 — 폰트픽</title><p>페이지를 찾을 수 없습니다. "                "<a href=\"/\">폰트픽 홈</a></p>"
+    return _HTMLResponse(html, status_code=404)
