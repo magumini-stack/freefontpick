@@ -18,7 +18,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.middleware.sessions import SessionMiddleware
 
 from .seed import init_db
-from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, sample_image, db_migrate, gif_templates, gif, font_pair
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, sample_image, db_migrate, gif_templates, gif, font_pair
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -208,6 +208,8 @@ app.include_router(use_cases_admin.router)
 app.include_router(sample_image.router)
 app.include_router(og_image.router)
 app.include_router(og_image.hub_router)
+# 홍보물용 글자 조각 PNG. og_image 와 같은 /api/fonts prefix 라 함께 둔다.
+app.include_router(piece_image.router)
 app.include_router(gif_templates.router)
 # SQLite → MySQL 일회용 이관 도구 (관리자 전용). 이관이 끝나면 지워도 된다.
 app.include_router(db_migrate.router)
