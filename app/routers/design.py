@@ -644,17 +644,33 @@ def _font_detail_meta(font: Font) -> dict:
         summary = str(font.meta.get("summary") or "").strip()
 
     title = f"{name} 무료폰트 다운로드 - 어울리는 폰트 조합까지 | 폰트픽"
-    # meta description 은 검색결과에 잘려 나오는 자리라 짧아야 한다. 소개글은
-    # 본문용으로 길게 쓰므로 그대로 쓰지 않고, 한 줄 요약 → 소개글 첫 문단
-    # → 기본 문구 순으로 고른 뒤 길이를 자른다.
-    first_para = re.split(r"\n\s*\n", intro)[0].strip() if intro else ""
-    desc = summary or first_para or (
-        f"{name}({maker}) 무료 한글 폰트를 미리 써보고 다운로드하세요. "
-        f"상업적 사용 가능, 어울리는 폰트 조합까지 폰트픽에서 한 번에 확인할 수 있습니다."
-    )
-    desc = " ".join(desc.split())
-    if len(desc) > 155:
-        desc = desc[:154].rstrip() + "…"
+    # meta description — 검색결과에 뜨는 자리라 길이를 맞춰야 한다.
+    #   · 너무 길면 잘린다. 소개글(본문용, 500자 이상)을 그대로 쓰면 안 된다.
+    #   · 너무 짧아도 손해다. 한 줄 요약만 쓰면 20자 안팎이라 스니펫이 빈다.
+    # 그래서 한 줄 요약으로 시작하고, 모자라는 만큼 소개글 첫 문단을 문장
+    # 단위로 이어 붙여 120~155자를 채운다.
+    TARGET, HARD_MAX = 120, 155
+    first_para = " ".join(re.split(r"\n\s*\n", intro)[0].split()) if intro else ""
+    desc = " ".join(summary.split())
+    if len(desc) < TARGET and first_para:
+        for sent in re.findall(r"[^.!?]+[.!?]*", first_para):
+            sent = sent.strip()
+            if not sent or sent in desc:
+                continue
+            cand = f"{desc} {sent}".strip() if desc else sent
+            if len(cand) > HARD_MAX:
+                break
+            desc = cand
+            if len(desc) >= TARGET:
+                break
+    if not desc:
+        desc = (
+            f"{name}({maker}) 무료 한글 폰트를 미리 써보고 다운로드하세요. "
+            f"상업적 사용 가능, 어울리는 폰트 조합까지 폰트픽에서 한 번에 확인할 수 있습니다."
+        )
+        desc = " ".join(desc.split())
+    if len(desc) > HARD_MAX:
+        desc = desc[: HARD_MAX - 1].rstrip() + "…"
     keywords = ", ".join(
         [name, f"{name} 다운로드", "무료폰트", "무료 한글 폰트", maker] + tags[:4]
     )
