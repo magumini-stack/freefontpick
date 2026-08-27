@@ -25,7 +25,9 @@
 import gc
 import io
 import os
+import shutil
 import threading
+import zipfile
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -35,7 +37,7 @@ from sqlalchemy.orm import Session
 from ..auth import get_current_admin
 from ..database import get_db
 from ..models import Font
-from .files import FONT_RESOLUTION, font_path, bundled_font_path
+from .files import FONT_RESOLUTION, font_path, bundled_font_path, resolve_zip
 
 router = APIRouter(prefix="/api/fonts", tags=["og-image"])
 # 용도 허브 카드는 경로가 달라 라우터를 하나 더 둔다 (main.py에서 함께 등록).
@@ -57,13 +59,70 @@ ACCENT = "#1E3A8A"
 _UI_FONT_ID = 10
 
 # 레이아웃/렌더링 로직이 바뀔 때마다 올려서 기존 캐시를 무효화한다.
-_CACHE_VERSION = 5
+_CACHE_VERSION = 6
 # 허브 카드는 폰트 카드와 레이아웃이 달라 버전을 따로 둔다 — 한쪽을 손봤다고
 # 다른 쪽 캐시 수백 장을 통째로 버릴 이유가 없다.
 _HUB_CACHE_VERSION = 1
 
 
-def _resolve_font_file(font_id: int) -> Path | None:
+# 배포용 ZIP 에서 꺼낸 폰트를 두는 자리.
+_ZIP_FONT_CACHE = CACHE_DIR / "zipfonts"
+_FONT_EXTS = (".ttf", ".otf")
+
+
+def _font_from_zip(font_id: int) -> Path | None:
+    """배포용 ZIP 안의 TTF/OTF 를 꺼내 캐시하고 그 경로를 준다.
+
+    구글 폰트 CDN 등 웹폰트로만 미리보기를 제공하는 폰트는 로컬 woff2 가
+    없어(has_file=False) 여기까지 내려온다. 그대로 두면 UI 폰트로 폴백해
+    "폰트 소개 카드에 정작 그 폰트가 아닌 글씨가 나가는" 상태가 된다.
+    다운로드용 ZIP 안에는 원본 TTF/OTF 가 들어 있으니 그것을 쓴다.
+    (CDN 을 직접 받아오지 않는다 — OG 생성 중에 외부 네트워크를 타면
+    그쪽이 느리거나 막혔을 때 카드 생성이 통째로 멈춘다.)
+    """
+    stem = f"font-{font_id:03d}"
+    for ext in _FONT_EXTS:
+        cached = _ZIP_FONT_CACHE / (stem + ext)
+        if cached.is_file():
+            return cached
+
+    zp = resolve_zip(font_id)
+    if not zp:
+        return None
+    try:
+        with zipfile.ZipFile(zp) as z:
+            names = [
+                n for n in z.namelist()
+                if n.lower().endswith(_FONT_EXTS)
+                and not n.startswith("__MACOSX/")
+                and not Path(n).name.startswith(".")
+            ]
+            if not names:
+                return None
+            # 굵기가 여러 개면 기본 굵기를 골라야 하는데 파일명 규칙이
+            # 제각각이라, ttf 를 먼저 두고 그 다음 이름이 짧은 것을 고른다 —
+            # 보통 파생 굵기일수록 이름이 길다 (NanumBrush.ttf vs
+            # NanumBrushBold.ttf).
+            pick = min(names, key=lambda n: (
+                0 if n.lower().endswith(".ttf") else 1, len(Path(n).name), n))
+            out = _ZIP_FONT_CACHE / (stem + Path(pick).suffix.lower())
+            _ZIP_FONT_CACHE.mkdir(parents=True, exist_ok=True)
+            tmp = out.with_name(out.name + ".part")
+            with z.open(pick) as src, open(tmp, "wb") as dst:
+                shutil.copyfileobj(src, dst)
+            tmp.replace(out)
+            return out
+    except Exception:
+        return None
+
+
+def _resolve_font_file(font_id: int, allow_zip: bool = True) -> Path | None:
+    """allow_zip=False 면 ZIP 폴백을 타지 않는다.
+
+    UI 폰트(_UI_FONT_ID)는 서브셋 없이 통째로 읽는 경로라, ZIP 안의 큰 CJK
+    원본이 걸리면 메모리를 그대로 뒤집어쓴다. UI 폰트는 항상 번들되어 있으니
+    폴백이 필요 없고, 없으면 있던 대로 PIL 기본 폰트로 떨어지면 된다.
+    """
     resolved = FONT_RESOLUTION.get(font_id)
     if resolved and Path(resolved[0]).exists():
         return Path(resolved[0])
@@ -73,7 +132,7 @@ def _resolve_font_file(font_id: int) -> Path | None:
     bp = bundled_font_path(font_id)
     if bp.exists():
         return bp
-    return None
+    return _font_from_zip(font_id) if allow_zip else None
 
 
 def _woff2_to_fontobject(path: Path):
@@ -145,7 +204,7 @@ def _generate(font: Font) -> bytes:
     pad = 60
     d.rounded_rectangle([pad, pad, W - pad, H - pad], radius=28, fill=CARD_BG, outline=BORDER, width=2)
 
-    ui_font_file = _resolve_font_file(_UI_FONT_ID)
+    ui_font_file = _resolve_font_file(_UI_FONT_ID, allow_zip=False)
     ui_bold_bytes = None
     ui_reg_bytes = None
     if ui_font_file:
@@ -274,8 +333,13 @@ def _generate(font: Font) -> bytes:
     usable_top, usable_bottom = pad, (H - pad) - watermark_reserved
     by = usable_top + (usable_bottom - usable_top - block_h) / 2
 
+    # by 는 "블록의 잉크 윗선"이고 center_text 의 y 는 "그리기 원점"이라 서로
+    # 다르다. 그 차이가 글자 윗여백(top bearing = bbox[1])인데, 이름이 짧아
+    # 크게 조판될수록 이 값이 커진다. 예전에는 이걸 빼지 않아 배포처 줄이
+    # 폰트명 아래로 파고들었다 (세 글자짜리 이름에서 특히 심했다 — 산하엽).
+    name_y = by - name_bbox[1]
+
     # 폰트명 (실제 폰트로 렌더링)
-    name_y = by
     try:
         center_text(name_y, font_name_text, name_font, TEXT_COLOR)
     except Exception:
@@ -283,8 +347,8 @@ def _generate(font: Font) -> bytes:
         # 그리기가 실패하는 경우까지 대비한 마지막 안전망.
         center_text(name_y, font_name_text, _ui_font(name_size, ui_bold_bytes), TEXT_COLOR)
 
-    # 배포처
-    sub_y = name_y + name_h + gap2
+    # 배포처 — 폰트명 잉크 아랫선에서 gap2 만큼 띄운 자리가 잉크 윗선이 되게
+    sub_y = by + name_h + gap2 - sub_bbox[1]
     center_text(sub_y, sub_text, sub_font, MUTED)
 
     # 하단 로고 마크 (사이트 좌상단 로고와 동일 스타일)
@@ -334,7 +398,7 @@ def _generate_hub(title: str, subtitle: str, total: int, lead_font_id: int | Non
                         fill=CARD_BG, outline=BORDER, width=2)
 
     ui_bytes = None
-    ui_file = _resolve_font_file(_UI_FONT_ID)
+    ui_file = _resolve_font_file(_UI_FONT_ID, allow_zip=False)
     if ui_file:
         try:
             ui_bytes = _woff2_to_fontobject(ui_file)
