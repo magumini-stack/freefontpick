@@ -29,89 +29,177 @@
   <meta property="og:title" content="{{MZ_TITLE}}">
   <meta property="og:description" content="{{MZ_DESC}}">
   <meta property="og:url" content="{{MZ_CANONICAL}}">
-  <meta property="og:image" content="https://freefontpick.co.kr/og-image-v3.png">
+  <meta property="og:image" content="{{MZ_OGIMAGE}}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="{{MZ_TITLE}}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{MZ_TITLE}}">
   <meta name="twitter:description" content="{{MZ_DESC}}">
-  <meta name="twitter:image" content="https://freefontpick.co.kr/og-image-v3.png">
+  <meta name="twitter:image" content="{{MZ_OGIMAGE}}">
   {{MZ_JSONLD}}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
   <style>
+    /* 색 변수는 페이지마다 각자 정의한다 — header.css 는 이 값을 쓰기만 한다.
+       빠뜨리면 상단 '폰트 조합 찾기' 띠의 배경(--accent-light)이 빈 값이 되어
+       띠가 투명해진다. 실제로 그랬다. faq/policy 와 같은 값이다. */
+    :root{
+      --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
+      --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+      --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+      --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
+      --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+      --shadow-card:0 1px 4px rgba(0,0,0,.06);
+      color-scheme:light;
+    }
+    :root[data-theme="dark"]{
+      --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+      --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+      --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+      --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+      color-scheme:dark;
+    }
+    @media(prefers-color-scheme:dark){
+      :root:not([data-theme="light"]):not([data-theme="dark"]){
+        --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+        --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+        --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+        --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+        color-scheme:dark;
+      }
+    }
+
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--text-primary);
       font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       -webkit-font-smoothing:antialiased}
 
-    .mz-hero{max-width:860px;margin:0 auto;padding:44px 20px 8px}
+    /* ── 머리말 ── */
+    .mz-top{background:linear-gradient(180deg,var(--accent-light),transparent);
+      border-bottom:1px solid var(--border)}
+    .mz-hero{max-width:880px;margin:0 auto;padding:40px 20px 34px}
+    .mz-crumb{font-size:12.5px;color:var(--text-muted);margin:0 0 14px}
+    .mz-crumb a{color:var(--text-secondary);text-decoration:none}
+    .mz-crumb a:hover{color:var(--accent)}
     .mz-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;
-      color:var(--accent);background:var(--accent-light);padding:4px 11px;border-radius:20px;
-      letter-spacing:.4px;margin-bottom:14px}
-    .mz-hero h1{font-size:clamp(23px,3.4vw,32px);font-weight:800;letter-spacing:-.7px;
-      line-height:1.35;margin:0}
-    .mz-hero .lead{margin:14px 0 0;font-size:15px;line-height:1.8;color:var(--text-secondary)}
+      color:var(--accent);background:var(--bg-card);border:1px solid var(--border);
+      padding:5px 12px;border-radius:999px;letter-spacing:.4px;margin-bottom:15px}
+    .mz-hero h1{font-size:clamp(24px,3.6vw,33px);font-weight:800;letter-spacing:-.8px;
+      line-height:1.34;margin:0}
+    .mz-hero .lead{margin:15px 0 0;font-size:15.5px;line-height:1.85;
+      color:var(--text-secondary);max-width:640px}
 
-    .mz-main{max-width:860px;margin:0 auto;padding:26px 20px 90px}
+    .mz-main{max-width:880px;margin:0 auto;padding:34px 20px 90px}
 
     /* ── 목록 ── */
-    .mz-list{display:grid;gap:1px;background:var(--border);border:1px solid var(--border);
-      border-radius:var(--radius);overflow:hidden}
-    .mz-card{display:block;background:var(--bg-card);padding:22px 24px;text-decoration:none;
-      color:inherit;transition:background .15s}
-    .mz-card:hover{background:var(--accent-light)}
-    .mz-card h2{font-size:17px;font-weight:800;letter-spacing:-.4px;margin:0 0 8px;
+    .mz-list{display:grid;gap:14px}
+    @media(min-width:760px){.mz-list{grid-template-columns:1fr 1fr}}
+    .mz-card{display:flex;flex-direction:column;background:var(--bg-card);
+      border:1px solid var(--border);border-radius:var(--radius-lg);
+      padding:22px 22px 18px;text-decoration:none;color:inherit;
+      box-shadow:var(--shadow-card);
+      transition:transform .16s,box-shadow .16s,border-color .16s}
+    .mz-card:hover{transform:translateY(-2px);border-color:var(--border-hover);
+      box-shadow:0 8px 24px rgba(0,0,0,.08)}
+    .mz-card-ico{flex:none;width:38px;height:38px;border-radius:11px;margin-bottom:15px;
+      display:flex;align-items:center;justify-content:center;font-size:19px;
+      background:var(--accent-light);color:var(--accent)}
+    .mz-card-body{flex:1;display:flex;flex-direction:column;min-width:0}
+    .mz-card h2{font-size:17px;font-weight:800;letter-spacing:-.45px;margin:0 0 8px;
       line-height:1.45;color:var(--text-primary)}
-    .mz-card p{margin:0;font-size:13.5px;line-height:1.75;color:var(--text-secondary)}
-    .mz-meta{margin-top:11px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+    .mz-card p{margin:0;flex:1;font-size:13.5px;line-height:1.75;color:var(--text-secondary)}
+    .mz-meta{margin-top:16px;padding-top:13px;border-top:1px solid var(--border);
+      display:flex;flex-wrap:wrap;gap:6px;align-items:center}
     .mz-tag{font-size:11px;font-weight:700;color:var(--text-secondary);
       background:var(--bg-secondary);padding:3px 9px;border-radius:20px}
-    .mz-date{font-size:11.5px;color:var(--text-muted);margin-left:2px}
+    .mz-date{font-size:11.5px;color:var(--text-muted);margin-left:auto}
+
+    /* 첫 글은 한 줄을 다 쓴다 — 목록에 들머리를 만들어 준다 */
+    @media(min-width:760px){
+      .mz-card.feat{grid-column:1/-1;flex-direction:row;align-items:flex-start;gap:22px;
+        padding:26px 26px 22px}
+      .mz-card.feat .mz-card-ico{width:50px;height:50px;font-size:25px;
+        border-radius:14px;margin-bottom:0}
+      .mz-card.feat h2{font-size:21px;margin-bottom:10px}
+      .mz-card.feat p{font-size:14.5px;flex:0 0 auto}
+    }
 
     /* ── 글 본문 ── */
-    .mz-post{font-size:15.5px;line-height:1.95;color:var(--text-primary)}
-    .mz-post h2{font-size:19px;font-weight:800;letter-spacing:-.4px;margin:44px 0 12px;
-      padding-top:20px;border-top:1px solid var(--border);line-height:1.45}
-    .mz-post h2:first-child{margin-top:0;padding-top:0;border-top:0}
-    .mz-post h3{font-size:15px;font-weight:800;margin:26px 0 8px;color:var(--text-primary)}
-    .mz-post p{margin:0 0 1.15em;color:var(--text-secondary)}
+    .mz-post{font-size:15.7px;line-height:1.95;color:var(--text-secondary)}
+    .mz-post > p:first-child{font-size:16.5px;color:var(--text-primary);
+      line-height:1.85;margin-bottom:1.3em}
+    .mz-post h2{position:relative;font-size:19px;font-weight:800;letter-spacing:-.5px;
+      color:var(--text-primary);line-height:1.45;margin:46px 0 14px;
+      padding-top:24px;border-top:1px solid var(--border)}
+    .mz-post h2::before{content:"";position:absolute;top:-1px;left:0;
+      width:36px;height:2px;background:var(--accent)}
+    .mz-post h3{font-size:15.5px;font-weight:800;margin:28px 0 8px;color:var(--text-primary)}
+    .mz-post p{margin:0 0 1.15em}
     .mz-post strong{color:var(--text-primary);font-weight:700}
-    .mz-post ul{margin:0 0 1.15em;padding-left:20px;color:var(--text-secondary)}
-    .mz-post li{margin-bottom:.5em;line-height:1.85}
-    .mz-post a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-light)}
-    .mz-post a:hover{border-bottom-color:var(--accent)}
+    .mz-post ul{list-style:none;margin:0 0 1.3em;padding:0}
+    .mz-post li{position:relative;padding-left:19px;margin-bottom:.55em;line-height:1.85}
+    .mz-post li::before{content:"";position:absolute;left:3px;top:.8em;
+      width:5px;height:5px;border-radius:50%;background:var(--accent);opacity:.5}
+    .mz-post a{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;
+      text-underline-offset:3px;text-decoration-color:var(--border-hover)}
+    .mz-post a:hover{text-decoration-color:var(--accent)}
     .mz-post code{background:var(--bg-secondary);padding:2px 6px;border-radius:5px;
       font-size:13.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 
-    /* 본문 안의 허브 링크 묶음 */
-    .mz-hubs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 1.15em}
-    .mz-hubs a{display:inline-block;padding:8px 15px;border-radius:999px;font-size:13px;
-      background:var(--bg-secondary);color:var(--text-primary);border-bottom:0;text-decoration:none}
-    .mz-hubs a:hover{background:var(--accent-light);color:var(--accent)}
+    /* 본문 그림 */
+    .mz-fig{margin:30px 0 34px}
+    .mz-fig img{display:block;width:100%;height:auto;border:1px solid var(--border);
+      border-radius:var(--radius-lg);background:#FAFAF7}
+    .mz-fig figcaption{margin-top:10px;font-size:13px;line-height:1.7;color:var(--text-muted)}
 
-    /* 글 아래 다른 글 */
-    .mz-more{margin-top:56px;padding-top:26px;border-top:1px solid var(--border)}
-    .mz-more h2{font-size:15px;font-weight:800;margin:0 0 14px}
-    .mz-more ul{list-style:none;margin:0;padding:0}
-    .mz-more li{margin-bottom:10px}
-    .mz-more a{font-size:14px;color:var(--text-primary);text-decoration:none;
-      border-bottom:1px solid var(--border)}
-    .mz-more a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+    /* 본문 안의 용도 허브 알약 */
+    .mz-hubs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 1.4em}
+    .mz-hubs a{display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;
+      font-size:13px;font-weight:600;background:var(--bg-card);border:1px solid var(--border);
+      color:var(--text-primary);text-decoration:none}
+    .mz-hubs a:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
 
-    .mz-crumb{font-size:12.5px;color:var(--text-muted);margin-bottom:16px}
-    .mz-crumb a{color:var(--text-secondary);text-decoration:none}
-    .mz-crumb a:hover{color:var(--accent)}
+    /* 글 끝 — 폰트 보러 가는 길 */
+    .mz-cta{margin-top:46px;background:var(--accent-light);border:1px solid var(--border);
+      border-radius:var(--radius-lg);padding:24px 24px 22px;text-align:center}
+    .mz-cta b{display:block;font-size:16px;font-weight:800;letter-spacing:-.4px;
+      color:var(--text-primary);margin-bottom:6px}
+    .mz-cta span{display:block;font-size:13.5px;color:var(--text-secondary);margin-bottom:16px}
+    .mz-cta-btns{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+    .mz-cta a{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;
+      border-radius:999px;font-size:13.5px;font-weight:700;text-decoration:none;
+      background:var(--accent);color:#fff;border:1px solid var(--accent)}
+    .mz-cta a.ghost{background:var(--bg-card);color:var(--text-primary);border-color:var(--border)}
+    .mz-cta a:hover{background:var(--accent-hover);color:#fff;border-color:var(--accent-hover)}
+
+    /* 다른 글 */
+    .mz-more{margin-top:56px;padding-top:28px;border-top:1px solid var(--border)}
+    .mz-more h2{font-size:13px;font-weight:800;letter-spacing:.4px;color:var(--text-muted);
+      margin:0 0 14px;padding:0;border:0}
+    .mz-more h2::before{display:none}
+    .mz-more ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+    @media(min-width:760px){.mz-more ul{grid-template-columns:1fr 1fr}}
+    .mz-more li{margin:0;padding:0}
+    .mz-more li::before{display:none}
+    .mz-more a{display:block;padding:14px 16px;background:var(--bg-card);
+      border:1px solid var(--border);border-radius:var(--radius-md);
+      font-size:14px;font-weight:600;line-height:1.5;color:var(--text-primary);
+      text-decoration:none}
+    .mz-more a:hover{border-color:var(--accent);color:var(--accent)}
 
     @media(max-width:620px){
-      .mz-hero{padding:30px 17px 6px}
-      .mz-main{padding:20px 17px 64px}
-      .mz-card{padding:18px 18px}
+      .mz-hero{padding:28px 17px 26px}
+      .mz-main{padding:24px 17px 64px}
+      .mz-card{padding:19px 18px 16px}
       .mz-post{font-size:15px}
-      .mz-post h2{font-size:17.5px;margin-top:36px}
+      .mz-post > p:first-child{font-size:15.8px}
+      .mz-post h2{font-size:17.5px;margin-top:38px}
+      .mz-cta{padding:20px 18px}
+      .mz-cta-btns{flex-direction:column}
+      .mz-cta a{justify-content:center}
     }
   </style>
 </head>
@@ -119,12 +207,14 @@
 
 <!--FFP_HEADER-->
 
-<section class="mz-hero">
-  {{MZ_CRUMB}}
-  <div class="mz-eyebrow"><i class="ti ti-book-2" aria-hidden="true"></i> MAGAZINE</div>
-  <h1>{{MZ_H1}}</h1>
-  <p class="lead">{{MZ_LEAD}}</p>
-</section>
+<div class="mz-top">
+  <section class="mz-hero">
+    {{MZ_CRUMB}}
+    <div class="mz-eyebrow"><i class="ti ti-book-2" aria-hidden="true"></i> MAGAZINE</div>
+    <h1>{{MZ_H1}}</h1>
+    <p class="lead">{{MZ_LEAD}}</p>
+  </section>
+</div>
 
 <main class="mz-main">
   {{MZ_BODY}}

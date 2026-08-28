@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..header import inject_header, not_found_page
-from ..magazine import POSTS, BY_SLUG
+from ..magazine import POSTS, BY_SLUG, image_src
 from ..models import Font, UseCase
 
 router = APIRouter(tags=["magazine"])
@@ -71,6 +71,21 @@ def _hub_links(db: Session) -> str:
     ) + "</div>"
 
 
+def _figure(p) -> str:
+    """글 안에 들어가는 그림. 크롤러가 읽는 것은 alt 와 설명글이므로 둘 다 채운다.
+    크기를 못 박아 두는 이유는 이미지가 늦게 와도 글이 밀리지 않게 하기 위해서다."""
+    im = p.get("image")
+    if not im:
+        return ""
+    return (
+        '<figure class="mz-fig">'
+        f'<img src="{image_src(p)}" alt="{_esc(im["alt"])}"'
+        ' width="1200" height="630" loading="lazy" decoding="async">'
+        f'<figcaption>{_esc(im["cap"])}</figcaption>'
+        "</figure>"
+    )
+
+
 def _fill(body: str, db: Session) -> str:
     """본문의 런타임 자리표시자를 채운다.
 
@@ -78,11 +93,16 @@ def _fill(body: str, db: Session) -> str:
     틀린 말이 된다. 마커로 두고 여기서 채운다.
     """
     body = body.replace("{{COUNT}}", str(_font_count(db)))
+    body = body.replace("{{FIGURE}}", "")   # 글마다 다르므로 여기서는 지우기만
     body = body.replace("{{HUB_LINKS}}", _hub_links(db))
     return body
 
 
-def _render(*, title, desc, canonical, h1, lead, body, json_ld, crumb="", og_type="website"):
+DEFAULT_OG = f"{BASE_URL}/og-image-v3.png"
+
+
+def _render(*, title, desc, canonical, h1, lead, body, json_ld, crumb="",
+            og_type="website", og_image=DEFAULT_OG):
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
     html = inject_header(html, "magazine")
     repl = {
@@ -90,6 +110,7 @@ def _render(*, title, desc, canonical, h1, lead, body, json_ld, crumb="", og_typ
         "{{MZ_DESC}}": _esc(desc),
         "{{MZ_CANONICAL}}": canonical,
         "{{MZ_OGTYPE}}": og_type,
+        "{{MZ_OGIMAGE}}": og_image,
         "{{MZ_H1}}": _esc(h1),
         "{{MZ_LEAD}}": _esc(lead),
         "{{MZ_CRUMB}}": crumb,
@@ -101,21 +122,40 @@ def _render(*, title, desc, canonical, h1, lead, body, json_ld, crumb="", og_typ
     return HTMLResponse(html)
 
 
-def _card(p) -> str:
+def _card(p, feat: bool = False) -> str:
+    """목록 카드 하나. feat 는 맨 위 글 — 넓은 화면에서 한 줄을 다 쓴다."""
     tags = "".join(f'<span class="mz-tag">{_esc(t)}</span>' for t in p.get("tags", []))
+    ico = _esc(p.get("icon") or "ti-article")
     return (
-        f'<a class="mz-card" href="/magazine/{p["slug"]}">'
+        f'<a class="mz-card{" feat" if feat else ""}" href="/magazine/{p["slug"]}">'
+        f'<div class="mz-card-ico"><i class="ti {ico}" aria-hidden="true"></i></div>'
+        f'<div class="mz-card-body">'
         f'<h2>{_esc(p["title"])}</h2>'
         f'<p>{_esc(p["lead"])}</p>'
         f'<div class="mz-meta">{tags}<span class="mz-date">{_esc(p["date"])}</span></div>'
-        f"</a>"
+        f"</div></a>"
     )
+
+
+# 글 끝에 붙이는 안내. 글만 읽고 나가는 대신 폰트를 보러 갈 길을 만든다.
+POST_CTA = (
+    '<div class="mz-cta">'
+    "<b>읽었으니, 골라 볼 차례입니다</b>"
+    "<span>상업적으로 쓸 수 있는 무료 한글 폰트를 용도별로 모아 두었습니다.</span>"
+    '<div class="mz-cta-btns">'
+    '<a href="/"><i class="ti ti-typography" aria-hidden="true"></i> 무료폰트 둘러보기</a>'
+    '<a class="ghost" href="/font-pair">'
+    '<i class="ti ti-arrows-join" aria-hidden="true"></i> 폰트 조합 찾기</a>'
+    "</div></div>"
+)
 
 
 @router.get("/magazine", response_class=HTMLResponse)
 def magazine_list(db: Session = Depends(get_db)):
     posts = _sorted_posts()
-    body = '<div class="mz-list">' + "".join(_card(p) for p in posts) + "</div>"
+    body = ('<div class="mz-list">'
+            + "".join(_card(p, i == 0) for i, p in enumerate(posts))
+            + "</div>")
 
     json_ld = _json.dumps({
         "@context": "https://schema.org",
@@ -151,10 +191,12 @@ def magazine_post(slug: str, db: Session = Depends(get_db)):
         return not_found_page()
 
     url = f"{BASE_URL}/magazine/{slug}"
-    body = _fill(p["body"], db)
+    body = '<article class="mz-post">' + _fill(
+        p["body"].replace("{{FIGURE}}", _figure(p)), db)
 
     # 글 아래 다른 글 — 매거진 안에서 돌아다닐 길을 만든다.
     others = [x for x in _sorted_posts() if x["slug"] != slug][:4]
+    body += POST_CTA
     if others:
         body += (
             '<nav class="mz-more"><h2>다른 글</h2><ul>'
@@ -162,6 +204,7 @@ def magazine_post(slug: str, db: Session = Depends(get_db)):
                       for o in others)
             + "</ul></nav>"
         )
+    body += "</article>"
 
     json_ld = _json.dumps({
         "@context": "https://schema.org",
@@ -176,8 +219,11 @@ def magazine_post(slug: str, db: Session = Depends(get_db)):
         "publisher": {"@type": "Organization", "name": "폰트픽", "url": BASE_URL},
         "isPartOf": {"@type": "WebSite", "name": "폰트픽", "url": BASE_URL},
         "mainEntityOfPage": {"@type": "WebPage", "@id": url},
-        "image": f"{BASE_URL}/og-image-v3.png",
+        "image": og_image,
     }, ensure_ascii=False)
+
+    src = image_src(p)
+    og_image = (BASE_URL + src) if src else DEFAULT_OG
 
     crumb = ('<p class="mz-crumb"><a href="/">폰트픽</a> › '
              '<a href="/magazine">매거진</a></p>')
@@ -186,6 +232,7 @@ def magazine_post(slug: str, db: Session = Depends(get_db)):
         title=f'{p["title"]} | 폰트픽 매거진',
         desc=p["lead"], canonical=url, h1=p["title"], lead=p["lead"],
         body=body, json_ld=json_ld, crumb=crumb, og_type="article",
+        og_image=og_image,
     )
 
 
@@ -196,21 +243,13 @@ def about_page(db: Session = Depends(get_db)):
     옛 /about.html 은 폰트 고르는 법을 설명하는 긴 글이었고, 그 내용은 매거진
     첫 글로 옮겼다. 이 페이지는 그걸 대신하는 것이 아니라 다른 일을 한다.
     사이트의 정체(무엇을 하는 곳인지·누가 운영하는지·어떻게 확인하는지)를
-    한 장으로 밝힌다. 숫자는 런타임에 채워 글이 낡지 않게 한다.
-    """
-    from ..models import UseCase
+    한 장으로 밝힌다.
 
+    폰트 종수·글 편수 같은 숫자는 싣지 않는다. 소개는 무엇을 하는 곳인지를
+    밝히는 자리이고, 규모를 내세우는 자리가 아니다.
+    """
     html = (STATIC_DIR / "about.html").read_text(encoding="utf-8")
     html = inject_header(html, "about")
-
-    try:
-        n_fonts = db.query(Font).count()
-    except Exception:
-        n_fonts = 0
-    try:
-        n_hubs = db.query(UseCase).filter(UseCase.is_active.is_(True)).count()
-    except Exception:
-        n_hubs = 0
 
     json_ld = _json.dumps({
         "@context": "https://schema.org",
@@ -234,13 +273,10 @@ def about_page(db: Session = Depends(get_db)):
         },
     }, ensure_ascii=False)
 
-    for k, v in {
-        "{{AB_JSONLD}}": f'<script type="application/ld+json">{json_ld}</script>',
-        "{{AB_FONTS}}": str(n_fonts),
-        "{{AB_HUBS}}": str(n_hubs),
-        "{{AB_POSTS}}": str(len(POSTS)),
-    }.items():
-        html = html.replace(k, v)
+    html = html.replace(
+        "{{AB_JSONLD}}",
+        f'<script type="application/ld+json">{json_ld}</script>',
+    )
     return HTMLResponse(html)
 
 

@@ -46,13 +46,20 @@ def sitemap(db: Session = Depends(get_db)):
     # 매거진 글. 목록에서 코드로 읽어 온다 — 글을 추가할 때 sitemap 을 따로
     # 고쳐야 하면 반드시 한쪽이 빠진다.
     try:
-        from ..magazine import POSTS
+        from ..magazine import POSTS, image_src
         for post in POSTS:
-            pages.append({
+            page = {
                 "loc": f"{SITE_URL}/magazine/{post['slug']}",
                 "priority": "0.7",
                 "changefreq": "monthly",
-            })
+            }
+            src = image_src(post)
+            if src:
+                page["image"] = {
+                    "loc": SITE_URL + src,
+                    "title": post["title"],
+                }
+            pages.append(page)
     except Exception:
         pass
 

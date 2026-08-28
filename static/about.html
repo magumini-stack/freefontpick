@@ -43,53 +43,124 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
   <style>
+    /* 색 변수는 페이지마다 각자 정의한다 — header.css 는 이 값을 쓰기만 한다.
+       빠뜨리면 상단 '폰트 조합 찾기' 띠의 배경(--accent-light)이 빈 값이 되어
+       띠가 투명해진다. 실제로 그랬다. faq/policy 와 같은 값이다. */
+    :root{
+      --bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
+      --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+      --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+      --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
+      --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+      --shadow-card:0 1px 4px rgba(0,0,0,.06);
+      color-scheme:light;
+    }
+    :root[data-theme="dark"]{
+      --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+      --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+      --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+      --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+      color-scheme:dark;
+    }
+    @media(prefers-color-scheme:dark){
+      :root:not([data-theme="light"]):not([data-theme="dark"]){
+        --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+        --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+        --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+        --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+        color-scheme:dark;
+      }
+    }
+
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--text-primary);
       font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       -webkit-font-smoothing:antialiased}
 
-    .ab-hero{max-width:760px;margin:0 auto;padding:44px 20px 8px}
+    /* ── 머리말 ── */
+    .ab-top{background:linear-gradient(180deg,var(--accent-light),transparent);
+      border-bottom:1px solid var(--border)}
+    .ab-hero{max-width:800px;margin:0 auto;padding:44px 20px 38px}
     .ab-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;
-      color:var(--accent);background:var(--accent-light);padding:4px 11px;border-radius:20px;
-      letter-spacing:.4px;margin-bottom:14px}
-    .ab-hero h1{font-size:clamp(23px,3.4vw,31px);font-weight:800;letter-spacing:-.7px;
-      line-height:1.4;margin:0}
+      color:var(--accent);background:var(--bg-card);border:1px solid var(--border);
+      padding:5px 12px;border-radius:999px;letter-spacing:.4px;margin-bottom:15px}
+    .ab-hero h1{font-size:clamp(24px,3.6vw,33px);font-weight:800;letter-spacing:-.8px;
+      line-height:1.34;margin:0}
+    .ab-hero .lead{margin:15px 0 0;font-size:15.5px;line-height:1.85;
+      color:var(--text-secondary);max-width:620px}
 
-    .ab-main{max-width:760px;margin:0 auto;padding:26px 20px 90px;
-      font-size:15.5px;line-height:1.95;color:var(--text-secondary)}
-    .ab-main h2{font-size:18px;font-weight:800;letter-spacing:-.4px;color:var(--text-primary);
-      margin:42px 0 12px;padding-top:20px;border-top:1px solid var(--border)}
-    .ab-main h2:first-of-type{margin-top:22px}
-    .ab-main p{margin:0 0 1.15em}
-    .ab-main strong{color:var(--text-primary);font-weight:700}
-    .ab-main ul{margin:0 0 1.15em;padding-left:20px}
-    .ab-main li{margin-bottom:.55em}
-    .ab-main a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-light)}
-    .ab-main a:hover{border-bottom-color:var(--accent)}
+    .ab-main{max-width:800px;margin:0 auto;padding:34px 20px 90px}
 
-    /* 숫자 세 칸 */
-    .ab-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);
-      border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:26px 0}
-    .ab-num{background:var(--bg-card);padding:20px 14px;text-align:center}
-    .ab-num b{display:block;font-size:24px;font-weight:800;color:var(--text-primary);
-      letter-spacing:-.5px;line-height:1.2}
-    .ab-num span{display:block;margin-top:5px;font-size:12.5px;color:var(--text-muted)}
+    /* ── 본문 ── */
+    .ab-sec{margin-bottom:34px}
+    .ab-sec h2{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:800;
+      letter-spacing:-.45px;color:var(--text-primary);margin:0 0 14px;line-height:1.4}
+    .ab-sec h2 i{flex:none;width:32px;height:32px;border-radius:9px;font-size:16px;
+      display:flex;align-items:center;justify-content:center;
+      background:var(--accent-light);color:var(--accent)}
+    .ab-body{background:var(--bg-card);border:1px solid var(--border);
+      border-radius:var(--radius-lg);padding:22px 24px;box-shadow:var(--shadow-card);
+      font-size:15px;line-height:1.95;color:var(--text-secondary)}
+    .ab-body p{margin:0 0 1.15em}
+    .ab-body > :last-child{margin-bottom:0}
+    .ab-body strong{color:var(--text-primary);font-weight:700}
+    .ab-body a{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;
+      text-underline-offset:3px;text-decoration-color:var(--border-hover)}
+    .ab-body a:hover{text-decoration-color:var(--accent)}
+
+    /* 첫 문단 — 카드 없이 크게 */
+    .ab-intro{font-size:16.5px;line-height:1.9;color:var(--text-secondary);margin:0 0 34px}
+    .ab-intro p{margin:0 0 1.05em}
+    .ab-intro strong{color:var(--text-primary);font-weight:700}
+
+    /* 이렇게 쓰세요 — 링크 카드 */
+    .ab-ways{display:grid;gap:10px}
+    @media(min-width:700px){.ab-ways{grid-template-columns:repeat(3,1fr)}}
+    .ab-way{display:flex;flex-direction:column;background:var(--bg-card);
+      border:1px solid var(--border);border-radius:var(--radius-lg);padding:19px 19px 17px;
+      text-decoration:none;color:inherit;box-shadow:var(--shadow-card);
+      transition:transform .16s,box-shadow .16s,border-color .16s}
+    .ab-way:hover{transform:translateY(-2px);border-color:var(--border-hover);
+      box-shadow:0 8px 24px rgba(0,0,0,.08)}
+    .ab-way i{width:34px;height:34px;border-radius:10px;font-size:17px;margin-bottom:13px;
+      display:flex;align-items:center;justify-content:center;
+      background:var(--accent-light);color:var(--accent)}
+    .ab-way b{font-size:14.5px;font-weight:800;letter-spacing:-.3px;
+      color:var(--text-primary);margin-bottom:5px}
+    .ab-way span{font-size:12.5px;line-height:1.7;color:var(--text-secondary)}
 
     /* 회사 정보 */
-    .ab-corp{background:var(--bg-card);border:1px solid var(--border);
-      border-radius:var(--radius);padding:22px 24px;margin-top:14px}
-    .ab-corp dl{margin:0;display:grid;grid-template-columns:88px 1fr;gap:9px 14px;font-size:13.5px}
+    .ab-corp{margin-top:14px;background:var(--bg-secondary);border:1px solid var(--border);
+      border-radius:var(--radius-md);padding:20px 22px}
+    .ab-corp dl{margin:0;display:grid;grid-template-columns:84px 1fr;gap:9px 14px;font-size:13.5px}
     .ab-corp dt{color:var(--text-muted);font-weight:700}
     .ab-corp dd{margin:0;color:var(--text-secondary)}
-    .ab-corp a{border-bottom:0}
+
+    /* 문의 */
+    .ab-contact{background:var(--accent-light);border:1px solid var(--border);
+      border-radius:var(--radius-lg);padding:24px 24px 22px;text-align:center}
+    .ab-contact b{display:block;font-size:16px;font-weight:800;letter-spacing:-.4px;
+      color:var(--text-primary);margin-bottom:7px}
+    .ab-contact p{margin:0 0 17px;font-size:13.5px;line-height:1.8;color:var(--text-secondary)}
+    .ab-contact-btns{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+    .ab-contact a{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;
+      border-radius:999px;font-size:13.5px;font-weight:700;text-decoration:none;
+      background:var(--accent);color:#fff;border:1px solid var(--accent)}
+    .ab-contact a.ghost{background:var(--bg-card);color:var(--text-primary);
+      border-color:var(--border)}
+    .ab-contact a:hover{background:var(--accent-hover);color:#fff;border-color:var(--accent-hover)}
 
     @media(max-width:620px){
-      .ab-hero{padding:30px 17px 6px}
-      .ab-main{padding:20px 17px 64px;font-size:15px}
-      .ab-main h2{font-size:17px;margin-top:34px}
-      .ab-nums{grid-template-columns:1fr}
-      .ab-corp{padding:18px 18px}
-      .ab-corp dl{grid-template-columns:80px 1fr}
+      .ab-hero{padding:30px 17px 28px}
+      .ab-main{padding:26px 17px 64px}
+      .ab-intro{font-size:15.5px}
+      .ab-sec h2{font-size:17px}
+      .ab-body{padding:19px 18px;font-size:14.8px}
+      .ab-corp{padding:17px 17px}
+      .ab-corp dl{grid-template-columns:78px 1fr}
+      .ab-contact{padding:20px 18px}
+      .ab-contact-btns{flex-direction:column}
+      .ab-contact a{justify-content:center}
     }
   </style>
 </head>
@@ -97,77 +168,106 @@
 
 <!--FFP_HEADER-->
 
-<section class="ab-hero">
-  <div class="ab-eyebrow"><i class="ti ti-info-circle" aria-hidden="true"></i> ABOUT</div>
-  <h1>쓸 만한 무료폰트를 골라 소개합니다</h1>
-</section>
+<div class="ab-top">
+  <section class="ab-hero">
+    <div class="ab-eyebrow"><i class="ti ti-info-circle" aria-hidden="true"></i> ABOUT</div>
+    <h1>쓸 만한 무료폰트를 골라 소개합니다</h1>
+    <p class="lead">상업적으로 쓸 수 있는 무료 한글 폰트를 모으고, 어디에 쓰면 좋은지와
+    라이선스에서 조심할 것을 폰트마다 적어 둡니다.</p>
+  </section>
+</div>
 
 <main class="ab-main">
 
-  <p>무료 한글 폰트는 많습니다. 많아서 오히려 고르기가 어렵습니다. 어디서 받는지,
-  상업적으로 써도 되는지, 로고에 써도 괜찮은지, 내가 쓸 글자가 다 들어 있는지를
-  한 곳에서 확인하기가 쉽지 않습니다.</p>
-
-  <p><strong>폰트픽은 그 확인을 대신하는 곳입니다.</strong> 쓸 만한 무료 폰트를 골라
-  모으고, 폰트마다 어디에 쓰면 좋고 어디에는 맞지 않는지, 라이선스에서 무엇을
-  조심해야 하는지를 적어 둡니다.</p>
-
-  <div class="ab-nums">
-    <div class="ab-num"><b>{{AB_FONTS}}종</b><span>큐레이션한 폰트</span></div>
-    <div class="ab-num"><b>{{AB_HUBS}}가지</b><span>쓰는 자리별 추천</span></div>
-    <div class="ab-num"><b>{{AB_POSTS}}편</b><span>매거진 글</span></div>
+  <div class="ab-intro">
+    <p>무료 한글 폰트는 많습니다. 많아서 오히려 고르기가 어렵습니다. 어디서 받는지,
+    상업적으로 써도 되는지, 로고에 써도 괜찮은지, 내가 쓸 글자가 다 들어 있는지를
+    한 곳에서 확인하기가 쉽지 않습니다.</p>
+    <p><strong>폰트픽은 그 확인을 대신하는 곳입니다.</strong> 쓸 만한 무료 폰트를 골라
+    모으고, 폰트마다 어디에 쓰면 좋고 어디에는 맞지 않는지, 라이선스에서 무엇을
+    조심해야 하는지를 적어 둡니다.</p>
   </div>
 
-  <h2>어떻게 확인하나</h2>
-  <p>소개문을 쓸 때는 제작사가 공개한 자료를 먼저 읽고, <strong>그다음 폰트 파일을
-  직접 열어 재어 봅니다.</strong> 사양서에는 한글 2,350자라고 적혀 있는데 실제 파일에는
-  11,172자가 다 들어 있는 경우가 있고, 그 반대도 있습니다. 그래서 폰트픽에 적힌 글자
-  수는 사양서가 아니라 파일을 잰 값입니다.</p>
-  <p>조형을 설명할 때도 마찬가지입니다. 제작사가 밝힌 설명이 있으면 그대로 인용하고,
-  없으면 파일을 렌더링해 보고 적습니다. <strong>확인하지 못한 것은 지어내지 않고
-  "찾지 못했다"고 적습니다.</strong></p>
+  <section class="ab-sec">
+    <h2><i class="ti ti-ruler-measure" aria-hidden="true"></i> 어떻게 확인하나</h2>
+    <div class="ab-body">
+      <p>소개문을 쓸 때는 제작사가 공개한 자료를 먼저 읽고, <strong>그다음 폰트 파일을
+      직접 열어 재어 봅니다.</strong> 사양서에는 한글 2,350자라고 적혀 있는데 실제 파일에는
+      11,172자가 다 들어 있는 경우가 있고, 그 반대도 있습니다. 그래서 폰트픽에 적힌 글자
+      수는 사양서가 아니라 파일을 잰 값입니다.</p>
+      <p>조형을 설명할 때도 마찬가지입니다. 제작사가 밝힌 설명이 있으면 그대로 인용하고,
+      없으면 파일을 렌더링해 보고 적습니다. <strong>확인하지 못한 것은 지어내지 않고
+      "찾지 못했다"고 적습니다.</strong></p>
+    </div>
+  </section>
 
-  <h2>라이선스를 함께 적는 이유</h2>
-  <p>무료 폰트에서 가장 많이 하는 오해는 무료면 다 되는 줄 아는 것입니다. 인쇄와 웹에는
-  자유롭게 쓸 수 있어도 <strong>로고에는 못 쓰는 폰트</strong>가 있고, 영상 전체를 막아
-  둔 폰트도 있습니다. 특정 업종에서만 상업적 사용을 금지하는 경우까지 있습니다.</p>
-  <p>그래서 폰트마다 인쇄·웹·포장지·영상·임베딩·BI/CI 항목을 하나씩 표시하고, 배포처
-  안에서 표기가 서로 어긋나는 경우에는 그 사실을 그대로 적습니다. 자세한 것은
-  <a href="/magazine/license">라이선스 읽는 법</a>에 정리했습니다.</p>
+  <section class="ab-sec">
+    <h2><i class="ti ti-scale" aria-hidden="true"></i> 라이선스를 함께 적는 이유</h2>
+    <div class="ab-body">
+      <p>무료 폰트에서 가장 많이 하는 오해는 무료면 다 되는 줄 아는 것입니다. 인쇄와 웹에는
+      자유롭게 쓸 수 있어도 <strong>로고에는 못 쓰는 폰트</strong>가 있고, 영상 전체를 막아
+      둔 폰트도 있습니다. 특정 업종에서만 상업적 사용을 금지하는 경우까지 있습니다.</p>
+      <p>그래서 폰트마다 인쇄·웹·포장지·영상·임베딩·BI/CI 항목을 하나씩 표시하고, 배포처
+      안에서 표기가 서로 어긋나는 경우에는 그 사실을 그대로 적습니다. 자세한 것은
+      <a href="/magazine/license">라이선스 읽는 법</a>에 정리했습니다.</p>
+    </div>
+  </section>
 
-  <h2>이렇게 쓰세요</h2>
-  <ul>
-    <li>쓰는 자리가 정해져 있다면 <a href="/">용도별 추천</a>에서 시작하세요</li>
-    <li>제목과 본문을 함께 정해야 한다면 <a href="/font-pair">폰트 조합 찾기</a>가 빠릅니다</li>
-    <li>고르는 법이 궁금하다면 <a href="/magazine">매거진</a>을 보세요</li>
-  </ul>
+  <section class="ab-sec">
+    <h2><i class="ti ti-checklist" aria-hidden="true"></i> 이렇게 쓰세요</h2>
+    <div class="ab-ways">
+      <a class="ab-way" href="/">
+        <i class="ti ti-target-arrow" aria-hidden="true"></i>
+        <b>용도별 추천</b>
+        <span>쓰는 자리가 정해져 있다면 여기서 시작하세요.</span>
+      </a>
+      <a class="ab-way" href="/font-pair">
+        <i class="ti ti-arrows-join" aria-hidden="true"></i>
+        <b>폰트 조합 찾기</b>
+        <span>제목과 본문을 함께 정해야 한다면 이쪽이 빠릅니다.</span>
+      </a>
+      <a class="ab-way" href="/magazine">
+        <i class="ti ti-book-2" aria-hidden="true"></i>
+        <b>매거진</b>
+        <span>고르는 법이 궁금하다면 읽어 보세요.</span>
+      </a>
+    </div>
+  </section>
 
-  <h2>만드는 곳</h2>
-  <p>폰트픽은 <strong>(주)와이즈폰트</strong>가 만들고 운영합니다. 글자를 만드는 회사이자
-  글자로 노는 회사로, 라이선스 걱정 없이 쓰는 구독형 폰트 서비스
-  <a href="https://tdtd.io/" target="_blank" rel="noopener">타닥타닥</a>과 기업 전용서체
-  제작, 글자를 다루는 앱을 함께 만들고 있습니다. 폰트픽은 그중 <strong>쓸 만한 무료폰트를
-  골라 소개하는</strong> 자리를 맡습니다.</p>
-  <p>폰트픽에서 받을 수 있는 폰트 가운데 일부는 와이즈폰트가 직접 만들어 배포하는
-  서체입니다.</p>
+  <section class="ab-sec">
+    <h2><i class="ti ti-building" aria-hidden="true"></i> 만드는 곳</h2>
+    <div class="ab-body">
+      <p>폰트픽은 <strong>(주)와이즈폰트</strong>가 만들고 운영합니다. 글자를 만드는 회사이자
+      글자로 노는 회사로, 라이선스 걱정 없이 쓰는 구독형 폰트 서비스
+      <a href="https://tdtd.io/" target="_blank" rel="noopener">타닥타닥</a>과 기업 전용서체
+      제작, 글자를 다루는 앱을 함께 만들고 있습니다. 폰트픽은 그중 <strong>쓸 만한 무료폰트를
+      골라 소개하는</strong> 자리를 맡습니다.</p>
+      <p>폰트픽에서 받을 수 있는 폰트 가운데 일부는 와이즈폰트가 직접 만들어 배포하는
+      서체입니다.</p>
 
-  <div class="ab-corp">
-    <dl>
-      <dt>회사</dt><dd>(주)와이즈폰트</dd>
-      <dt>대표</dt><dd>박종열</dd>
-      <dt>주소</dt><dd>서울시 영등포구 당산로16길 9-7</dd>
-      <dt>사업자번호</dt><dd>589-87-00921</dd>
-      <dt>전화</dt><dd><a href="tel:07080645067">070-8064-5067</a></dd>
-      <dt>이메일</dt><dd><a href="mailto:biz@wisefont.co.kr">biz@wisefont.co.kr</a></dd>
-      <dt>홈페이지</dt><dd><a href="https://wisefont.co.kr" target="_blank" rel="noopener">wisefont.co.kr</a></dd>
-    </dl>
+      <div class="ab-corp">
+        <dl>
+          <dt>회사</dt><dd>(주)와이즈폰트</dd>
+          <dt>대표</dt><dd>박종열</dd>
+          <dt>주소</dt><dd>서울시 영등포구 당산로16길 9-7</dd>
+          <dt>사업자번호</dt><dd>589-87-00921</dd>
+          <dt>전화</dt><dd><a href="tel:07080645067">070-8064-5067</a></dd>
+          <dt>이메일</dt><dd><a href="mailto:biz@wisefont.co.kr">biz@wisefont.co.kr</a></dd>
+          <dt>홈페이지</dt><dd><a href="https://wisefont.co.kr" target="_blank" rel="noopener">wisefont.co.kr</a></dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <div class="ab-contact">
+    <b>문의</b>
+    <p>폰트 추가 요청, 잘못된 정보 제보, 라이선스 문의를 받습니다.<br>
+    <strong>소개문에 틀린 것을 발견하시면 알려 주시면 고치겠습니다.</strong></p>
+    <div class="ab-contact-btns">
+      <a href="mailto:biz@wisefont.co.kr"><i class="ti ti-mail" aria-hidden="true"></i> biz@wisefont.co.kr</a>
+      <a class="ghost" href="/faq.html"><i class="ti ti-info-circle" aria-hidden="true"></i> 자주 묻는 질문</a>
+    </div>
   </div>
-
-  <h2>문의</h2>
-  <p>폰트 추가 요청, 잘못된 정보 제보, 라이선스 문의는
-  <a href="mailto:biz@wisefont.co.kr">biz@wisefont.co.kr</a>로 보내 주세요.
-  <strong>소개문에 틀린 것을 발견하시면 알려 주시면 고치겠습니다.</strong>
-  자주 묻는 것은 <a href="/faq.html">자주 묻는 질문</a>에 모아 두었습니다.</p>
 
 </main>
 
