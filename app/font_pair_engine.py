@@ -306,9 +306,62 @@ def pick_weight(font, target: int, cap: int = 900) -> int:
     return min(pool, key=lambda w: abs(w - target))
 
 
+# ── 한 집안으로 묶는 두 슬롯 ─────────────────────────────────────
+#
+# 매거진 '폰트 조합 만드는 법' 5번은 "굵기가 여러 개인 폰트 하나를 골라 제목에
+# 굵은 것, 본문에 가는 것을 쓰는 것이 가장 실패가 적다"고 쓴다. 그런데 이 도구는
+# 늘 서로 다른 셋을 내놨다. 우리 글과 도구가 서로 다른 말을 하고 있었다.
+#
+# 자리마다 묶는 짝이 다른 이유는 그 자리에서 개성을 맡는 슬롯이 다르기 때문이다.
+# 손글씨 자리는 제목이 개성을 맡으니 서브·본문을 한 집안으로 묶어 받치고,
+# 읽는 자리는 본문이 주인공이라 제목·서브를 묶는다.
+#
+# 결과는 늘 '두 서체'다. 셋을 다 다르게 두는 것은 '뜻밖의 발견'뿐이다.
+FAMILY_PAIRS = {
+    "video": ("subtitle", "body"),
+    "sns": ("title", "subtitle"),
+    "brand": ("title", "subtitle"),
+    "poster": ("subtitle", "body"),
+    "hand": ("subtitle", "body"),
+    "read": ("title", "subtitle"),
+    # "surprise" 는 없다 — 어울림 계산을 끄는 자리라 묶을 근거도 없다.
+}
+
+
+def _multi(font, cap: int = 900) -> bool:
+    """cap 이하에서 서로 다른 굵기를 둘 이상 갖고 있나.
+
+    한 폰트로 두 자리를 채우는데 굵기까지 같으면 위계가 없다. 화면에는 같은
+    이름이 두 번 뜨고 글자도 똑같아서 '고장 났나'로 읽힌다.
+    """
+    return len({w for w in font_weights(font) if w <= cap}) >= 2
+
+
+def _family_weights(font, hi_target: int, lo_target: int, cap: int = 900):
+    """한 폰트에서 서로 다른 두 굵기를 고른다 — 굵은 쪽, 가는 쪽.
+
+    hi_target 에 가장 가까운 것을 먼저 잡는데, 그게 하필 가진 것 중 가장 가벼운
+    굵기면 아래가 없어진다(예: 400·900만 있는 폰트에서 500을 노리면 400이 잡힌다).
+    그때는 굵은 쪽을 맨 위로 올려 아래를 만든다.
+    """
+    ws = sorted({w for w in font_weights(font) if w <= cap})
+    if len(ws) < 2:
+        w = pick_weight(font, hi_target, cap=cap)
+        return w, w
+    hi = min(ws, key=lambda w: abs(w - hi_target))
+    lower = [w for w in ws if w < hi]
+    if not lower:
+        hi = ws[-1]
+        lower = ws[:-1]
+    return hi, min(lower, key=lambda w: abs(w - lo_target))
+
+
 def generate(db, category: str, script: str = "ko",
              locked: dict = None, borrow: str = "") -> dict:
-    """타이틀·서브타이틀·본문 3폰트 한 벌.
+    """타이틀·서브타이틀·본문 한 벌.
+
+    자리마다 두 슬롯은 같은 폰트의 다른 굵기로 묶는다(FAMILY_PAIRS). 그래서
+    보통은 서체 두 벌이 나온다. 셋을 다 다르게 두는 것은 '뜻밖의 발견'뿐이다.
 
     locked에 담긴 슬롯은 그대로 두고 나머지만 다시 뽑는다. 사용자가 고정한
     것이 언제나 이긴다 — 가장 먼저 used에 들어가기 때문이다.
@@ -339,10 +392,15 @@ def generate(db, category: str, script: str = "ko",
             fixed[slot] = f
             used.add(f.id)
 
-    def pick(pool, slot, extra=None):
+    def pick(pool, slot, extra=None, require=None):
         """후보를 좁히지 않는다. 전부 점수를 매기고 확률로 뽑는다 —
-        상위 N종으로 자르던 옛 방식이 다양성을 죽인 원인이었다."""
+        상위 N종으로 자르던 옛 방식이 다양성을 죽인 원인이었다.
+
+        require 는 '한 집안'을 맡을 폰트를 고를 때만 쓴다(굵기가 둘 이상).
+        """
         cands = [f for f in pool if f.id not in used]
+        if require:
+            cands = [f for f in cands if require(f)]
         if not cands:
             return None
         keep = [f for f in cands if _allowed(f, prof, slot)]
@@ -360,51 +418,123 @@ def generate(db, category: str, script: str = "ko",
             scored.append((s, f))
         return _weighted_pick(scored)
 
-    t_font = fixed.get("title") or pick(title_pool, "title")
+    # ── 이번 판에서 한 집안으로 묶을 두 슬롯 ──────────────────────
+    pair = None if surprise else FAMILY_PAIRS.get(key)
+    if pair:
+        a, b = pair
+        if a in fixed and b in fixed and fixed[a].id != fixed[b].id:
+            # 사용자가 두 자리를 서로 다른 폰트로 고정했다. 고정한 것이 이긴다.
+            pair = None
+        elif script == "mix" and "title" in pair:
+            # 섞어 쓰기는 제목을 영문에서, 나머지를 한글에서 뽑는다. 한 폰트가
+            # 양쪽 후보군에 다 있을 수 없으므로 제목이 낀 짝은 묶지 못한다.
+            pair = None
+        else:
+            lead_pool = title_pool if a == "title" else text_pool
+            if len([f for f in lead_pool if _multi(f)]) < _MIN_POOL:
+                # 굵기 여러 개인 후보가 이만큼도 없으면 묶어도 위계가 안 나온다.
+                pair = None
+
+    head_family = bool(pair) and pair[0] == "title"
+
+    # ── 제목 ─────────────────────────────────────────────────────
+    t_font = fixed.get("title") or (fixed.get("subtitle") if head_family else None)
+    if t_font is None:
+        t_font = pick(title_pool, "title", require=_multi if head_family else None)
     if t_font is None:
         return {}
+    if head_family and not _multi(t_font):
+        pair = head_family = None   # 고정된 폰트가 굵기 하나뿐이면 못 묶는다
     used.add(t_font.id)
-    t_w = pick_weight(t_font, 700)
+
+    # 제목·서브가 한 집안이면 둘의 굵기를 여기서 먼저 정한다. 본문이 넘지 말아야
+    # 할 선이 제목(t_w)이 아니라 서브(s_w)라서, 그 값을 알아야 아래 후보를
+    # 제대로 거를 수 있다. 나중에 정하면 상한만 걸리고 후보는 안 걸러져,
+    # 본문이 서브보다 굵게 나오는 판이 생긴다 — 실제로 그랬다.
+    s_w = None
+    if head_family:
+        t_w, s_w = _family_weights(t_font, 700, 500)
+    else:
+        t_w = pick_weight(t_font, 700)
 
     # 서브·본문은 제목보다 굵으면 안 된다. 굵기를 나중에 깎는 것만으로는 부족하다
     # — 굵기를 하나만 가진 폰트가 있어 상한을 걸어도 그 값이 나온다. 고르는
     # 단계에서 거른다. 후보가 너무 줄면 되돌린다(위계보다 조합이 안 나오는 쪽이
     # 더 나쁘고, 크기 차이가 위계를 거들어 준다).
-    fit = [f for f in text_pool if min(font_weights(f)) <= t_w]
+    ceiling = s_w if head_family else t_w
+    fit = [f for f in text_pool if min(font_weights(f)) <= ceiling]
     if len(fit) >= 12:
         text_pool = fit
 
-    b_font = fixed.get("body") or pick(
-        text_pool, "body",
-        lambda f: _contrast(t_font, f, pcts) + _harmony(t_font, f, pcts))
-    if b_font is None:
+    s_font = b_font = None
+
+    if head_family:
+        # 제목·서브가 한 집안. 본문만 다른 집안에서 고른다.
+        s_font = t_font
+        b_font = fixed.get("body") or pick(
+            text_pool, "body",
+            lambda f: _contrast(t_font, f, pcts) + _harmony(t_font, f, pcts))
+    elif pair:
+        # 서브·본문이 한 집안. 제목이 개성을 맡고 나머지를 한 집안이 받친다.
+        fam = fixed.get("subtitle") or fixed.get("body")
+        if fam is not None and not _multi(fam, t_w):
+            fam, pair = None, None
+        if pair and fam is None:
+            fam = pick(text_pool, "body",
+                       lambda f: _contrast(t_font, f, pcts) + _harmony(t_font, f, pcts),
+                       require=lambda f: _multi(f, t_w))
+        if fam is None:
+            pair = None
+        else:
+            s_font = b_font = fam
+            used.add(fam.id)
+
+    if not pair:
+        # 묶지 않는 자리(뜻밖의 발견)거나, 묶으려다 후보가 없어 물러선 경우.
+        b_font = b_font or fixed.get("body") or pick(
+            text_pool, "body",
+            lambda f: _contrast(t_font, f, pcts) + _harmony(t_font, f, pcts))
+        if b_font is None:
+            return {}
+        used.add(b_font.id)
+        # 서브타이틀은 제목과 본문 사이에 놓인다. 셋이 전부 다른 결이면
+        # 산만해지므로 이미 뽑힌 둘과 닮은 쪽을 우선한다.
+        s_font = fixed.get("subtitle") or pick(
+            text_pool, "subtitle",
+            lambda f: (_harmony(t_font, f, pcts) + _harmony(b_font, f, pcts)) * 0.6)
+        if s_font is None:
+            s_font = pick(text_pool, "subtitle")
+
+    if s_font is None or b_font is None:
         return {}
-    used.add(b_font.id)
+    if b_font.id not in used:
+        used.add(b_font.id)
 
-    # 서브타이틀은 제목과 본문 사이에 놓인다. 셋이 전부 다른 결이면 산만해지므로
-    # 이미 뽑힌 둘과 닮은 쪽을 우선한다.
-    s_font = fixed.get("subtitle") or pick(
-        text_pool, "subtitle",
-        lambda f: (_harmony(t_font, f, pcts) + _harmony(b_font, f, pcts)) * 0.6)
-    if s_font is None:
-        s_font = pick(text_pool, "subtitle")
-    if s_font is None:
-        return {}
+    # ── 굵기 ─────────────────────────────────────────────────────
+    if head_family:
+        # t_w · s_w 는 위에서 이미 정했다(같은 폰트라 굵기까지 같으면 위계가
+        # 없으므로 _family_weights 가 반드시 다른 값을 준다).
+        b_w = pick_weight(b_font, 300, cap=s_w)
+    elif pair:
+        s_w, b_w = _family_weights(s_font, 500, 300, cap=t_w)
+    else:
+        # 본문은 300이 있으면 300으로 간다. 오래 읽는 글은 한 단 가볍게 앉는 쪽이
+        # 덜 지친다 — 400만 있는 폰트는 pick_weight가 알아서 400을 준다.
+        b_w = pick_weight(b_font, 300, cap=t_w)
+        s_w = pick_weight(s_font, max(b_w, min(t_w, 500)), cap=max(t_w, b_w))
+        if s_w < b_w:
+            s_w = pick_weight(s_font, b_w, cap=max(t_w, b_w))
 
-    # 본문은 300이 있으면 300으로 간다. 오래 읽는 글은 한 단 가볍게 앉는 쪽이
-    # 덜 지친다 — 400만 있는 폰트는 pick_weight가 알아서 400을 준다.
-    b_w = pick_weight(b_font, 300, cap=t_w)
-    s_w = pick_weight(s_font, max(b_w, min(t_w, 500)), cap=max(t_w, b_w))
-    if s_w < b_w:
-        s_w = pick_weight(s_font, b_w, cap=max(t_w, b_w))
-
-    for f in (t_font, s_font, b_font):
-        _RECENT.append(f.id)
+    for fid in {t_font.id, s_font.id, b_font.id}:
+        _RECENT.append(fid)
 
     return {
         "category": key,
         "category_label": cat["label"],
         "script": script,
+        # 어느 두 슬롯이 한 집안인지 — 화면이 같은 이름을 두 번 보여줄 때
+        # "왜 똑같지"가 아니라 "일부러 묶은 것"으로 읽히게 하려면 필요하다.
+        "family": list(pair) if pair else [],
         "fonts": {"title": font_brief(t_font), "subtitle": font_brief(s_font),
                   "body": font_brief(b_font)},
         "weights": {"title": t_w, "subtitle": s_w, "body": b_w},
