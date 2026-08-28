@@ -15,13 +15,14 @@ render_header()가 만든 실제 HTML로 서버가 치환해서 응답한다.
 # 활성(active) 표시를 동적으로 토글하기 위해 특정 id를 필요로 해서 부여함.
 # 다른 페이지(about/faq/font)에는 해당 JS가 없어 id가 있어도 그냥 무시됨 — 안전.
 NAV_ITEMS = [
-    ("magazine", "/magazine", "매거진", None, None),
     ("about", "/about", "소개", None, None),
     ("notice", "/#notice", "공지사항", "noticeMenuLink", "mNoticeMenuLink"),
     ("faq", "/faq.html", "자주 묻는 질문", None, None),
     # '폰트 찾기'는 index.html 안의 뷰다. 홈에서는 해시 라우팅으로 화면만 바꾸고,
     # 다른 페이지에서는 평범한 링크로 /find-font 를 연다 (_nav_links 참고).
     ("findfont", "/find-font", "폰트 찾기", "findFontMenuLink", "mFindFontMenuLink"),
+    # 매거진은 '폰트 조합 찾기' 바로 왼쪽에 둔다.
+    ("magazine", "/magazine", "매거진", None, None),
     # 폰트 조합 찾기. 폰트 찾기 다음에 두는 이유 — 둘 다 '고르는' 일이라
     # 나란히 있어야 하나를 고르고 나서 다음으로 넘어가는 흐름이 읽힌다.
     ("fontpair", "/font-pair", "폰트 조합 찾기", None, None),
