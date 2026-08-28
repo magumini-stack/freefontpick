@@ -320,6 +320,19 @@ if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
+# 서버가 마커를 채워야 완성되는 템플릿. 직접 주소로 열면 {{FFP_TITLE}} 같은
+# 마커가 그대로 보이는 깨진 페이지가 나가고, canonical 도 "{{FFP_CANONICAL}}"
+# 이라 정식 주소로 모아 주지도 못한다. 색인 허용 상태라 그대로 두면 검색에
+# 걸릴 수 있으므로 없는 주소로 취급한다.
+#
+# 라우트는 이 파일들을 디스크에서 직접 읽으므로(FONT_PAGE_PATH 등) 여기서
+# 막아도 정상 페이지에는 영향이 없다.
+SSR_ONLY_TEMPLATES = {
+    "font.html", "use.html", "wisefont.html", "font-pair.html",
+    "gif-templates.html",
+}
+
+
 def _static_not_found(request: Request):
     """정적 경로에서 못 찾았을 때.
 
@@ -342,6 +355,8 @@ async def serve_static(full_path: str, request: Request):
     if not full_path or full_path == "/":
         target = STATIC_DIR / "index.html"
     else:
+        if full_path.strip("/").lower() in SSR_ONLY_TEMPLATES:
+            return _static_not_found(request)
         target = STATIC_DIR / full_path
 
     # 디렉토리 traversal 방지
