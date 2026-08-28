@@ -79,6 +79,10 @@ class FontOut(FontBase):
     # 때만 채워지고, 평소에는 빈 배열이다 — 폰트마다 파일을 확인해야 해서
     # 홈 갤러리(모든 방문자)가 늘 낼 비용은 아니기 때문이다.
     available_weights: List[int] = Field(default_factory=list)
+    # 라이선스 전문을 펼쳐 볼 수 있는가. 전문 자체는 여기 싣지 않는다 —
+    # 4,000자가 넘고 OFL 은 60종 넘게 같은 문서라, 목록·상세 응답마다 실으면
+    # 페이지가 서로 닮아진다. 눌렀을 때 /api/fonts/{id}/license 로 따로 받는다.
+    has_license_full: bool = False
     # 배포용 ZIP(어드민 업로드)이 있는가. 있으면 상세페이지 다운로드 버튼이
     # 배포처(url) 대신 우리 서버의 파일을 바로 내려준다.
     has_zip: bool = False

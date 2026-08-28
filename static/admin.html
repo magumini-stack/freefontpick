@@ -727,9 +727,21 @@
           <div class="meta-label" style="margin-top:14px">허용 범위</div>
           <div class="lic-perms" id="fmLicPerms"></div>
           <div class="meta-summary-wrap" style="margin-top:12px">
-            <div class="meta-label">특이사항 <span class="meta-sub">— 표 아래에 그대로 노출 (예: 스포츠 산업 사용 금지)</span></div>
-            <textarea id="fmLicNote" rows="2" placeholder="예: 폰트 파일만 따로 유료 판매하는 것은 금지됩니다."
+            <div class="meta-label">요약 · 특이사항
+              <span class="meta-sub">— 표 아래에 그대로 노출. <b>줄을 바꾸면 화면에서도 문단이 나뉩니다</b></span></div>
+            <textarea id="fmLicNote" rows="6"
+              placeholder="한 줄에 한 가지씩 적으면 읽기 좋습니다.&#10;&#10;예)&#10;폰트 파일만 따로 유료 판매하는 것은 금지됩니다.&#10;영문 원문이 있으면 그대로 옮기고, 아래 줄에 우리말 풀이를 답니다."
               style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px;font-family:inherit;resize:vertical"></textarea>
+          </div>
+          <div class="meta-summary-wrap" style="margin-top:12px">
+            <div class="meta-label">라이선스 전문
+              <span class="meta-sub">— 상세페이지에서 ‘전문 보기’로 접혀 있다가 펼쳐집니다. 비워 두어도 됩니다</span></div>
+            <textarea id="fmLicFull" rows="8"
+              placeholder="배포처 안내문이나 폰트 파일에 든 라이선스 전문을 그대로 붙여 넣으세요.&#10;OFL 폰트는 비워 두면 표준 전문이 자동으로 붙습니다 — 굳이 넣지 않아도 됩니다."
+              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px;font-family:inherit;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px"></textarea>
+            <div class="meta-sub" style="margin-top:5px">
+              지어내지 마세요. 확인한 문서가 없으면 비워 두고 위 ‘원문 주소’만 채웁니다.
+            </div>
           </div>
         </div>
       </div>
@@ -2387,6 +2399,7 @@ function loadLicenseForm(f){
   document.getElementById('fmLicName').value = (lic && lic.name) || '';
   document.getElementById('fmLicUrl').value  = (lic && lic.url)  || '';
   document.getElementById('fmLicNote').value = (lic && lic.note) || '';
+  document.getElementById('fmLicFull').value = (lic && lic.full) || '';
   fmLicPerms = Object.assign({}, (lic && lic.perms) || {});
   renderLicPerms();
   syncLicEnabled();
@@ -2395,13 +2408,19 @@ function loadLicenseForm(f){
 /* 폼 → meta.license. 확인 체크가 없으면 키를 지워서 '확인 중'으로 되돌린다 */
 function collectLicense(meta){
   if(!document.getElementById('fmLicVerified').checked){ delete meta.license; return; }
-  meta.license = {
+  /* 기존 값을 깔고 그 위에 폼 값을 덮는다. 통째로 새로 만들면 폼에 칸이 없는
+     필드(source — 확인 근거를 남겨 두는 운영용 값)가 저장할 때마다 사라진다.
+     실제로 그러고 있었다. */
+  meta.license = Object.assign({}, meta.license || {}, {
     verified: true,
     name: document.getElementById('fmLicName').value.trim() || '라이선스 확인됨',
     url:  document.getElementById('fmLicUrl').value.trim(),
     note: document.getElementById('fmLicNote').value.trim(),
+    full: document.getElementById('fmLicFull').value.trim(),
     perms: LIC_AXES.reduce((o, [k]) => (o[k] = fmLicPerms[k] || 'q', o), {}),
-  };
+  });
+  // 빈 전문은 키 자체를 두지 않는다 — OFL 자동 대체가 걸리도록.
+  if (!meta.license.full) delete meta.license.full;
 }
 
 // 카테고리 배열 → 8개 차원 자동 추론

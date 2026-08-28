@@ -249,13 +249,34 @@ def design_page_legacy_redirect(font_id: int):
 # JS가 뜨면 그 블록을 display:none 으로 덮는다. 크롤러와 JS 차단 환경에는
 # 정적 내용이 그대로 남는다.
 
-# 라이선스 권한 키 → 사람이 읽는 이름. 어드민 입력 폼과 같은 8개 축이다.
+# 라이선스 표 — 화면(static/font.html 의 LIC_AXES)과 같은 줄, 같은 문구를 쓴다.
+# 크롤러에게만 다른 표를 보여주면 그 자체가 위반이라, 두 곳을 반드시 맞춘다.
+#
+# 어드민이 다루는 값은 여전히 8개 축이다. 마지막 OFL 줄만 수정·재배포 두 값을
+# 한 줄에 합쳐 보여 준다 — 합치되 값은 둘 다 적는다. 237종 중 55종(23%)이
+# 두 값이 서로 달라서, 하나로 뭉뚱그리면 실제로 있는 구분이 사라진다.
 _PERM_LABELS = [
-    ("print", "인쇄물"), ("web", "웹사이트"), ("package", "포장·패키지"),
-    ("video", "영상"), ("embed", "임베딩"), ("bici", "BI/CI·로고"),
-    ("modify", "수정·개작"), ("redist", "재배포"),
+    ("print", "인쇄", "브로슈어, 포스터, 책, 잡지 및 출판용 인쇄물 등"),
+    ("web", "웹사이트", "웹페이지, 광고 배너, 메일, E-브로슈어 등"),
+    ("package", "포장지", "판매용 상품의 패키지"),
+    ("video", "영상", "유튜브, CF, 상업영화, 뮤직비디오, 영상 자막, 오프닝/엔딩 크레딧 등"),
+    ("embed", "임베딩", "웹사이트 및 프로그램 서버 내 폰트 탑재, E-book 제작"),
+    ("bici", "BI/CI", "회사명, 브랜드명, 상품명, 로고, 마크, 슬로건, 캐치프레이즈"),
 ]
-_PERM_TEXT = {"y": "가능", "n": "불가", "c": "조건부"}
+_OFL_SCOPE = "폰트 파일 자체를 고쳐 파생 폰트를 만들거나, 파일을 다시 배포하는 것"
+_PERM_TEXT = {"y": "사용 가능", "c": "조건부 허용", "n": "사용 불가", "q": "확인 필요"}
+_PERM_SHORT = {"y": "가능", "c": "조건부", "n": "불가", "q": "확인 필요"}
+
+
+def _ofl_cell(perms: dict) -> str:
+    """OFL 줄의 허용 여부. 두 값이 같으면 한 마디로, 다르면 둘 다 적는다."""
+    m = str(perms.get("modify") or "q").lower()
+    r = str(perms.get("redist") or "q").lower()
+    if m == r:
+        return {"y": "수정·재배포 가능", "c": "조건부 허용",
+                "n": "수정·재배포 불가"}.get(m, "확인 필요")
+    return "수정 %s · 재배포 %s" % (_PERM_SHORT.get(m, "확인 필요"),
+                                 _PERM_SHORT.get(r, "확인 필요"))
 
 
 _LIC_PENDING_HTML = (
@@ -603,14 +624,23 @@ def _font_ssr_block(font: Font, db: Session) -> str:
     if lic and lic.get("verified"):
         perms = lic.get("perms") if isinstance(lic.get("perms"), dict) else {}
         rows = [
-            f"<li>{label} — {_PERM_TEXT.get(str(perms.get(key) or '').lower(), '확인 필요')}</li>"
-            for key, label in _PERM_LABELS if perms.get(key)
+            "<tr><th scope=\"row\">%s</th><td>%s</td><td>%s</td></tr>"
+            % (_esc(label), _esc(scope),
+               _esc(_PERM_TEXT.get(str(perms.get(key) or "").lower(), "확인 필요")))
+            for key, label, scope in _PERM_LABELS
         ]
+        rows.append(
+            "<tr><th scope=\"row\">OFL</th><td>%s</td><td>%s</td></tr>"
+            % (_esc(_OFL_SCOPE), _esc(_ofl_cell(perms)))
+        )
         block = [f"<section><h2>{name} 라이선스</h2>"]
         if lic.get("name"):
             block.append(f"<p>{_esc(lic['name'])}</p>")
-        if rows:
-            block.append("<ul>" + "".join(rows) + "</ul>")
+        block.append(
+            "<table><thead><tr><th>카테고리</th><th>사용 범위</th>"
+            "<th>허용 여부</th></tr></thead><tbody>"
+            + "".join(rows) + "</tbody></table>"
+        )
         note = str(lic.get("note") or "").strip()
         if note:
             # 줄바꿈이 들어 있는 원문이라 그대로 넣으면 한 덩어리로 뭉친다

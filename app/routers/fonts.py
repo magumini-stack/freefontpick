@@ -7,6 +7,7 @@ from sqlalchemy import func
 from ..database import get_db
 from ..models import Font, Tag, FontPairing
 from ..auth import require_password_changed
+from ..license_text import full_text
 from ..redistribution import NO_REDISTRIBUTE
 from ..schemas import FontCreate, FontUpdate, FontOut, FontReorderRequest
 from ..webfont_check import check_webfont, normalize_css_url
@@ -86,6 +87,29 @@ def _available_weights(font: Font) -> list:
         return []
 
 
+def _has_license_full(font: Font) -> bool:
+    """전문을 보여줄 수 있는 폰트인가. 파일 읽기는 한 번만 일어난다(캐시)."""
+    lic = (font.meta or {}).get("license")
+    return bool(full_text(lic)[0]) if isinstance(lic, dict) else False
+
+
+def _safe_meta(font: Font) -> dict:
+    """응답에 나갈 meta. 재배포를 막아 둔 폰트는 라이선스 '원문' 링크도 갈아 끼운다.
+
+    그 폰트들의 meta.license.url 이 구글 드라이브 사본을 가리키고 있었다.
+    다운로드만 막고 이 링크를 두면 화면에 "원문"이라는 이름으로 같은 사본을
+    안내하는 셈이다. 원본 meta 를 건드리지 않으려고 얕은 복사로 바꾼다.
+    """
+    meta = font.meta or {}
+    official = NO_REDISTRIBUTE.get(font.id)
+    lic = meta.get("license")
+    if not official or not isinstance(lic, dict):
+        return meta
+    meta = dict(meta)
+    meta["license"] = dict(lic, url=official)
+    return meta
+
+
 def _to_out(font: Font, paired_ids: set = frozenset(),
             with_weights: bool = False) -> FontOut:
     return FontOut(
@@ -107,7 +131,8 @@ def _to_out(font: Font, paired_ids: set = frozenset(),
         has_file=bool(font.has_file),
         sort_order=font.sort_order,
         tags=[t.name for t in font.tags],
-        meta=font.meta or {},
+        meta=_safe_meta(font),
+        has_license_full=_has_license_full(font),
         like_count=font.like_count or 0,
         has_sample=_has_sample(font.id),
         # has_zip 이 True 면 상세페이지 버튼이 우리 서버 파일을 내려받는다.
@@ -257,6 +282,27 @@ def popular_fonts(days: int = 7, limit: int = 10, db: Session = Depends(get_db))
     except Exception:
         ids = []
     return [{"id": fid, "rank": i + 1} for i, fid in enumerate(ids)]
+
+
+@router.get("/{font_id}/license", include_in_schema=False)
+def get_license_text(font_id: int, db: Session = Depends(get_db)):
+    """라이선스 전문. 상세페이지에서 '펼쳐 보기'를 눌렀을 때만 부른다.
+
+    페이지 HTML 에 미리 싣지 않는 이유는 app/license_text.py 주석 참고 —
+    OFL 만 60종 넘게 같은 문서라, 전부 실으면 상세페이지가 서로 닮아진다.
+    """
+    font = db.query(Font).filter(Font.id == font_id).first()
+    if font is None:
+        raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
+    lic = (font.meta or {}).get("license")
+    lic = lic if isinstance(lic, dict) else {}
+    text, origin = full_text(lic)
+    return {
+        "name": lic.get("name") or "",
+        "url": NO_REDISTRIBUTE.get(font_id) or lic.get("url") or "",
+        "full": text,
+        "origin": origin,
+    }
 
 
 @router.get("/{font_id}", response_model=FontOut)
