@@ -162,8 +162,16 @@
      변한다. 그래서 여백은 글 덩어리가 갖는다 — 아래 --pl/--pr/--pt/--pb.
 
      이제 1cqw = 캔버스 폭의 1% 라 값이 그대로 읽힌다.
-     글자 크기는 되도록 건드리지 않는다. 폰트를 보는 화면이라 글이 작아지면
-     목적을 잃는다. 폭이 모자라면 크기가 아니라 여백을 줄인다. */
+
+     ⚠ --b-title / --b-sub / --b-body 는 배경 사진을 넣기 전부터 쓰던 값
+     그대로다. 건드리지 않는다 — 폰트를 보는 화면이라 글 크기가 곧 내용이다.
+     배경을 피하는 일은 여백(--pl/--pr)이 한다. 크기를 줄여서 피하려다
+     "콩알만해졌다"는 말을, 여백을 늘리려다 "너무 커지고 줄이 갈라진다"는 말을
+     들었다. 아래 --pr 값은 짐작이 아니라 브라우저에서 실제로 재서 정했다 —
+     그 크기에서 제목·부제·본문이 몇 줄이 되고 어디까지 뻗는지 확인한 값이다.
+
+     세로 여백은 캔버스에 줘도 된다(container-type:inline-size 는 가로만 본다).
+     다만 여기서는 가로와 같이 두는 편이 읽기 쉬워 블록에 함께 실었다. */
   .fp-stage{background-size:cover;background-position:center;background-repeat:no-repeat}
   .fp-blk-title,.fp-blk-sub,.fp-blk-body{padding-left:var(--pl,7cqw);
                                          padding-right:var(--pr,7cqw)}
@@ -172,67 +180,82 @@
 
   /* 영상 · 자막 — 밤 사진, 인물이 오른쪽 62% 부터. 왼쪽 어둠에 제목을 앉힌다.
      자막 바는 아래 전체 폭 그대로 — 영상 자막이 원래 그 자리다.
-     제목 7자 × 8.4cqw = 59cqw / 글 폭 60cqw */
+     실측(캔버스 622px): 제목 3줄·오른끝 65%, 부제 1줄·72%, 자막 1줄.
+     제목이 3줄이 되는 것은 배경을 넣기 전에도 같았다 — 원래 크기가 그렇다. */
   .mk-thumb{background-image:url(/pair-bg/thumb.webp);background-color:#15161A;
             color:#F7F5F1;justify-content:center;text-align:left;
-            --pl:6cqw;--pr:34cqw;--pt:6cqw;--pb:0cqw;
-            --b-title:8.4cqw;--b-sub:4.2cqw;--b-body:2.66cqw}
+            --pl:6cqw;--pr:6cqw;--pt:6cqw;--pb:0cqw;
+            --b-title:11cqw;--b-sub:4.5cqw;--b-body:2.66cqw}
   .mk-thumb .fp-blk-title,.mk-thumb .fp-blk-sub{text-shadow:0 1px 14px rgba(0,0,0,.6)}
   .mk-thumb .fp-blk-body{position:absolute;left:0;right:0;bottom:0;
             background:rgba(0,0,0,.55);padding:2.4cqw 6cqw 2.8cqw;text-align:center}
   .mk-thumb #txtSub{margin-top:2.2cqw;opacity:.9}
+  /* 자막 바가 아래를 덮으므로 가운데 정렬 기준을 그만큼 위로 올린다 */
+  .mk-thumb .fp-blk-sub{padding-bottom:12cqw}
 
   /* SNS · 카드뉴스 — 살구빛 도형이 오른쪽 70% 부터. 왼쪽 위부터 쌓는다.
-     제목 8자 × 7.9cqw = 63cqw / 글 폭 64cqw */
+     실측: 제목 1줄·오른끝 58%, 본문 5줄·68%. 도형이 70%부터라 닿지 않는다. */
   .mk-card{background-image:url(/pair-bg/card.webp);background-color:#FAEBD9;
            color:#3B2E1E;justify-content:flex-start;
-           --pl:8cqw;--pr:28cqw;--pt:9cqw;--pb:7cqw;
-           --b-title:7.9cqw;--b-sub:4.5cqw;--b-body:2.85cqw}
+           --pl:7cqw;--pr:7cqw;--pt:7cqw;--pb:7cqw;
+           --b-title:8.36cqw;--b-sub:4.5cqw;--b-body:2.85cqw}
   .mk-card #txtSub{margin-top:2.8cqw}
   .mk-card .fp-blk-body{margin-top:4cqw}
 
   /* 브랜딩 · 로고 — 옅은 미색. 오른쪽 위 아치(75%~)와 왼쪽 아래 물결(아래 28%)
-     사이, 가운데 높이에 왼쪽으로 앉힌다. 제목 5자라 폭은 넉넉하다. */
+     사이, 가운데 높이에 왼쪽으로 앉힌다.
+     실측: 제목 44%, 부제 39%, 본문 69%. 아치가 75%부터라 여유가 있다. */
   .mk-namecard{background-image:url(/pair-bg/namecard.webp);background-color:#F6F4EF;
                color:#241F19;justify-content:center;
-               --pl:9cqw;--pr:28cqw;--pt:6cqw;--pb:6cqw;
+               --pl:7cqw;--pr:7cqw;--pt:7cqw;--pb:7cqw;
                --b-title:8.8cqw;--b-sub:4.25cqw;--b-body:2.66cqw}
   .mk-namecard #txtSub{margin-top:2.2cqw}
   .mk-namecard .fp-blk-body{margin-top:4cqw;opacity:.75}
 
   /* 포스터 · 안내 — 겨울 정원. 오른쪽 아래 식물과 왼쪽 위 나뭇가지를 피해
-     왼쪽 가운데 띠에. 제목 8자 × 8cqw = 64cqw / 글 폭 64cqw */
+     왼쪽 가운데 띠에. --pr 20 은 실측으로 고른 값 — 6 이면 본문이 90%까지
+     뻗어 오른쪽 식물에 얹히고, 26 부터는 부제가 두 줄로 갈라진다. 20 에서
+     본문 3줄·오른끝 76%. */
   .mk-poster{background-image:url(/pair-bg/poster.webp);background-color:#EAF0F6;
              color:#243444;justify-content:flex-start;
-             --pl:8cqw;--pr:28cqw;--pt:12cqw;--pb:8cqw;
-             --b-title:8cqw;--b-sub:4.25cqw;--b-body:2.66cqw}
+             --pl:8cqw;--pr:20cqw;--pt:10cqw;--pb:8cqw;
+             --b-title:8.36cqw;--b-sub:4.25cqw;--b-body:2.66cqw}
   .mk-poster #txtSub{margin-top:2cqw}
   .mk-poster .fp-blk-body{margin-top:2.4cqw}
 
   /* 감성 · 손글씨 — 찢어진 종이가 가운데(가로 8~78%). 종이 안쪽에만.
-     좌우 여백이 다른 것은 종이 가운데가 화면 가운데보다 왼쪽이라서다. */
+     좌우 여백이 다른 것은 종이 가운데가 화면 가운데보다 왼쪽이라서다.
+     --pr 22 도 실측 — 6 이면 본문이 88%까지 가서 종이 밖(78%)으로 나간다. */
   .mk-note{background-image:url(/pair-bg/note.webp);background-color:#EDE6D8;
            color:#3A3226;justify-content:center;text-align:center;
-           --pl:13cqw;--pr:24cqw;--pt:13cqw;--pb:13cqw;
+           --pl:13cqw;--pr:22cqw;--pt:10cqw;--pb:10cqw;
            --b-title:8.8cqw;--b-sub:4.38cqw;--b-body:2.76cqw}
   .mk-note #txtSub{margin-top:2.6cqw}
   .mk-note .fp-blk-body{margin-top:3.6cqw}
 
-  /* 본문 · 읽기 — 펼친 노트. 사진에 가로줄이 있다(위에서 36%).
-     그 줄을 조판선으로 쓴다 — 제목·부제는 줄 위, 본문은 줄 아래 2단.
-     본문을 절대 위치로 못 박는 이유: 제목이 한 줄 늘어나도 줄을 넘지 않게.
-     16:9 라 높이는 폭의 56.25% — 줄은 위에서 20.25cqw 다.
-     왼쪽 9cqw 는 제본(약 6%)을, 오른쪽·아래는 잎사귀 그림을 비켜 준 값.
-     제목 13자 × 6.5cqw = 84.5cqw / 글 폭 85cqw */
-  .mk-magazine{background-image:url(/pair-bg/magazine.webp);background-color:#FAF3E7;
+  /* 본문 · 읽기 — 종이를 코드로 그렸다(tools/make_pair_bg_magazine.py).
+     그 배경에는 선이 하나도 없다. 제목 아래 선과 단 사이 선을 CSS 가 긋기
+     때문이다 — 그래야 글이 한 줄 늘거나 줄어도 선이 글을 따라간다.
+     앞서 쓰던 사진에는 가로줄이 박혀 있었고, 거기 맞추려다 본문이 위로
+     끌려 올라갔다. 그 문제가 여기서 없어진다.
+
+     선을 .fp-blk-body 에 긋되 좌우를 padding 이 아니라 margin 으로 잡는다.
+     padding 이면 테두리가 칸 전체 폭으로 그어져 글줄보다 길게 삐져나온다.
+     margin 이면 테두리 상자 자체가 안으로 들어와 글 폭과 정확히 맞는다.
+
+     좌우 여백을 같게 둔 것은 제본 그림이 없어져서다. */
+  .mk-magazine{background-image:url(/pair-bg/magazine.webp);background-color:#FAF7F0;
                color:#2A241B;justify-content:flex-start;
-               --pl:9cqw;--pr:6cqw;--pt:4.5cqw;--pb:7cqw;
-               --b-title:6.5cqw;--b-sub:4cqw;--b-body:2.47cqw}
-  .mk-magazine #txtSub{margin-top:1.8cqw;opacity:.75}
-  .mk-magazine #txtBody{line-height:1.6}
-  .mk-magazine .fp-blk-body{position:absolute;left:9cqw;right:6cqw;
-               top:22cqw;bottom:7cqw;padding:0;
-               column-count:2;column-gap:3cqw}
+               --pl:9cqw;--pr:9cqw;--pt:7cqw;--pb:8cqw;
+               --b-title:7.7cqw;--b-sub:4.25cqw;--b-body:2.47cqw}
+  .mk-magazine #txtSub{margin-top:2.2cqw;opacity:.72}
+  .mk-magazine #txtBody{line-height:1.7}
+  .mk-magazine .fp-blk-body{padding-left:0;padding-right:0;
+               margin:3.4cqw var(--pr) 0 var(--pl);
+               padding-top:2.2cqw;
+               border-top:1px solid color-mix(in srgb,currentColor 22%,transparent);
+               column-count:2;column-gap:3.2cqw;
+               column-rule:1px solid color-mix(in srgb,currentColor 12%,transparent)}
 
   /* ── 오른쪽 칸: 슬롯 3개 + 쓰는 법 ─────────────────────
      캔버스 옆에 세로로 세운다. 아래에 두면 스크롤을 내려야 폰트 이름이
@@ -297,9 +320,8 @@
     .mk-thumb{--pr:8cqw}
     .mk-card,.mk-namecard,.mk-poster{--pr:9cqw}
     .mk-note{--pl:12cqw;--pr:12cqw}
-    /* 세로로 길어지면 사진의 가로줄 위치도 어긋난다. 본문을 흐름에 되돌린다. */
-    .mk-magazine .fp-blk-body{position:static;margin-top:4cqw;column-count:1;
-      padding-left:var(--pl);padding-right:var(--pr);padding-bottom:var(--pb)}
+    /* 좁은 화면에서는 2단이 너무 좁아진다. 한 단으로 편다. */
+    .mk-magazine .fp-blk-body{column-count:1}
     /* 데스크톱은 16:9 비율이라 justify-content:flex-start(위 붙임)로 놓아도
        박스 자체가 낮아서 자연스럽다. 모바일은 그 비율을 버리고 최소높이
        340px만 남기는데, 폭이 좁아지면서 박스가 훨씬 세로로 길어져 글이
