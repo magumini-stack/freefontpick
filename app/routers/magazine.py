@@ -206,6 +206,9 @@ def magazine_post(slug: str, db: Session = Depends(get_db)):
         )
     body += "</article>"
 
+    src = image_src(p)
+    og_image = (BASE_URL + src) if src else DEFAULT_OG
+
     json_ld = _json.dumps({
         "@context": "https://schema.org",
         "@type": "Article",
@@ -221,9 +224,6 @@ def magazine_post(slug: str, db: Session = Depends(get_db)):
         "mainEntityOfPage": {"@type": "WebPage", "@id": url},
         "image": og_image,
     }, ensure_ascii=False)
-
-    src = image_src(p)
-    og_image = (BASE_URL + src) if src else DEFAULT_OG
 
     crumb = ('<p class="mz-crumb"><a href="/">폰트픽</a> › '
              '<a href="/magazine">매거진</a></p>')
