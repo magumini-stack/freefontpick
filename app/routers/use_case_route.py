@@ -66,9 +66,13 @@ def use_case_page(slug: str, db: Session = Depends(get_db)):
 
     url = f"{BASE_URL}/use/{slug}"
     title = f"{uc.title} 무료폰트 추천 {total}종 - 상업적 이용 가능 | 폰트픽"
+    # 검색결과에 걸리는 줄이다. 짧으면 구글이 본문에서 아무 문장이나 끌어다
+    # 채운다 — 120~160자 사이로 채워 두는 편이 낫다.
     desc = (
         f"{uc.title}에 어울리는 무료 한글 폰트 {total}종을 골랐습니다. "
-        f"{uc.subtitle}. 선정 기준과 활용 방법까지 함께 확인하세요."
+        f"{uc.subtitle}. 왜 그 폰트를 골랐는지 기준을 밝히고, 크기와 굵기를 "
+        f"어떻게 잡아야 하는지까지 적었습니다. 모두 상업적으로 쓸 수 있고 "
+        f"라이선스 주의사항도 폰트마다 확인할 수 있습니다."
     )
     # 허브 전용 og:image. 예전엔 추천 1순위 폰트의 카드를 그대로 썼는데,
     # 허브 링크를 공유하면 폰트 이름만 큼지막하게 뜨고 어느 허브인지 알 수 없었다.
@@ -108,11 +112,24 @@ def use_case_page(slug: str, db: Session = Depends(get_db)):
     ) + "</ul>"
     # 5위 이후도 이름만이라도 HTML에 남긴다 — 크롤러가 이 페이지에서
     # 어떤 폰트를 다루는지 알 수 있어야 하고, JS 차단 환경에서도 목록이 보여야 한다.
-    if rest:
+    # 제목이 말하는 "N종"은 큐레이션한 것 + 이 허브의 태그가 붙은 것을 합한
+    # 수다(hub_font_total). 그런데 여기서는 큐레이션한 것만 내보내고 있어서,
+    # 예컨대 유튜브 썸네일은 제목에 23종이라 적어 놓고 크롤러에게는 9개만
+    # 보여줬다. 화면에서는 '더 보기' 자리에 둘 다 나오므로 여기에도 함께 낸다.
+    others = []
+    if uc.tag_id:
+        linked_ids = {f.font_id for f in linked}
+        q = db.query(Font).join(Font.tags).filter(Tag.id == uc.tag_id)
+        if linked_ids:
+            q = q.filter(~Font.id.in_(linked_ids))
+        others = q.order_by(Font.sort_order, Font.id).all()
+
+    tail = [(r.font_id, r.font.name) for r in rest] + [(f.id, f.name) for f in others]
+    if tail:
         picks_ssr += (
             '<p class="ssr-list" style="margin-top:10px">그 밖에 '
             + ", ".join(
-                f'<a href="/font/{r.font_id}">{_esc(r.font.name)}</a>' for r in rest
+                f'<a href="/font/{fid}">{_esc(fname)}</a>' for fid, fname in tail
             )
             + " 등이 있습니다.</p>"
         )

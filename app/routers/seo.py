@@ -30,7 +30,8 @@ def sitemap(db: Session = Depends(get_db)):
     pages = [
         {"loc": f"{SITE_URL}/", "priority": "1.0", "changefreq": "weekly"},
         {"loc": f"{SITE_URL}/find-font", "priority": "0.7", "changefreq": "weekly"},
-        {"loc": f"{SITE_URL}/#notice", "priority": "0.6", "changefreq": "weekly"},
+        # /#notice 는 뺐다. 조각(#)은 구글이 무시하므로 "/" 와 같은 URL 로 취급되고,
+        # 사이트맵에 중복 URL 을 올리면 색인 판단만 헷갈리게 만든다.
         {"loc": f"{SITE_URL}/about.html", "priority": "0.5", "changefreq": "monthly"},
         {"loc": f"{SITE_URL}/faq.html", "priority": "0.5", "changefreq": "monthly"},
         # GIF 생성기는 페이지 2개뿐이다. 템플릿별 URL을 만들지 않은 이유는

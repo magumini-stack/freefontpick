@@ -20,7 +20,7 @@
        양쪽에 두면 조회수가 두 번 잡힌다. -->
 
   <!-- ── 기본 SEO ── -->
-  <meta name="description" content="전문가 추천 무료폰트를 다운로드하고, 제목·본문에 어울리는 폰트 조합까지 한 번에 찾으세요.">
+  <meta name="description" content="상업적 이용이 가능한 무료 한글 폰트를 용도별로 골라 모았습니다. 썸네일·카드뉴스·발표자료 등 쓰는 자리를 고르면 그 자리에 맞는 폰트를 추천하고, 폰트마다 제작 배경과 라이선스 주의사항까지 정리했습니다.">
   <meta name="keywords" content="무료폰트, 한글폰트, 상업용폰트, 무료한글폰트, 폰트추천, 디자인폰트, 카페폰트, 유튜브폰트, 브랜드폰트, 캘리그라피, 폰트 조합, 폰트 페어링, 제목 본문 폰트, 텍스트 디자인, 글자 디자인, 글씨 꾸미기, 타이포그래피, 썸네일 글씨, 투명배경 글자 PNG, 텍스트 효과">
   <meta name="author" content="(주)와이즈폰트">
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -189,26 +189,6 @@
     .btn-license i{font-size:14px}
 
     /* LICENSE MODAL */
-    /* DOWNLOAD AD INTERSTITIAL */
-    .dlad-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:550;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
-    .dlad-overlay.open{display:flex;animation:fadeIn .2s ease}
-    .dlad-modal{background:var(--bg-card);border-radius:18px;max-width:520px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .25s ease}
-    .dlad-head{padding:22px 24px 16px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--accent-light) 0%,var(--bg-card) 100%)}
-    .dlad-eyebrow{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--accent);background:var(--bg-card);padding:3px 9px;border-radius:20px;margin-bottom:8px;border:1px solid var(--accent-light);letter-spacing:.5px}
-    .dlad-eyebrow i{font-size:12px}
-    .dlad-head h3{font-size:17px;font-weight:800;color:var(--text-primary);letter-spacing:-.3px;margin-bottom:3px}
-    .dlad-head p{font-size:12px;color:var(--text-secondary);line-height:1.5}
-    .dlad-body{padding:18px 20px;flex:1;overflow-y:auto;background:var(--bg-secondary);min-height:200px;display:flex;align-items:center;justify-content:center}
-    .dlad-body #dladAdContainer{width:100%;display:flex;justify-content:center;align-items:center;min-height:200px}
-    .dlad-foot{padding:14px 20px 18px;border-top:1px solid var(--border)}
-    .dlad-close-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:background .15s}
-    .dlad-close-btn:hover{background:var(--accent-hover)}
-    .dlad-close-btn small{font-size:11px;font-weight:400;opacity:.85;margin-left:-4px}
-    .dlad-close-btn i{font-size:16px}
-    @media(max-width:520px){
-      .dlad-modal{max-height:95vh}
-      .dlad-head{padding:18px 20px 14px}
-    }
 
     .license-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;backdrop-filter:blur(4px)}
     .license-overlay.open{display:flex;animation:fadeIn .2s ease}
@@ -1007,7 +987,7 @@
   <div class="license-modal submit-form-modal">
     <div class="license-head">
       <div class="license-head-eyebrow"><i class="ti ti-search" aria-hidden="true"></i> FIND</div>
-      <h2 id="submitFormTitle">폰트 찾기</h2>
+      <h2 id="submitFormTitle">폰트 찾기 요청</h2>
       <p>이미지와 설명을 남겨주시면 다른 사용자들이 답변해드려요</p>
       <button class="license-close" onclick="closeSubmitForm()" aria-label="닫기">
         <svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -1089,30 +1069,12 @@
 
 
 
-<!-- DOWNLOAD AD INTERSTITIAL (다운로드광고) -->
-<div class="dlad-overlay" id="dladOverlay" role="dialog" aria-modal="true" aria-labelledby="dladTitle">
-  <div class="dlad-modal">
-    <div class="dlad-head">
-      <div>
-        <div class="dlad-eyebrow"><i class="ti ti-download" aria-hidden="true"></i> 다운로드</div>
-        <h3 id="dladTitle">잠시만 기다려주세요</h3>
-        <p id="dladSub">아래 광고 확인 후 [닫기]를 누르면 다운로드 페이지로 이동합니다.</p>
-      </div>
-    </div>
-    <div class="dlad-body">
-      <div id="dladAdContainer">
-        <!-- 광고는 매번 동적으로 삽입 (push 가능하도록) -->
-      </div>
-    </div>
-    <div class="dlad-foot">
-      <button class="dlad-close-btn" onclick="closeDownloadAd()">
-        <span>닫기</span>
-        <small id="dladTargetName"></small>
-        <i class="ti ti-arrow-right" aria-hidden="true"></i>
-      </button>
-    </div>
-  </div>
-</div>
+<!-- [제거 2026-08] 다운로드 광고 인터스티셜.
+     openDownloadAd()가 이미 새 창으로 바로 보내도록 바뀌어서 이 모달은
+     아무도 열지 않는 죽은 마크업이었다. 그런데 "아래 광고 확인 후
+     [닫기]를 누르면 다운로드 페이지로 이동합니다" 라는 문구가 HTML에
+     그대로 남아 크롤러와 애드센스 심사자에게는 계속 보였다.
+     광고 확인을 대가로 다운로드를 준다는 뜻으로 읽히는 문장이라 지운다. -->
 
 
 <!-- LICENSE MODAL -->
@@ -3025,24 +2987,13 @@ window.addEventListener('scroll',()=>document.getElementById('scrollTopBtn').cla
 
 
 /* ── 다운로드 — 새 창으로 바로 이동 ── */
-let _dlPendingUrl = null;
 function openDownloadAd(url, fontName){
   if(url){
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 }
-function closeDownloadAd(){
-  const url = _dlPendingUrl;
-  document.getElementById('dladOverlay').classList.remove('open');
-  document.body.style.overflow = '';
-  // 광고 컨테이너 비우기 (다음 호출 시 깨끗하게)
-  document.getElementById('dladAdContainer').innerHTML = '';
-  _dlPendingUrl = null;
-  // 다운로드 페이지로 이동 (새 창)
-  if(url){
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }
-}
+/* [제거 2026-08] closeDownloadAd() — 위 인터스티셜과 함께 지웠다.
+   openDownloadAd()가 새 창으로 바로 보내므로 이 함수는 호출되지 않았다. */
 
 /* ── 라이선스 모달 ── */
 /* ── 야간모드 토글 ── */
@@ -3088,15 +3039,11 @@ function closeLicense(){
 document.getElementById('licenseOverlay').addEventListener('click',function(e){
   if(e.target===this) closeLicense();
 });
-document.getElementById('dladOverlay').addEventListener('click',function(e){
-  if(e.target===this) closeDownloadAd();
-});
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
     if(document.getElementById('licenseOverlay').classList.contains('open')) closeLicense();
     else if(document.getElementById('submitFormOverlay').classList.contains('open')) closeSubmitForm();
     else if(document.getElementById('submitDetailOverlay').classList.contains('open')) closeSubmitDetail();
-    else if(document.getElementById('dladOverlay').classList.contains('open')) closeDownloadAd();
     else if(document.getElementById('mnav') && !document.getElementById('mnav').hidden) closeMobileNav();
   }
 });

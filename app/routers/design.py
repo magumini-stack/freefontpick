@@ -987,8 +987,9 @@ def font_pair_page(request: Request, db: Session = Depends(get_db)):
 
     title = "폰트 조합 찾기 - 제목·본문 폰트 짝 맞추기 | 폰트픽"
     desc = ("제목·서브타이틀·본문에 쓸 무료 폰트 세 가지를 한 화면에서 맞춰 보세요. "
-            "쓰는 자리별 추천, 슬롯 잠금, 문구 편집, 글자 크기 조절까지 "
-            "무료로 씁니다.")
+            "영상 자막, 카드뉴스, 브랜딩, 포스터, 손글씨, 본문 읽기까지 쓰는 "
+            "자리를 고르면 그 자리의 실제 틀 위에 조합을 얹어 보여드립니다. "
+            "마음에 드는 폰트는 잠그고 나머지만 다시 뽑을 수 있습니다.")
     url = f"{BASE_URL}/font-pair"
 
     html = re.sub(r"<title>.*?</title>", f"<title>{title}</title>",
