@@ -15,7 +15,8 @@ render_header()가 만든 실제 HTML로 서버가 치환해서 응답한다.
 # 활성(active) 표시를 동적으로 토글하기 위해 특정 id를 필요로 해서 부여함.
 # 다른 페이지(about/faq/font)에는 해당 JS가 없어 id가 있어도 그냥 무시됨 — 안전.
 NAV_ITEMS = [
-    ("about", "/about.html", "폰트픽 소개", None, None),
+    ("magazine", "/magazine", "매거진", None, None),
+    ("about", "/about", "소개", None, None),
     ("notice", "/#notice", "공지사항", "noticeMenuLink", "mNoticeMenuLink"),
     ("faq", "/faq.html", "자주 묻는 질문", None, None),
     # '폰트 찾기'는 index.html 안의 뷰다. 홈에서는 해시 라우팅으로 화면만 바꾸고,

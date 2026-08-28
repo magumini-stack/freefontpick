@@ -19,7 +19,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from .header import not_found_page
 from .seed import init_db
-from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, sample_image, db_migrate, gif_templates, gif, font_pair
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, sample_image, db_migrate, gif_templates, gif, font_pair
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -252,6 +252,8 @@ app.include_router(db_migrate.router)
 # /wisefont/{slug}, /design/{id}, /use/{slug}, /find-font 요청이 catch-all에 가로채이지 않는다.
 app.include_router(wisefont.router)
 app.include_router(use_case_route.router)
+# 매거진 — /about.html 301 이 여기 들어 있어 정적 catch-all 보다 먼저 등록해야 한다.
+app.include_router(magazine.router)
 app.include_router(gif.router)
 app.include_router(design.router)
 
@@ -329,7 +331,7 @@ if STATIC_DIR.exists():
 # 막아도 정상 페이지에는 영향이 없다.
 SSR_ONLY_TEMPLATES = {
     "font.html", "use.html", "wisefont.html", "font-pair.html",
-    "gif-templates.html",
+    "gif-templates.html", "magazine.html", "about.html",
 }
 
 

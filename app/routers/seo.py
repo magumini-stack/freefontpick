@@ -32,7 +32,8 @@ def sitemap(db: Session = Depends(get_db)):
         {"loc": f"{SITE_URL}/find-font", "priority": "0.7", "changefreq": "weekly"},
         # /#notice 는 뺐다. 조각(#)은 구글이 무시하므로 "/" 와 같은 URL 로 취급되고,
         # 사이트맵에 중복 URL 을 올리면 색인 판단만 헷갈리게 만든다.
-        {"loc": f"{SITE_URL}/about.html", "priority": "0.5", "changefreq": "monthly"},
+        {"loc": f"{SITE_URL}/magazine", "priority": "0.8", "changefreq": "weekly"},
+        {"loc": f"{SITE_URL}/about", "priority": "0.5", "changefreq": "monthly"},
         {"loc": f"{SITE_URL}/faq.html", "priority": "0.5", "changefreq": "monthly"},
         # GIF 생성기는 페이지 2개뿐이다. 템플릿별 URL을 만들지 않은 이유는
         # gif.py 주석 참고 — 페이로드만 다른 페이지 48개는 중복 색인 판정을 부른다.
@@ -42,6 +43,19 @@ def sitemap(db: Session = Depends(get_db)):
         {"loc": f"{SITE_URL}/gif", "priority": "0.7", "changefreq": "weekly"},
         {"loc": f"{SITE_URL}/policy.html", "priority": "0.3", "changefreq": "yearly"},
     ]
+    # 매거진 글. 목록에서 코드로 읽어 온다 — 글을 추가할 때 sitemap 을 따로
+    # 고쳐야 하면 반드시 한쪽이 빠진다.
+    try:
+        from ..magazine import POSTS
+        for post in POSTS:
+            pages.append({
+                "loc": f"{SITE_URL}/magazine/{post['slug']}",
+                "priority": "0.7",
+                "changefreq": "monthly",
+            })
+    except Exception:
+        pass
+
     # 폰트별 상세페이지 (핵심 SEO 자산)
     # 2026-07: /design/{id}는 /font/{id}의 canonical 페이지이므로 sitemap에서 제외.
     # canonical이 아닌 URL을 sitemap에 올리면 구글에게 엇갈린 신호를 줘서

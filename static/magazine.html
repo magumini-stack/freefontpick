@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <script>
+    (function(){
+      try{
+        var t = localStorage.getItem('ffp-theme');
+        if(t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+      }catch(e){}
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{MZ_TITLE}}</title>
+  <link rel="stylesheet" href="/header.css">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="google-adsense-account" content="ca-pub-4036975940442022">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4036975940442022"
+       crossorigin="anonymous"></script>
+  <meta name="description" content="{{MZ_DESC}}">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="{{MZ_CANONICAL}}">
+  <meta property="og:type" content="{{MZ_OGTYPE}}">
+  <meta property="og:site_name" content="폰트픽">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:title" content="{{MZ_TITLE}}">
+  <meta property="og:description" content="{{MZ_DESC}}">
+  <meta property="og:url" content="{{MZ_CANONICAL}}">
+  <meta property="og:image" content="https://freefontpick.co.kr/og-image-v3.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="{{MZ_TITLE}}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{MZ_TITLE}}">
+  <meta name="twitter:description" content="{{MZ_DESC}}">
+  <meta name="twitter:image" content="https://freefontpick.co.kr/og-image-v3.png">
+  {{MZ_JSONLD}}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text-primary);
+      font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      -webkit-font-smoothing:antialiased}
+
+    .mz-hero{max-width:860px;margin:0 auto;padding:44px 20px 8px}
+    .mz-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;
+      color:var(--accent);background:var(--accent-light);padding:4px 11px;border-radius:20px;
+      letter-spacing:.4px;margin-bottom:14px}
+    .mz-hero h1{font-size:clamp(23px,3.4vw,32px);font-weight:800;letter-spacing:-.7px;
+      line-height:1.35;margin:0}
+    .mz-hero .lead{margin:14px 0 0;font-size:15px;line-height:1.8;color:var(--text-secondary)}
+
+    .mz-main{max-width:860px;margin:0 auto;padding:26px 20px 90px}
+
+    /* ── 목록 ── */
+    .mz-list{display:grid;gap:1px;background:var(--border);border:1px solid var(--border);
+      border-radius:var(--radius);overflow:hidden}
+    .mz-card{display:block;background:var(--bg-card);padding:22px 24px;text-decoration:none;
+      color:inherit;transition:background .15s}
+    .mz-card:hover{background:var(--accent-light)}
+    .mz-card h2{font-size:17px;font-weight:800;letter-spacing:-.4px;margin:0 0 8px;
+      line-height:1.45;color:var(--text-primary)}
+    .mz-card p{margin:0;font-size:13.5px;line-height:1.75;color:var(--text-secondary)}
+    .mz-meta{margin-top:11px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+    .mz-tag{font-size:11px;font-weight:700;color:var(--text-secondary);
+      background:var(--bg-secondary);padding:3px 9px;border-radius:20px}
+    .mz-date{font-size:11.5px;color:var(--text-muted);margin-left:2px}
+
+    /* ── 글 본문 ── */
+    .mz-post{font-size:15.5px;line-height:1.95;color:var(--text-primary)}
+    .mz-post h2{font-size:19px;font-weight:800;letter-spacing:-.4px;margin:44px 0 12px;
+      padding-top:20px;border-top:1px solid var(--border);line-height:1.45}
+    .mz-post h2:first-child{margin-top:0;padding-top:0;border-top:0}
+    .mz-post h3{font-size:15px;font-weight:800;margin:26px 0 8px;color:var(--text-primary)}
+    .mz-post p{margin:0 0 1.15em;color:var(--text-secondary)}
+    .mz-post strong{color:var(--text-primary);font-weight:700}
+    .mz-post ul{margin:0 0 1.15em;padding-left:20px;color:var(--text-secondary)}
+    .mz-post li{margin-bottom:.5em;line-height:1.85}
+    .mz-post a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-light)}
+    .mz-post a:hover{border-bottom-color:var(--accent)}
+    .mz-post code{background:var(--bg-secondary);padding:2px 6px;border-radius:5px;
+      font-size:13.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+    /* 본문 안의 허브 링크 묶음 */
+    .mz-hubs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 1.15em}
+    .mz-hubs a{display:inline-block;padding:8px 15px;border-radius:999px;font-size:13px;
+      background:var(--bg-secondary);color:var(--text-primary);border-bottom:0;text-decoration:none}
+    .mz-hubs a:hover{background:var(--accent-light);color:var(--accent)}
+
+    /* 글 아래 다른 글 */
+    .mz-more{margin-top:56px;padding-top:26px;border-top:1px solid var(--border)}
+    .mz-more h2{font-size:15px;font-weight:800;margin:0 0 14px}
+    .mz-more ul{list-style:none;margin:0;padding:0}
+    .mz-more li{margin-bottom:10px}
+    .mz-more a{font-size:14px;color:var(--text-primary);text-decoration:none;
+      border-bottom:1px solid var(--border)}
+    .mz-more a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+    .mz-crumb{font-size:12.5px;color:var(--text-muted);margin-bottom:16px}
+    .mz-crumb a{color:var(--text-secondary);text-decoration:none}
+    .mz-crumb a:hover{color:var(--accent)}
+
+    @media(max-width:620px){
+      .mz-hero{padding:30px 17px 6px}
+      .mz-main{padding:20px 17px 64px}
+      .mz-card{padding:18px 18px}
+      .mz-post{font-size:15px}
+      .mz-post h2{font-size:17.5px;margin-top:36px}
+    }
+  </style>
+</head>
+<body>
+
+<!--FFP_HEADER-->
+
+<section class="mz-hero">
+  {{MZ_CRUMB}}
+  <div class="mz-eyebrow"><i class="ti ti-book-2" aria-hidden="true"></i> MAGAZINE</div>
+  <h1>{{MZ_H1}}</h1>
+  <p class="lead">{{MZ_LEAD}}</p>
+</section>
+
+<main class="mz-main">
+  {{MZ_BODY}}
+</main>
+
+</body>
+</html>

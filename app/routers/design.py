@@ -814,11 +814,8 @@ def home_page(db: Session = Depends(get_db)):
     return HTMLResponse(html)
 
 
-@router.get("/about.html", response_class=HTMLResponse)
-def about_page():
-    """소개 페이지 — 서버가 공유 헤더를 주입해서 응답"""
-    html = (STATIC_DIR / "about.html").read_text(encoding="utf-8")
-    return HTMLResponse(inject_header(html, "about"))
+# [이동 2026-08] 소개 페이지는 매거진 첫 글이 되었다.
+# /about.html 301 은 magazine.py 가 맡는다 (그쪽이 먼저 등록된다).
 
 
 @router.get("/faq.html", response_class=HTMLResponse)
@@ -965,7 +962,9 @@ def _pair_ssr_block(db: Session) -> str:
         # 안에 넣으면 이 줄이 제일 먼저 잘려 나간다 — 실제로 그랬다.
         # 소개 글을 복사해 오면 같은 글이 두 주소에 앉아 중복 콘텐츠가 되므로
         # 링크만 걸어 크롤러에게 나가는 길을 주고, 사람에게는 다음 읽을거리를 준다.
-        '<p class="fp-more">폰트 고르는 법 → <a href="/about.html">폰트픽 소개</a></p>'
+        '<p class="fp-more">폰트 고르는 법 → '
+        '<a href="/magazine/pairing">조합 만드는 법</a> · '
+        '<a href="/magazine">매거진</a></p>'
 
     )
 
