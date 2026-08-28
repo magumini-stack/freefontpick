@@ -163,8 +163,16 @@
 
      이제 1cqw = 캔버스 폭의 1% 라 값이 그대로 읽힌다.
 
-     ⚠ --b-title / --b-sub / --b-body 는 배경 사진을 넣기 전부터 쓰던 값
-     그대로다. 건드리지 않는다 — 폰트를 보는 화면이라 글 크기가 곧 내용이다.
+     ⚠ --b-title / --b-sub / --b-body 는 배경을 넣기 전과 **같은 크기로 보이도록**
+     환산한 값이다. 숫자만 보면 예전보다 작지만 화면에 그려지는 크기는 같다.
+     기준이 달라졌기 때문이다 — 예전에는 캔버스에 좌우 여백이 있어 1cqw 가
+     콘텐츠 박스(622-134=488px) 기준이었고, 여백을 걷어낸 지금은 캔버스 전체
+     (622px) 기준이다. 같은 숫자가 1.28배로 그려진다. 그래서
+       배율 = 1 - 2 × 예전여백 × 뷰포트폭 / (100 × 캔버스폭)
+     을 곱했다(0.79~0.88). 브라우저에서 재서 확인한 값이고, 제목이 68→56 /
+     52→41 px 로 내려가면서 줄 수는 그대로다.
+     이 숫자를 다시 만질 때는 반드시 화면에서 px 를 재고 만진다 —
+     값만 보고 고치다 "콩알만하다" 와 "너무 크다" 를 둘 다 들었다.
      배경을 피하는 일은 여백(--pl/--pr)이 한다. 크기를 줄여서 피하려다
      "콩알만해졌다"는 말을, 여백을 늘리려다 "너무 커지고 줄이 갈라진다"는 말을
      들었다. 아래 --pr 값은 짐작이 아니라 브라우저에서 실제로 재서 정했다 —
@@ -185,7 +193,7 @@
   .mk-thumb{background-image:url(/pair-bg/thumb.webp);background-color:#15161A;
             color:#F7F5F1;justify-content:center;text-align:left;
             --pl:6cqw;--pr:6cqw;--pt:6cqw;--pb:0cqw;
-            --b-title:11cqw;--b-sub:4.5cqw;--b-body:2.66cqw}
+            --b-title:9cqw;--b-sub:3.68cqw;--b-body:2.17cqw}
   .mk-thumb .fp-blk-title,.mk-thumb .fp-blk-sub{text-shadow:0 1px 14px rgba(0,0,0,.6)}
   .mk-thumb .fp-blk-body{position:absolute;left:0;right:0;bottom:0;
             background:rgba(0,0,0,.55);padding:2.4cqw 6cqw 2.8cqw;text-align:center}
@@ -198,7 +206,7 @@
   .mk-card{background-image:url(/pair-bg/card.webp);background-color:#FAEBD9;
            color:#3B2E1E;justify-content:flex-start;
            --pl:7cqw;--pr:7cqw;--pt:7cqw;--pb:7cqw;
-           --b-title:8.36cqw;--b-sub:4.5cqw;--b-body:2.85cqw}
+           --b-title:6.58cqw;--b-sub:3.54cqw;--b-body:2.24cqw}
   .mk-card #txtSub{margin-top:2.8cqw}
   .mk-card .fp-blk-body{margin-top:4cqw}
 
@@ -208,7 +216,7 @@
   .mk-namecard{background-image:url(/pair-bg/namecard.webp);background-color:#F6F4EF;
                color:#241F19;justify-content:center;
                --pl:7cqw;--pr:7cqw;--pt:7cqw;--pb:7cqw;
-               --b-title:8.8cqw;--b-sub:4.25cqw;--b-body:2.66cqw}
+               --b-title:6.93cqw;--b-sub:3.35cqw;--b-body:2.09cqw}
   .mk-namecard #txtSub{margin-top:2.2cqw}
   .mk-namecard .fp-blk-body{margin-top:4cqw;opacity:.75}
 
@@ -219,7 +227,7 @@
   .mk-poster{background-image:url(/pair-bg/poster.webp);background-color:#EAF0F6;
              color:#243444;justify-content:flex-start;
              --pl:8cqw;--pr:20cqw;--pt:10cqw;--pb:8cqw;
-             --b-title:8.36cqw;--b-sub:4.25cqw;--b-body:2.66cqw}
+             --b-title:7.09cqw;--b-sub:3.6cqw;--b-body:2.26cqw}
   .mk-poster #txtSub{margin-top:2cqw}
   .mk-poster .fp-blk-body{margin-top:2.4cqw}
 
@@ -229,7 +237,7 @@
   .mk-note{background-image:url(/pair-bg/note.webp);background-color:#EDE6D8;
            color:#3A3226;justify-content:center;text-align:center;
            --pl:13cqw;--pr:22cqw;--pt:10cqw;--pb:10cqw;
-           --b-title:8.8cqw;--b-sub:4.38cqw;--b-body:2.76cqw}
+           --b-title:6.93cqw;--b-sub:3.45cqw;--b-body:2.17cqw}
   .mk-note #txtSub{margin-top:2.6cqw}
   .mk-note .fp-blk-body{margin-top:3.6cqw}
 
@@ -247,7 +255,7 @@
   .mk-magazine{background-image:url(/pair-bg/magazine.webp);background-color:#FAF7F0;
                color:#2A241B;justify-content:flex-start;
                --pl:9cqw;--pr:9cqw;--pt:7cqw;--pb:8cqw;
-               --b-title:7.7cqw;--b-sub:4.25cqw;--b-body:2.47cqw}
+               --b-title:6.76cqw;--b-sub:3.73cqw;--b-body:2.17cqw}
   .mk-magazine #txtSub{margin-top:2.2cqw;opacity:.72}
   .mk-magazine #txtBody{line-height:1.7}
   .mk-magazine .fp-blk-body{padding-left:0;padding-right:0;
