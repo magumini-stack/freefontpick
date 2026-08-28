@@ -22,7 +22,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Font, FontPairing, UseCase, UseCaseFont
+from ..models import Font, FontPairing, FontSubmission, UseCase, UseCaseFont
 from ..header import inject_header, not_found_page
 
 
@@ -825,8 +825,12 @@ def faq_page():
     return HTMLResponse(inject_header(html, "faq"))
 
 
+# 게시판에 이만큼은 쌓여야 색인시킨다. 아래면 noindex 로 내보낸다.
+FIND_FONT_INDEX_MIN = 3
+
+
 @router.get("/find-font", response_class=HTMLResponse)
-def find_font_page():
+def find_font_page(db: Session = Depends(get_db)):
     """폰트 찾기 게시판 고유 URL — SEO용 title/description 치환"""
     html = _load_index()
     html = inject_header(html, "findfont")
@@ -860,6 +864,24 @@ def find_font_page():
                   rf"\g<1>{desc}\g<2>", html, count=1)
     html = re.sub(r'(<meta property="og:url" content=")[^"]*(")',
                   rf"\g<1>{url}\g<2>", html, count=1)
+
+    # 질문이 거의 없으면 색인에서 뺀다.
+    #
+    # 이 URL 은 index.html 을 그대로 쓰고 홈의 SSR 목록만 지운 것이라, 게시판이
+    # 비어 있으면 크롤러가 읽는 고유 본문이 168자밖에 안 된다(실측). 그런데
+    # title 과 description 은 "다른 사용자들이 답변해드려요"라고 약속한다.
+    # 약속한 내용이 없는 페이지가 색인에 남아 있으면 저가치 콘텐츠로 읽힌다.
+    #
+    # 아예 막지 않고 질문 수로 판단하는 이유는, 게시판이 채워지면 사람이 다시
+    # 손대지 않아도 저절로 색인 대상이 되게 하기 위해서다. follow 는 남겨
+    # 이 페이지를 거쳐 가는 링크는 그대로 따라가게 둔다.
+    try:
+        n_q = db.query(FontSubmission).count()
+    except Exception:
+        n_q = 0
+    if n_q < FIND_FONT_INDEX_MIN:
+        html = re.sub(r'(<meta name="robots" content=")[^"]*(")',
+                      r"\g<1>noindex, follow\g<2>", html, count=1)
     return HTMLResponse(html)
 
 

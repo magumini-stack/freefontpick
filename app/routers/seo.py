@@ -29,7 +29,8 @@ def sitemap(db: Session = Depends(get_db)):
     today = datetime.utcnow().strftime("%Y-%m-%d")
     pages = [
         {"loc": f"{SITE_URL}/", "priority": "1.0", "changefreq": "weekly"},
-        {"loc": f"{SITE_URL}/find-font", "priority": "0.7", "changefreq": "weekly"},
+        # /find-font 는 아래에서 질문 수를 보고 넣는다 — 빈 게시판을 검색엔진에
+        # 먼저 알릴 이유가 없다.
         # /#notice 는 뺐다. 조각(#)은 구글이 무시하므로 "/" 와 같은 URL 로 취급되고,
         # 사이트맵에 중복 URL 을 올리면 색인 판단만 헷갈리게 만든다.
         {"loc": f"{SITE_URL}/magazine", "priority": "0.8", "changefreq": "weekly"},
@@ -42,7 +43,21 @@ def sitemap(db: Session = Depends(get_db)):
         {"loc": f"{SITE_URL}/gif/templates", "priority": "0.8", "changefreq": "weekly"},
         {"loc": f"{SITE_URL}/gif", "priority": "0.7", "changefreq": "weekly"},
         {"loc": f"{SITE_URL}/policy.html", "priority": "0.3", "changefreq": "yearly"},
+        # 개인정보처리방침은 광고 심사에서 실제로 확인하는 문서다. 푸터에만
+        # 걸려 있고 사이트맵에는 빠져 있었다.
+        {"loc": f"{SITE_URL}/privacy.html", "priority": "0.3", "changefreq": "yearly"},
     ]
+
+    # 폰트 찾기 게시판 — design.py 와 같은 기준으로 판단한다. 두 곳이 어긋나면
+    # 사이트맵은 올리라 하고 페이지는 noindex 인 모순이 생긴다.
+    try:
+        from ..models import FontSubmission
+        from .design import FIND_FONT_INDEX_MIN
+        if db.query(FontSubmission).count() >= FIND_FONT_INDEX_MIN:
+            pages.append({"loc": f"{SITE_URL}/find-font",
+                          "priority": "0.7", "changefreq": "weekly"})
+    except Exception:
+        pass
     # 매거진 글. 목록에서 코드로 읽어 온다 — 글을 추가할 때 sitemap 을 따로
     # 고쳐야 하면 반드시 한쪽이 빠진다.
     try:
@@ -87,19 +102,16 @@ def sitemap(db: Session = Depends(get_db)):
         # DB 접근 실패해도 sitemap은 정적 페이지만이라도 반환
         pass
 
-    # (주)와이즈폰트 자사 폰트 배포 페이지 (/wisefont/{slug})
-    # 목록을 여기서 다시 적지 않고 라우터에서 가져와야, 폰트를 추가·삭제할 때
-    # sitemap이 자동으로 따라온다. 두 곳에 나눠 적으면 반드시 어긋난다.
-    try:
-        from .wisefont import WISEFONTS
-        for wf in WISEFONTS:
-            pages.append({
-                "loc": f"{SITE_URL}/wisefont/{wf['slug']}",
-                "priority": "0.8",
-                "changefreq": "monthly",
-            })
-    except Exception:
-        pass
+    # (주)와이즈폰트 자사 폰트 배포 페이지 (/wisefont/{slug})는 sitemap에서 뺐다.
+    #
+    # 이 14개 URL은 canonical이 /font/{id}를 가리킨다 — 상세페이지와 내용이
+    # 겹쳐서 대표 URL을 그쪽으로 몰아준 것이다. 그런데 sitemap에는 그대로
+    # 올라가 있었다. 사이트맵은 "이걸 색인해라", canonical은 "아니다, 저걸
+    # 봐라"라고 서로 다른 말을 하는 꼴이라 구글에게 엇갈린 신호가 된다.
+    # 바로 위 /design/{id}를 뺀 것과 같은 이유다.
+    #
+    # 페이지 자체는 그대로 살아 있고 링크로도 들어갈 수 있다. 다만 검색엔진에
+    # 우리가 먼저 알리는 목록에서 빠질 뿐이다.
 
     # 용도 허브 (/use/{slug}) — 검색 진입을 노리는 핵심 랜딩 페이지
     # 허브 목록은 DB에서 읽는다. 여기에 slug를 다시 적어두면 어드민에서

@@ -25,6 +25,29 @@ STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
 TEMPLATE_PATH = STATIC_DIR / "magazine.html"
 BASE_URL = "https://freefontpick.co.kr"
 
+# 발행처 — Article 구조화 데이터에 로고까지 넣어 준다 (구글 권장).
+PUBLISHER = {
+    "@type": "Organization",
+    "name": "폰트픽",
+    "url": BASE_URL,
+    "logo": {"@type": "ImageObject", "url": f"{BASE_URL}/logo.png",
+             "width": 306, "height": 64},
+}
+
+
+def _crumbs(*steps) -> dict:
+    """빵부스러기 구조화 데이터. 화면에는 경로가 있는데 마크업이 없어서
+    검색결과에 경로가 안 나오고 있었다. (이름, 주소) 를 순서대로 받는다."""
+    return {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": i + 1, "name": n, "item": BASE_URL + u}
+            for i, (n, u) in enumerate(steps)
+        ],
+    }
+
+
 LIST_TITLE = "폰트 매거진 — 무료폰트 고르는 법과 라이선스 읽는 법 | 폰트픽"
 LIST_DESC = (
     "무료 한글 폰트를 고르고 쓰는 데 필요한 것을 정리했습니다. 용도별로 고르는 법, "
@@ -122,6 +145,24 @@ def _render(*, title, desc, canonical, h1, lead, body, json_ld, crumb="",
     return HTMLResponse(html)
 
 
+# 목록 페이지의 머리글. 카드 요약만 있던 자리라 이 URL 만의 글이 거의 없었다.
+# 크롤러에게만 보여주는 글이 아니라 화면에도 그대로 나오는, 읽을 값이 있는 글이어야
+# 한다 — 감춰 두면 그 자체가 위반이다.
+MZ_INTRO = (
+    '<div class="mz-intro">'
+    "<p>폰트픽 매거진은 무료 폰트를 <strong>고르고 쓰는 과정에서 실제로 막히는 "
+    "자리</strong>를 다룹니다. 어떤 폰트가 예쁜지가 아니라, 고를 때 무엇을 보아야 "
+    "하는지에 관한 글입니다.</p>"
+    "<p>글에 적힌 수치는 어디서 옮겨 온 것이 아니라 <strong>폰트픽이 서비스하는 "
+    "파일을 직접 열어 잰 값</strong>입니다. 수록 글자 수, 파일 용량, 폰트에 없는 "
+    "글자가 화면에서 어떻게 되는지까지 확인한 뒤에 씁니다. 확인하지 못한 것은 "
+    "적지 않고, 확인해 보니 틀렸던 것은 고쳐서 다시 적습니다.</p>"
+    "<p>폰트를 처음 고르신다면 맨 위 글부터, 쓸 자리가 이미 정해져 있다면 용도 "
+    "글부터 보시면 됩니다.</p>"
+    "</div>"
+)
+
+
 def _card(p, feat: bool = False) -> str:
     """목록 카드 하나. feat 는 맨 위 글 — 넓은 화면에서 한 줄을 다 쓴다."""
     tags = "".join(f'<span class="mz-tag">{_esc(t)}</span>' for t in p.get("tags", []))
@@ -153,11 +194,11 @@ POST_CTA = (
 @router.get("/magazine", response_class=HTMLResponse)
 def magazine_list(db: Session = Depends(get_db)):
     posts = _sorted_posts()
-    body = ('<div class="mz-list">'
+    body = MZ_INTRO + ('<div class="mz-list">'
             + "".join(_card(p, i == 0) for i, p in enumerate(posts))
             + "</div>")
 
-    json_ld = _json.dumps({
+    json_ld = _json.dumps([{
         "@context": "https://schema.org",
         "@type": "CollectionPage",
         "name": LIST_TITLE,
@@ -173,7 +214,7 @@ def magazine_list(db: Session = Depends(get_db)):
                 for i, p in enumerate(posts)
             ],
         },
-    }, ensure_ascii=False)
+    }, _crumbs(("폰트픽", "/"), ("매거진", "/magazine"))], ensure_ascii=False)
 
     return _render(
         title=LIST_TITLE, desc=LIST_DESC, canonical=f"{BASE_URL}/magazine",
@@ -209,7 +250,7 @@ def magazine_post(slug: str, db: Session = Depends(get_db)):
     src = image_src(p)
     og_image = (BASE_URL + src) if src else DEFAULT_OG
 
-    json_ld = _json.dumps({
+    json_ld = _json.dumps([{
         "@context": "https://schema.org",
         "@type": "Article",
         "headline": p["title"],
@@ -219,11 +260,12 @@ def magazine_post(slug: str, db: Session = Depends(get_db)):
         "datePublished": p["date"],
         "dateModified": p["date"],
         "author": {"@type": "Organization", "name": "폰트픽"},
-        "publisher": {"@type": "Organization", "name": "폰트픽", "url": BASE_URL},
+        "publisher": PUBLISHER,
         "isPartOf": {"@type": "WebSite", "name": "폰트픽", "url": BASE_URL},
         "mainEntityOfPage": {"@type": "WebPage", "@id": url},
         "image": og_image,
-    }, ensure_ascii=False)
+    }, _crumbs(("폰트픽", "/"), ("매거진", "/magazine"),
+               (p["title"], "/magazine/" + slug))], ensure_ascii=False)
 
     crumb = ('<p class="mz-crumb"><a href="/">폰트픽</a> › '
              '<a href="/magazine">매거진</a></p>')
@@ -251,7 +293,7 @@ def about_page(db: Session = Depends(get_db)):
     html = (STATIC_DIR / "about.html").read_text(encoding="utf-8")
     html = inject_header(html, "about")
 
-    json_ld = _json.dumps({
+    json_ld = _json.dumps([{
         "@context": "https://schema.org",
         "@type": "AboutPage",
         "name": "폰트픽 소개",
@@ -271,7 +313,7 @@ def about_page(db: Session = Depends(get_db)):
                 "streetAddress": "당산로16길 9-7",
             },
         },
-    }, ensure_ascii=False)
+    }, _crumbs(("폰트픽", "/"), ("소개", "/about"))], ensure_ascii=False)
 
     html = html.replace(
         "{{AB_JSONLD}}",
