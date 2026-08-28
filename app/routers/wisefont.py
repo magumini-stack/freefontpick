@@ -232,7 +232,7 @@ def wisefont_page(slug: str):
     thumb = f"{BASE_URL}{_thumb_url(slug)}"
     title = f"{name} 무료 다운로드 ({font['formats'].replace(', ', '·')}) - {MAKER} 공식 배포 | 폰트픽"
     desc = (
-        f"{name}은(는) 폰트 구독서비스 타닥타닥을 운영하는 {MAKER}가 제작·배포하는 "
+        f"{name} — 폰트 구독서비스 타닥타닥을 운영하는 {MAKER}가 제작·배포하는 "
         f"무료 한글 폰트입니다. {font['formats']}를 폰트픽에서 내려받으세요."
     )
 

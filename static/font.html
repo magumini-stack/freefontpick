@@ -1221,7 +1221,7 @@
     }
 
     sub.textContent =
-      FONT.name + '이(가) 들어간 추천 페어링이에요. 카드를 누르면 상대 폰트 페이지로 이동합니다.';
+      FONT.name + ' — 추천 페어링이에요. 카드를 누르면 상대 폰트 페이지로 이동합니다.';
     grid.innerHTML = list.slice(0, 6).map(pairCardHtml).join('');
     sec.classList.remove('hidden');
   }
@@ -1512,7 +1512,7 @@
     fpBind();
     document.getElementById('fpModal').classList.add('open');
     var t = document.getElementById('fpTitle');
-    if (t && FONT) t.textContent = FONT.name + '과(와) 어울리는 조합';
+    if (t && FONT) t.textContent = FONT.name + ' — 어울리는 조합';
     if (!document.getElementById('fpGrid').children.length) fpLoad();
   }
   function fpClose(){ document.getElementById('fpModal').classList.remove('open'); }

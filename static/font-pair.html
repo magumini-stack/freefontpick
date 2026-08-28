@@ -12,6 +12,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="index, follow, max-image-preview:large">
+{{FFP_PAIR_JSONLD}}
 <title>{{FFP_TITLE}}</title>
 <link rel="stylesheet" href="/header.css">
 <meta name="description" content="{{FFP_DESC}}">
@@ -312,6 +313,13 @@
     word-break:keep-all}
   .fp-guide-cell .themes{display:block;margin-top:8px;font-size:11.5px;
     color:var(--text-muted);line-height:1.6}
+  /* 그 자리에 맞는 폰트 링크. 크롤러에게 상세페이지로 가는 길을 주고,
+     사람에게는 "그래서 뭘 쓰라는 건데"에 대한 답을 준다. */
+  .fp-guide-picks{display:block;margin-top:9px;font-size:12px;line-height:1.9;
+    color:var(--text-muted)}
+  .fp-guide-picks a{color:var(--text-secondary);text-decoration:none;
+    border-bottom:1px solid var(--border)}
+  .fp-guide-picks a:hover{color:var(--accent);border-bottom-color:var(--accent)}
   .fp-guide-note{margin-top:26px}
   .fp-guide-note h3{font-size:14.5px;font-weight:800;margin-bottom:9px}
   .fp-guide-note li{font-size:13px;line-height:1.75;color:var(--text-secondary);

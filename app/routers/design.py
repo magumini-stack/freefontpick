@@ -190,7 +190,7 @@ def _replace_meta_for_design(html: str, font: Font) -> str:
 
     seo_block = (
         f'<noscript><section><h1>{m["name"]} 텍스트 디자인</h1>'
-        f"<p>{m['name']}은(는) {m['maker']}에서 제공하는 무료 폰트입니다. "
+        f"<p>{m['name']} — {m['maker']}에서 제공하는 무료 폰트입니다. "
         f"폰트픽 텍스트 디자인 도구에서 {m['name']} 폰트에 30여 가지 스타일 효과("
         f"외곽선, 그림자, 네온, 그라데이션 등)를 적용하고, 글자색·자간·줄간격을 "
         f"조절해 투명배경 PNG 이미지로 저장할 수 있습니다. "
@@ -565,7 +565,11 @@ def _font_ssr_block(font: Font, db: Session) -> str:
     parts.append(f"<h1>{name} 무료폰트</h1>")
 
     summary = str(meta.get("summary") or "").strip()
-    lead = f"{name}은(는) {maker}에서 배포하는 무료 폰트입니다."
+    # 조사를 괄호로 병기하면("산스은(는)") 자동 생성 티가 나고, 폰트 이름은
+    # 한글·라틴·숫자로 끝나는 것이 뒤섞여 있어 규칙으로 딱 떨어지지도 않는다.
+    # ("Basic" 은 "베이직은", "Anton" 은 "안톤은", "Mint" 는 "민트는")
+    # 그래서 조사가 필요 없는 문장으로 쓴다.
+    lead = f"{name} — {maker}에서 배포하는 무료 폰트입니다."
     if summary:
         lead += f" {_esc(summary)}"
     parts.append(f"<p>{lead}</p>")
@@ -635,11 +639,13 @@ def _font_ssr_block(font: Font, db: Session) -> str:
             role = "제목" if p.title_font_id == font.id else "본문"
             items.append(
                 f'<li><a href="/font/{other.id}">{_esc(other.name)}</a>'
-                f" — {_esc(p.theme)}에서 {name}이(가) {role}을 맡는 조합</li>"
+                # 이 페이지의 폰트 이름은 바로 위 제목에 이미 있다. 여덟 줄에
+                # 반복하면 조사 문제도 생기고 읽기도 지겹다.
+                f" — {_esc(p.theme)}에서 {role}을 맡는 조합</li>"
             )
         if items:
             parts.append(
-                f"<section><h2>{name}과(와) 어울리는 폰트</h2>"
+                f"<section><h2>{name} — 어울리는 폰트</h2>"
                 "<ul>" + "".join(items) + "</ul></section>"
             )
 
@@ -675,7 +681,7 @@ def _font_hub_block(font: Font, db: Session) -> str:
         return ""
     return (
         '<section class="blk" id="hubSec">'
-        f'<div class="sec-head"><h2>{_esc(font.name)}을(를) 추천한 용도</h2></div>'
+        f'<div class="sec-head"><h2>{_esc(font.name)} — 추천 용도</h2></div>'
         '<ul class="hub-list">' + "".join(items) + "</ul></section>"
     )
 
@@ -868,7 +874,7 @@ def find_font_page():
 # 헤더 메뉴에는 아직 넣지 않는다 — 화면이 자리를 잡을 때까지 주소로만 들어간다.
 # 사이트맵에도 그때 함께 넣는다(미완성 페이지를 검색엔진에 먼저 알릴 이유가 없다).
 
-def _pair_guide_block() -> str:
+def _pair_guide_block(db: Session) -> str:
     """캔버스 아래 안내 글 — 화면에도 그대로 보이는 자리다.
 
     이 페이지는 화면을 전부 JS가 그려서, 크롤러가 읽는 본문이 메뉴 이름뿐이었다
@@ -881,14 +887,33 @@ def _pair_guide_block() -> str:
     이 블록이 하는 일이다.
     """
     from ..pair_specimens import PAIR_CATEGORIES
+    from ..font_pair_engine import top_fonts_for
 
     cells = []
     for c in PAIR_CATEGORIES:
         themes = c.get("themes") or []
         t = ('<span class="themes">%s</span>' % _esc(" · ".join(themes))) if themes else ""
+
+        # 그 자리에 잘 맞는 폰트를 링크로 건다.
+        #
+        # 왜 넣나: 이 페이지는 조합 결과를 전부 JS가, 그것도 무작위로 그린다.
+        # 그래서 서버가 내려주는 HTML 에는 폰트 이름도 /font/ 링크도 하나도
+        # 없었다 — 조합을 추천하는 페이지인데 크롤러는 어떤 폰트를 추천하는지
+        # 알 수 없었고, 상세페이지로 가는 길도 없었다.
+        #
+        # 무작위 조합을 그대로 심지 않는 이유는 두 가지다. 새로고침마다 내용이
+        # 바뀌면 크롤러가 볼 때마다 다른 페이지가 되고, 화면과도 어긋난다.
+        # top_fonts_for 는 점수순이라 같은 입력에 늘 같은 답을 준다.
+        picks = top_fonts_for(db, c["key"], 5)
+        links = ""
+        if picks:
+            links = ('<span class="fp-guide-picks">%s</span>'
+                     % " · ".join('<a href="/font/%d">%s</a>' % (f.id, _esc(f.name))
+                                  for f in picks))
+
         cells.append(
-            '<div class="fp-guide-cell"><h3>%s</h3><p>%s</p>%s</div>'
-            % (_esc(c["label"]), _esc(c["desc"]), t)
+            '<div class="fp-guide-cell"><h3>%s</h3><p>%s</p>%s%s</div>'
+            % (_esc(c["label"]), _esc(c["desc"]), t, links)
         )
 
     return (
@@ -950,7 +975,7 @@ def font_pair_page(request: Request, db: Session = Depends(get_db)):
     html = (STATIC_DIR / "font-pair.html").read_text(encoding="utf-8")
     html = inject_header(html, "fontpair")   # 헤더에서 이 메뉴에 활성 표시
     html = html.replace("{{FFP_PAIR_SSR}}", _pair_ssr_block(db), 1)
-    html = html.replace("{{FFP_PAIR_GUIDE}}", _pair_guide_block(), 1)
+    html = html.replace("{{FFP_PAIR_GUIDE}}", _pair_guide_block(db), 1)
 
     # 칩 아래 설명 한 줄. JS가 카테고리를 바꿀 때마다 갈아끼우지만, 첫 줄은
     # 서버가 박아 넣는다 — 안 그러면 로드 직후 한 줄이 비었다가 채워지고,
@@ -984,4 +1009,42 @@ def font_pair_page(request: Request, db: Session = Depends(get_db)):
                   rf"\g<1>{title}\g<2>", html, count=1)
     html = re.sub(r'(<meta name="twitter:description" content=")[^"]*(")',
                   rf"\g<1>{desc}\g<2>", html, count=1)
+
+    # 구조화 데이터. 다른 세 페이지 유형(홈·상세·허브)에는 다 있는데 여기만
+    # 없었다. 자리마다 추천 폰트를 묶은 목록이므로 CollectionPage + ItemList 로
+    # 낸다 — 허브(/use/*)와 같은 모양이다.
+    from ..pair_specimens import PAIR_CATEGORIES
+    from ..font_pair_engine import top_fonts_for
+    items = []
+    for c in PAIR_CATEGORIES:
+        picks = top_fonts_for(db, c["key"], 5)
+        if not picks:
+            continue
+        items.append({
+            "@type": "ListItem",
+            "position": len(items) + 1,
+            "name": c["label"],
+            "item": {
+                "@type": "ItemList",
+                "name": f'{c["label"]} 추천 폰트',
+                "itemListElement": [
+                    {"@type": "ListItem", "position": i + 1, "name": f.name,
+                     "url": f"{BASE_URL}/font/{f.id}"}
+                    for i, f in enumerate(picks)
+                ],
+            },
+        })
+    pair_ld = _json.dumps({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": title,
+        "description": desc,
+        "url": url,
+        "inLanguage": "ko",
+        "isPartOf": {"@type": "WebSite", "name": "폰트픽", "url": BASE_URL},
+        "mainEntity": {"@type": "ItemList", "itemListElement": items},
+    }, ensure_ascii=False)
+    html = html.replace(
+        "{{FFP_PAIR_JSONLD}}",
+        f'<script type="application/ld+json">{pair_ld}</script>', 1)
     return HTMLResponse(html)

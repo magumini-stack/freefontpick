@@ -2665,7 +2665,7 @@ function askDeleteFont(id){
   const f = FONTS.find(x=>x.id===id);
   if(!f) return;
   pendingDelete = {type:'font', id};
-  document.getElementById('confirmTitle').textContent = `'${f.name}'을(를) 삭제할까요?`;
+  document.getElementById('confirmTitle').textContent = `'${f.name}' 삭제할까요?`;
   document.getElementById('confirmDesc').textContent = '삭제하면 갤러리에서도 사라지고, 업로드된 폰트 파일도 함께 제거됩니다.';
   document.getElementById('confirmModal').classList.add('open');
 }
