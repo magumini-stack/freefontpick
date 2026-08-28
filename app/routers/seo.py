@@ -29,8 +29,8 @@ def sitemap(db: Session = Depends(get_db)):
     today = datetime.utcnow().strftime("%Y-%m-%d")
     pages = [
         {"loc": f"{SITE_URL}/", "priority": "1.0", "changefreq": "weekly"},
-        # /find-font 는 아래에서 질문 수를 보고 넣는다 — 빈 게시판을 검색엔진에
-        # 먼저 알릴 이유가 없다.
+        # /find-font 는 아래에서 답변 글이 얼마나 쌓였는지 보고 넣는다 —
+        # 읽을 글이 없는 게시판을 검색엔진에 먼저 알릴 이유가 없다.
         # /#notice 는 뺐다. 조각(#)은 구글이 무시하므로 "/" 와 같은 URL 로 취급되고,
         # 사이트맵에 중복 URL 을 올리면 색인 판단만 헷갈리게 만든다.
         {"loc": f"{SITE_URL}/magazine", "priority": "0.8", "changefreq": "weekly"},
@@ -51,9 +51,9 @@ def sitemap(db: Session = Depends(get_db)):
     # 폰트 찾기 게시판 — design.py 와 같은 기준으로 판단한다. 두 곳이 어긋나면
     # 사이트맵은 올리라 하고 페이지는 noindex 인 모순이 생긴다.
     try:
-        from ..models import FontSubmission
+        from ..models import SubmissionAnswer
         from .design import FIND_FONT_INDEX_MIN
-        if db.query(FontSubmission).count() >= FIND_FONT_INDEX_MIN:
+        if db.query(SubmissionAnswer).count() >= FIND_FONT_INDEX_MIN:
             pages.append({"loc": f"{SITE_URL}/find-font",
                           "priority": "0.7", "changefreq": "weekly"})
     except Exception:

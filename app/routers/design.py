@@ -22,7 +22,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Font, FontPairing, FontSubmission, UseCase, UseCaseFont
+from ..models import (Font, FontPairing, FontSubmission, SubmissionAnswer,
+                      UseCase, UseCaseFont)
 from ..header import inject_header, not_found_page
 
 
@@ -825,8 +826,62 @@ def faq_page():
     return HTMLResponse(inject_header(html, "faq"))
 
 
-# 게시판에 이만큼은 쌓여야 색인시킨다. 아래면 noindex 로 내보낸다.
+# 게시판에 답변 글이 이만큼은 쌓여야 색인시킨다. 아래면 noindex 로 내보낸다.
+#
+# 질문 수가 아니라 '답변 수'로 세는 이유: 이 게시판의 질문은 대부분 사진 한 장이고
+# 글이 없다(실측 28건 중 글이 있는 질문은 9건, 합쳐서 95자). 읽을 값이 있는 글은
+# 답변 쪽에 있다(20건, 1,328자). 질문 수로 세면 사진만 잔뜩 쌓인 빈 페이지도
+# 색인 대상이 된다.
 FIND_FONT_INDEX_MIN = 3
+
+
+def _find_font_ssr(db: Session) -> str:
+    """'폰트 찾기' 게시판을 서버가 글로도 내보낸다.
+
+    이 게시판은 목록도 답변도 전부 JS가 그린다. 그래서 답변 글이 1,300자 넘게
+    쌓여 있는데도 크롤러가 이 URL 에서 읽는 고유 본문은 168자였다(실측).
+    index.html 을 그대로 쓰는 URL 이라 홈과 원문 HTML 이 96% 같았고, 검색엔진
+    입장에서는 '홈의 복사본인데 내용은 없는 페이지'로 보였다.
+
+    담는 것은 글뿐이다. 이용자가 올린 사진은 넣지 않는다 — 남의 디자인을 찍어
+    올린 것이 대부분이라 검색 이미지에 실릴 이유가 없다.
+
+    화면에 없는 것을 크롤러에게만 주지 않는다. 여기 담는 질문 글과 답변은
+    사람이 보는 화면에도 그대로 나오는 것들이고, 없는 항목을 지어내지 않으려고
+    글이 하나도 없는 질문(사진만 올라온 것)은 아예 건너뛴다.
+
+    id 를 homeSsr 로 두는 이유는 index.html 의 기존 JS 가 이 id 를 첫 줄에서
+    감추고, 초기화가 실패했을 때만 되살리기 때문이다. 새 id 를 만들면 그 처리를
+    양쪽에 또 적어야 한다.
+    """
+    try:
+        subs = (db.query(FontSubmission)
+                .order_by(FontSubmission.created_at.desc())
+                .limit(50).all())
+    except Exception:
+        return ""
+
+    rows = []
+    for sb in subs:
+        q = " ".join(x.strip() for x in ((sb.font_name or ""), (sb.content or ""))
+                     if x and x.strip())
+        answers = [(a.content or "").strip() for a in (sb.answers or [])
+                   if (a.content or "").strip()]
+        if not q and not answers:
+            continue
+        line = "<li>"
+        if q:
+            line += f"<b>{_esc(q)}</b> "
+        if sb.created_at:
+            line += f"<span>{sb.created_at.strftime('%Y-%m-%d')}</span>"
+        for a in answers:
+            line += f"<p>{_esc(a)}</p>"
+        rows.append(line + "</li>")
+
+    if not rows:
+        return ""
+    return ('<div id="homeSsr"><section><h2>폰트 찾기 — 질문과 답변</h2>'
+            '<ul>' + "".join(rows) + "</ul></section></div>")
 
 
 @router.get("/find-font", response_class=HTMLResponse)
@@ -836,8 +891,9 @@ def find_font_page(db: Session = Depends(get_db)):
     html = inject_header(html, "findfont")
     # 이 페이지도 index.html을 그대로 쓴다. 마커를 안 지우면 "{{FFP_HOME_SSR}}"
     # 글자가 화면에 그대로 보인다. 홈의 폰트 목록은 여기 붙일 내용이 아니므로
-    # 빈 문자열로 지운다 — 같은 목록이 두 URL에 실리면 중복 콘텐츠가 된다.
-    html = html.replace("{{FFP_HOME_SSR}}", "", 1)
+    # (같은 목록이 두 URL에 실리면 중복 콘텐츠가 된다) 대신 이 페이지의 내용인
+    # 게시판 질문·답변을 넣는다. 담을 글이 없으면 빈 문자열이 들어간다.
+    html = html.replace("{{FFP_HOME_SSR}}", _find_font_ssr(db), 1)
     # index.html 을 그대로 쓰다 보니 홈의 h1("어디에 쓰실 건가요…")이 이 URL 에도
     # 실린다. title 은 '폰트 찾기'인데 h1 은 홈 이야기를 하는 꼴이라, 검색엔진이
     # 이 문서의 주제를 잘못 읽는다. 두 제목의 태그를 맞바꿔, 화면에 실제로 보이는
@@ -865,21 +921,19 @@ def find_font_page(db: Session = Depends(get_db)):
     html = re.sub(r'(<meta property="og:url" content=")[^"]*(")',
                   rf"\g<1>{url}\g<2>", html, count=1)
 
-    # 질문이 거의 없으면 색인에서 뺀다.
+    # 읽을 글이 거의 없으면 색인에서 뺀다.
     #
-    # 이 URL 은 index.html 을 그대로 쓰고 홈의 SSR 목록만 지운 것이라, 게시판이
-    # 비어 있으면 크롤러가 읽는 고유 본문이 168자밖에 안 된다(실측). 그런데
-    # title 과 description 은 "다른 사용자들이 답변해드려요"라고 약속한다.
-    # 약속한 내용이 없는 페이지가 색인에 남아 있으면 저가치 콘텐츠로 읽힌다.
+    # title 과 description 은 "다른 사용자들이 답변해드려요"라고 약속한다. 답변이
+    # 없는 상태로 색인에 남으면 약속만 있고 내용이 없는 페이지가 된다.
     #
-    # 아예 막지 않고 질문 수로 판단하는 이유는, 게시판이 채워지면 사람이 다시
+    # 아예 막지 않고 답변 수로 판단하는 이유는, 게시판이 채워지면 사람이 다시
     # 손대지 않아도 저절로 색인 대상이 되게 하기 위해서다. follow 는 남겨
     # 이 페이지를 거쳐 가는 링크는 그대로 따라가게 둔다.
     try:
-        n_q = db.query(FontSubmission).count()
+        n_a = db.query(SubmissionAnswer).count()
     except Exception:
-        n_q = 0
-    if n_q < FIND_FONT_INDEX_MIN:
+        n_a = 0
+    if n_a < FIND_FONT_INDEX_MIN:
         html = re.sub(r'(<meta name="robots" content=")[^"]*(")',
                       r"\g<1>noindex, follow\g<2>", html, count=1)
     return HTMLResponse(html)
