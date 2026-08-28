@@ -185,6 +185,8 @@ def _replace_meta_for_design(html: str, font: Font) -> str:
     html = html.replace("{{FFP_CANONICAL}}", m["url"])
     html = html.replace("{{FFP_OG_IMAGE}}", m["og_image"])
     html = html.replace("{{FFP_JSONLD}}", json_ld_tag)
+    for k, v in _sample_markers(font).items():
+        html = html.replace(k, v)
 
     seo_block = (
         f'<noscript><section><h1>{m["name"]} 텍스트 디자인</h1>'
@@ -504,6 +506,51 @@ def _fill_font_markers(html: str, font: Font, db: Session) -> str:
     )
 
 
+def _jsonld_images(font: Font, og_image: str):
+    """구조화 데이터에 실을 이미지 목록.
+
+    활용 예시가 있으면 대표(og) 이미지와 함께 배열로 낸다. 없으면 예전처럼
+    문자열 하나 — 값의 모양이 바뀌면 파서가 까다로운 경우가 있어서다.
+    """
+    from .sample_image import has_sample, sample_version
+
+    if not has_sample(font.id):
+        return og_image
+    sample = f"{BASE_URL}/api/fonts/{font.id}/sample-image?v={sample_version(font.id)}"
+    return [og_image, sample]
+
+
+def _sample_markers(font: Font) -> dict:
+    """④번 블록(글자 견본 / 활용 예시)의 초기 상태를 서버가 확정한다.
+
+    활용 예시 이미지가 있으면 <img> 에 src 와 alt 를 박아서 내보낸다. 예전에는
+    JS 가 채웠는데, 그러면 서버 응답 HTML 에 이미지가 없어 이미지 검색에
+    잡히지 않았다. 이미지가 없는 폰트는 예전과 똑같이 글자 견본을 보여준다.
+    """
+    from .sample_image import has_sample, sample_version
+
+    if not has_sample(font.id):
+        return {
+            "{{FFP_SPECIMEN_LBL}}": "글자 견본",
+            "{{FFP_SAMPLE_HIDDEN}}": " hidden",
+            "{{FFP_SAMPLE_SRC}}": "",
+            "{{FFP_SAMPLE_ALT}}": "",
+            "{{FFP_GLYPHS_HIDDEN}}": "",
+        }
+
+    name = _esc(font.name)
+    return {
+        "{{FFP_SPECIMEN_LBL}}": "활용 예시",
+        "{{FFP_SAMPLE_HIDDEN}}": "",
+        # 파일을 갈아끼우면 내용이 바뀌므로 버전을 붙여 캐시를 무효화한다.
+        "{{FFP_SAMPLE_SRC}}": f' src="/api/fonts/{font.id}/sample-image?v={sample_version(font.id)}"',
+        # alt 는 이미지 안에 무엇이 그려졌는지 모르므로 지어내지 않는다.
+        # 확실한 것(어떤 폰트를 쓴 활용 예시인지)만 적는다.
+        "{{FFP_SAMPLE_ALT}}": f"무료폰트 {name} 활용 예시",
+        "{{FFP_GLYPHS_HIDDEN}}": " hidden",
+    }
+
+
 def _font_ssr_block(font: Font, db: Session) -> str:
     """폰트 상세페이지 본문 — 크롤러가 읽을 수 있는 정적 HTML.
 
@@ -701,7 +748,9 @@ def _replace_meta_for_font_detail(html: str, font: Font) -> str:
             "name": m["name"],
             "creator": {"@type": "Organization", "name": m["maker"]},
             "keywords": ", ".join(m["tags"]),
-            "image": m["og_image"],
+            # 활용 예시 이미지가 있으면 대표 이미지와 함께 알린다. 구조화
+            # 데이터에서 image 는 배열도 받으므로, 있는 것만 순서대로 넣는다.
+            "image": _jsonld_images(font, m["og_image"]),
             "license": "https://scripts.sil.org/OFL",
         },
     }, ensure_ascii=False)
@@ -716,6 +765,8 @@ def _replace_meta_for_font_detail(html: str, font: Font) -> str:
     html = html.replace("{{FFP_CANONICAL}}", m["url"])
     html = html.replace("{{FFP_OG_IMAGE}}", m["og_image"])
     html = html.replace("{{FFP_JSONLD}}", json_ld_tag)
+    for k, v in _sample_markers(font).items():
+        html = html.replace(k, v)
 
     return html
 

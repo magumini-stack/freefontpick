@@ -17,6 +17,13 @@ router = APIRouter(tags=["seo"])
 SITE_URL = os.getenv("SITE_URL", "https://freefontpick.co.kr").rstrip("/")
 
 
+def _x(s) -> str:
+    """XML 특수문자 이스케이프. 폰트 이름에 & 하나만 들어와도
+    sitemap 전체가 파싱 불가가 되므로 반드시 거친다."""
+    return (str(s or "").replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace('"', "&quot;"))
+
+
 @router.get("/sitemap.xml", include_in_schema=False)
 def sitemap(db: Session = Depends(get_db)):
     today = datetime.utcnow().strftime("%Y-%m-%d")
@@ -39,13 +46,21 @@ def sitemap(db: Session = Depends(get_db)):
     # canonical이 아닌 URL을 sitemap에 올리면 구글에게 엇갈린 신호를 줘서
     # 중복 색인 판단을 더 헷갈리게 만든다 (/font/ 색인 누락의 원인 중 하나였음).
     try:
-        fonts = db.query(Font.id).all()
-        for (fid,) in fonts:
-            pages.append({
+        from .sample_image import has_sample, sample_version
+
+        fonts = db.query(Font.id, Font.name).all()
+        for fid, fname in fonts:
+            page = {
                 "loc": f"{SITE_URL}/font/{fid}",
                 "priority": "0.9",
                 "changefreq": "monthly",
-            })
+            }
+            if has_sample(fid):
+                page["image"] = {
+                    "loc": f"{SITE_URL}/api/fonts/{fid}/sample-image?v={sample_version(fid)}",
+                    "title": f"무료폰트 {fname} 활용 예시",
+                }
+            pages.append(page)
     except Exception:
         # DB 접근 실패해도 sitemap은 정적 페이지만이라도 반환
         pass
@@ -78,14 +93,29 @@ def sitemap(db: Session = Depends(get_db)):
     except Exception:
         pass
 
-    items = "\n".join(
-        f"  <url>\n    <loc>{p['loc']}</loc>\n    <lastmod>{today}</lastmod>\n"
-        f"    <changefreq>{p['changefreq']}</changefreq>\n    <priority>{p['priority']}</priority>\n  </url>"
-        for p in pages
-    )
+    def _one(p):
+        out = (
+            f"  <url>\n    <loc>{p['loc']}</loc>\n    <lastmod>{today}</lastmod>\n"
+            f"    <changefreq>{p['changefreq']}</changefreq>\n"
+            f"    <priority>{p['priority']}</priority>\n"
+        )
+        # 활용 예시 이미지가 있으면 이미지 사이트맵으로도 알린다. 페이지 안에
+        # <img>로 들어 있어도, 여기 적어 두면 이미지 검색이 훨씬 빨리 집는다.
+        img = p.get("image")
+        if img:
+            out += (
+                "    <image:image>\n"
+                f"      <image:loc>{_x(img['loc'])}</image:loc>\n"
+                f"      <image:title>{_x(img['title'])}</image:title>\n"
+                "    </image:image>\n"
+            )
+        return out + "  </url>"
+
+    items = "\n".join(_one(p) for p in pages)
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n'
+        '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'
         f"{items}\n</urlset>\n"
     )
     return Response(content=xml, media_type="application/xml",

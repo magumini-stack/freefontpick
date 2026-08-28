@@ -93,6 +93,19 @@ def sample_path(font_id: int) -> Optional[Path]:
     return (SAMPLES_DIR / name) if name else None
 
 
+def sample_version(font_id: int) -> int:
+    """샘플 이미지의 판번호 — 파일 수정 시각.
+
+    이미지를 갈아끼우면 주소는 그대로인데 내용만 바뀌므로, ?v= 로 캐시를
+    무효화한다. 폰트 파일의 file_version_of 와는 다른 값이다 (그쪽은 woff2 용).
+    """
+    p = sample_path(font_id)
+    try:
+        return int(p.stat().st_mtime) if p else 0
+    except OSError:
+        return 0
+
+
 def _detect_ext(content: bytes, filename: str) -> str:
     """매직 넘버 우선, 안 잡히면 확장자. webp는 RIFF....WEBP 구조."""
     for magic, mime in _MAGIC:
