@@ -42,10 +42,11 @@ from pathlib import Path
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from fastapi import Request, Response
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import Font, FontWeight
+from ..redistribution import NO_REDISTRIBUTE
 from ..auth import require_password_changed
 from ..schemas import FileUploadResponse, FontWeightOut
 
@@ -909,6 +910,13 @@ def download_font_zip(font_id: int, db: Session = Depends(get_db)):
     font = db.query(Font).filter(Font.id == font_id).first()
     if not font:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
+
+    # 재배포를 막아 둔 폰트는 여기서도 끊는다. 버튼이 이미 제작사 배포처로
+    # 가지만, 이 주소는 규칙만 알면 직접 부를 수 있고 예전 링크도 남아 있다.
+    # 404 대신 배포처로 보내 주는 편이 받으러 온 사람에게 쓸모 있다.
+    official = NO_REDISTRIBUTE.get(font_id)
+    if official:
+        return RedirectResponse(official, status_code=302)
 
     p = resolve_zip(font_id)
     if p is None:

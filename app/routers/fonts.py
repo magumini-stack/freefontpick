@@ -7,6 +7,7 @@ from sqlalchemy import func
 from ..database import get_db
 from ..models import Font, Tag, FontPairing
 from ..auth import require_password_changed
+from ..redistribution import NO_REDISTRIBUTE
 from ..schemas import FontCreate, FontUpdate, FontOut, FontReorderRequest
 from ..webfont_check import check_webfont, normalize_css_url
 
@@ -93,7 +94,9 @@ def _to_out(font: Font, paired_ids: set = frozenset(),
         name=font.name,
         maker=font.maker,
         weights=font.weights or "1종",
-        url=font.url or "",
+        # 재배포를 막아 둔 폰트는 제작사 배포처가 DB 값을 이긴다.
+        # (app/redistribution.py 주석 참고)
+        url=NO_REDISTRIBUTE.get(font.id) or font.url or "",
         stack=font.stack or "'Nanum Gothic',sans-serif",
         is_english=bool(font.is_english),
         is_pick=bool(font.is_pick),
@@ -107,7 +110,10 @@ def _to_out(font: Font, paired_ids: set = frozenset(),
         meta=font.meta or {},
         like_count=font.like_count or 0,
         has_sample=_has_sample(font.id),
-        has_zip=_has_zip(font.id),
+        # has_zip 이 True 면 상세페이지 버튼이 우리 서버 파일을 내려받는다.
+        # 재배포를 막아 둔 폰트는 파일이 있어도 없는 것으로 알린다 —
+        # 그래야 버튼이 위의 배포처 링크로 간다.
+        has_zip=(font.id not in NO_REDISTRIBUTE) and _has_zip(font.id),
         available_weights=_available_weights(font) if with_weights else [],
         file_source=_file_source(font.id),
         file_version=_file_version(font.id),
