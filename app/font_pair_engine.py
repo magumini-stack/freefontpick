@@ -82,6 +82,18 @@ PROFILES = {
         "body": {"d": 0.30},
         "tags": {"손글씨": 2.5, "캘리그라피": 2.0, "귀여운": 1.2, "펜시": 0.8},
         "usage": {"SNS카드": 0.8, "제목": 0.5},
+        # 이 자리에는 고딕을 내보내지 않는다.
+        #
+        # 가산점만 주던 때는 실측 40회에서 서브·본문의 25회가 고딕이었다.
+        # 이유가 있다 — 서브와 본문은 한 집안으로 묶여 '굵기 2개 이상'을
+        # 요구하는데, 손글씨 계열 중 굵기가 여럿인 폰트는 13종뿐이라 그
+        # 자리를 고딕 가족(아리따 돋움·원티드산스·나눔스퀘어…)이 채웠다.
+        # 고딕을 빼도 굵기 2개 이상인 후보가 40종 남는다(명조·세리프·
+        # 디스플레이·손글씨). 후보가 마르지 않으므로 아예 뺀다.
+        "exclude": {"제목-본문용 고딕", "네모틀 고딕", "제목용 굴림"},
+        # 제목은 반드시 손글씨 계열에서 고른다. 이 자리의 이름이 그것이다.
+        # 가산점만으로는 40회 중 10회가 다른 계열이었다. 후보 69종.
+        "require_slot": {"title": {"손글씨", "캘리그라피", "귀여운", "펜시"}},
     },
     "read": {    # 본문 — 오래 읽어도 지치지 않게
         "title": {"d": 0.60},
@@ -107,12 +119,21 @@ _MIN_POOL = 8
 
 
 def _allowed(font, cat_prof, slot) -> bool:
-    """이 카테고리·슬롯에서 아예 빼야 할 폰트인가."""
+    """이 카테고리·슬롯에서 쓸 수 있는 폰트인가.
+
+    exclude / exclude_slot 은 '빼는' 조건이고, require_slot 은 '있어야만
+    쓰는' 조건이다. 가산점만으로는 부족한 자리가 있어서 뒤엣것을 더했다 —
+    점수를 아무리 줘도 확률 추출이라 결국 다른 계열이 섞여 나온다.
+    """
+    names = {t.name for t in (font.tags or [])}
+
+    need = set((cat_prof.get("require_slot") or {}).get(slot) or ())
+    if need and not (names & need):
+        return False
+
     ban = set(cat_prof.get("exclude") or ())
     ban |= set((cat_prof.get("exclude_slot") or {}).get(slot) or ())
-    if not ban:
-        return True
-    return not ({t.name for t in (font.tags or [])} & ban)
+    return not (names & ban)
 
 # 최근에 내보낸 폰트를 잠시 피한다. 연속으로 누를 때 같은 얼굴이 또 나오면
 # "안 바뀐다"로 읽힌다. 프로세스 메모리라 재시작하면 비워진다 — 그래도 된다.
@@ -400,12 +421,20 @@ def generate(db, category: str, script: str = "ko",
         """
         cands = [f for f in pool if f.id not in used]
         if require:
-            cands = [f for f in cands if require(f)]
-        if not cands:
-            return None
-        keep = [f for f in cands if _allowed(f, prof, slot)]
-        if len(keep) >= _MIN_POOL:
-            cands = keep
+            # 한 집안을 맡을 폰트를 고르는 길이다. 여기서는 카테고리 계열
+            # 조건(_allowed)을 양보하지 않는다 — 후보가 모자라면 '한 집안'을
+            # 포기하는 편이, 감성·손글씨 자리에 고딕이 끼는 것보다 낫다.
+            # 비면 None 을 돌려주고 generate 가 묶지 않는 길로 되돌아간다.
+            cands = [f for f in cands if require(f) and _allowed(f, prof, slot)]
+            if not cands:
+                return None
+        else:
+            if not cands:
+                return None
+            # 여기서는 후보가 너무 줄면 거르지 않는다 — 걸러서 텅 비는 것보다 낫다.
+            keep = [f for f in cands if _allowed(f, prof, slot)]
+            if len(keep) >= _MIN_POOL:
+                cands = keep
         if surprise:
             return random.choice(cands)
         scored = []

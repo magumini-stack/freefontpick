@@ -171,6 +171,8 @@
        배율 = 1 - 2 × 예전여백 × 뷰포트폭 / (100 × 캔버스폭)
      을 곱했다(0.79~0.88). 브라우저에서 재서 확인한 값이고, 제목이 68→56 /
      52→41 px 로 내려가면서 줄 수는 그대로다.
+     그 뒤 "전반적으로 커 보인다"는 말을 듣고 여섯 자리 모두 다시 0.8 을
+     곱했다. 지금 값은 그 결과다.
      이 숫자를 다시 만질 때는 반드시 화면에서 px 를 재고 만진다 —
      값만 보고 고치다 "콩알만하다" 와 "너무 크다" 를 둘 다 들었다.
      배경을 피하는 일은 여백(--pl/--pr)이 한다. 크기를 줄여서 피하려다
@@ -183,6 +185,8 @@
   .fp-stage{background-size:cover;background-position:center;background-repeat:no-repeat}
   .fp-blk-title,.fp-blk-sub,.fp-blk-body{padding-left:var(--pl,7cqw);
                                          padding-right:var(--pr,7cqw)}
+  /* 가운데 정렬(justify-content:center)을 쓰는 자리는 --pt 와 --pb 를 같은
+     값으로 둔다. 다르면 그 차이만큼 글 덩어리가 위나 아래로 밀린다. */
   .fp-blk-title{padding-top:var(--pt,7cqw)}
   .fp-blk-body{padding-bottom:var(--pb,7cqw)}
 
@@ -193,7 +197,7 @@
   .mk-thumb{background-image:url(/pair-bg/thumb.webp);background-color:#15161A;
             color:#F7F5F1;justify-content:center;text-align:left;
             --pl:6cqw;--pr:6cqw;--pt:6cqw;--pb:0cqw;
-            --b-title:9cqw;--b-sub:3.68cqw;--b-body:2.17cqw}
+            --b-title:7.2cqw;--b-sub:2.94cqw;--b-body:1.74cqw}
   .mk-thumb .fp-blk-title,.mk-thumb .fp-blk-sub{text-shadow:0 1px 14px rgba(0,0,0,.6)}
   .mk-thumb .fp-blk-body{position:absolute;left:0;right:0;bottom:0;
             background:rgba(0,0,0,.55);padding:2.4cqw 6cqw 2.8cqw;text-align:center}
@@ -204,9 +208,9 @@
   /* SNS · 카드뉴스 — 살구빛 도형이 오른쪽 70% 부터. 왼쪽 위부터 쌓는다.
      실측: 제목 1줄·오른끝 58%, 본문 5줄·68%. 도형이 70%부터라 닿지 않는다. */
   .mk-card{background-image:url(/pair-bg/card.webp);background-color:#FAEBD9;
-           color:#3B2E1E;justify-content:flex-start;
+           color:#3B2E1E;justify-content:center;
            --pl:7cqw;--pr:7cqw;--pt:7cqw;--pb:7cqw;
-           --b-title:6.58cqw;--b-sub:3.54cqw;--b-body:2.24cqw}
+           --b-title:5.26cqw;--b-sub:2.83cqw;--b-body:1.79cqw}
   .mk-card #txtSub{margin-top:2.8cqw}
   .mk-card .fp-blk-body{margin-top:4cqw}
 
@@ -216,7 +220,7 @@
   .mk-namecard{background-image:url(/pair-bg/namecard.webp);background-color:#F6F4EF;
                color:#241F19;justify-content:center;
                --pl:7cqw;--pr:7cqw;--pt:7cqw;--pb:7cqw;
-               --b-title:6.93cqw;--b-sub:3.35cqw;--b-body:2.09cqw}
+               --b-title:5.54cqw;--b-sub:2.68cqw;--b-body:1.67cqw}
   .mk-namecard #txtSub{margin-top:2.2cqw}
   .mk-namecard .fp-blk-body{margin-top:4cqw;opacity:.75}
 
@@ -225,9 +229,9 @@
      뻗어 오른쪽 식물에 얹히고, 26 부터는 부제가 두 줄로 갈라진다. 20 에서
      본문 3줄·오른끝 76%. */
   .mk-poster{background-image:url(/pair-bg/poster.webp);background-color:#EAF0F6;
-             color:#243444;justify-content:flex-start;
-             --pl:8cqw;--pr:20cqw;--pt:10cqw;--pb:8cqw;
-             --b-title:7.09cqw;--b-sub:3.6cqw;--b-body:2.26cqw}
+             color:#243444;justify-content:center;
+             --pl:8cqw;--pr:20cqw;--pt:9cqw;--pb:9cqw;
+             --b-title:5.67cqw;--b-sub:2.88cqw;--b-body:1.81cqw}
   .mk-poster #txtSub{margin-top:2cqw}
   .mk-poster .fp-blk-body{margin-top:2.4cqw}
 
@@ -237,7 +241,7 @@
   .mk-note{background-image:url(/pair-bg/note.webp);background-color:#EDE6D8;
            color:#3A3226;justify-content:center;text-align:center;
            --pl:13cqw;--pr:22cqw;--pt:10cqw;--pb:10cqw;
-           --b-title:6.93cqw;--b-sub:3.45cqw;--b-body:2.17cqw}
+           --b-title:5.54cqw;--b-sub:2.76cqw;--b-body:1.74cqw}
   .mk-note #txtSub{margin-top:2.6cqw}
   .mk-note .fp-blk-body{margin-top:3.6cqw}
 
@@ -255,7 +259,7 @@
   .mk-magazine{background-image:url(/pair-bg/magazine.webp);background-color:#FAF7F0;
                color:#2A241B;justify-content:flex-start;
                --pl:9cqw;--pr:9cqw;--pt:7cqw;--pb:8cqw;
-               --b-title:6.76cqw;--b-sub:3.73cqw;--b-body:2.17cqw}
+               --b-title:5.41cqw;--b-sub:2.98cqw;--b-body:1.74cqw}
   .mk-magazine #txtSub{margin-top:2.2cqw;opacity:.72}
   .mk-magazine #txtBody{line-height:1.7}
   .mk-magazine .fp-blk-body{padding-left:0;padding-right:0;
