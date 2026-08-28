@@ -147,50 +147,77 @@
   #txtSub  {font-size:calc(var(--b-sub,4.25cqw) * var(--k-sub,1));line-height:1.45;opacity:.8}
   #txtBody {font-size:calc(var(--b-body,2.66cqw) * var(--k-body,1));line-height:1.75}
 
-  /* 영상 · 자막 — 먹색 화면. 자막 바가 아래에 깔린다 */
-  .mk-thumb{background:#15161A;color:#F5F5F2;justify-content:center;padding:8cqw 6cqw 12cqw;
-            --b-title:11cqw;--b-sub:4.5cqw;--b-body:2.66cqw}
+  /* ── 자리마다 배경 사진 ───────────────────────────────
+     배경을 카테고리 키가 아니라 **틀 이름(.mk-*)**에 건다. '뜻밖의 발견'은
+     다른 카테고리의 틀을 빌려 쓰므로(specimen 의 borrow), 이렇게 두면 배경도
+     저절로 빌린 자리를 따라간다 — 따로 이어 줄 코드가 없다.
+
+     글 자리는 사진마다 비어 있는 쪽에 맞춰 다르게 잡았다. 여백이 어디인지가
+     사진마다 다르고, 가운데 놓으면 인물이나 장식 위에 글자가 얹힌다.
+     오른쪽 여백(padding-right)은 '장식을 피해 남긴 폭'이라 자리마다 다르다.
+     글자 크기는 견본 문구의 최장 줄이 그 폭에 들어가도록 잡았다. */
+  .fp-stage{background-size:cover;background-position:center;background-repeat:no-repeat}
+
+  /* 영상 · 자막 — 밤 사진, 인물이 오른쪽. 왼쪽 어둠에 제목을 앉힌다.
+     자막 바는 그대로 아래 전체 폭 — 영상 자막이 원래 그 자리다.
+     제목 7자 × 7.4cqw = 52cqw 로 왼쪽 폭(54cqw)에 들어간다. */
+  .mk-thumb{background-image:url(/pair-bg/thumb.webp);background-color:#15161A;
+            color:#F7F5F1;justify-content:center;align-items:flex-start;text-align:left;
+            padding:6cqw 40cqw 15cqw 6cqw;
+            --b-title:7.4cqw;--b-sub:3.5cqw;--b-body:2.5cqw}
+  .mk-thumb .fp-blk-title,.mk-thumb .fp-blk-sub{text-shadow:0 1px 14px rgba(0,0,0,.6)}
   .mk-thumb .fp-blk-body{position:absolute;left:0;right:0;bottom:0;
             background:rgba(0,0,0,.55);padding:2.4cqw 6cqw 2.8cqw;text-align:center}
-  .mk-thumb #txtSub{margin-top:2.4cqw}
+  .mk-thumb #txtSub{margin-top:2.2cqw;opacity:.9}
 
-  /* SNS · 카드뉴스 — 따뜻한 모래색 */
-  .mk-card{background:#F2E4D4;color:#2B231A;justify-content:flex-start;padding:7cqw;
-           --b-title:8.36cqw;--b-sub:4.5cqw;--b-body:2.85cqw}
-  .mk-card #txtSub{margin-top:2.8cqw}
-  .mk-card .fp-blk-body{margin-top:4.5cqw}
+  /* SNS · 카드뉴스 — 살구빛 도형이 오른쪽에 몰려 있다. 왼쪽 위부터.
+     제목 8자 × 7cqw = 56cqw / 쓸 수 있는 폭 58cqw */
+  .mk-card{background-image:url(/pair-bg/card.webp);background-color:#FAEBD9;
+           color:#3B2E1E;justify-content:flex-start;padding:9cqw 34cqw 7cqw 8cqw;
+           --b-title:7cqw;--b-sub:3.7cqw;--b-body:2.5cqw}
+  .mk-card #txtSub{margin-top:2.6cqw}
+  .mk-card .fp-blk-body{margin-top:4cqw}
 
-  /* 브랜딩 · 로고 — 차분한 회백. 명함처럼 아래로 붙는다 */
-  .mk-namecard{background:#E9E9EC;color:#1E1E1C;justify-content:flex-start;padding:7cqw;
-               --b-title:8.8cqw;--b-sub:4.25cqw;--b-body:2.66cqw}
+  /* 브랜딩 · 로고 — 아주 옅은 미색. 오른쪽 위 아치와 왼쪽 아래 물결을 피해
+     가운데 높이에 왼쪽으로 앉힌다. 아래 물결 때문에 아래 여백을 크게 뒀다. */
+  .mk-namecard{background-image:url(/pair-bg/namecard.webp);background-color:#F6F4EF;
+               color:#241F19;justify-content:center;padding:6cqw 33cqw 13cqw 9cqw;
+               --b-title:7cqw;--b-sub:3.5cqw;--b-body:2.3cqw}
   .mk-namecard #txtSub{margin-top:2.2cqw}
-  .mk-namecard .fp-blk-body{margin-top:4.5cqw;opacity:.75}
+  .mk-namecard .fp-blk-body{margin-top:4cqw;opacity:.75}
 
-  /* 포스터 · 안내 — 옅은 남빛. 멀리서 읽히는지 보는 자리.
-     짙은 남색에 밝은 글자였는데 밝은 바탕으로 뒤집었다. 어두운 바탕에서는
-     밝은 획이 번져 얇은 글자가 더 뭉개져 보인다. 남색 계열은 남겨서
-     다른 자리(모래·회백·쑥빛·종이흰색)와 구분은 유지한다. */
-  .mk-poster{background:#E3E9F4;color:#1B2A44;justify-content:center;padding:4.5cqw 5cqw;
-             --b-title:8.36cqw;--b-sub:4.25cqw;--b-body:2.66cqw}
+  /* 포스터 · 안내 — 겨울 정원. 오른쪽 아래 식물과 왼쪽 위 나뭇가지를 피해
+     왼쪽 가운데 띠에 넣는다. 제목 8자 × 6.8cqw = 54cqw / 폭 56cqw */
+  .mk-poster{background-image:url(/pair-bg/poster.webp);background-color:#EAF0F6;
+             color:#243444;justify-content:flex-start;padding:13cqw 36cqw 8cqw 8cqw;
+             --b-title:6.8cqw;--b-sub:3.4cqw;--b-body:2.3cqw}
   .mk-poster #txtSub{margin-top:2cqw}
-  .mk-poster .fp-blk-body{margin-top:2cqw}
+  .mk-poster .fp-blk-body{margin-top:2.4cqw}
 
-  /* 감성 · 손글씨 — 연한 쑥빛. 가운데로 모은다 */
-  .mk-note{background:#E6EDE8;color:#22302A;align-items:center;justify-content:center;
-           text-align:center;padding:7cqw;
-           --b-title:8.8cqw;--b-sub:4.38cqw;--b-body:2.76cqw}
-  .mk-note #txtSub{margin-top:2.8cqw}
-  .mk-note .fp-blk-body{margin-top:4cqw}
+  /* 감성 · 손글씨 — 찢어진 종이가 가운데. 종이 안쪽에만 글을 둔다.
+     좌우 여백을 다르게 준 것은 종이 가운데가 화면 가운데보다 왼쪽이라서다. */
+  .mk-note{background-image:url(/pair-bg/note.webp);background-color:#EDE6D8;
+           color:#3A3226;align-items:center;justify-content:center;text-align:center;
+           padding:14cqw 28cqw 14cqw 14cqw;
+           --b-title:7.4cqw;--b-sub:3.7cqw;--b-body:2.5cqw}
+  .mk-note #txtSub{margin-top:2.6cqw}
+  .mk-note .fp-blk-body{margin-top:3.6cqw}
 
-  /* 본문 · 읽기 — 종이 흰색. 2단으로 앉힌다.
-     낮아진 틀에 2단을 넣어야 해서 본문 줄 사이만 1.6으로 좁힌다. */
-  .mk-magazine{background:#FCFBF7;color:#1A1A18;padding:3.5cqw 4cqw;
-               --b-title:7.7cqw;--b-sub:4.25cqw;--b-body:2.47cqw}
-  .mk-magazine #txtSub{margin-top:2.5cqw}
-  .mk-magazine #txtBody{line-height:1.85}
-  .mk-magazine .fp-blk-body{margin-top:3.5cqw;column-count:2;column-gap:3cqw;
-               border-top:1px solid color-mix(in srgb,currentColor 18%,transparent);
-               padding-top:2cqw}
+  /* 본문 · 읽기 — 펼친 노트. 사진에 가로줄이 그어져 있다(위에서 36%).
+     그 줄을 그대로 쓴다 — 제목·부제는 줄 위, 본문은 줄 아래 2단.
+     본문을 절대 위치로 못 박는 이유: 제목이 한 줄 늘어나도 본문이 밀려
+     내려가 줄을 넘지 않게 하려는 것이다. 흐름에 맡기면 어긋난다.
+     16:9 라 높이는 폭의 56.25% — 줄은 위에서 20.25cqw 다.
+     왼쪽 여백 11cqw 는 제본(약 7%)을 비켜 준 값이고, 아래·오른쪽은
+     오른쪽 아래 잎사귀 그림을 피한 값이다. */
+  .mk-magazine{background-image:url(/pair-bg/magazine.webp);background-color:#FAF3E7;
+               color:#2A241B;justify-content:flex-start;padding:6cqw 9cqw 10cqw 11cqw;
+               --b-title:5.9cqw;--b-sub:3.3cqw;--b-body:2.3cqw}
+  .mk-magazine #txtSub{margin-top:1.8cqw;opacity:.75}
+  .mk-magazine #txtBody{line-height:1.6}
+  .mk-magazine .fp-blk-body{position:absolute;left:11cqw;right:9cqw;
+               top:23cqw;bottom:8cqw;
+               column-count:2;column-gap:3cqw}
 
   /* ── 오른쪽 칸: 슬롯 3개 + 쓰는 법 ─────────────────────
      캔버스 옆에 세로로 세운다. 아래에 두면 스크롤을 내려야 폰트 이름이
@@ -247,7 +274,16 @@
   }
   @media(max-width:560px){
     .fp-stage{aspect-ratio:auto;min-height:340px}
-    .mk-magazine .fp-blk-body{column-count:1}
+    /* 16:9 사진이 세로로 긴 칸에 들어가면 좌우가 잘린다. 글이 놓인 빈 쪽을
+       남기도록 잘리는 위치를 왼쪽으로 당긴다. 가운데를 쓰는 두 자리
+       (종이·노트)는 그대로 둔다. */
+    .mk-thumb,.mk-card,.mk-namecard,.mk-poster{background-position:26% center}
+    /* 장식이 잘려 나갔으니 글도 폭을 다시 쓴다 */
+    .mk-thumb{padding-right:8cqw}
+    .mk-card,.mk-namecard,.mk-poster{padding-right:9cqw}
+    .mk-note{padding-left:12cqw;padding-right:12cqw}
+    /* 세로로 길어지면 사진의 가로줄 위치도 어긋난다. 본문을 흐름에 되돌린다. */
+    .mk-magazine .fp-blk-body{position:static;margin-top:4cqw;column-count:1}
     /* 데스크톱은 16:9 비율이라 justify-content:flex-start(위 붙임)로 놓아도
        박스 자체가 낮아서 자연스럽다. 모바일은 그 비율을 버리고 최소높이
        340px만 남기는데, 폭이 좁아지면서 박스가 훨씬 세로로 길어져 글이
@@ -467,6 +503,15 @@
     var st = $('fpStage');
     st.className = 'fp-stage mk-' + (name || 'card');
     st.setAttribute('data-frame', FRAME_LABEL[name] || '');
+  }
+
+  /* 배경 사진을 미리 받아 둔다. 자리를 바꾸는 순간 받기 시작하면 한 박자
+     늦게 깔려서 빈 색만 보였다가 사진이 들어온다. 여섯 장 합쳐 274KB 라
+     첫 그림이 그려진 뒤에 조용히 받아 두면 된다. */
+  function prefetchBackgrounds(){
+    ['thumb','card','namecard','poster','note','magazine'].forEach(function(n){
+      var i = new Image(); i.src = '/pair-bg/' + n + '.webp';
+    });
   }
 
   /* 크기 레버 — 기본 크기(--b-*)에 배수(--k-*)를 곱한다. 값을 직접 px로
@@ -789,6 +834,7 @@
           S.family = d.family || [];
           setText(d.samples);
           renderStage(); renderSlots(); renderCats(); syncUrl();
+          prefetchBackgrounds();
         });
     })
     .catch(function(){
