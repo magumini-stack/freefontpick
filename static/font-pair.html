@@ -235,14 +235,14 @@
      본문 3줄·오른끝 76%. */
   .mk-poster{background-image:url(/pair-bg/poster.webp);background-color:#EAF0F6;
              color:#243444;justify-content:center;
-             --pl:8cqw;--pr:20cqw;--pt:9cqw;--pb:9cqw;
+             --pl:14cqw;--pr:20cqw;--pt:9cqw;--pb:9cqw;
              --b-title:5.67cqw;--b-sub:2.88cqw;--b-body:1.81cqw}
   .mk-poster #txtSub{margin-top:2cqw}
   /* 본문 줄바꿈을 부제 길이에 맞춘다. 본문만 오른쪽으로 훨씬 길게 뻗으면
      세 줄이 계단처럼 어긋나 보이고 오른쪽 식물 쪽으로도 밀린다.
-     40cqw 는 실측으로 고른 값 — 이 값에서 본문 오른끝 55.2%, 부제 55.0% 로
-     두 줄의 오른쪽 끝이 나란해진다. */
-  .mk-poster .fp-blk-body{margin-top:2.4cqw;padding-right:40cqw}
+     34cqw 는 실측으로 고른 값 — 왼쪽 여백 14cqw 와 짝지으면 본문 오른끝
+     61.2%, 부제 61.0% 로 두 줄의 오른쪽 끝이 나란해진다. */
+  .mk-poster .fp-blk-body{margin-top:2.4cqw;padding-right:34cqw}
 
   /* 감성 · 손글씨 — 찢어진 종이가 가운데(가로 8~78%). 종이 안쪽에만.
      좌우 여백이 다른 것은 종이 가운데가 화면 가운데보다 왼쪽이라서다.
@@ -251,6 +251,9 @@
            color:#3A3226;justify-content:center;text-align:center;
            --pl:13cqw;--pr:22cqw;--pt:10cqw;--pb:10cqw;
            --b-title:5.54cqw;--b-sub:2.76cqw;--b-body:1.74cqw}
+  /* 이 자리는 제목과 본문 둘로 끝낸다. 필적이 먼저 닿는 자리라 가운데에
+     한 줄 더 끼면 오히려 흐려진다. 오른쪽 슬롯도 함께 비활성으로 둔다. */
+  .mk-note .fp-blk-sub{display:none}
   .mk-note #txtSub{margin-top:2.6cqw}
   .mk-note .fp-blk-body{margin-top:3.6cqw}
 
@@ -264,11 +267,16 @@
      padding 이면 테두리가 칸 전체 폭으로 그어져 글줄보다 길게 삐져나온다.
      margin 이면 테두리 상자 자체가 안으로 들어와 글 폭과 정확히 맞는다.
 
-     좌우 여백을 같게 둔 것은 제본 그림이 없어져서다. */
+     좌우 여백을 같게 둔 것은 제본 그림이 없어져서다.
+
+     이 자리만 축소를 20% 가 아니라 10% 로 뒀다 — 읽는 자리라 본문이 더
+     작아지면 판단이 어렵다. 세로는 가운데 정렬이다. 위에 붙여 두었더니
+     아래가 비어 보였고, 가운데로 두면 글이 길어지거나 짧아져도 위아래가
+     저절로 맞는다(실측 위 20.3% / 아래 21.3%). */
   .mk-magazine{background-image:url(/pair-bg/magazine.webp);background-color:#FAF7F0;
-               color:#2A241B;justify-content:flex-start;
-               --pl:9cqw;--pr:9cqw;--pt:7cqw;--pb:8cqw;
-               --b-title:5.41cqw;--b-sub:2.98cqw;--b-body:1.74cqw}
+               color:#2A241B;justify-content:center;
+               --pl:9cqw;--pr:9cqw;--pt:7cqw;--pb:7cqw;
+               --b-title:6.08cqw;--b-sub:3.36cqw;--b-body:1.95cqw}
   .mk-magazine #txtSub{margin-top:2.2cqw;opacity:.72}
   .mk-magazine #txtBody{line-height:1.7}
   .mk-magazine .fp-blk-body{padding-left:0;padding-right:0;
@@ -298,6 +306,11 @@
                 display:block;color:inherit;text-decoration:none;line-height:1.35}
   a.fp-slot-font:hover{text-decoration:underline}
   .fp-slot.fam{border-color:var(--border-hover)}
+  /* 이 틀에서 안 쓰는 슬롯 — 눌러도 화면이 안 바뀌므로 손댈 수 없게 둔다 */
+  .fp-slot.off{opacity:.45;pointer-events:none;background:var(--bg-secondary)}
+  .fp-off{display:inline-block;margin-left:5px;padding:1px 6px;border-radius:999px;
+          background:var(--bg-secondary);color:var(--text-muted);font-size:9.5px;
+          font-weight:700;letter-spacing:0;vertical-align:1px}
   .fp-fam{display:inline-block;margin-left:5px;padding:1px 6px;border-radius:999px;
           background:var(--accent-light);color:var(--accent);font-size:9.5px;
           font-weight:800;letter-spacing:0;vertical-align:1px}
@@ -512,6 +525,7 @@
     fonts:   { title: null, subtitle: null, body: null },
     weights: { title: 700, subtitle: 500, body: 400 },
     lock:    { title: false, subtitle: false, body: false },
+    mockup:  '',         // 지금 그리고 있는 틀 이름 (applyMockup 이 채운다)
     family:  [],         // 같은 폰트의 다른 굵기로 묶인 두 슬롯 (서버가 정한다)
     scale:   { title: 1, subtitle: 1, body: 1 },   // 슬롯 크기 레버 배수
     borrow:  ''          // '뜻밖의 발견'이 어느 틀을 빌렸는지 (주소로 재현하려면 필요)
@@ -558,8 +572,13 @@
   var FRAME_LABEL = { thumb:'영상 · 자막', card:'SNS · 카드뉴스',
                       namecard:'브랜딩 · 로고', poster:'포스터 · 안내',
                       note:'감성 · 손글씨', magazine:'본문 · 읽기' };
+  /* 이 틀에서 쓰지 않는 슬롯. 화면에서 뺀 자리를 오른쪽 목록에만 남겨 두면
+     "왜 폰트를 골라도 안 바뀌지" 가 된다. */
+  var UNUSED_SLOTS = { note: ['subtitle'] };
+
   function applyMockup(name){
     var st = $('fpStage');
+    S.mockup = name || 'card';
     st.className = 'fp-stage mk-' + (name || 'card');
     st.setAttribute('data-frame', FRAME_LABEL[name] || '');
   }
@@ -604,14 +623,16 @@
       /* 두 슬롯이 같은 폰트로 나오는 자리가 있다. 표시가 없으면 "왜 똑같지,
          고장 났나"로 읽힌다 — 굵기로 위계를 주려고 일부러 묶은 것이다. */
       var fam = S.family.indexOf(k) >= 0;
-      return '<div class="fp-slot' + (S.lock[k] ? ' locked' : '') +
+      var off = (UNUSED_SLOTS[S.mockup] || []).indexOf(k) >= 0;
+      return '<div class="fp-slot' + (S.lock[k] ? ' locked' : '') + (off ? ' off' : '') +
         (fam ? ' fam' : '') + '" data-slot="' + k + '">' +
         '<div class="fp-slot-top">' +
         '<div class="fp-role">' + ABBR[k] + '</div>' +
         '<div class="fp-slot-main">' +
           '<div class="fp-slot-role">' + ROLE[k] +
             (fam ? '<span class="fp-fam" title="같은 폰트를 굵기만 달리해 씁니다 — ' +
-                   '가장 실패가 적은 방법입니다">같은 집안</span>' : '') + '</div>' +
+                   '가장 실패가 적은 방법입니다">같은 집안</span>' : '') +
+            (off ? '<span class="fp-off">이 자리에서는 쓰지 않음</span>' : '') + '</div>' +
           '<a class="fp-slot-font" href="/font/' + f.id + '" target="_blank" rel="noopener"' +
             ' title="' + esc(f.name) + ' 상세페이지 — 새 창에서 다운로드 · 라이선스">' +
             esc(f.name) + '</a>' +
