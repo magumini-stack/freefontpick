@@ -148,6 +148,13 @@ a{color:inherit}
 /* 제약은 행동 바로 옆에 있어야 실제로 읽힌다 */
 .dl-note{margin:10px 0 0;font-size:12.5px;line-height:1.6;color:var(--text-secondary);text-align:center}
 .dl-terms{margin:6px 0 0;font-size:12.5px;line-height:1.6;color:var(--text-secondary);text-align:center}
+  /* 폰트 소개. 이 페이지 14종이 서로 98% 같은 글이었던 것을 메우는 자리다. */
+  .wf-intro{background:var(--bg-card);border:1px solid var(--border);
+    border-radius:var(--radius);padding:22px 24px;margin:26px 0}
+  .wf-intro h2{font-size:15px;font-weight:800;letter-spacing:-.3px;margin:0 0 12px}
+  .wf-intro p{font-size:14px;line-height:1.85;color:var(--text-secondary);margin:0}
+  .wf-intro p + p{margin-top:1.1em}
+  @media(max-width:520px){.wf-intro{padding:18px 17px;margin:20px 0}}
 .dl-terms b{color:var(--status-reviewed-fg);font-weight:800}
 
 .detail-link{margin:0 0 8px;font-size:13.5px}
@@ -304,6 +311,8 @@ footer{border-top:1px solid var(--border);padding:32px 24px;max-width:1240px;mar
       <p class="dl-terms">폰트픽에서만 다운로드 · <b>파일 재배포 금지</b></p>
     </div>
   </article>
+
+  {{WF_INTRO}}
 
   {{WF_DETAIL_LINK}}
 

@@ -18,10 +18,13 @@ import re
 from pathlib import Path
 
 from urllib.parse import quote as _q
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 
+from ..database import get_db
 from ..header import inject_header, not_found_page
+from ..models import Font
+from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["wisefont"])
 
@@ -53,7 +56,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["손글씨", "귀여운"],
-        "font_id": None,
+        "font_id": 153,
     },
     {
         "slug": "fernlove",
@@ -64,7 +67,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["펜시", "감성"],
-        "font_id": None,
+        "font_id": 18,
     },
     {
         "slug": "fullofclouds",
@@ -75,7 +78,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["펜시", "부드러운"],
-        "font_id": None,
+        "font_id": 19,
     },
     {
         "slug": "godofmusic",
@@ -86,7 +89,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["펜시", "리듬감"],
-        "font_id": None,
+        "font_id": 74,
     },
     {
         "slug": "hiphop",
@@ -97,7 +100,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["펜시", "개성"],
-        "font_id": None,
+        "font_id": 105,
     },
     {
         "slug": "lovemetender",
@@ -108,7 +111,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["펜시", "레트로"],
-        "font_id": None,
+        "font_id": 31,
     },
     {
         "slug": "photogon",
@@ -119,7 +122,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["손글씨", "레트로"],
-        "font_id": None,
+        "font_id": 151,
     },
     {
         "slug": "poodle",
@@ -130,7 +133,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["펜시", "섬세한"],
-        "font_id": None,
+        "font_id": 100,
     },
     {
         "slug": "rightlife",
@@ -141,7 +144,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["손글씨", "단정한"],
-        "font_id": None,
+        "font_id": 152,
     },
     {
         "slug": "seoulro",
@@ -152,7 +155,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["제목용", "굵은"],
-        "font_id": None,
+        "font_id": 155,
     },
     {
         "slug": "starlightnight",
@@ -163,7 +166,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["펜시", "감성"],
-        "font_id": None,
+        "font_id": 45,
     },
     {
         "slug": "tadaktadak",
@@ -174,7 +177,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["손글씨", "따뜻한"],
-        "font_id": None,
+        "font_id": 175,
     },
     {
         "slug": "tuntuni",
@@ -185,7 +188,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 2,574자 (상용 글자 중심)",
         "tags": ["제목용", "통통한"],
-        "font_id": None,
+        "font_id": 143,
     },
     {
         "slug": "emotionmj",
@@ -196,7 +199,7 @@ WISEFONTS = [
         "weights": "1종 Regular",
         "glyphs": "완성형 11,172자",
         "tags": ["명조", "감성"],
-        "font_id": None,
+        "font_id": 154,
     },
 ]
 
@@ -219,7 +222,7 @@ def _thumb_url(slug: str) -> str:
 
 
 @router.get("/wisefont/{slug}", response_class=HTMLResponse)
-def wisefont_page(slug: str):
+def wisefont_page(slug: str, db: Session = Depends(get_db)):
     font = _BY_SLUG.get(slug)
     if font is None:
         return not_found_page()
@@ -229,6 +232,34 @@ def wisefont_page(slug: str):
 
     name = font["name"]
     url = f"{BASE_URL}/wisefont/{slug}"
+
+    # 이 페이지는 14종이 서로 98% 같은 글이었다 — 라이선스 표와 배포 안내가
+    # 전부이고 바뀌는 것은 이름과 글자 수뿐이라, 검색엔진에는 같은 문서 열넷로
+    # 보인다. 게다가 같은 폰트가 /font/{id} 에 더 긴 소개와 함께 또 있다.
+    #
+    # 그래서 두 가지를 한다.
+    #  (1) canonical 을 /font/{id} 로 넘겨 색인을 한쪽으로 모은다.
+    #  (2) 이 페이지에도 그 폰트의 소개문을 실어, 여기로 바로 들어온 사람이
+    #      빈손으로 돌아가지 않게 한다. canonical 이 걸려 있으므로 내용이
+    #      겹쳐도 중복 색인이 되지 않는다.
+    canonical = f"{BASE_URL}/font/{font['font_id']}" if font.get("font_id") else url
+
+    intro_html = ""
+    if font.get("font_id"):
+        try:
+            row = db.query(Font).filter(Font.id == font["font_id"]).first()
+            meta = row.meta if row is not None and isinstance(row.meta, dict) else {}
+            intro = str(meta.get("intro") or "").strip()
+        except Exception:
+            intro = ""
+        if intro:
+            paras = "".join(
+                f"<p>{_esc(p.strip())}</p>"
+                for p in re.split(r"\n\s*\n", intro) if p.strip()
+            )
+            intro_html = (
+                f'<section class="wf-intro"><h2>{_esc(name)} 소개</h2>{paras}</section>'
+            )
     thumb = f"{BASE_URL}{_thumb_url(slug)}"
     title = f"{name} 무료 다운로드 ({font['formats'].replace(', ', '·')}) - {MAKER} 공식 배포 | 폰트픽"
     desc = (
@@ -241,7 +272,7 @@ def wisefont_page(slug: str):
         "@type": "WebPage",
         "name": title,
         "description": desc,
-        "url": url,
+        "url": canonical,
         "inLanguage": "ko",
         "isPartOf": {"@type": "WebSite", "name": "폰트픽", "url": BASE_URL},
         "primaryImageOfPage": {"@type": "ImageObject", "url": thumb},
@@ -273,7 +304,7 @@ def wisefont_page(slug: str):
     repl = {
         "{{WF_TITLE}}": _esc(title),
         "{{WF_DESC}}": _esc(desc),
-        "{{WF_CANONICAL}}": url,
+        "{{WF_CANONICAL}}": canonical,
         "{{WF_OG_IMAGE}}": thumb,
         "{{WF_JSONLD}}": f'<script type="application/ld+json">{json_ld}</script>',
         "{{WF_NAME}}": _esc(name),
@@ -286,6 +317,7 @@ def wisefont_page(slug: str):
         "{{WF_THUMB}}": _thumb_url(slug),
         "{{WF_SLUG}}": slug,
         "{{WF_DETAIL_LINK}}": detail_link,
+        "{{WF_INTRO}}": intro_html,
     }
     for k, v in repl.items():
         html = html.replace(k, v)
