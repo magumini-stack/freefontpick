@@ -158,7 +158,10 @@
 
      제목 아래 선은 CSS 가 긋는다. 그림에 박아 두면 글이 한 줄만 늘어나도
      어긋난다 — 실제로 그랬다. 좌우를 padding 이 아니라 margin 으로 잡는
-     이유는, padding 이면 테두리가 글줄보다 길게 삐져나오기 때문이다. */
+     이유는, padding 이면 테두리가 글줄보다 길게 삐져나오기 때문이다.
+
+     본문은 한 칸이다. 2단으로 나눠 봤는데, 이 화면이 보여주려는 것은 지면
+     구성이 아니라 두 폰트의 관계라 단이 나뉘면 그쪽에 눈이 간다. */
   .fp-stage{background-image:url(/pair-bg/magazine.webp);background-color:#FAF7F0;
             background-size:cover;background-position:center;background-repeat:no-repeat;
             color:#2A241B;justify-content:center;
@@ -169,9 +172,7 @@
   .fp-blk-body{padding-left:0;padding-right:0;
                margin:3.4cqw var(--pr) 0 var(--pl);
                padding-top:2.2cqw;padding-bottom:var(--pb);
-               border-top:1px solid color-mix(in srgb,currentColor 22%,transparent);
-               column-count:2;column-gap:3.2cqw;
-               column-rule:1px solid color-mix(in srgb,currentColor 12%,transparent)}
+               border-top:1px solid color-mix(in srgb,currentColor 22%,transparent)}
 
   /* ── 오른쪽 칸: 슬롯 3개 + 쓰는 법 ─────────────────────
      캔버스 옆에 세로로 세운다. 아래에 두면 스크롤을 내려야 폰트 이름이
@@ -235,8 +236,6 @@
   }
   @media(max-width:560px){
     .fp-stage{aspect-ratio:auto;min-height:340px}
-    /* 좁은 화면에서는 2단이 너무 좁아진다. 한 단으로 편다. */
-    .fp-blk-body{column-count:1}
   }
 
   /* ── 폰트 고르기 ────────────────────────────────────── */
