@@ -36,17 +36,19 @@ import random
 from collections import deque
 
 from .font_metrics import metrics_of
-from .pair_specimens import (BODY_EXCLUDE, BODY_SHAPES, SHAPES,
-                             SURPRISE_KEY, get_shape, specimen)
+from .pair_specimens import (BODY_NEVER, BODY_SHAPES, BODY_SHAPES_BY_TITLE,
+                             SHAPES, SURPRISE_KEY, get_shape, specimen)
 
 # ── 모양별 슬롯 목표 ─────────────────────────────────────────────
 #
 # d/w/x 는 **백분위 목표**(0=가장 가는 쪽, 1=가장 굵은 쪽)다. 적지 않은 축은
 # 점수에 넣지 않는다 — 상관없는 자리까지 묶으면 후보만 좁아진다.
 #
-# 제목은 고른 모양에서, 본문은 늘 고딕·명조에서 고른다(BODY_SHAPES).
-# 그래서 목표도 제목만 모양마다 다르고 본문은 하나로 둔다 — 본문에 요구하는
-# 것은 계열이 무엇이든 '오래 읽어도 지치지 않는가' 하나뿐이다.
+# 제목은 고른 모양에서, 본문은 그 모양이 허락하는 계열에서 고른다
+# (BODY_SHAPES_BY_TITLE). 그래도 목표는 제목만 모양마다 다르고 본문은 하나로
+# 둔다 — 본문에 요구하는 것은 계열이 무엇이든 '오래 읽어도 지치지 않는가'
+# 하나뿐이라, 손글씨 본문에도 같은 잣대를 대는 편이 맞다. 실제로 이 목표가
+# 획이 가늘고 글자가 큰 손글씨를 먼저 고르게 해 준다.
 TITLE_TARGET = {
     "gothic":  {"d": 0.65},
     "serif":   {"d": 0.55},
@@ -59,10 +61,17 @@ BODY_TARGET = {"d": 0.35, "x": 0.60}
 # 모양 → 그 계열로 인정하는 태그. pair_specimens.SHAPES 에서 그대로 가져온다.
 SHAPE_TAGS = {c["key"]: set(c["tags"]) for c in SHAPES}
 
-# 본문으로 인정하는 태그(고딕 + 명조)를 미리 합쳐 둔다.
-BODY_TAGS = set()
-for _k in BODY_SHAPES:
-    BODY_TAGS |= SHAPE_TAGS[_k]
+# 어느 계열에든 붙는 태그를 전부 모아 둔다. 본문 후보를 고를 때 '허용된
+# 계열 밖의 성격을 겸하는가'를 이걸로 본다.
+ALL_SHAPE_TAGS = set()
+for _s in SHAPE_TAGS.values():
+    ALL_SHAPE_TAGS |= _s
+
+# 제목 모양 → 본문으로 인정하는 태그. 매번 합치지 않도록 미리 만들어 둔다.
+BODY_TAGS_BY_TITLE = {}
+for _t, _keys in BODY_SHAPES_BY_TITLE.items():
+    BODY_TAGS_BY_TITLE[_t] = set().union(*(SHAPE_TAGS[_k] for _k in _keys))
+_BODY_TAGS_DEFAULT = set().union(*(SHAPE_TAGS[_k] for _k in BODY_SHAPES))
 
 # 후보를 이만큼도 못 남기면 거르지 않는다. 걸러서 텅 비는 것보다 낫다.
 _MIN_POOL = 8
@@ -77,15 +86,25 @@ def _in_shape(font, shape: str) -> bool:
     return bool(_tags(font) & SHAPE_TAGS.get(shape, set()))
 
 
-def _body_ok(font) -> bool:
-    """본문으로 써도 되는 폰트인가.
+def _body_ok(font, shape: str) -> bool:
+    """제목이 그 모양일 때, 이 폰트를 본문으로 써도 되는가.
 
-    고딕·명조여야 하고, 그중에서도 장식·손글씨 성격을 겸하는 것은 뺀다.
-    한 폰트가 두 계열에 걸치는 경우가 실제로 있어서(고딕이면서 디스플레이)
-    계열만 보고 넣으면 문단이 읽히지 않는다.
+    세 관문을 지나야 한다.
+
+    1. 문단에서 읽히지 않는 태그(BODY_NEVER)를 하나도 갖지 않을 것
+    2. 허용된 계열의 태그를 하나는 가질 것
+    3. 허용 **밖** 계열의 태그는 하나도 없을 것
+
+    3번이 필요한 이유는 한 폰트가 두 계열에 걸치는 경우가 실제로 있기
+    때문이다. 고딕이면서 손글씨인 폰트를 고딕 제목의 본문으로 쓰면, 고른
+    것이 아니라 잘못 붙은 것으로 읽힌다. 손글씨 제목이라면 3번이 저절로
+    풀린다 — 그 자리에서는 손글씨가 허용 계열이다.
     """
     t = _tags(font)
-    return bool(t & BODY_TAGS) and not (t & BODY_EXCLUDE)
+    if t & BODY_NEVER:
+        return False
+    allowed = BODY_TAGS_BY_TITLE.get(shape, _BODY_TAGS_DEFAULT)
+    return bool(t & allowed) and not (t & (ALL_SHAPE_TAGS - allowed))
 
 
 # 최근에 내보낸 폰트를 잠시 피한다. 연속으로 누를 때 같은 얼굴이 또 나오면
@@ -284,8 +303,9 @@ def generate(db, shape: str = "", script: str = "ko",
              locked: dict = None) -> dict:
     """제목 · 본문 두 폰트 한 벌.
 
-    고른 모양은 **제목**에 걸린다. 본문은 언제나 고딕·명조에서 고른다 —
-    손글씨나 장식체를 문단으로 깔면 읽히지 않기 때문이다.
+    고른 모양은 **제목**에 걸린다. 본문 후보는 그 모양이 허락하는 계열에서
+    나온다 — 고딕·명조 제목이면 고딕·명조에서, 손글씨·디스플레이·귀여운
+    제목이면 손글씨와 귀여운 계열까지 열린다.
 
     locked 에 담긴 슬롯은 그대로 두고 나머지만 다시 뽑는다. 상세페이지에서
     넘어올 때 그 폰트를 잠근 채로 들어오는 것이 이 경로다.
@@ -352,7 +372,7 @@ def generate(db, shape: str = "", script: str = "ko",
         return {}
     used.add(t_font.id)
 
-    # ── 본문 — 언제나 고딕·명조에서, 제목과 맞춰 ─────────────────
+    # ── 본문 — 제목 모양이 허락하는 계열에서, 제목과 맞춰 ────────
     #
     # 굵기 조건을 고르는 단계에 넣는다. 나중에 상한만 걸어서는 안 된다 —
     # pick_weight 는 상한 이하가 하나도 없으면 가진 것 중에서 고르기 때문이다.
@@ -362,7 +382,7 @@ def generate(db, shape: str = "", script: str = "ko",
     def body_keep(f):
         if min(font_weights(f)) > t_w:
             return False
-        return True if surprise else _body_ok(f)
+        return True if surprise else _body_ok(f, key)
 
     b_font = fixed.get("body")
     if b_font is None:
