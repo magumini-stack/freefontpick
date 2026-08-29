@@ -147,32 +147,28 @@
   #txtBody {font-size:calc(var(--b-body,2.66cqw) * var(--k-body,1));line-height:1.75}
 
   /* ── 캔버스 ───────────────────────────────────────────
-     배경은 한 장뿐이다. 예전에는 쓰는 자리마다 사진을 달리 깔았는데,
-     이 화면이 보여주려는 것이 '모양'으로 바뀌면서 배경이 오히려 판단을
-     방해했다 — 사진이 다르면 같은 폰트도 다르게 보인다. 그래서 조용한
-     종이 한 장으로 통일한다(tools/make_pair_bg_magazine.py 가 그린 것).
+     흰 종이 한 장이다. 여기까지 오는 데 사진 여섯 장 → 종이 한 장 → 흰
+     바탕 순으로 줄었는데, 줄일 때마다 폰트가 더 잘 보였다. 바탕에 무늬가
+     있으면 같은 폰트도 다르게 보여서, 두 폰트를 견주러 온 화면에서는
+     바탕이 아무것도 하지 않는 편이 낫다.
+
+     테마를 따르지 않고 늘 흰색이다. 인쇄물이든 화면이든 글이 얹히는 바닥은
+     흰 종이인 경우가 대부분이라, 여기서 본 인상이 실제와 가장 가깝다.
 
      ⚠ 캔버스에는 padding 을 주지 않는다. container-type:inline-size 는 그
      요소의 콘텐츠 박스를 기준으로 1cqw 를 정하므로, 캔버스에 좌우 여백을
      주면 그만큼 자식들의 글자가 통째로 작아진다. 여백은 글 덩어리가 갖는다.
 
-     제목 아래 선은 CSS 가 긋는다. 그림에 박아 두면 글이 한 줄만 늘어나도
-     어긋난다 — 실제로 그랬다. 좌우를 padding 이 아니라 margin 으로 잡는
-     이유는, padding 이면 테두리가 글줄보다 길게 삐져나오기 때문이다.
-
-     본문은 한 칸이다. 2단으로 나눠 봤는데, 이 화면이 보여주려는 것은 지면
-     구성이 아니라 두 폰트의 관계라 단이 나뉘면 그쪽에 눈이 간다. */
-  .fp-stage{background-image:url(/pair-bg/magazine.webp);background-color:#FAF7F0;
-            background-size:cover;background-position:center;background-repeat:no-repeat;
-            color:#2A241B;justify-content:center;
+     제목과 본문 사이에 선을 긋지 않는다. 선이 있으면 지면 구성으로 읽혀
+     눈이 그쪽으로 간다. 사이는 여백만으로 벌린다 — 본문을 2단으로 나눴다가
+     한 칸으로 되돌린 것과 같은 이유다. */
+  .fp-stage{background:#fff;color:#1A1A1A;justify-content:center;
+            border:1px solid var(--border);
             --pl:9cqw;--pr:9cqw;--pt:7cqw;--pb:7cqw;
             --b-title:6.08cqw;--b-body:1.95cqw}
   .fp-blk-title,.fp-blk-body{padding-left:var(--pl);padding-right:var(--pr)}
   .fp-blk-title{padding-top:var(--pt)}
-  .fp-blk-body{padding-left:0;padding-right:0;
-               margin:3.4cqw var(--pr) 0 var(--pl);
-               padding-top:2.2cqw;padding-bottom:var(--pb);
-               border-top:1px solid color-mix(in srgb,currentColor 22%,transparent)}
+  .fp-blk-body{padding-top:4.4cqw;padding-bottom:var(--pb)}
 
   /* ── 오른쪽 칸: 슬롯 3개 + 쓰는 법 ─────────────────────
      캔버스 옆에 세로로 세운다. 아래에 두면 스크롤을 내려야 폰트 이름이
@@ -421,11 +417,18 @@
     var url = location.pathname + (q.length ? '?' + q.join('&') : '');
     if (url !== location.pathname + location.search) history.replaceState(null, '', url);
   }
+  /* 주소가 모양을 지정하고 들어왔는가. 첫 화면을 기본 두 폰트로 여는
+     규칙(아래 DEFAULT_FONTS)을 이 값으로 끈다 — 손글씨를 달라고 들어온
+     주소에 고정된 고딕 한 벌을 보여주면 모양을 고른 뜻이 사라진다. */
+  var urlHadShape = false;
   function readUrl(){
     var p = new URLSearchParams(location.search);
     /* cat= 은 옛 주소다. 상세페이지나 밖에서 걸린 링크가 남아 있어서 함께
        받는다 — 모르는 값이면 서버가 기본 모양으로 떨어뜨린다. */
-    if (p.get('shape') || p.get('cat')) S.cat = p.get('shape') || p.get('cat');
+    if (p.get('shape') || p.get('cat')) {
+      S.cat = p.get('shape') || p.get('cat');
+      urlHadShape = true;
+    }
     if (p.get('sc'))  S.script = p.get('sc');
     var lk = p.get('lock') || '';
     SLOTS.forEach(function(k, i){ S.lock[k] = lk.indexOf(['t','b'][i]) >= 0; });
@@ -748,10 +751,15 @@
          전부 잠그면 새로고침 한 번에 조합이 안 바뀐다. */
       var q = ['shape=' + encodeURIComponent(S.cat), 'script=' + S.script];
       /* 주소에 하나도 없으면 기본 두 폰트로 연다. 하나라도 있으면 링크를 받은
-         것이므로 기본값을 섞지 않는다 — 보낸 사람 화면과 달라진다. */
+         것이므로 기본값을 섞지 않는다 — 보낸 사람 화면과 달라진다.
+
+         모양만 적고 폰트는 안 적은 주소(/font-pair?shape=hand)도 기본값을
+         쓰지 않는다. 기본값은 두 슬롯을 다 고정해 버려서, 모양을 지정해도
+         늘 같은 고딕 한 벌이 나왔다. */
       var fromUrl = SLOTS.some(function(k){ return want[k]; });
+      var useDefault = !fromUrl && !urlHadShape && S.script === 'ko';
       SLOTS.forEach(function(k){
-        var id = fromUrl ? want[k] : (S.script === 'ko' ? DEFAULT_FONTS[k] : 0);
+        var id = fromUrl ? want[k] : (useDefault ? DEFAULT_FONTS[k] : 0);
         if (id) q.push(k + '=' + id);
       });
       return fetch('/api/font-pair/generate?' + q.join('&'))
