@@ -207,6 +207,119 @@ def _harmony(a_font, b_font, pcts):
     return max(-2.0, 1.5 - dx * 3.0) + max(-2.0, 1.5 - dw * 3.0)
 
 
+# ── 조합 점수 ────────────────────────────────────────────────────
+#
+# 화면에 100점 만점으로 내는 값이다. 뽑기에 쓰는 _slot_score 와 따로 두었다.
+# 목적이 다르기 때문이다 — 저쪽은 여럿을 줄 세우는 값이라 0을 기준으로
+# 오르내리는 상대값이면 되지만, 이건 조합 하나만 놓고 읽는 값이라 절대
+# 눈금이 있어야 한다. 한쪽 상수를 만지다 다른 쪽 뜻이 바뀌는 일도 막는다.
+#
+# 재는 것은 셋이고 전부 실측값(x·w·d)의 백분위에서 나온다.
+#
+#   굵기 위계 45  제목이 본문보다 굵은가. **같은 크기로 놓았을 때**의
+#                 이야기다 — 화면의 크기 차이(제목 6.08cqw / 본문 1.95cqw)는
+#                 조합이 아니라 틀이 정하는 값이라 넣지 않는다. 넣으면 어느
+#                 조합에나 같은 점수가 더해질 뿐이다.
+#   글자 결   35  글자 높이와 폭이 서로 닮았는가. 너무 다르면 한 화면에서
+#                 따로 논다.
+#   본문 읽기 20  본문 쪽이 문단으로 깔리기 좋은 굵기·크기인가(BODY_TARGET).
+#
+# 취향은 재지 않는다. 90점이 60점보다 늘 낫다는 뜻이 아니라 재는 세 가지에서
+# 어긋난 데가 적다는 뜻이다. 화면에도 그렇게 적는다.
+#
+# 실측으로 확인한 것(폰트 221종, 추천 조합 776벌 대 무작위 1,500벌):
+#     80점 이상   추천 52%   무작위 22%
+#     50점 미만   추천 15%   무작위 46%
+# 추천에서도 50점 아래가 15% 나온다. 다양성을 위해 점수 1등만 뽑지 않기
+# 때문이고(_TEMPERATURE), 그 판을 숨기지 않고 낮은 점수로 보여 주는 편이
+# 맞다 — 다시 뽑으면 되는 화면이다.
+SCORE_MAX = {"hierarchy": 45, "harmony": 35, "body": 20}
+SCORE_LABEL = {"hierarchy": "굵기 위계", "harmony": "글자 결", "body": "본문 읽기"}
+SCORE_ORDER = ("hierarchy", "harmony", "body")
+
+
+def _band(diff: float, lo: float, hi: float) -> float:
+    """차이가 lo 이하면 1.0, hi 이상이면 0.0, 사이는 직선."""
+    if diff <= lo:
+        return 1.0
+    if diff >= hi:
+        return 0.0
+    return (hi - diff) / (hi - lo)
+
+
+def _grade(total: int) -> str:
+    for cut, word in ((90, "아주 잘 맞음"), (75, "잘 맞음"),
+                      (60, "무난"), (45, "애매")):
+        if total >= cut:
+            return word
+    return "어긋남"
+
+
+def pair_score(t_font, b_font, pcts) -> dict:
+    """이 두 폰트가 얼마나 맞물리는가. 0~100.
+
+    실측값이 없는 폰트가 끼면 점수를 내지 않는다(total=None). 없는 값을
+    가운데 값으로 메우면 그럴듯한 숫자가 나오는데, 재지 않은 것을 잰 것처럼
+    보이게 만드는 쪽이 안 보여주는 쪽보다 나쁘다.
+    """
+    a, b = pcts.get(t_font.id), pcts.get(b_font.id)
+    if not a or not b:
+        missing = [f.name for f in (t_font, b_font) if not pcts.get(f.id)]
+        # 이름 뒤에 조사를 붙이지 않는다. 받침이 있고 없고에 따라 은/는이
+        # 갈리는데 폰트 이름은 한글·영문·숫자가 섞여 있어 규칙으로 못 잡는다.
+        return {"total": None,
+                "reason": "실측값이 없는 폰트가 있어 점수를 내지 않습니다 (%s)."
+                          % " · ".join(missing)}
+
+    # 굵기 위계 — 제목 채움비율에서 본문 채움비율을 뺀 값
+    gap = a["d"] - b["d"]
+    if gap <= -0.15:                 # 본문이 눈에 띄게 더 굵다 — 위계가 뒤집혔다
+        h = 0.0
+    elif gap < 0:
+        h = (gap + 0.15) / 0.15 * 12
+    elif gap < 0.15:                 # 차이가 모자라 실수처럼 보인다
+        h = 12 + gap / 0.15 * 33
+    elif gap <= 0.55:                # 제목이 확실히 앞선다
+        h = 45.0
+    else:                            # 너무 벌어져 한 벌로 안 읽힌다
+        h = max(18.0, 45.0 - (gap - 0.55) * 60.0)
+
+    # 글자 결 — 높이와 폭이 닮았는가
+    har = (17.5 * _band(abs(a["x"] - b["x"]), 0.12, 0.60)
+           + 17.5 * _band(abs(a["w"] - b["w"]), 0.12, 0.60))
+
+    # 본문 읽기 — 본문이 BODY_TARGET 에 얼마나 가까운가
+    bod = (10.0 * _band(abs(b["d"] - BODY_TARGET["d"]), 0.12, 0.50)
+           + 10.0 * _band(abs(b["x"] - BODY_TARGET["x"]), 0.12, 0.50))
+
+    got = {"hierarchy": h, "harmony": har, "body": bod}
+    total = int(round(sum(got.values())))
+    return {
+        "total": total,
+        "grade": _grade(total),
+        "parts": [{"key": k, "label": SCORE_LABEL[k],
+                   "score": int(round(got[k])), "max": SCORE_MAX[k]}
+                  for k in SCORE_ORDER],
+    }
+
+
+def score_for(db, title_id: int, body_id: int):
+    """폰트 두 개의 id 로 점수만 낸다.
+
+    화면에서 위아래를 바꾸거나 폰트를 직접 고르면 조합을 새로 뽑지 않으므로
+    generate 를 다시 부를 수 없다. 그때 이 길로 점수만 다시 받는다 —
+    계산식이 두 벌이 되지 않게 하는 것이 요점이다.
+    """
+    from .models import Font
+
+    fonts = db.query(Font).all()
+    by_id = {f.id: f for f in fonts}
+    t, b = by_id.get(title_id), by_id.get(body_id)
+    if t is None or b is None:
+        return None
+    return pair_score(t, b, _percentiles(fonts))
+
+
 def _weighted_pick(scored):
     """점수를 확률로 바꿔 뽑는다.
 
@@ -405,6 +518,7 @@ def generate(db, shape: str = "", script: str = "ko",
         "script": script,
         "fonts": {"title": font_brief(t_font), "body": font_brief(b_font)},
         "weights": {"title": t_w, "body": b_w},
+        "score": pair_score(t_font, b_font, pcts),
         "samples": specimen(script),
     }
 

@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..font_pair_engine import generate
+from ..font_pair_engine import generate, score_for
 from ..pair_specimens import ALL_SHAPES, DEFAULT_SHAPE
 
 router = APIRouter(prefix="/api/font-pair", tags=["font-pair"])
@@ -45,4 +45,14 @@ def generate_set(
     )
     if not out:
         raise HTTPException(status_code=503, detail="조합을 만들지 못했습니다")
+    return out
+
+
+@router.get("/score")
+def pair_score_only(title: int, body: int, db: Session = Depends(get_db)):
+    """두 폰트의 조합 점수만. 화면에서 위아래를 바꾸거나 폰트를 직접 고르면
+    조합을 새로 뽑지 않으므로 이 길로 점수만 다시 받는다."""
+    out = score_for(db, title, body)
+    if out is None:
+        raise HTTPException(status_code=404, detail="폰트를 찾지 못했습니다")
     return out

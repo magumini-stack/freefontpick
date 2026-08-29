@@ -198,6 +198,29 @@
            font-weight:700;cursor:pointer}
   .fp-swap:hover{border-color:var(--accent);color:var(--accent)}
   .fp-swap svg{width:14px;height:14px}
+  /* 조합 점수 — 슬롯 두 장 아래.
+     막대를 두는 이유는 숫자만으로는 82가 좋은 쪽인지 나쁜 쪽인지 안 읽히기
+     때문이다. 세부 점수를 같이 적어 어디서 깎였는지 보이게 한다.
+     다시 받는 동안에는 흐려 둔다 — 바뀔 숫자를 또렷하게 두면 그 값을 읽는다. */
+  .fp-score{background:var(--bg-card);border:1px solid var(--border);
+            border-radius:var(--radius-md);padding:9px 12px 10px;
+            display:flex;flex-direction:column;gap:6px;transition:opacity .12s}
+  .fp-score.pending{opacity:.4}
+  .fp-score-top{display:flex;align-items:baseline;gap:7px}
+  .fp-score-label{font-size:10px;font-weight:700;letter-spacing:.06em;
+                  color:var(--text-muted)}
+  .fp-score-num{font-size:19px;font-weight:800;line-height:1;margin-left:auto}
+  .fp-score-num i{font-size:11px;font-weight:600;font-style:normal;
+                  color:var(--text-muted);margin-left:1px}
+  .fp-score-grade{font-size:11px;font-weight:700;color:var(--text-secondary)}
+  .fp-score-bar{height:4px;border-radius:3px;background:var(--bg-secondary);
+                overflow:hidden}
+  .fp-score-bar span{display:block;height:100%;background:var(--accent);
+                     border-radius:3px}
+  .fp-score-parts{font-size:10.5px;line-height:1.5;color:var(--text-muted);
+                  word-break:keep-all}
+  .fp-score-none{font-size:13px;font-weight:700;color:var(--text-muted);
+                 margin-left:auto}
   .fp-fam{display:inline-block;margin-left:5px;padding:1px 6px;border-radius:999px;
           background:var(--accent-light);color:var(--accent);font-size:9.5px;
           font-weight:800;letter-spacing:0;vertical-align:1px}
@@ -391,8 +414,13 @@
     fonts:   { title: null, body: null },
     weights: { title: 700, body: 400 },
     lock:    { title: false, body: false },
-    scale:   { title: 1, body: 1 }    // 슬롯 크기 레버 배수
+    scale:   { title: 1, body: 1 },   // 슬롯 크기 레버 배수
+    score:   null                     // 조합 점수 (서버가 낸다)
   };
+  /* 점수 요청에 번호를 붙인다. 빠르게 여러 번 바꾸면 먼저 보낸 응답이
+     늦게 도착해 옛 점수가 덮어쓸 수 있다. 마지막 번호만 받는다. */
+  var scoreToken = 0;
+  var scorePending = false;
 
   var CATS = [];
   var ALL_FONTS = null;      // 폰트 고르기 목록 (한 번만 받는다)
@@ -505,7 +533,54 @@
       '<polyline points="7 4 7 20"/><polyline points="3 8 7 4 11 8"/>' +
       '<polyline points="17 20 17 4"/><polyline points="13 16 17 20 21 16"/></svg>' +
       '위아래 바꾸기</button>';
-    $('fpSlots').innerHTML = cards[0] + swap + cards[1];
+    $('fpSlots').innerHTML = cards[0] + swap + cards[1] + scoreHtml();
+  }
+
+  /* 조합 점수. 서버가 계산해 준 것을 그대로 그린다 — 같은 식이 두 벌이 되면
+     화면과 API 가 다른 숫자를 말하게 된다. */
+  function scoreHtml(){
+    var s = S.score;
+    if (!s) return '';
+    var cls = 'fp-score' + (scorePending ? ' pending' : '');
+    if (s.total == null) {
+      return '<div class="' + cls + '">' +
+        '<div class="fp-score-top"><span class="fp-score-label">조합 점수</span>' +
+        '<span class="fp-score-none">—</span></div>' +
+        '<div class="fp-score-parts">' + esc(s.reason || '') + '</div></div>';
+    }
+    var parts = (s.parts || []).map(function(p){
+      return esc(p.label) + ' ' + p.score + '/' + p.max;
+    }).join(' · ');
+    return '<div class="' + cls + '">' +
+      '<div class="fp-score-top">' +
+        '<span class="fp-score-label">조합 점수</span>' +
+        '<span class="fp-score-grade">' + esc(s.grade || '') + '</span>' +
+        '<span class="fp-score-num">' + s.total + '<i>/100</i></span>' +
+      '</div>' +
+      '<div class="fp-score-bar"><span style="width:' + s.total + '%"></span></div>' +
+      '<div class="fp-score-parts">' + parts + '</div>' +
+    '</div>';
+  }
+
+  /* 폰트만 바뀌었을 때(위아래 바꾸기 · 직접 고르기) 점수만 다시 받는다.
+     조합을 새로 뽑는 것이 아니므로 generate 를 부를 수 없다. */
+  function fetchScore(){
+    var t = S.fonts.title, b = S.fonts.body;
+    if (!t || !b) return;
+    var tk = ++scoreToken;
+    scorePending = true; renderSlots();
+    fetch('/api/font-pair/score?title=' + t.id + '&body=' + b.id)
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if (tk !== scoreToken) return;        // 늦게 온 응답은 버린다
+        scorePending = false;
+        if (d) S.score = d;
+        renderSlots();
+      })
+      .catch(function(){
+        if (tk !== scoreToken) return;
+        scorePending = false; renderSlots();
+      });
   }
 
   /* 제목과 본문을 맞바꾼다. 잠금도 함께 따라간다 — 잠근 것은 '그 폰트'이지
@@ -517,6 +592,8 @@
     var w = S.weights.title; S.weights.title = S.weights.body; S.weights.body = w;
     var l = S.lock.title;  S.lock.title = S.lock.body;   S.lock.body = l;
     renderStage(); renderSlots(); syncUrl();
+    /* 점수는 뒤집는다고 그대로가 아니다 — 위계는 어느 쪽이 위냐로 갈린다. */
+    fetchScore();
   }
 
   function renderCats(){
@@ -552,6 +629,10 @@
       .then(function(d){
         S.fonts = d.fonts;
         S.weights = d.weights;
+        /* 점수는 generate 가 함께 준다. 조합을 새로 뽑을 때는 요청을
+           한 번만 보내는 편이 맞다. */
+        S.score = d.score || null;
+        scorePending = false;
         setText(d.samples);
         showErr('');
         renderStage(); renderSlots(); syncUrl();
@@ -677,6 +758,7 @@
     }
     $('fpPicker').classList.remove('open');
     renderStage(); renderSlots(); syncUrl();
+    fetchScore();
   }
 
   // ── 이벤트 ──────────────────────────────────────────
@@ -767,6 +849,7 @@
         .then(function(r){ return r.json(); })
         .then(function(d){
           S.fonts = d.fonts; S.weights = d.weights;
+          S.score = d.score || null;
           setText(d.samples);
           renderStage(); renderSlots(); renderCats(); syncUrl();
         });
