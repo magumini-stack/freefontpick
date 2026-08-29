@@ -168,7 +168,8 @@ def _slot_score(font, pcts, prof_slot, cat_prof):
             s += (1.0 - abs(p[axis] - target) * 2.0) * 2.0
     else:
         # 실측값이 없는 폰트는 이 항목이 빠질 뿐 감점하지 않는다.
-        # (지금은 221종 전부 값이 있지만, 새 폰트가 들어오면 측정 전까지 여기 온다)
+        # (지금은 239종 전부 값이 있다. 새 폰트가 들어오면 재기 전까지 여기 온다 —
+        #  tools/measure_metrics.py --missing 로 재서 표를 갱신하면 빠져나간다)
         s += 0.0
 
     names = {t.name for t in (font.tags or [])}
@@ -227,10 +228,10 @@ def _harmony(a_font, b_font, pcts):
 # 취향은 재지 않는다. 90점이 60점보다 늘 낫다는 뜻이 아니라 재는 세 가지에서
 # 어긋난 데가 적다는 뜻이다. 화면에도 그렇게 적는다.
 #
-# 실측으로 확인한 것(폰트 221종, 추천 조합 776벌 대 무작위 1,500벌):
-#     80점 이상   추천 52%   무작위 22%
-#     50점 미만   추천 15%   무작위 46%
-# 추천에서도 50점 아래가 15% 나온다. 다양성을 위해 점수 1등만 뽑지 않기
+# 실측으로 확인한 것(폰트 239종, 추천 조합 900벌 대 무작위 1,500벌):
+#     80점 이상   추천 47%   무작위 21%
+#     50점 미만   추천 17%   무작위 47%
+# 추천에서도 50점 아래가 17% 나온다. 다양성을 위해 점수 1등만 뽑지 않기
 # 때문이고(_TEMPERATURE), 그 판을 숨기지 않고 낮은 점수로 보여 주는 편이
 # 맞다 — 다시 뽑으면 되는 화면이다.
 SCORE_MAX = {"hierarchy": 45, "harmony": 35, "body": 20}
@@ -519,7 +520,7 @@ def generate(db, shape: str = "", script: str = "ko",
         "fonts": {"title": font_brief(t_font), "body": font_brief(b_font)},
         "weights": {"title": t_w, "body": b_w},
         "score": pair_score(t_font, b_font, pcts),
-        "samples": specimen(script),
+        "samples": specimen(script, key),
     }
 
 
