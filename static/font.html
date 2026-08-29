@@ -1560,21 +1560,24 @@
      자리는 폰트의 결로 정한다. 본문용으로 나온 서체를 100px 제목 자리에
      앉히면 그 폰트를 잘못 보여 주는 셈이다. 나머지 두 자리는 조합 찾기가
      채운다. 마음에 안 들면 그 화면에서 직접 옮길 수 있다. */
+  /* 이 폰트를 어느 자리에 앉히고 어느 모양으로 들어갈지.
+     자리는 폰트의 결로 정한다. 본문용으로 나온 서체를 큰 제목 자리에 앉히면
+     그 폰트를 잘못 보여 주는 셈이다. 나머지 한 자리는 조합 찾기가 채운다.
+     마음에 안 들면 그 화면에서 '위아래 바꾸기'로 옮길 수 있다. */
   var PAIR_BODY_TAGS = ['제목-본문용 고딕', '부드러운 명조', '네모틀 고딕', 'UI/UX/Web'];
   var PAIR_LOUD_TAGS = ['디스플레이', '장식', '손글씨', '캘리그라피', '펜시',
                         '시선을 끄는 제목용'];
 
-  /* 태그 → 쓰는 자리. 위에서부터 처음 걸리는 것을 쓴다. 키는
-     app/pair_specimens.py 의 PAIR_CATEGORIES 와 같아야 한다.
-     좁은 것(손글씨·썸네일)을 먼저 보고 넓은 것(제목용)을 나중에 본다 —
-     반대로 두면 손글씨가 죄다 '포스터'로 빠진다. */
-  var PAIR_CAT_BY_TAG = [
-    ['hand',   ['손글씨', '캘리그라피', '펜시']],
-    ['video',  ['유튜브 썸네일 추천', '브이로그 자막용']],
-    ['sns',    ['카드뉴스용', '귀여운']],
-    ['brand',  ['로고디자인', '독특한 세리프']],
-    ['read',   ['제목-본문용 고딕', '부드러운 명조', '네모틀 고딕', 'UI/UX/Web']],
-    ['poster', ['디스플레이', '시선을 끄는 제목용']]
+  /* 태그 → 글자 모양. 위에서부터 처음 걸리는 것을 쓴다.
+     키와 순서는 app/pair_specimens.py 의 SHAPES 와 같아야 한다 — 서버도
+     같은 순서로 판정하므로(shape_of_tags), 어긋나면 넘어간 화면의 칩과
+     실제로 뽑히는 폰트가 다른 계열이 된다. */
+  var PAIR_SHAPE_BY_TAG = [
+    ['gothic',  ['제목-본문용 고딕', '네모틀 고딕', '제목용 굴림', 'UI/UX/Web']],
+    ['serif',   ['부드러운 명조', '독특한 세리프']],
+    ['hand',    ['손글씨', '캘리그라피']],
+    ['display', ['디스플레이', '장식', '시선을 끄는 제목용']],
+    ['cute',    ['귀여운', '펜시']]
   ];
 
   function pairUrl(f){
@@ -1585,15 +1588,13 @@
     function has(list){
       return list.some(function(t){ return tags.indexOf(t) >= 0; });
     }
-    /* 본문용으로 나온 서체를 100px 제목 자리에 앉히면 그 폰트를 잘못
-       보여 주는 셈이다. 나머지 두 자리는 조합 찾기가 채운다. */
     var slot = (has(PAIR_BODY_TAGS) && !has(PAIR_LOUD_TAGS)) ? 'b' : 't';
-    var cat = 'brand';
-    for (var i = 0; i < PAIR_CAT_BY_TAG.length; i++) {
-      if (has(PAIR_CAT_BY_TAG[i][1])) { cat = PAIR_CAT_BY_TAG[i][0]; break; }
+    var shape = 'gothic';
+    for (var i = 0; i < PAIR_SHAPE_BY_TAG.length; i++) {
+      if (has(PAIR_SHAPE_BY_TAG[i][1])) { shape = PAIR_SHAPE_BY_TAG[i][0]; break; }
     }
     /* lock= 이 없으면 넘어가자마자 '조합 새로고침' 한 번에 갈려 나간다 */
-    var q = [slot + '=' + f.id, 'lock=' + slot, 'cat=' + cat];
+    var q = [slot + '=' + f.id, 'lock=' + slot, 'shape=' + shape];
     if (f.is_english) q.push('sc=en');
     return '/font-pair?' + q.join('&');
   }

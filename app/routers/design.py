@@ -985,19 +985,17 @@ def _pair_guide_block(db: Session) -> str:
     콘텐츠로 읽힌다. 감춰 두고 크롤러에게만 보여주는 것은 위반이므로 사람이
     읽어도 쓸모 있는 글로 둔다.
 
-    설명은 지어내지 않는다 — PAIR_CATEGORIES 가 이미 자리마다 desc 와 themes 를
-    갖고 있고, 화면 위 칩은 고른 하나의 desc 만 보여준다. 나머지 여섯을 펼치는 것이
-    이 블록이 하는 일이다.
+    설명은 지어내지 않는다 — SHAPES 가 이미 계열마다 desc 를 갖고 있고, 화면 위
+    칩은 고른 하나의 desc 만 보여준다. 나머지를 펼치는 것이 이 블록이 하는 일이다.
     """
-    from ..pair_specimens import PAIR_CATEGORIES
+    from ..pair_specimens import SHAPES
     from ..font_pair_engine import top_fonts_for
 
     cells = []
-    for c in PAIR_CATEGORIES:
-        themes = c.get("themes") or []
-        t = ('<span class="themes">%s</span>' % _esc(" · ".join(themes))) if themes else ""
+    for c in SHAPES:
+        t = ""
 
-        # 그 자리에 잘 맞는 폰트를 링크로 건다.
+        # 그 계열에서 제목으로 잘 맞는 폰트를 링크로 건다.
         #
         # 왜 넣나: 이 페이지는 조합 결과를 전부 JS가, 그것도 무작위로 그린다.
         # 그래서 서버가 내려주는 HTML 에는 폰트 이름도 /font/ 링크도 하나도
@@ -1021,16 +1019,15 @@ def _pair_guide_block(db: Session) -> str:
 
     return (
         '<section class="fp-guide">'
-        "<h1>폰트 조합 찾기 — 어디에 쓸지부터 고르세요</h1>"
-        '<p class="lead">같은 폰트라도 자막에서 좋은 짝과 본문에서 좋은 짝이 다릅니다. '
-        "쓰는 자리를 먼저 고르면 그 자리의 실제 틀 위에 제목·부제·본문을 얹어 "
-        "보여드립니다. 서체는 대개 <b>두 벌</b>입니다 — 자리마다 두 칸은 같은 폰트의 "
-        "다른 굵기로 묶어 두었습니다. 굵기로 위계를 주는 쪽이 서체를 하나 더 "
-        "늘리는 것보다 실패가 적기 때문입니다. 일곱 자리가 각각 어떤 자리인지 "
-        "아래에 적었습니다.</p>"
+        "<h1>폰트 조합 찾기 — 글자 모양부터 고르세요</h1>"
+        '<p class="lead">글자의 <b>모양</b>부터 고르세요. 고딕을 고르면 고딕 제목에 '
+        "어울리는 본문이 붙습니다. 붙는 폰트는 <b>둘</b>뿐입니다 — 제목과 본문의 "
+        "관계만 보면 짝이 맞는지 바로 읽히기 때문입니다. 본문은 어느 모양을 고르든 "
+        "고딕과 명조에서 고릅니다. 손글씨나 장식체를 문단으로 깔면 읽히지 않습니다. "
+        "다섯 계열이 각각 어떤 글자인지 아래에 적었습니다.</p>"
         '<div class="fp-guide-grid">' + "".join(cells) + "</div>"
         '<div class="fp-guide-note">'
-        "<h3>조합이 어긋나는 흔한 자리</h3>"
+        "<h3>조합이 어긋나는 흔한 경우</h3>"
         "<ul>"
         "<li><b>제목과 본문의 굵기 차이가 모자랄 때.</b> 둘 다 700이면 어느 쪽을 "
         "먼저 읽어야 할지 알 수 없습니다. 제목을 올리기보다 본문을 400이나 300으로 "
@@ -1088,16 +1085,16 @@ def font_pair_page(request: Request, db: Session = Depends(get_db)):
     # 칩 아래 설명 한 줄. JS가 카테고리를 바꿀 때마다 갈아끼우지만, 첫 줄은
     # 서버가 박아 넣는다 — 안 그러면 로드 직후 한 줄이 비었다가 채워지고,
     # 크롤러에게는 끝내 안 보인다. 주소의 cat= 을 그대로 따른다.
-    from ..pair_specimens import get_category
+    from ..pair_specimens import get_shape
     html = html.replace(
         "{{FFP_PAIR_DESC}}",
-        get_category(request.query_params.get("cat"))["desc"], 1)
+        get_shape(request.query_params.get("shape")
+                  or request.query_params.get("cat"))["desc"], 1)
 
     title = "폰트 조합 찾기 - 제목·본문 폰트 짝 맞추기 | 폰트픽"
-    desc = ("제목·서브타이틀·본문에 쓸 무료 폰트를 한 화면에서 맞춰 보세요. "
-            "영상 자막, 카드뉴스, 브랜딩, 포스터, 손글씨, 본문 읽기까지 쓰는 "
-            "자리를 고르면 그 자리의 실제 틀 위에 조합을 얹어 보여드립니다. "
-            "마음에 드는 폰트는 잠그고 나머지만 다시 뽑을 수 있습니다.")
+    desc = ("고딕·명조·손글씨·디스플레이 중 글자 모양을 고르면 제목에 어울리는 "
+            "본문 폰트를 붙여 보여드립니다. 무료 한글 폰트 두 벌을 한 화면에서 "
+            "맞춰 보고, 마음에 드는 쪽은 잠그거나 위아래를 바꿔 볼 수 있습니다.")
     url = f"{BASE_URL}/font-pair"
 
     html = re.sub(r"<title>.*?</title>", f"<title>{title}</title>",
@@ -1120,12 +1117,12 @@ def font_pair_page(request: Request, db: Session = Depends(get_db)):
                   rf"\g<1>{desc}\g<2>", html, count=1)
 
     # 구조화 데이터. 다른 세 페이지 유형(홈·상세·허브)에는 다 있는데 여기만
-    # 없었다. 자리마다 추천 폰트를 묶은 목록이므로 CollectionPage + ItemList 로
+    # 없었다. 계열마다 추천 폰트를 묶은 목록이므로 CollectionPage + ItemList 로
     # 낸다 — 허브(/use/*)와 같은 모양이다.
-    from ..pair_specimens import PAIR_CATEGORIES
+    from ..pair_specimens import SHAPES
     from ..font_pair_engine import top_fonts_for
     items = []
-    for c in PAIR_CATEGORIES:
+    for c in SHAPES:
         picks = top_fonts_for(db, c["key"], 5)
         if not picks:
             continue

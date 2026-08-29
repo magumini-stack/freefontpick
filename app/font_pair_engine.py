@@ -28,7 +28,7 @@
 같은 일을 훨씬 정확히 한다 — font_metrics.py가 `usWeightClass`를 버린 것과 같은
 이유다.
 
-카테고리마다 슬롯이 원하는 **백분위 목표**를 손으로 적어 둔다(아래 PROFILES).
+모양마다 제목이 원하는 **백분위 목표**를 손으로 적어 둔다(아래 TITLE_TARGET).
 절대값이 아니라 백분위라, 폰트가 늘거나 측정 기준이 바뀌어도 뜻이 유지된다.
 """
 import math
@@ -36,105 +36,57 @@ import random
 from collections import deque
 
 from .font_metrics import metrics_of
-from .pair_specimens import get_category, specimen
+from .pair_specimens import (BODY_EXCLUDE, BODY_SHAPES, SHAPES,
+                             SURPRISE_KEY, get_shape, specimen)
 
-# ── 카테고리별 슬롯 목표 ──────────────────────────────────────────
+# ── 모양별 슬롯 목표 ─────────────────────────────────────────────
 #
-# d/w/x는 **백분위 목표**(0=가장 가는 쪽, 1=가장 굵은 쪽)다. 적지 않은 축은
-# 점수에 넣지 않는다 — 굳이 상관없는 자리까지 묶으면 후보만 좁아진다.
+# d/w/x 는 **백분위 목표**(0=가장 가는 쪽, 1=가장 굵은 쪽)다. 적지 않은 축은
+# 점수에 넣지 않는다 — 상관없는 자리까지 묶으면 후보만 좁아진다.
 #
-# tags/usage는 있으면 가산점(없다고 감점하지 않는다). 메타 채움률이 고르지
-# 않아서(industry 53%, personality 66%) 필수 조건으로 쓰면 절반이 탈락한다.
-PROFILES = {
-    "video": {   # 썸네일·자막 — 작게 줄여도 버티게 굵고 넓게
-        "title": {"d": 0.85, "w": 0.70},
-        "subtitle": {"d": 0.55},
-        "body": {"d": 0.45},
-        "tags": {"유튜브 썸네일 추천": 2.0, "브이로그 자막용": 2.0,
-                 "시선을 끄는 제목용": 1.5, "네모틀 고딕": 1.0},
-        "usage": {"썸네일": 1.5, "영상자막": 1.5, "제목": 1.0},
-    },
-    "sns": {     # 카드뉴스 — 제목은 또렷하게, 본문은 편하게
-        "title": {"d": 0.75, "w": 0.60},
-        "subtitle": {"d": 0.50},
-        "body": {"d": 0.38},
-        "tags": {"카드뉴스용": 2.0, "시선을 끄는 제목용": 1.2, "귀여운": 0.8},
-        "usage": {"SNS카드": 1.5, "캐치프레이즈": 1.0, "제목": 0.8},
-    },
-    "brand": {   # 명함·로고 — 과한 굵기보다 자형의 절제
-        "title": {"d": 0.55, "w": 0.45},
-        "subtitle": {"d": 0.35},
-        "body": {"d": 0.30},
-        "tags": {"로고디자인": 2.0, "독특한 세리프": 1.2, "부드러운 명조": 1.0,
-                 "디자인 영어": 0.8},
-        "usage": {"로고": 1.5, "패키지": 1.0, "캐치프레이즈": 0.8},
-    },
-    "poster": {  # 안내문 — 멀리서 읽히는 것이 전부
-        "title": {"d": 0.80, "w": 0.75},
-        "subtitle": {"d": 0.50},
-        "body": {"d": 0.45, "x": 0.65},
-        "tags": {"네모틀 고딕": 1.5, "제목-본문용 고딕": 1.5, "시선을 끄는 제목용": 1.2},
-        "usage": {"포스터": 1.5, "정보전달": 1.2, "제목": 0.8},
-    },
-    "hand": {    # 감성·손글씨 — 굵기보다 필적
-        "title": {"d": 0.45},
-        "subtitle": {"d": 0.35},
-        "body": {"d": 0.30},
-        "tags": {"손글씨": 2.5, "캘리그라피": 2.0, "귀여운": 1.2, "펜시": 0.8},
-        "usage": {"SNS카드": 0.8, "제목": 0.5},
-        # 이 자리에는 손글씨와 부드러운 명조만 내보낸다.
-        #
-        # 처음에는 가산점만 줬는데 실측 40회에서 25회가 고딕이었다. 고딕을
-        # 빼자 이번에는 디스플레이·세리프가 그 자리를 채웠다. 이 자리는
-        # '필적이 먼저 닿는 자리'라 계열 자체를 좁히는 편이 맞다.
-        "require": {"손글씨", "캘리그라피", "귀여운", "펜시", "부드러운 명조"},
-        # 제목은 그중에서도 손글씨 계열만. 명조가 제목에 오면 이 자리가 아니다.
-        "require_slot": {"title": {"손글씨", "캘리그라피", "귀여운", "펜시"}},
-    },
-    "read": {    # 본문 — 오래 읽어도 지치지 않게
-        "title": {"d": 0.60},
-        "subtitle": {"d": 0.42},
-        "body": {"d": 0.35, "x": 0.60},
-        "tags": {"부드러운 명조": 2.2, "제목-본문용 고딕": 1.8, "네모틀 고딕": 1.5,
-                 "UI/UX/Web": 1.2, "제목용 굴림": 0.8},
-        "usage": {"본문": 2.0, "출판": 1.2, "정보전달": 1.0},
-        # 오래 읽는 자리라 손글씨·장식 계열은 아예 후보에서 뺀다. 가산점을 안
-        # 주는 것만으로는 부족했다 — 점수가 낮아도 확률 추출이라 결국 나온다.
-        "exclude": {"손글씨", "캘리그라피", "펜시", "장식", "귀여운"},
-        # 서브타이틀과 본문은 제목보다 더 좁게 본다. 디스플레이 서체는 표제로는
-        # 쓰지만 문단으로 깔면 읽히지 않는다.
-        "exclude_slot": {
-            "subtitle": {"디스플레이", "시선을 끄는 제목용"},
-            "body": {"디스플레이", "시선을 끄는 제목용"},
-        },
-    },
+# 제목은 고른 모양에서, 본문은 늘 고딕·명조에서 고른다(BODY_SHAPES).
+# 그래서 목표도 제목만 모양마다 다르고 본문은 하나로 둔다 — 본문에 요구하는
+# 것은 계열이 무엇이든 '오래 읽어도 지치지 않는가' 하나뿐이다.
+TITLE_TARGET = {
+    "gothic":  {"d": 0.65},
+    "serif":   {"d": 0.55},
+    "hand":    {"d": 0.45},
+    "display": {"d": 0.80, "w": 0.65},
+    "cute":    {"d": 0.60},
 }
+BODY_TARGET = {"d": 0.35, "x": 0.60}
+
+# 모양 → 그 계열로 인정하는 태그. pair_specimens.SHAPES 에서 그대로 가져온다.
+SHAPE_TAGS = {c["key"]: set(c["tags"]) for c in SHAPES}
+
+# 본문으로 인정하는 태그(고딕 + 명조)를 미리 합쳐 둔다.
+BODY_TAGS = set()
+for _k in BODY_SHAPES:
+    BODY_TAGS |= SHAPE_TAGS[_k]
 
 # 후보를 이만큼도 못 남기면 거르지 않는다. 걸러서 텅 비는 것보다 낫다.
 _MIN_POOL = 8
 
 
-def _allowed(font, cat_prof, slot) -> bool:
-    """이 카테고리·슬롯에서 쓸 수 있는 폰트인가.
+def _tags(font) -> set:
+    return {t.name for t in (font.tags or [])}
 
-    exclude / exclude_slot 은 '빼는' 조건이고, require_slot 은 '있어야만
-    쓰는' 조건이다. 가산점만으로는 부족한 자리가 있어서 뒤엣것을 더했다 —
-    점수를 아무리 줘도 확률 추출이라 결국 다른 계열이 섞여 나온다.
+
+def _in_shape(font, shape: str) -> bool:
+    """이 폰트가 그 모양 계열인가."""
+    return bool(_tags(font) & SHAPE_TAGS.get(shape, set()))
+
+
+def _body_ok(font) -> bool:
+    """본문으로 써도 되는 폰트인가.
+
+    고딕·명조여야 하고, 그중에서도 장식·손글씨 성격을 겸하는 것은 뺀다.
+    한 폰트가 두 계열에 걸치는 경우가 실제로 있어서(고딕이면서 디스플레이)
+    계열만 보고 넣으면 문단이 읽히지 않는다.
     """
-    names = {t.name for t in (font.tags or [])}
+    t = _tags(font)
+    return bool(t & BODY_TAGS) and not (t & BODY_EXCLUDE)
 
-    # require 는 카테고리 전체, require_slot 은 그 슬롯에만. 둘 다 있으면
-    # 슬롯 쪽이 이긴다 — 합집합으로 두면 좁게 잡아 둔 슬롯이 도로 넓어진다.
-    need = (cat_prof.get("require_slot") or {}).get(slot)
-    if need is None:
-        need = cat_prof.get("require")
-    need = set(need or ())
-    if need and not (names & need):
-        return False
-
-    ban = set(cat_prof.get("exclude") or ())
-    ban |= set((cat_prof.get("exclude_slot") or {}).get(slot) or ())
-    return not (names & ban)
 
 # 최근에 내보낸 폰트를 잠시 피한다. 연속으로 누를 때 같은 얼굴이 또 나오면
 # "안 바뀐다"로 읽힌다. 프로세스 메모리라 재시작하면 비워진다 — 그래도 된다.
@@ -328,77 +280,24 @@ def pick_weight(font, target: int, cap: int = 900) -> int:
     return min(pool, key=lambda w: abs(w - target))
 
 
-# ── 한 집안으로 묶는 두 슬롯 ─────────────────────────────────────
-#
-# 매거진 '폰트 조합 만드는 법' 5번은 "굵기가 여러 개인 폰트 하나를 골라 제목에
-# 굵은 것, 본문에 가는 것을 쓰는 것이 가장 실패가 적다"고 쓴다. 그런데 이 도구는
-# 늘 서로 다른 셋을 내놨다. 우리 글과 도구가 서로 다른 말을 하고 있었다.
-#
-# 자리마다 묶는 짝이 다른 이유는 그 자리에서 개성을 맡는 슬롯이 다르기 때문이다.
-# 손글씨 자리는 제목이 개성을 맡으니 서브·본문을 한 집안으로 묶어 받치고,
-# 읽는 자리는 본문이 주인공이라 제목·서브를 묶는다.
-#
-# 결과는 늘 '두 서체'다. 셋을 다 다르게 두는 것은 '뜻밖의 발견'뿐이다.
-FAMILY_PAIRS = {
-    "video": ("subtitle", "body"),
-    "sns": ("title", "subtitle"),
-    "brand": ("title", "subtitle"),
-    "poster": ("subtitle", "body"),
-    # "hand" 는 없다 — 화면에서 서브타이틀을 빼서(.mk-note .fp-blk-sub) 묶을
-    # 두 자리가 남지 않는다. 묶어 두면 본문이 '굵기 2개 이상'인 폰트로만
-    # 좁혀지는데, 손글씨 중 그런 폰트는 13종뿐이라 후보만 잃는다.
-    "read": ("title", "subtitle"),
-    # "surprise" 는 없다 — 어울림 계산을 끄는 자리라 묶을 근거도 없다.
-}
+def generate(db, shape: str = "", script: str = "ko",
+             locked: dict = None) -> dict:
+    """제목 · 본문 두 폰트 한 벌.
 
+    고른 모양은 **제목**에 걸린다. 본문은 언제나 고딕·명조에서 고른다 —
+    손글씨나 장식체를 문단으로 깔면 읽히지 않기 때문이다.
 
-def _multi(font, cap: int = 900) -> bool:
-    """cap 이하에서 서로 다른 굵기를 둘 이상 갖고 있나.
-
-    한 폰트로 두 자리를 채우는데 굵기까지 같으면 위계가 없다. 화면에는 같은
-    이름이 두 번 뜨고 글자도 똑같아서 '고장 났나'로 읽힌다.
-    """
-    return len({w for w in font_weights(font) if w <= cap}) >= 2
-
-
-def _family_weights(font, hi_target: int, lo_target: int, cap: int = 900):
-    """한 폰트에서 서로 다른 두 굵기를 고른다 — 굵은 쪽, 가는 쪽.
-
-    hi_target 에 가장 가까운 것을 먼저 잡는데, 그게 하필 가진 것 중 가장 가벼운
-    굵기면 아래가 없어진다(예: 400·900만 있는 폰트에서 500을 노리면 400이 잡힌다).
-    그때는 굵은 쪽을 맨 위로 올려 아래를 만든다.
-    """
-    ws = sorted({w for w in font_weights(font) if w <= cap})
-    if len(ws) < 2:
-        w = pick_weight(font, hi_target, cap=cap)
-        return w, w
-    hi = min(ws, key=lambda w: abs(w - hi_target))
-    lower = [w for w in ws if w < hi]
-    if not lower:
-        hi = ws[-1]
-        lower = ws[:-1]
-    return hi, min(lower, key=lambda w: abs(w - lo_target))
-
-
-def generate(db, category: str, script: str = "ko",
-             locked: dict = None, borrow: str = "") -> dict:
-    """타이틀·서브타이틀·본문 한 벌.
-
-    자리마다 두 슬롯은 같은 폰트의 다른 굵기로 묶는다(FAMILY_PAIRS). 그래서
-    보통은 서체 두 벌이 나온다. 셋을 다 다르게 두는 것은 '뜻밖의 발견'뿐이다.
-
-    locked에 담긴 슬롯은 그대로 두고 나머지만 다시 뽑는다. 사용자가 고정한
-    것이 언제나 이긴다 — 가장 먼저 used에 들어가기 때문이다.
+    locked 에 담긴 슬롯은 그대로 두고 나머지만 다시 뽑는다. 상세페이지에서
+    넘어올 때 그 폰트를 잠근 채로 들어오는 것이 이 경로다.
     """
     from .models import Font
 
     locked = locked or {}
     if script not in ("ko", "en", "mix"):
         script = "ko"
-    cat = get_category(category)
+    cat = get_shape(shape)
     key = cat["key"]
-    surprise = key == "surprise"
-    prof = PROFILES.get(key, {})
+    surprise = key == SURPRISE_KEY
 
     fonts = db.query(Font).all()
     by_id = {f.id: f for f in fonts}
@@ -408,192 +307,108 @@ def generate(db, category: str, script: str = "ko",
     if len(title_pool) < 1 or len(text_pool) < 2:
         title_pool, text_pool = script_pools("ko", fonts)
 
-    used = set()
     fixed = {}
-    for slot in ("title", "subtitle", "body"):
+    used = set()
+    for slot in ("title", "body"):
         f = by_id.get(locked.get(slot) or 0)
         if f is not None:
             fixed[slot] = f
             used.add(f.id)
 
-    def pick(pool, slot, extra=None, require=None):
+    def pick(pool, target, extra=None, keep=None):
         """후보를 좁히지 않는다. 전부 점수를 매기고 확률로 뽑는다 —
         상위 N종으로 자르던 옛 방식이 다양성을 죽인 원인이었다.
 
-        require 는 '한 집안'을 맡을 폰트를 고를 때만 쓴다(굵기가 둘 이상).
+        keep 은 '이 조건을 만족해야 후보'라는 뜻이다. 후보가 _MIN_POOL 도
+        안 되면 조건을 푼다 — 걸러서 텅 비는 것보다 낫다.
         """
         cands = [f for f in pool if f.id not in used]
-        if require:
-            # 한 집안을 맡을 폰트를 고르는 길이다. 여기서는 카테고리 계열
-            # 조건(_allowed)을 양보하지 않는다 — 후보가 모자라면 '한 집안'을
-            # 포기하는 편이, 감성·손글씨 자리에 고딕이 끼는 것보다 낫다.
-            # 비면 None 을 돌려주고 generate 가 묶지 않는 길로 되돌아간다.
-            cands = [f for f in cands if require(f) and _allowed(f, prof, slot)]
-            if not cands:
-                return None
-        else:
-            if not cands:
-                return None
-            # 여기서는 후보가 너무 줄면 거르지 않는다 — 걸러서 텅 비는 것보다 낫다.
-            keep = [f for f in cands if _allowed(f, prof, slot)]
-            if len(keep) >= _MIN_POOL:
-                cands = keep
+        if keep:
+            narrowed = [f for f in cands if keep(f)]
+            # 하나라도 남으면 조건을 지킨다. 아무것도 안 남을 때만 푼다 —
+            # 걸러서 텅 비는 것보다는 조건을 어기는 편이 낫다.
+            if narrowed:
+                cands = narrowed
+        if not cands:
+            return None
         if surprise:
             return random.choice(cands)
         scored = []
         for f in cands:
-            s = _slot_score(f, pcts, prof.get(slot, {}), prof)
+            sc = _slot_score(f, pcts, target, {})
             if extra:
-                s += extra(f)
+                sc += extra(f)
             if f.id in _RECENT:
-                s -= _RECENT_PENALTY
-            scored.append((s, f))
+                sc -= _RECENT_PENALTY
+            scored.append((sc, f))
         return _weighted_pick(scored)
 
-    # ── 이번 판에서 한 집안으로 묶을 두 슬롯 ──────────────────────
-    pair = None if surprise else FAMILY_PAIRS.get(key)
-    if pair:
-        a, b = pair
-        if a in fixed and b in fixed and fixed[a].id != fixed[b].id:
-            # 사용자가 두 자리를 서로 다른 폰트로 고정했다. 고정한 것이 이긴다.
-            pair = None
-        elif script == "mix" and "title" in pair:
-            # 섞어 쓰기는 제목을 영문에서, 나머지를 한글에서 뽑는다. 한 폰트가
-            # 양쪽 후보군에 다 있을 수 없으므로 제목이 낀 짝은 묶지 못한다.
-            pair = None
-        else:
-            lead_pool = title_pool if a == "title" else text_pool
-            if len([f for f in lead_pool if _multi(f)]) < _MIN_POOL:
-                # 굵기 여러 개인 후보가 이만큼도 없으면 묶어도 위계가 안 나온다.
-                pair = None
-
-    head_family = bool(pair) and pair[0] == "title"
-
-    # ── 제목 ─────────────────────────────────────────────────────
-    t_font = fixed.get("title") or (fixed.get("subtitle") if head_family else None)
+    # ── 제목 — 고른 모양에서 ─────────────────────────────────────
+    t_font = fixed.get("title")
     if t_font is None:
-        t_font = pick(title_pool, "title", require=_multi if head_family else None)
+        t_font = pick(title_pool, TITLE_TARGET.get(key, {"d": 0.6}),
+                      keep=None if surprise else (lambda f: _in_shape(f, key)))
     if t_font is None:
         return {}
-    if head_family and not _multi(t_font):
-        pair = head_family = None   # 고정된 폰트가 굵기 하나뿐이면 못 묶는다
     used.add(t_font.id)
 
-    # 제목·서브가 한 집안이면 둘의 굵기를 여기서 먼저 정한다. 본문이 넘지 말아야
-    # 할 선이 제목(t_w)이 아니라 서브(s_w)라서, 그 값을 알아야 아래 후보를
-    # 제대로 거를 수 있다. 나중에 정하면 상한만 걸리고 후보는 안 걸러져,
-    # 본문이 서브보다 굵게 나오는 판이 생긴다 — 실제로 그랬다.
-    s_w = None
-    if head_family:
-        t_w, s_w = _family_weights(t_font, 700, 500)
-    else:
-        t_w = pick_weight(t_font, 700)
+    # ── 본문 — 언제나 고딕·명조에서, 제목과 맞춰 ─────────────────
+    #
+    # 굵기 조건을 고르는 단계에 넣는다. 나중에 상한만 걸어서는 안 된다 —
+    # pick_weight 는 상한 이하가 하나도 없으면 가진 것 중에서 고르기 때문이다.
+    # 실제로 300 뿐인 손글씨 제목에 400 짜리 본문이 붙어 위계가 뒤집혔다.
+    t_w = pick_weight(t_font, 700)
 
-    # 서브·본문은 제목보다 굵으면 안 된다. 굵기를 나중에 깎는 것만으로는 부족하다
-    # — 굵기를 하나만 가진 폰트가 있어 상한을 걸어도 그 값이 나온다. 고르는
-    # 단계에서 거른다. 후보가 너무 줄면 되돌린다(위계보다 조합이 안 나오는 쪽이
-    # 더 나쁘고, 크기 차이가 위계를 거들어 준다).
-    ceiling = s_w if head_family else t_w
-    fit = [f for f in text_pool if min(font_weights(f)) <= ceiling]
-    if len(fit) >= 12:
-        text_pool = fit
+    def body_keep(f):
+        if min(font_weights(f)) > t_w:
+            return False
+        return True if surprise else _body_ok(f)
 
-    s_font = b_font = None
-
-    if head_family:
-        # 제목·서브가 한 집안. 본문만 다른 집안에서 고른다.
-        s_font = t_font
-        b_font = fixed.get("body") or pick(
-            text_pool, "body",
-            lambda f: _contrast(t_font, f, pcts) + _harmony(t_font, f, pcts))
-    elif pair:
-        # 서브·본문이 한 집안. 제목이 개성을 맡고 나머지를 한 집안이 받친다.
-        fam = fixed.get("subtitle") or fixed.get("body")
-        if fam is not None and not _multi(fam, t_w):
-            fam, pair = None, None
-        if pair and fam is None:
-            fam = pick(text_pool, "body",
-                       lambda f: _contrast(t_font, f, pcts) + _harmony(t_font, f, pcts),
-                       require=lambda f: _multi(f, t_w))
-        if fam is None:
-            pair = None
-        else:
-            s_font = b_font = fam
-            used.add(fam.id)
-
-    if not pair:
-        # 묶지 않는 자리(뜻밖의 발견)거나, 묶으려다 후보가 없어 물러선 경우.
-        b_font = b_font or fixed.get("body") or pick(
-            text_pool, "body",
-            lambda f: _contrast(t_font, f, pcts) + _harmony(t_font, f, pcts))
-        if b_font is None:
-            return {}
-        used.add(b_font.id)
-        # 서브타이틀은 제목과 본문 사이에 놓인다. 셋이 전부 다른 결이면
-        # 산만해지므로 이미 뽑힌 둘과 닮은 쪽을 우선한다.
-        s_font = fixed.get("subtitle") or pick(
-            text_pool, "subtitle",
-            lambda f: (_harmony(t_font, f, pcts) + _harmony(b_font, f, pcts)) * 0.6)
-        if s_font is None:
-            s_font = pick(text_pool, "subtitle")
-
-    if s_font is None or b_font is None:
+    b_font = fixed.get("body")
+    if b_font is None:
+        b_font = pick(
+            text_pool, BODY_TARGET,
+            lambda f: _contrast(t_font, f, pcts) + _harmony(t_font, f, pcts),
+            keep=body_keep)
+    if b_font is None:
         return {}
-    if b_font.id not in used:
-        used.add(b_font.id)
+    used.add(b_font.id)
 
-    # ── 굵기 ─────────────────────────────────────────────────────
-    if head_family:
-        # t_w · s_w 는 위에서 이미 정했다(같은 폰트라 굵기까지 같으면 위계가
-        # 없으므로 _family_weights 가 반드시 다른 값을 준다).
-        b_w = pick_weight(b_font, 300, cap=s_w)
-    elif pair:
-        s_w, b_w = _family_weights(s_font, 500, 300, cap=t_w)
-    else:
-        # 본문은 300이 있으면 300으로 간다. 오래 읽는 글은 한 단 가볍게 앉는 쪽이
-        # 덜 지친다 — 400만 있는 폰트는 pick_weight가 알아서 400을 준다.
-        b_w = pick_weight(b_font, 300, cap=t_w)
-        s_w = pick_weight(s_font, max(b_w, min(t_w, 500)), cap=max(t_w, b_w))
-        if s_w < b_w:
-            s_w = pick_weight(s_font, b_w, cap=max(t_w, b_w))
+    b_w = pick_weight(b_font, 300, cap=t_w)
 
-    for fid in {t_font.id, s_font.id, b_font.id}:
+    for fid in {t_font.id, b_font.id}:
         _RECENT.append(fid)
 
     return {
-        "category": key,
-        "category_label": cat["label"],
+        "shape": key,
+        "shape_label": cat["label"],
         "script": script,
-        # 어느 두 슬롯이 한 집안인지 — 화면이 같은 이름을 두 번 보여줄 때
-        # "왜 똑같지"가 아니라 "일부러 묶은 것"으로 읽히게 하려면 필요하다.
-        "family": list(pair) if pair else [],
-        "fonts": {"title": font_brief(t_font), "subtitle": font_brief(s_font),
-                  "body": font_brief(b_font)},
-        "weights": {"title": t_w, "subtitle": s_w, "body": b_w},
-        "samples": specimen(key, script, borrow=borrow),
+        "fonts": {"title": font_brief(t_font), "body": font_brief(b_font)},
+        "weights": {"title": t_w, "body": b_w},
+        "samples": specimen(script),
     }
 
 
-def top_fonts_for(db, category: str, n: int = 8) -> list:
-    """그 카테고리에 가장 잘 맞는 폰트 n종 (점수순, 무작위 없음).
+def top_fonts_for(db, shape: str, n: int = 8) -> list:
+    """그 모양에서 제목으로 가장 잘 맞는 폰트 n종 (점수순, 무작위 없음).
 
-    페이지 아래 소개 블록이 쓴다. 저장된 조합에서 뽑던 것을 이걸로 바꾼다 —
-    화면이 추천하는 것과 아래 목록이 서로 다른 근거를 쓰면, 같은 페이지에서
-    두 답이 어긋난다. 실제로 '브랜딩 · 로고' 아래에 손글씨체가 실려 있었다.
+    페이지 아래 소개 블록이 쓴다. 화면이 추천하는 것과 아래 목록이 서로 다른
+    근거를 쓰면 같은 페이지에서 두 답이 어긋난다.
     """
     from .models import Font
 
-    cat = get_category(category)
-    prof = PROFILES.get(cat["key"])
-    if not prof:
-        # '뜻밖의 발견'은 고르는 기준 자체가 없다. 점수가 전부 같아 정렬이
-        # 무의미하므로 목록을 내지 않는다 — 아무 순서나 실으면 "이게 추천인가"로
-        # 읽힌다.
+    cat = get_shape(shape)
+    key = cat["key"]
+    if key == SURPRISE_KEY:
+        # 고르는 기준 자체가 없는 자리다. 아무 순서나 실으면 "이게 추천인가"로
+        # 읽히므로 목록을 내지 않는다.
         return []
-    fonts = [f for f in db.query(Font).all() if not is_english(f)]
+    fonts = [f for f in db.query(Font).all()
+             if not is_english(f) and _in_shape(f, key)]
     if not fonts:
         return []
-    pcts = _percentiles(fonts)
-    scored = [(_slot_score(f, pcts, prof.get("title", {}), prof), f) for f in fonts]
+    pcts = _percentiles(db.query(Font).all())
+    target = TITLE_TARGET.get(key, {"d": 0.6})
+    scored = [(_slot_score(f, pcts, target, {}), f) for f in fonts]
     scored.sort(key=lambda x: x[0], reverse=True)
     return [f for _, f in scored[:n]]
