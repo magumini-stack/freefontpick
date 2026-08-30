@@ -813,24 +813,40 @@
        그래서 본문 흐름 안으로 내렸다. 겹칠 자리가 아예 없어진다.
 
        1600px 이상에서는 우측 세로 배너(.side-promo)가 같은 일을 하므로 감춘다. */
-    .fbx{text-decoration:none;max-width:1240px;margin:10px auto 16px;padding:14px 16px;
-      display:flex;align-items:center;gap:12px;
-      background:var(--bg-card);border:1px solid var(--border);border-radius:14px}
-    .fbx:hover{border-color:var(--accent)}
-    @media(min-width:1600px){.fbx{display:none}}
-    .fbx-ico{width:52px;height:52px;border-radius:12px;font-size:25px}
+    /* 화면 아래에서 올라오는 띠. 처음부터 떠 있지 않고 한 화면 반쯤
+       내려간 뒤에 올라온다(static/app-bar.js). 들어오자마자 화면을 가리는
+       홍보물은 구글 모바일 인터스티셜 페널티 대상이지만, 스크롤 뒤에 뜨는
+       얇은 띠에 닫기 버튼이 있으면 그 대상이 아니다.
+       앵커 광고가 뜨면 스스로 물러난다 — 자세한 이유는 app-bar.js 첫머리. */
+    .fbx-bar{position:fixed;left:0;right:0;bottom:0;z-index:120;
+      display:flex;align-items:center;gap:6px;
+      padding:9px 10px calc(9px + env(safe-area-inset-bottom, 0px)) 12px;
+      background:var(--bg-card);border-top:1px solid var(--border);
+      box-shadow:0 -6px 22px rgba(0,0,0,.10);
+      transform:translateY(115%);transition:transform .28s ease;
+      pointer-events:none}
+    .fbx-bar.show{transform:translateY(0);pointer-events:auto}
+    @media(min-width:1600px){.fbx-bar{display:none}}
+    @media(prefers-reduced-motion:reduce){.fbx-bar{transition:none}}
+    .fbx{text-decoration:none;flex:1;min-width:0;
+      display:flex;align-items:center;gap:11px;color:inherit}
+    .fbx-ico{width:44px;height:44px;border-radius:11px;flex:0 0 auto;
+      border:1px solid var(--border);background:#fff}
     .fbx-txt{flex:1;min-width:0;line-height:1.35}
-    .fbx-txt b{display:block;font-size:14.5px;font-weight:800;margin-bottom:2px}
+    .fbx-txt b{display:block;font-size:14.5px;font-weight:800;margin-bottom:1px}
     /* 주 카피와 부제를 크기·색으로 갈라 위계를 만든다.
        같은 굵기·같은 색이면 두 줄이 한 문장처럼 붙어 읽혀서
        무엇이 핵심인지 사라진다. */
     .fbx-txt span{display:block;word-break:keep-all}
     .fbx-s1{font-size:11.5px;color:var(--text-secondary)}
-    .fbx-s2{font-size:10.5px;color:var(--text-muted,#9A9A9A);margin-top:1px}
-    .fbx-cta{flex:0 0 auto;background:var(--accent);color:#fff;
-      font-size:13.5px;font-weight:800;padding:10px 18px;border-radius:999px;
-      white-space:nowrap}
-    .fbx:active .fbx-cta{opacity:.85}
+    /* 누를 수 있다는 표시. 글자를 더 얹지 않고 꺾쇠 하나로 둔다. */
+    .fbx-go{flex:0 0 auto;color:var(--text-muted);font-size:20px;line-height:1;
+      padding-right:2px}
+    .fbx-x{flex:0 0 auto;width:30px;height:30px;border:none;background:none;
+      color:var(--text-muted);font-size:20px;line-height:1;cursor:pointer;
+      border-radius:50%;font-family:inherit;padding:0}
+    .fbx-x:hover{background:var(--bg-secondary);color:var(--text-primary)}
+    .fbx:active{opacity:.7}
     /* 닫기는 배너 바깥 위쪽에 띄워 터치 영역이 겹치지 않게 한다 */
 
 </style>
@@ -902,28 +918,6 @@
        카드에 깔리는 문구는 그대로다 — 폰트마다 다른 문구가 자동 배정된다
        (getPreviewTextFor). 카드를 누르면 그 문구가 상세페이지 입력창으로
        이어진다(stashPreviewText → sessionStorage). -->
-
-  <!-- 앱 배너 — 본문 흐름 안이다(고정 아님). 자동 광고의 앵커 광고와 자리를
-       다투지 않게 하려는 것이다. 1600px 이상에서는 우측 세로 배너가 대신한다.
-
-       [2026-08] 앱 셋을 묶어 소개하던 것을 글씨사진관 하나로 좁혔다. 모바일
-       유입이 늘었는데 셋 중 구글 플레이에 있는 것은 글씨사진관뿐이라,
-       안드로이드 이용자에게는 나머지 둘이 받을 수 없는 앱이었다.
-       링크는 /static/app-link.js 가 기기에 맞는 스토어로 바꾼다.
-
-       [자리 2026-08] 갤러리 **위**다. 아래에 있었는데 모바일에서 갤러리가
-       한 열로 펴지면서 배너가 문서 28,900px 지점, 36화면 아래로 밀렸다 —
-       있으나 마나였다. 고정으로 띄우는 대신 자리를 옮긴다. 화면을 덮는
-       홍보물은 구글 모바일 인터스티셜 페널티 대상이라 고정은 답이 아니다. -->
-  <a class="fbx" data-applink="kphototext" href="https://play.google.com/store/apps/details?id=com.wisefont.kphototext"
-     target="_blank" rel="noopener noreferrer">
-    <span class="fbx-ico appico" aria-hidden="true"><i class="ti ti-photo"></i></span>
-    <div class="fbx-txt">
-      <b>글씨사진관</b>
-      <span class="fbx-s1">사진에 감성 글 쓰기 — 캘리그라피부터 본문체까지</span>
-    </div>
-    <span class="fbx-cta">앱 받기</span>
-  </a>
 
   <div class="body-cols">
     <aside class="hub-rail" id="hubRail" aria-label="용도별 바로가기">
@@ -1188,9 +1182,32 @@
 </div>
 
 <!-- 공유 데이터 레이어 (관리자 페이지와 동일 파일을 사용) -->
+<!-- 앱 배너 — 화면 아래에서 올라오는 띠. 고정이라 본문 흐름과 무관하다.
+     예전에는 본문 안에 있었는데 모바일에서 갤러리가 한 열로 펴지면서 문서
+     28,900px 지점으로 밀려 아무도 보지 못했다. 대신 처음부터 떠 있지 않고
+     한 화면 반쯤 내려간 뒤에 올라오며, 앵커 광고가 뜨면 물러난다
+     (static/app-bar.js). 1600px 이상에서는 우측 세로 배너가 대신한다.
+
+     링크는 /static/app-link.js 가 기기에 맞는 스토어로 바꾼다 — 셋 중
+     구글 플레이에 있는 것은 글씨사진관뿐이라 안드로이드에서 중요하다. -->
+<div class="fbx-bar" id="appBar">
+  <a class="fbx" data-applink="kphototext" href="https://play.google.com/store/apps/details?id=com.wisefont.kphototext"
+     target="_blank" rel="noopener noreferrer">
+    <img class="fbx-ico" src="/static/app-gssg.png" width="44" height="44" alt=""
+         loading="lazy" decoding="async">
+    <div class="fbx-txt">
+      <b>글씨사진관</b>
+      <span class="fbx-s1">멋진 사진에 감성글 쓰기</span>
+    </div>
+    <span class="fbx-go" aria-hidden="true">&rsaquo;</span>
+  </a>
+  <button type="button" class="fbx-x" id="appBarX" aria-label="앱 안내 닫기">&times;</button>
+</div>
+
 <script src="/static/ffp-phrases.js"></script>
 <script src="/static/api-client.js"></script>
 <script src="/static/app-link.js"></script>
+<script src="/static/app-bar.js"></script>
 <script>
 let FONTS=[];
 /* 용도 허브 목록 — init()에서 먼저 받아 그리고, FONTS가 온 뒤 글꼴만 입혀

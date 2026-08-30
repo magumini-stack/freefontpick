@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..header import inject_header, not_found_page
-from ..magazine import POSTS, BY_SLUG, image_src
+from ..magazine import POSTS, BY_SLUG, file_src, image_src
 from ..models import Font, UseCase
 
 router = APIRouter(tags=["magazine"])
@@ -94,19 +94,41 @@ def _hub_links(db: Session) -> str:
     ) + "</div>"
 
 
-def _figure(p) -> str:
-    """글 안에 들어가는 그림. 크롤러가 읽는 것은 alt 와 설명글이므로 둘 다 채운다.
-    크기를 못 박아 두는 이유는 이미지가 늦게 와도 글이 밀리지 않게 하기 위해서다."""
-    im = p.get("image")
+def _fig_html(im: dict, src: str) -> str:
+    """그림 한 장. 크롤러가 읽는 것은 alt 와 설명글이므로 둘 다 채운다.
+    width/height 를 적는 것은 그림이 늦게 와도 읽던 줄이 밀리지 않게 하려는
+    것이다 — 비율이 장마다 달라서 기본값(1200×630)을 덮어쓸 수 있게 둔다."""
     if not im:
         return ""
     return (
         '<figure class="mz-fig">'
-        f'<img src="{image_src(p)}" alt="{_esc(im["alt"])}"'
-        ' width="1200" height="630" loading="lazy" decoding="async">'
+        f'<img src="{src}" alt="{_esc(im["alt"])}"'
+        f' width="{int(im.get("w", 1200))}" height="{int(im.get("h", 630))}"'
+        ' loading="lazy" decoding="async">'
         f'<figcaption>{_esc(im["cap"])}</figcaption>'
         "</figure>"
     )
+
+
+def _figure(p) -> str:
+    """대표 그림 — 본문의 {{FIGURE}} 자리에 들어간다."""
+    return _fig_html(p.get("image"), image_src(p))
+
+
+_FIG_MARK = re.compile(r"\{\{FIG:([\w-]+)\}\}")
+
+
+def _fill_figures(body: str, p) -> str:
+    """본문 중간의 {{FIG:키}} 를 그림으로 바꾼다.
+
+    키가 figures 에 없으면 마커만 지운다. 그림 파일을 아직 안 만들었을 때
+    글에 {{FIG:...}} 가 그대로 찍히는 것보다는 그림 없이 나가는 편이 낫다.
+    """
+    figs = p.get("figures") or {}
+    def one(m):
+        im = figs.get(m.group(1))
+        return _fig_html(im, file_src(im["file"])) if im else ""
+    return _FIG_MARK.sub(one, body)
 
 
 def _fill(body: str, db: Session) -> str:
@@ -116,7 +138,10 @@ def _fill(body: str, db: Session) -> str:
     틀린 말이 된다. 마커로 두고 여기서 채운다.
     """
     body = body.replace("{{COUNT}}", str(_font_count(db)))
-    body = body.replace("{{FIGURE}}", "")   # 글마다 다르므로 여기서는 지우기만
+    # 그림 마커는 글마다 다르므로 여기서는 지우기만 한다. 목록·검색용으로
+    # 본문을 훑을 때는 그림이 필요 없다.
+    body = body.replace("{{FIGURE}}", "")
+    body = _FIG_MARK.sub("", body)
     body = body.replace("{{HUB_LINKS}}", _hub_links(db))
     return body
 
@@ -233,7 +258,7 @@ def magazine_post(slug: str, db: Session = Depends(get_db)):
 
     url = f"{BASE_URL}/magazine/{slug}"
     body = '<article class="mz-post">' + _fill(
-        p["body"].replace("{{FIGURE}}", _figure(p)), db)
+        _fill_figures(p["body"].replace("{{FIGURE}}", _figure(p)), p), db)
 
     # 글 아래 다른 글 — 매거진 안에서 돌아다닐 길을 만든다.
     others = [x for x in _sorted_posts() if x["slug"] != slug][:4]
