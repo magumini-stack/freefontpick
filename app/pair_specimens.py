@@ -75,25 +75,6 @@ SHAPES = [
                "newspapers have set long text this way for centuries."),
     },
     {
-        "key": "hand",
-        "label": "손글씨",
-        "desc": "사람이 쓴 획이 그대로 남은 계열입니다. 개성이 강해 한 자리에만 "
-                "두고 나머지는 받쳐 주는 편이 안전합니다.",
-        "tags": {"손글씨", "캘리그라피"},
-        # 짧게. 손글씨가 실제로 놓이는 자리는 카드 한 줄, 인사 한 마디다.
-        # 그래도 본문은 세 줄은 둔다 — 손글씨는 글자마다 모양이 미묘하게 달라서
-        # 여러 줄이 쌓여야 그 결이 보인다. 줄바꿈은 문장 단위로 직접 넣는다
-        # (화면이 pre-line 으로 그린다).
-        "ko": ("오늘도 잘 지냈나요",
-               "손으로 쓴 글씨에는 속도와 힘이 남습니다.\n"
-               "같은 글자를 두 번 써도 모양이 조금씩 다르고,\n"
-               "그 어긋남이 사람 손의 흔적으로 읽힙니다."),
-        "en": ("Hope your day went well",
-               "Handwriting keeps the speed and pressure of the hand.\n"
-               "Write the same letter twice and it comes out\n"
-               "a little different — that drift reads as a person."),
-    },
-    {
         "key": "display",
         "label": "디스플레이 · 장식",
         "desc": "크게 썼을 때를 염두에 두고 만든 계열입니다. 제목에서 힘을 내지만 "
@@ -106,23 +87,33 @@ SHAPES = [
                "Free · Commercial use · 5 minutes"),
     },
     {
-        "key": "cute",
-        "label": "귀여운 · 펜시",
-        "desc": "둥글고 말랑한 인상의 계열입니다. 대상이 뚜렷한 자리에 맞고 "
-                "격식 있는 문서와는 잘 맞지 않습니다.",
-        "tags": {"귀여운", "펜시"},
-        # 대상이 뚜렷하고 말이 짧은 자리다. 그래도 본문은 세 줄은 되어야 한다 —
-        # 한 줄로는 이 폰트를 문단으로 깔았을 때의 결이 안 보인다.
-        "ko": ("말랑말랑 오늘의 기분",
-               "작고 둥근 글자는 짧은 말에 어울립니다.\n"
-               "길게 늘어놓으면 금세 무거워지니\n"
-               "한두 줄로 끊어 주는 편이 좋습니다."),
-        "en": ("A Soft Little Mood",
-               "Round letters suit short and friendly lines.\n"
-               "Stretch them into a long paragraph and they\n"
-               "grow heavy, so keep it to a line or two."),
+        "key": "hand",
+        "label": "손글씨 · 귀여운",
+        "desc": "사람이 쓴 획이 남아 있거나 둥글고 말랑한 계열입니다. 개성이 강해 "
+                "한 자리에만 두고 나머지는 받쳐 주는 편이 안전합니다.",
+        "tags": {"손글씨", "캘리그라피", "귀여운", "펜시"},
+        # 짧게. 이 계열이 실제로 놓이는 자리는 카드 한 줄, 인사 한 마디다.
+        # 그래도 본문은 세 줄은 둔다 — 글자마다 모양이 미묘하게 달라서 여러 줄이
+        # 쌓여야 그 결이 보인다. 줄바꿈은 문장 단위로 직접 넣는다(화면이
+        # pre-line 으로 그린다).
+        "ko": ("오늘도 잘 지냈나요",
+               "손으로 쓴 글씨와 둥근 글자는 짧은 말에 어울립니다.\n"
+               "같은 글자를 두 번 써도 모양이 조금씩 다르고,\n"
+               "그 어긋남이 사람 손의 흔적으로 읽힙니다."),
+        "en": ("Hope your day went well",
+               "Handwriting and round letters suit short lines.\n"
+               "Write the same letter twice and it comes out\n"
+               "a little different — that drift reads as a person."),
     },
 ]
+
+# 없어진 모양 키 → 지금 키. 주소에 남아 있는 링크를 살린다.
+#
+# 2026-08-30 에 '손글씨'와 '귀여운 · 펜시'를 한 계열로 합쳤다. 둘을 가르는 선이
+# 실제 폰트에서 뚜렷하지 않았다 — 둥근 손글씨는 양쪽 태그를 다 갖는 일이 잦고,
+# 화면에서도 두 칩이 비슷한 것을 내놓았다. 합치니 후보가 64종으로 늘어 한 계열로
+# 서기에 충분하다.
+ALIAS = {"cute": "hand"}
 
 # 본문에는 절대 안 쓰는 태그. 계열이 무엇이든 이 성격을 겸하면 뺀다.
 #
@@ -139,15 +130,14 @@ BODY_NEVER = {"디스플레이", "장식", "시선을 끄는 제목용", "캘리
 # 보였다. 개성 있는 제목을 고른 사람은 본문도 그 결에 맞는 것을 찾는다.
 #
 # 그래서 고딕·명조 제목은 그대로 두고 — 고딕 제목에 손글씨 본문이 붙으면
-# 고른 것이 아니라 잘못 붙은 것으로 읽힌다 — 손글씨·디스플레이·귀여운
-# 제목에만 손글씨와 귀여운 계열을 본문 후보로 연다. 후보가 71종에서
-# 124종으로 늘고, 그중 43%가 고딕·명조 밖이다.
+# 고른 것이 아니라 잘못 붙은 것으로 읽힌다 — 손글씨·귀여운과 디스플레이
+# 제목에만 손글씨·귀여운 계열을 본문 후보로 연다. 후보가 71종에서 124종으로
+# 늘고, 그중 43%가 고딕·명조 밖이다.
 BODY_SHAPES_BY_TITLE = {
     "gothic":  ("gothic", "serif"),
     "serif":   ("gothic", "serif"),
-    "hand":    ("gothic", "serif", "hand", "cute"),
-    "display": ("gothic", "serif", "hand", "cute"),
-    "cute":    ("gothic", "serif", "cute", "hand"),
+    "display": ("gothic", "serif", "hand"),
+    "hand":    ("gothic", "serif", "hand"),
 }
 
 # 모르는 모양으로 들어왔을 때의 본문 후보.
@@ -193,9 +183,16 @@ DEFAULT_SAMPLE = {
 
 
 def get_shape(key: str) -> dict:
-    """키로 모양을 찾는다. 모르는 키면 기본값으로 떨어진다 —
-    주소를 손으로 고쳐 들어오는 경우가 있으므로 예외를 던지지 않는다."""
-    return _BY_KEY.get(key or "") or _BY_KEY[DEFAULT_SHAPE]
+    """키로 모양을 찾는다.
+
+    없어진 키(ALIAS)는 지금 키로 옮겨 준다 — 상세페이지나 밖에서 걸린 링크가
+    남아 있어서 그냥 기본값으로 떨어뜨리면 엉뚱한 계열이 열린다.
+    모르는 키면 기본값이다. 주소를 손으로 고쳐 들어오는 경우가 있으므로
+    예외는 던지지 않는다.
+    """
+    k = key or ""
+    k = ALIAS.get(k, k)
+    return _BY_KEY.get(k) or _BY_KEY[DEFAULT_SHAPE]
 
 
 def shape_of_tags(names) -> str:

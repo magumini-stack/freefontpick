@@ -173,8 +173,7 @@
      일이 보인다 — 같은 크기로 얌전히 놓으면 장식체를 왜 골랐는지 안 읽힌다.
 
      크기 레버(--k-*)는 이 값 위에 배수로 곱해지므로 사용자 조작은 그대로다. */
-  .fp-stage[data-shape="hand"],
-  .fp-stage[data-shape="cute"]{--b-title:6.9cqw;--b-body:2.3cqw}
+  .fp-stage[data-shape="hand"]{--b-title:6.9cqw;--b-body:2.3cqw}
   .fp-stage[data-shape="display"]{--b-title:10.2cqw;--b-body:2.6cqw}
   /* 뜻밖의 발견은 본문만 올린다. 문구가 짧아 기본 크기로는 넓은 여백 한가운데
      작은 글이 놓인 꼴이 됐다. 제목은 그대로 둔다 — 이 자리는 규칙을 끈 자리라
@@ -645,6 +644,10 @@
       .then(function(d){
         S.fonts = d.fonts;
         S.weights = d.weights;
+        /* 서버가 정규화한 모양 키를 되받는다. 없어진 키로 들어온 주소
+           (예전 shape=cute)를 서버가 지금 키로 옮겨 주므로, 화면도 그
+           값을 써야 칩과 글자 크기가 따라간다. */
+        if (d.shape) S.cat = d.shape;
         /* 점수는 generate 가 함께 준다. 조합을 새로 뽑을 때는 요청을
            한 번만 보내는 편이 맞다. */
         S.score = d.score || null;
@@ -865,6 +868,7 @@
         .then(function(r){ return r.json(); })
         .then(function(d){
           S.fonts = d.fonts; S.weights = d.weights;
+          if (d.shape) S.cat = d.shape;
           S.score = d.score || null;
           setText(d.samples);
           renderStage(); renderSlots(); renderCats(); syncUrl();
