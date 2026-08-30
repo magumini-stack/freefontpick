@@ -262,9 +262,45 @@ def webfont_audit(
     return {"checked": len(items), "problem_count": broken, "items": items}
 
 
+@router.get("/license-axes")
+def license_axes():
+    """라이선스 표의 축 정의. 어드민 입력 화면이 이걸 받아 칸을 그린다.
+
+    같은 표가 세 군데 있었다 — app/routers/design.py 의 _PERM_LABELS(크롤러가
+    읽는 SSR 표), static/font.html 의 LIC_AXES(화면이 그리는 표), 그리고
+    static/admin.html 의 LIC_AXES(입력 칸). 어드민 것만 어긋나 있었다:
+    '조건부 허용' 을 넣을 버튼이 아예 없어서, 상세페이지는 표시할 수 있는
+    값을 **입력할 방법이 없었다**. 실제로 상세페이지 80장을 훑어 보니
+    조건부는 한 번도 안 쓰였다.
+
+    그래서 어드민의 사본을 지우고 여기서 받아 가게 한다. 남은 사본은 둘인데,
+    그쪽은 같은 표를 서버와 화면이 각각 그리는 것이라 성격이 다르다.
+
+    로그인 없이도 열어 둔다 — 공개된 상세페이지에 이미 그대로 적혀 있는
+    내용이라 감출 것이 없고, 어드민 화면이 로그인 전에도 칸을 그릴 수 있다.
+    """
+    from .design import _OFL_SCOPE, _PERM_LABELS, _PERM_SHORT
+    return {
+        "axes": [{"key": k, "label": lab, "scope": sc}
+                 for k, lab, sc in _PERM_LABELS],
+        # 상세페이지는 이 둘을 'OFL' 한 줄로 합쳐 보여 준다. 입력은 따로 받는다.
+        "ofl": {"keys": ["modify", "redist"], "label": "OFL",
+                "scope": _OFL_SCOPE},
+        "values": [{"key": k, "short": v} for k, v in _PERM_SHORT.items()],
+    }
+
+
 @router.get("/popular")
-def popular_fonts(days: int = 7, limit: int = 10, db: Session = Depends(get_db)):
-    """최근 N일 상세페이지 조회 기준 인기 폰트. 순위만 준다.
+def popular_fonts(days: int = 7, limit: int = 10, mode: str = "mixed",
+                  db: Session = Depends(get_db)):
+    """상세페이지 조회 기준 순위. 순위만 준다.
+
+    기본은 **섞기(mixed)** 다 — 홀수 자리는 최근 N일 누적 상위, 짝수 자리는
+    급상승. 누적만 쓰면 순위가 굳기 때문이다(app/font_views.py 의 급상승
+    주석에 실측값이 있다). 화면에는 둘 다 '인기 N' 으로 나간다.
+
+    mode 로 한쪽만 볼 수도 있다: total(누적만) · trending(급상승만).
+    바꾸기 전에 어떻게 달라지는지 견주어 보라고 남겨 둔 것이다.
 
     조회수 숫자는 담지 않는다 — 방문이 적을 때 '조회 3' 같은 수가 보이면
     오히려 허술해 보인다. 화면은 순위만 쓴다.
@@ -277,8 +313,13 @@ def popular_fonts(days: int = 7, limit: int = 10, db: Session = Depends(get_db))
     days = max(1, min(int(days or 7), 90))
     limit = max(1, min(int(limit or 10), 50))
     try:
-        from ..font_views import top_fonts
-        ids = top_fonts(db, days=days, limit=limit)
+        from ..font_views import mixed_top, top_fonts, trending_fonts
+        if mode == "total":
+            ids = top_fonts(db, days=days, limit=limit)
+        elif mode == "trending":
+            ids = trending_fonts(db, limit=limit)
+        else:
+            ids = mixed_top(db, days=days, limit=limit)
     except Exception:
         ids = []
     return [{"id": fid, "rank": i + 1} for i, fid in enumerate(ids)]

@@ -13,7 +13,7 @@ import html as _html
 import json
 from pathlib import Path
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -54,10 +54,18 @@ def hub_font_total(db: Session, uc: UseCase) -> int:
 
 
 @router.get("/use/{slug}", response_class=HTMLResponse)
-def use_case_page(slug: str, db: Session = Depends(get_db)):
+def use_case_page(request: Request, slug: str, db: Session = Depends(get_db)):
     uc = db.query(UseCase).filter(UseCase.slug == slug).first()
     if uc is None or not uc.is_active:
         return not_found_page()
+
+    # 어드민 통계용. 없는 허브는 위에서 이미 돌아갔으므로 여기 오는 건
+    # 실제로 열린 허브다. 세는 규칙은 폰트 상세와 같다.
+    try:
+        from ..font_views import record_page
+        record_page(request, "use", slug, db)
+    except Exception:
+        pass
 
     linked = [f for f in uc.fonts if f.font is not None]
     picks = linked[:PICK_CARD_LIMIT]

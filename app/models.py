@@ -246,6 +246,39 @@ class FontView(Base):
     )
 
 
+class PageView(Base):
+    """폰트 상세 말고 다른 페이지의 조회수 — 날짜별로 한 칸씩.
+
+    FontView 와 나눠 둔 이유
+    ----------------------
+    FontView 는 font_id 가 fonts 를 참조하는 외래키다. 용도 허브(slug)나 조합
+    페이지처럼 폰트가 아닌 것을 거기 담을 수 없다. 그렇다고 FontView 를
+    범용으로 고치면 인기 순위 계산이 걸려 있어 위험하다 — 그쪽은 손대지 않고
+    새 표를 옆에 둔다.
+
+        kind  무엇의 조회인가. 'use'(용도 허브) · 'pair'(폰트 조합)
+        key   그 안에서 무엇인가. 허브는 slug, 조합 페이지는 빈 문자열
+        day   날짜
+        count 그날 몇 번
+
+    세는 규칙은 app/font_views.py 와 같다 — 봇과 30분 내 새로고침을 거른다.
+
+    운영은 MySQL, 로컬은 SQLite다. 양쪽에서 도는 타입만 쓴다.
+    """
+    __tablename__ = "page_views"
+    kind = Column(String(20), primary_key=True)
+    # 빈 문자열도 키가 되므로 nullable 이 아니다. MySQL 은 인덱스가 붙는
+    # 문자열 기본키 길이를 제한하므로 넉넉하되 짧게 잡는다.
+    key = Column(String(120), primary_key=True, default="", server_default="")
+    day = Column(Date, primary_key=True)
+    count = Column(Integer, nullable=False, default=0, server_default="0")
+
+    __table_args__ = (
+        Index("ix_page_views_day", "day"),
+        Index("ix_page_views_kind_day", "kind", "day"),
+    )
+
+
 class AppMeta(Base):
     """앱 내부 메타 (시드 버전 등 키-값 저장)"""
     __tablename__ = "app_meta"

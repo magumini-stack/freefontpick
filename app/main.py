@@ -20,7 +20,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from .header import inject_header, not_found_page
 from .seed import init_db
-from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, sample_image, db_migrate, gif_templates, gif, font_pair
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, sample_image, db_migrate, gif_templates, gif, font_pair, stats
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -249,6 +249,9 @@ app.include_router(piece_image.router)
 app.include_router(gif_templates.router)
 # SQLite → MySQL 일회용 이관 도구 (관리자 전용). 이관이 끝나면 지워도 된다.
 app.include_router(db_migrate.router)
+# 어드민 통계. design.router(캐치올 성격의 페이지 라우트)보다 먼저 등록해야
+# /api/admin/stats/* 가 정적 파일 서빙으로 새지 않는다.
+app.include_router(stats.router)
 # wisefont / design / use 라우터는 catch-all(/{full_path:path})보다 반드시 먼저 등록해야
 # /wisefont/{slug}, /design/{id}, /use/{slug}, /find-font 요청이 catch-all에 가로채이지 않는다.
 app.include_router(wisefont.router)

@@ -1082,6 +1082,13 @@ def _pair_ssr_block(db: Session) -> str:
 
 @router.get("/font-pair", response_class=HTMLResponse)
 def font_pair_page(request: Request, db: Session = Depends(get_db)):
+    # 어드민 통계용. 상세페이지와 같은 규칙으로 세고(봇·새로고침 거르기),
+    # 무슨 일이 있어도 페이지 렌더를 막지 않는다.
+    try:
+        from ..font_views import record_page
+        record_page(request, "pair", "", db)
+    except Exception:
+        pass
     html = (STATIC_DIR / "font-pair.html").read_text(encoding="utf-8")
     html = inject_header(html, "fontpair")   # 헤더에서 이 메뉴에 활성 표시
     html = html.replace("{{FFP_PAIR_SSR}}", _pair_ssr_block(db), 1)

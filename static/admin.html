@@ -230,6 +230,29 @@
     .lic-verified input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
     #fmLicFields{opacity:.4;pointer-events:none;transition:opacity .15s}
     #fmLicFields.on{opacity:1;pointer-events:auto}
+    /* ── 통계 ──
+       막대는 CSS 폭으로만 그린다. 차트 라이브러리를 넣으면 어드민 한 화면
+       때문에 외부 스크립트가 하나 더 붙는다. 값은 표에 숫자로도 적으므로
+       막대는 눈대중용이다. */
+    .st-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+      gap:10px;margin-bottom:18px}
+    .st-card{background:var(--bg-card);border:1px solid var(--border);
+      border-radius:var(--radius-md);padding:14px 16px}
+    .st-card b{display:block;font-size:24px;font-weight:800;letter-spacing:-.5px;
+      line-height:1.2}
+    .st-card span{display:block;font-size:11.5px;color:var(--text-muted);margin-top:4px}
+    .st-bar{position:relative;height:16px;background:var(--bg-secondary);
+      border-radius:4px;overflow:hidden;min-width:60px}
+    .st-bar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);
+      border-radius:4px}
+    .st-day{display:grid;grid-template-columns:88px 1fr 1fr 1fr;gap:8px;
+      align-items:center;padding:5px 0;font-size:12px}
+    .st-day.head{font-weight:700;color:var(--text-muted);font-size:11px;
+      border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:4px}
+    .st-day .st-n{display:flex;align-items:center;gap:7px}
+    .st-day .st-n em{font-style:normal;min-width:34px;text-align:right;
+      font-variant-numeric:tabular-nums}
+    .st-empty{padding:22px;text-align:center;color:var(--text-muted);font-size:13px}
     .lic-perms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
     .lic-perm{display:flex;align-items:center;justify-content:space-between;gap:10px;
               padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);font-size:13px}
@@ -238,7 +261,14 @@
               border-radius:6px;padding:3px 9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
     .lic-perm-btns button.on[data-v="y"]{background:var(--accent);border-color:var(--accent);color:#fff}
     .lic-perm-btns button.on[data-v="n"]{background:#d64545;border-color:#d64545;color:#fff}
+    .lic-perm-btns button.on[data-v="c"]{background:#b8860b;border-color:#b8860b;color:#fff}
     .lic-perm-btns button.on[data-v="q"]{background:var(--text-muted);border-color:var(--text-muted);color:#fff}
+    /* 항목 이름 아래에 사용 범위를 적는다 — '임베딩'이 무엇까지인지
+       상세페이지에는 적혀 있는데 입력 화면에는 없어서 매번 헷갈렸다. */
+    .lic-perm-l{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .lic-perm-l b{font-size:13px;font-weight:700}
+    .lic-perm-l i{font-style:normal;font-size:11px;color:var(--text-muted);line-height:1.5}
+    .lic-perm-head{background:none;border:none;padding:10px 0 0}
 
     /* FILE UPLOAD */
     .drop-zone{border:2px dashed var(--border-hover);border-radius:var(--radius-md);padding:24px 16px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg-secondary)}
@@ -410,6 +440,7 @@
     <button class="tab-btn" onclick="switchTab('pairings',this)">페어링 관리</button>
     <button class="tab-btn" onclick="switchTab('phrases',this)">문구 관리</button>
     <button class="tab-btn" onclick="switchTab('usecases',this)">용도 관리</button>
+    <button class="tab-btn" onclick="switchTab('stats',this)">통계</button>
   </div>
 
   <!-- FONTS TAB -->
@@ -573,6 +604,58 @@
       <div id="useCaseEmpty" class="empty" style="display:none">
         <i class="ti ti-layout-grid" aria-hidden="true"></i>등록된 용도 허브가 없어요
       </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-stats">
+    <p style="font-size:12px;color:var(--text-muted);margin:2px 0 14px;line-height:1.7">
+      상세페이지 · 용도 허브 · 폰트 조합 찾기가 <b>몇 번 열렸는지</b>입니다.
+      봇으로 읽히는 접속과, 같은 사람이 30분 안에 같은 페이지를 다시 연 것은 세지 않습니다.<br>
+      구글 애널리틱스와 숫자가 다릅니다 — 그쪽은 사람 기준 세션을, 여기는 걸러 낸 페이지 열람을 셉니다.
+      <b>용도 허브와 조합 페이지는 2026-08-30부터</b> 세기 시작해서 그 전 날짜는 0으로 나옵니다.
+    </p>
+    <div class="toolbar" style="margin-bottom:14px">
+      <select id="stDays" onchange="refreshStats()">
+        <option value="7">최근 7일</option>
+        <option value="30" selected>최근 30일</option>
+        <option value="90">최근 90일</option>
+        <option value="365">최근 1년</option>
+      </select>
+      <button class="btn-ghost" onclick="refreshStats()"><i class="ti ti-refresh" aria-hidden="true"></i> 새로고침</button>
+    </div>
+
+    <div class="st-cards" id="stCards"></div>
+
+    <h3 style="font-size:14px;font-weight:800;margin:22px 0 10px">날짜별</h3>
+    <div class="table-wrap" style="padding:14px 16px">
+      <div id="stDaily"></div>
+    </div>
+
+    <h3 style="font-size:14px;font-weight:800;margin:22px 0 10px">용도 허브별</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:56px;text-align:center">순위</th>
+          <th>허브</th><th style="width:140px">주소</th>
+          <th style="width:70px;text-align:center">노출</th>
+          <th style="width:190px">조회</th>
+        </tr></thead>
+        <tbody id="stHubBody"></tbody>
+      </table>
+      <div id="stHubEmpty" class="st-empty" style="display:none">아직 기록이 없어요</div>
+    </div>
+
+    <h3 style="font-size:14px;font-weight:800;margin:22px 0 10px">폰트 상세페이지별</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:56px;text-align:center">순위</th>
+          <th>폰트</th><th style="width:160px">제작자</th>
+          <th style="width:190px">조회</th>
+        </tr></thead>
+        <tbody id="stFontBody"></tbody>
+      </table>
+      <div id="stFontEmpty" class="st-empty" style="display:none">아직 기록이 없어요</div>
     </div>
   </div>
 </main>
@@ -1461,6 +1544,9 @@ async function submitPasswordChange(){
 
 // 페이지 로드 시 세션 자동 확인
 window.addEventListener('DOMContentLoaded', checkSession);
+/* 라이선스 항목 정의를 미리 받아 둔다. 폰트 모달을 여는 순간 칸을 그려야
+   하는데 그때 받으면 한 번 비어 보인다. */
+window.addEventListener('DOMContentLoaded', loadLicAxes);
 
 /* ════════════════════════════════════════
    상태
@@ -1659,6 +1745,7 @@ function switchTab(tab, btn){
   if(tab === 'pairings') refreshPairings();
   if(tab === 'phrases') refreshPhrases();
   if(tab === 'usecases') refreshUseCases();
+  if(tab === 'stats') refreshStats();
 }
 
 /* ════════════════════════════════════════
@@ -2368,20 +2455,57 @@ const USAGE_INDUSTRY = {
 /* ── 라이선스 편집 ────────────────────────────────────────────
    상세페이지 표(static/font.html의 LIC_AXES)와 키·순서가 같아야 한다.
    한쪽만 고치면 표가 어긋나므로 두 곳을 함께 수정할 것. */
-const LIC_AXES = [
-  ['print','인쇄'], ['web','웹사이트'], ['package','포장지'], ['video','영상'],
-  ['embed','임베딩'], ['bici','BI/CI'], ['modify','파일 수정'], ['redist','파일 재배포'],
-];
+/* 축 정의는 서버에서 받는다(/api/fonts/license-axes). 예전에는 여기에도
+   사본이 있었는데 상세페이지와 어긋나 있었다 — '조건부'를 넣을 버튼이 없어서
+   상세페이지가 표시할 수 있는 값을 입력할 방법이 없었다. 사본을 없앤다. */
+let LIC_AXES = [];          // [[key, label, scope], ...]  사용 범위 6줄
+let LIC_OFL = null;         // {keys:['modify','redist'], label, scope}
+let LIC_VALUES = [['y','가능'], ['c','조건부'], ['n','불가'], ['q','확인 필요']];
 let fmLicPerms = {};
 
+async function loadLicAxes(){
+  try {
+    const r = await fetch('/api/fonts/license-axes');
+    if(!r.ok) return;
+    const d = await r.json();
+    LIC_AXES = (d.axes || []).map(a => [a.key, a.label, a.scope || '']);
+    LIC_OFL = d.ofl || null;
+    if(Array.isArray(d.values) && d.values.length)
+      LIC_VALUES = d.values.map(v => [v.key, v.short]);
+  } catch(e){ /* 못 받으면 아래 renderLicPerms 가 안내를 띄운다 */ }
+}
+
+/* 저장할 때 쓰는 키 목록 — 사용 범위 6 + OFL 2. */
+function licAllKeys(){
+  return LIC_AXES.map(a => a[0]).concat(LIC_OFL ? LIC_OFL.keys : []);
+}
+
 function renderLicPerms(){
-  document.getElementById('fmLicPerms').innerHTML = LIC_AXES.map(([k, label]) => {
+  const box = document.getElementById('fmLicPerms');
+  if(!LIC_AXES.length){
+    box.innerHTML = '<div class="lic-perm" style="grid-column:1/-1;color:var(--text-muted)">'
+      + '라이선스 항목을 불러오지 못했어요. 새로고침해 주세요.</div>';
+    return;
+  }
+  const row = (k, label, scope) => {
     const v = fmLicPerms[k] || 'q';
-    const btn = (val, txt) =>
+    const btn = ([val, txt]) =>
       `<button type="button" data-k="${k}" data-v="${val}" class="${v === val ? 'on' : ''}">${txt}</button>`;
-    return `<div class="lic-perm"><span>${label}</span><span class="lic-perm-btns">` +
-           btn('y','허용') + btn('n','금지') + btn('q','불명') + '</span></div>';
-  }).join('');
+    return `<div class="lic-perm"><span class="lic-perm-l"><b>${label}</b>`
+         + (scope ? `<i>${scope}</i>` : '')
+         + `</span><span class="lic-perm-btns">${LIC_VALUES.map(btn).join('')}</span></div>`;
+  };
+  let html = LIC_AXES.map(a => row(a[0], a[1], a[2])).join('');
+  if(LIC_OFL){
+    /* 상세페이지는 이 둘을 'OFL' 한 줄로 합쳐 보여 준다. 값이 다르면
+       '수정 불가 · 재배포 가능' 처럼 둘 다 적힌다. 입력은 따로 받는다. */
+    html += `<div class="lic-perm lic-perm-head" style="grid-column:1/-1">`
+         + `<span class="lic-perm-l"><b>${LIC_OFL.label}</b><i>${LIC_OFL.scope}`
+         + ` — 상세페이지에서는 아래 둘을 한 줄로 합쳐 보여줍니다</i></span></div>`
+         + row('modify', '파일 수정', '')
+         + row('redist', '파일 재배포', '');
+  }
+  box.innerHTML = html;
   document.querySelectorAll('#fmLicPerms button').forEach(b => {
     b.onclick = () => { fmLicPerms[b.dataset.k] = b.dataset.v; renderLicPerms(); };
   });
@@ -2405,6 +2529,80 @@ function loadLicenseForm(f){
   syncLicEnabled();
 }
 
+/* ════════════════════════════════════════
+   통계
+   숫자는 서버가 세어 둔 것을 그대로 보여 준다(app/routers/stats.py).
+   막대는 그 기간의 최댓값을 100%로 잡은 눈대중이다 — 날짜 사이의 크기를
+   견주라는 것이지 절대량을 읽으라는 것이 아니다.
+════════════════════════════════════════ */
+function stEsc(v){
+  const d = document.createElement('div');
+  d.textContent = v == null ? '' : v;
+  return d.innerHTML;
+}
+function stNum(n){ return (n || 0).toLocaleString('ko-KR'); }
+
+/* 값 하나를 '막대 + 숫자'로. max 가 0이면 막대는 0폭이다(0으로 나누지 않는다). */
+function stBar(n, max){
+  const w = max > 0 ? Math.round((n / max) * 100) : 0;
+  return `<span class="st-n"><span class="st-bar"><i style="width:${w}%"></i></span>`
+       + `<em>${stNum(n)}</em></span>`;
+}
+
+async function stGet(path, days){
+  const r = await fetch(`/api/admin/stats/${path}?days=${days}`);
+  if(!r.ok) throw new Error(`${path} ${r.status}`);
+  return r.json();
+}
+
+async function refreshStats(){
+  const days = document.getElementById('stDays').value || '30';
+  const cards = document.getElementById('stCards');
+  cards.innerHTML = '<div class="st-card"><b>…</b><span>불러오는 중</span></div>';
+  let sum, daily, hubs, fonts;
+  try {
+    [sum, daily, hubs, fonts] = await Promise.all([
+      stGet('summary', days), stGet('daily', days),
+      stGet('hubs', days), stGet('fonts', days),
+    ]);
+  } catch(e){
+    cards.innerHTML = '<div class="st-card"><b>—</b><span>통계를 불러오지 못했어요</span></div>';
+    return;
+  }
+
+  cards.innerHTML =
+      `<div class="st-card"><b>${stNum(sum.font_views)}</b><span>폰트 상세페이지 조회</span></div>`
+    + `<div class="st-card"><b>${stNum(sum.hub_views)}</b><span>용도 허브 조회</span></div>`
+    + `<div class="st-card"><b>${stNum(sum.pair_views)}</b><span>폰트 조합 찾기 조회</span></div>`
+    + `<div class="st-card"><b>${stNum(sum.font_count)}</b><span>한 번이라도 열린 폰트</span></div>`;
+
+  /* 날짜별 — 최근 날짜가 위로 오게 뒤집는다. 오늘이 궁금해서 여는 화면이다. */
+  const maxDay = Math.max(1, ...daily.map(d => Math.max(d.font, d.hub, d.pair)));
+  const rows = daily.slice().reverse().map(d =>
+      `<div class="st-day"><span>${stEsc(d.day)}</span>`
+    + stBar(d.font, maxDay) + stBar(d.hub, maxDay) + stBar(d.pair, maxDay) + '</div>').join('');
+  document.getElementById('stDaily').innerHTML =
+      '<div class="st-day head"><span>날짜</span><span>폰트 상세</span>'
+    + '<span>용도 허브</span><span>조합 찾기</span></div>' + rows;
+
+  const maxHub = Math.max(1, ...hubs.map(h => h.views));
+  document.getElementById('stHubBody').innerHTML = hubs.map(h =>
+      `<tr><td style="text-align:center">${h.rank}</td>`
+    + `<td><b>${stEsc(h.title)}</b></td>`
+    + `<td><a href="/use/${encodeURIComponent(h.slug)}" target="_blank" rel="noopener">/use/${stEsc(h.slug)}</a></td>`
+    + `<td style="text-align:center">${h.active ? '노출' : '숨김'}</td>`
+    + `<td>${stBar(h.views, maxHub)}</td></tr>`).join('');
+  document.getElementById('stHubEmpty').style.display = hubs.length ? 'none' : '';
+
+  const maxFont = Math.max(1, ...fonts.map(f => f.views));
+  document.getElementById('stFontBody').innerHTML = fonts.map(f =>
+      `<tr><td style="text-align:center">${f.rank}</td>`
+    + `<td><a href="/font/${f.id}" target="_blank" rel="noopener">${stEsc(f.name)}</a></td>`
+    + `<td>${stEsc(f.maker)}</td>`
+    + `<td>${stBar(f.views, maxFont)}</td></tr>`).join('');
+  document.getElementById('stFontEmpty').style.display = fonts.length ? 'none' : '';
+}
+
 /* 폼 → meta.license. 확인 체크가 없으면 키를 지워서 '확인 중'으로 되돌린다 */
 function collectLicense(meta){
   if(!document.getElementById('fmLicVerified').checked){ delete meta.license; return; }
@@ -2417,7 +2615,7 @@ function collectLicense(meta){
     url:  document.getElementById('fmLicUrl').value.trim(),
     note: document.getElementById('fmLicNote').value.trim(),
     full: document.getElementById('fmLicFull').value.trim(),
-    perms: LIC_AXES.reduce((o, [k]) => (o[k] = fmLicPerms[k] || 'q', o), {}),
+    perms: licAllKeys().reduce((o, k) => (o[k] = fmLicPerms[k] || 'q', o), {}),
   });
   // 빈 전문은 키 자체를 두지 않는다 — OFL 자동 대체가 걸리도록.
   if (!meta.license.full) delete meta.license.full;

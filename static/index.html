@@ -2736,7 +2736,7 @@ function renderFonts(){
         <div>
           <div class="font-line1">
             ${POPULAR[f.id]
-              ? `<span class="font-tag rank" title="최근 7일 동안 가장 많이 본 폰트 ${POPULAR[f.id]}위">인기 ${POPULAR[f.id]}</span>`
+              ? `<span class="font-tag rank" title="요즘 많이 보는 폰트 ${POPULAR[f.id]}위 — 최근 조회와 급상승을 함께 봅니다">인기 ${POPULAR[f.id]}</span>`
               : ''}
             <span class="font-name">${f.name}</span>
             <span class="font-weights">${f.weights}</span>
@@ -3193,8 +3193,10 @@ async function init(){
   const fontsP = FontStore.getAll();
   const tagsP  = fetch('/api/tags').then(r => r.json()).catch(() => null);
   const hubsP  = apiFetch('/use-cases').catch(() => []);
-  /* 최근 7일 상세페이지 조회 기준 인기 순위. 실패하거나 자료가 없으면
-     빈 채로 두고 갤러리는 예전대로 그린다 — 없어도 되는 정보다. */
+  /* 상세페이지 조회 기준 인기 순위. 홀수 자리는 최근 7일 누적, 짝수 자리는
+     급상승이다(서버가 섞어서 준다 — app/font_views.py 의 mixed_top).
+     누적만 쓰면 순위가 굳어서, 7일과 30일 상위 10종이 9종 겹쳤다.
+     실패하거나 자료가 없으면 빈 채로 두고 갤러리는 예전대로 그린다. */
   const popP = fetch('/api/fonts/popular?days=7&limit=10')
     .then(r => r.json()).catch(() => []);
 
