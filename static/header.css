@@ -165,7 +165,12 @@ html.pairband-off .pair-band{display:none}
    index.html 안에만 있었고 상세페이지에는 아예 없었다. 사업자등록번호·
    주소 같은 값이 들어가는 자리라, 페이지마다 복사해 두면 한쪽만 고쳐지는
    일이 반드시 생긴다 — 헤더를 한 곳으로 모은 것과 같은 이유다. */
-footer{border-top:1px solid var(--border);padding:32px 24px 32px;max-width:1240px;margin:0 auto}
+/* 가로선은 안쪽 .footer-divider 하나만 쓴다.
+   예전에는 footer 자체에도 border-top 이 있었는데, 테두리는 좌우 padding 을
+   포함한 border box 에 그려져서 1240px, 안쪽 구분선은 content box 라 1192px —
+   길이가 48px 다른 선 두 개가 링크 줄을 사이에 두고 겹쳐 보였다.
+   위쪽 여백을 늘려 본문과의 간격은 선 없이 만든다. */
+footer{padding:56px 24px 32px;max-width:1240px;margin:0 auto}
 .footer-logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-primary);margin-bottom:10px}
 .footer-logo .logo-spark{width:22px;height:22px;font-size:11px;border-radius:6px}
 .footer-copy{font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:18px}
