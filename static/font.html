@@ -243,7 +243,11 @@
   .curator p + p{margin-top:1.1em}
   .curator .sign{font-family:var(--ui);font-size:13px;color:var(--text-muted);margin-top:14px}
 
-  /* ── APP PROMO (사이드바) ── */
+  /* ── APP PROMO (사이드바) ──
+     [2026-08] 앱 셋을 묶어 소개하던 것을 글씨사진관 하나로 좁혔다. 셋 중
+     구글 플레이에 있는 것이 글씨사진관뿐이라, 모바일 유입이 늘면서 나머지
+     둘은 안드로이드에서 받을 수 없는 앱이 됐다. 링크는 app-link.js 가
+     기기에 맞는 스토어로 바꾼다. */
   .app-promo-banner{display:flex;flex-direction:column;gap:12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:16px 18px;transition:border-color .15s;min-width:0}
   .app-promo-banner:hover{border-color:var(--border-hover)}
   .app-promo-top{display:flex;align-items:center;gap:12px;min-width:0}
@@ -771,16 +775,17 @@
 
         <!-- 앱 프로모 배너 (모바일에선 JS가 #appPromoSlot으로 이동시킨다) -->
         <section class="blk" id="appPromoSec" style="padding:0;border-bottom:none">
-          <a class="app-promo-banner" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">
+          <a class="app-promo-banner" data-applink="kphototext" href="https://play.google.com/store/apps/details?id=com.wisefont.kphototext"
+             target="_blank" rel="noopener noreferrer">
             <div class="app-promo-top">
-              <span class="appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
+              <span class="appico" aria-hidden="true"><i class="ti ti-photo"></i></span>
               <div class="app-promo-text">
-                <span class="app-promo-title">글자로 노는 앱</span>
-                <span class="app-promo-sub">사진에 글쓰고, GIF만들고, TTF 다운 받자!</span>
+                <span class="app-promo-title">글씨사진관</span>
+                <span class="app-promo-sub">사진에 감성 글 쓰기 — 캘리그라피부터 본문체까지</span>
               </div>
             </div>
             <div class="app-promo-cta-row">
-              <span class="app-promo-cta">자세히 보기 →</span>
+              <span class="app-promo-cta">앱 받기 →</span>
             </div>
           </a>
         </section>
@@ -868,6 +873,7 @@
 
 <script src="/static/ffp-phrases.js"></script>
 <script src="/static/ffp-fontface.js"></script>
+<script src="/static/app-link.js"></script>
 <script>
 (function(){
   /* 미리 써보기 기본 문구.
@@ -1841,13 +1847,14 @@ window.addEventListener('pageshow', function(e){
         </div>
 
         <div class="designer-footer">
-          <a class="ds-promo-banner" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">
-            <span class="appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
+          <a class="ds-promo-banner" data-applink="kphototext" href="https://play.google.com/store/apps/details?id=com.wisefont.kphototext"
+             target="_blank" rel="noopener noreferrer">
+            <span class="appico" aria-hidden="true"><i class="ti ti-photo"></i></span>
             <div class="ds-promo-text">
-              <span class="ds-promo-title">글자로 노는 앱</span>
-              <span class="ds-promo-sub">사진에 글쓰고, GIF만들고, TTF 다운 받자!</span>
+              <span class="ds-promo-title">글씨사진관</span>
+              <span class="ds-promo-sub">사진에 감성 글 쓰기</span>
             </div>
-            <span class="ds-promo-cta">자세히 보기</span>
+            <span class="ds-promo-cta">앱 받기</span>
           </a>
           <button class="designer-save" onclick="startDesignerSave()"><i class="ti ti-download" aria-hidden="true"></i> PNG로 저장</button>
         </div>

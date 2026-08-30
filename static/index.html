@@ -913,14 +913,20 @@
 
 
   <!-- 앱 배너 — 본문 흐름 안이다(고정 아님). 자동 광고의 앵커 광고와 자리를
-       다투지 않게 하려는 것이다. 1600px 이상에서는 우측 세로 배너가 대신한다. -->
-  <a class="fbx" href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener noreferrer">
-    <span class="fbx-ico appico" aria-hidden="true"><i class="ti ti-apps"></i></span>
+       다투지 않게 하려는 것이다. 1600px 이상에서는 우측 세로 배너가 대신한다.
+
+       [2026-08] 앱 셋을 묶어 소개하던 것을 글씨사진관 하나로 좁혔다. 모바일
+       유입이 늘었는데 셋 중 구글 플레이에 있는 것은 글씨사진관뿐이라,
+       안드로이드 이용자에게는 나머지 둘이 받을 수 없는 앱이었다.
+       링크는 /static/app-link.js 가 기기에 맞는 스토어로 바꾼다. -->
+  <a class="fbx" data-applink="kphototext" href="https://play.google.com/store/apps/details?id=com.wisefont.kphototext"
+     target="_blank" rel="noopener noreferrer">
+    <span class="fbx-ico appico" aria-hidden="true"><i class="ti ti-photo"></i></span>
     <div class="fbx-txt">
-      <b>글자로 노는 앱</b>
-      <span class="fbx-s1">사진에 글쓰고, GIF만들고, TTF 다운 받자!</span>
+      <b>글씨사진관</b>
+      <span class="fbx-s1">사진에 감성 글 쓰기 — 캘리그라피부터 본문체까지</span>
     </div>
-    <span class="fbx-cta">자세히 보기</span>
+    <span class="fbx-cta">앱 받기</span>
   </a>
 
   <!-- 서버가 채우는 목록 (용도 허브 + 전체 폰트).
@@ -1178,6 +1184,7 @@
 <!-- 공유 데이터 레이어 (관리자 페이지와 동일 파일을 사용) -->
 <script src="/static/ffp-phrases.js"></script>
 <script src="/static/api-client.js"></script>
+<script src="/static/app-link.js"></script>
 <script>
 let FONTS=[];
 /* 용도 허브 목록 — init()에서 먼저 받아 그리고, FONTS가 온 뒤 글꼴만 입혀
