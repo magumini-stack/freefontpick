@@ -758,29 +758,6 @@
       .submit-detail-body{padding:16px 18px 22px}
     }
 
-    footer{border-top:1px solid var(--border);padding:32px 24px 32px;max-width:1240px;margin:0 auto}
-    .footer-logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-primary);margin-bottom:10px}
-    .footer-logo .logo-spark{width:22px;height:22px;font-size:11px;border-radius:6px}
-    .footer-copy{font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:18px}
-    .footer-links{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:18px;justify-content:center}
-    .footer-links a{font-size:12px;color:var(--text-secondary);text-decoration:none;transition:color .15s;font-weight:700}
-    .footer-links a:hover{color:var(--accent)}
-    .footer-divider{height:1px;background:var(--border);margin-bottom:18px}
-    .footer-company-name{font-size:12px;font-weight:800;color:var(--text-secondary);margin-bottom:8px;text-align:center}
-    .footer-company-info{font-size:11px;color:var(--text-muted);line-height:1.9;display:flex;flex-wrap:wrap;gap:0 14px;justify-content:center}
-    .footer-company-info span{display:inline-flex;align-items:center;white-space:nowrap}
-    .footer-company-info span::before{content:"";display:inline-block;width:3px;height:3px;border-radius:50%;background:var(--text-muted);margin-right:14px;flex-shrink:0;opacity:.5}
-    .footer-company-info a{color:var(--text-muted);text-decoration:none}
-    .footer-company-info a:hover{color:var(--accent)}
-    /* 이 사이트가 무엇을 하는 곳인지 말하는 문장이 홈 어디에도 없었다.
-       히어로는 이미 빽빽해서 더 넣을 자리가 아니고, 푸터는 원래 그런 말을
-       두는 자리다. 사람이 읽어도 쓸모 있고, 크롤러도 여기서 주제를 읽는다. */
-    .footer-about{max-width:720px;margin:18px auto 0;font-size:12.5px;line-height:1.75;
-      color:var(--text-muted);text-align:center;word-break:keep-all}
-    .footer-about b{color:var(--text-secondary);font-weight:700}
-    .footer-lic-note{max-width:720px;margin:10px auto 0;font-size:11px;line-height:1.6;
-      color:var(--text-muted);text-align:center;word-break:keep-all}
-    .footer-copyright{font-size:11px;color:var(--text-muted);margin-top:14px;letter-spacing:.3px;text-align:center}
 
     /* SCROLL TOP */
     .scroll-top{position:fixed;bottom:28px;right:28px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(30,58,138,.4);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s,bottom .2s;z-index:300}
@@ -1050,28 +1027,7 @@
   </div>
 </div>
 
-<footer>
-  <div class="footer-links">
-    <a href="/policy.html" target="_blank" rel="noopener noreferrer">이용약관</a><a href="/privacy.html" target="_blank" rel="noopener noreferrer">개인정보처리방침</a><a href="mailto:help@tdtd.io?subject=%ED%8F%B0%ED%8A%B8%EC%A0%9C%EB%B3%B4">폰트제보</a><a href="mailto:help@tdtd.io?subject=%EB%AC%B8%EC%9D%98%ED%95%98%EA%B8%B0">문의하기</a>
-  </div>
-  <div class="footer-divider"></div>
-  <div class="footer-company-name">(주)와이즈폰트</div>
-  <div class="footer-company-info">
-    <span>사업자등록번호 589-87-00921</span>
-    <span>대표 박종열</span>
-    <span>주소 서울시 영등포구 당산로16길 9-7 3층</span>
-    <span>통신판매업신고 제 2024-서울영등포-3037호</span>
-    <span>제휴문의 <a href="mailto:biz@wisefont.co.kr">biz@wisefont.co.kr</a></span>
-  </div>
-  <p class="footer-about">
-    폰트픽은 <b>상업적 이용이 가능한 무료폰트</b>를 용도별로 골라 소개하고,
-    제목·본문에 어울리는 폰트 조합까지 한 화면에서 찾아 드립니다.
-    폰트마다 허용 범위(인쇄물·웹사이트·영상·포장지·BI/CI)가 다르니,
-    내려받기 전에 각 폰트의 라이선스를 확인해 주세요.
-  </p>
-  <p class="footer-lic-note">모든 폰트의 저작권은 각 폰트의 저작권자에게 있습니다. 폰트 사용에 대한 라이선스 문의는 저작권자에게 문의해 주세요.</p>
-  <div class="footer-copyright">COPYRIGHT © (주)와이즈폰트 CO., LTD. ALL RIGHTS RESERVED.</div>
-</footer>
+<!--FFP_FOOTER-->
 
 <button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="맨 위로">
   <i class="ti ti-arrow-up" aria-hidden="true"></i>

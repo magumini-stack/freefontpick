@@ -14,10 +14,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
+                               RedirectResponse, Response)
 from starlette.middleware.sessions import SessionMiddleware
 
-from .header import not_found_page
+from .header import inject_header, not_found_page
 from .seed import init_db
 from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, sample_image, db_migrate, gif_templates, gif, font_pair
 
@@ -371,5 +372,17 @@ async def serve_static(full_path: str, request: Request):
 
     if not target.exists() or not target.is_file():
         return _static_not_found(request)
+
+    # HTML 은 공유 헤더·푸터를 넣어서 내보낸다. 이 길로 나가는 페이지가
+    # 약관·개인정보처리방침인데, 라우터를 거치지 않는다는 이유로 이 둘만
+    # 예전 푸터를 달고 있었다 — 회사 정보도 약관 링크도 없는 짧은 판이었다.
+    #
+    # 마커가 없는 파일에는 아무 일도 일어나지 않는다(문자열 치환일 뿐이다).
+    # 관리자 페이지처럼 마커를 안 쓰는 파일은 그대로 나간다.
+    if target.suffix.lower() == ".html":
+        try:
+            return HTMLResponse(inject_header(target.read_text(encoding="utf-8")))
+        except OSError:
+            return _static_not_found(request)
 
     return FileResponse(target)

@@ -8,6 +8,9 @@ index.html / about.html / faq.html / font.html / find-font 전 페이지에
 각 페이지의 static/*.html 파일에는 헤더가 있던 자리에
 <!--FFP_HEADER--> 마커만 남아있고, 요청이 들어올 때 이 모듈의
 render_header()가 만든 실제 HTML로 서버가 치환해서 응답한다.
+
+푸터도 같은 방식이다(<!--FFP_FOOTER-->, render_footer). 2026-08 까지는
+푸터가 index.html 안에만 있어서 상세페이지·조합 페이지에는 아예 없었다.
 """
 
 # (내부 key, 링크, 표시 텍스트, 데스크톱용 id, 모바일용 id) — 순서가 곧 메뉴 노출 순서
@@ -219,10 +222,51 @@ def render_header(active: str = "") -> str:
 {_pair_band(active)}{_search_script()}'''
 
 
+# ── 공유 푸터 ────────────────────────────────────────────────────
+# 헤더와 같은 이유로 여기 둔다. 예전에는 index.html 안에만 있었고
+# 상세페이지·조합 페이지에는 아예 없었다. 사업자등록번호·주소·통신판매업
+# 신고번호가 들어가는 자리라 복사해 두면 한쪽만 고쳐지는 일이 반드시 생긴다.
+#
+# 모양은 static/header.css 의 footer* 가 맡는다.
+FOOTER_HTML = """<footer>
+  <div class="footer-links">
+    <a href="/policy.html" target="_blank" rel="noopener noreferrer">이용약관</a><a href="/privacy.html" target="_blank" rel="noopener noreferrer">개인정보처리방침</a><a href="mailto:help@tdtd.io?subject=%ED%8F%B0%ED%8A%B8%EC%A0%9C%EB%B3%B4">폰트제보</a><a href="mailto:help@tdtd.io?subject=%EB%AC%B8%EC%9D%98%ED%95%98%EA%B8%B0">문의하기</a>
+  </div>
+  <div class="footer-divider"></div>
+  <div class="footer-company-name">(주)와이즈폰트</div>
+  <div class="footer-company-info">
+    <span>사업자등록번호 589-87-00921</span>
+    <span>대표 박종열</span>
+    <span>주소 서울시 영등포구 당산로16길 9-7 3층</span>
+    <span>통신판매업신고 제 2024-서울영등포-3037호</span>
+    <span>제휴문의 <a href="mailto:biz@wisefont.co.kr">biz@wisefont.co.kr</a></span>
+  </div>
+  <p class="footer-about">
+    폰트픽은 <b>상업적 이용이 가능한 무료폰트</b>를 용도별로 골라 소개하고,
+    제목·본문에 어울리는 폰트 조합까지 한 화면에서 찾아 드립니다.
+    폰트마다 허용 범위(인쇄물·웹사이트·영상·포장지·BI/CI)가 다르니,
+    내려받기 전에 각 폰트의 라이선스를 확인해 주세요.
+  </p>
+  <p class="footer-lic-note">모든 폰트의 저작권은 각 폰트의 저작권자에게 있습니다. 폰트 사용에 대한 라이선스 문의는 저작권자에게 문의해 주세요.</p>
+  <div class="footer-copyright">COPYRIGHT © (주)와이즈폰트 CO., LTD. ALL RIGHTS RESERVED.</div>
+</footer>"""
+
+
+def render_footer() -> str:
+    return FOOTER_HTML
+
+
 def inject_header(html: str, active: str = "") -> str:
-    """html 안의 <!--FFP_HEADER--> 마커를 실제 헤더로 치환.
-    마커가 없으면(예전 캐시된 파일 등) 원본을 그대로 반환 — 안전망."""
-    return html.replace("<!--FFP_HEADER-->", render_header(active))
+    """html 안의 <!--FFP_HEADER--> / <!--FFP_FOOTER--> 마커를 실제 마크업으로
+    치환한다.
+
+    이름은 헤더지만 푸터도 함께 넣는다. 라우터 열두 곳이 이 함수 하나만
+    부르고 있어서, 푸터를 따로 부르게 만들면 새 페이지를 붙일 때 한쪽을
+    빠뜨리게 된다 — 지금 상세페이지에 푸터가 없는 것이 바로 그 결과다.
+    마커가 없는 페이지는 아무 일도 일어나지 않는다.
+    """
+    html = html.replace("<!--FFP_HEADER-->", render_header(active))
+    return html.replace("<!--FFP_FOOTER-->", render_footer())
 
 
 # ── 폰트 조합 찾기 띠 ────────────────────────────────────────────
