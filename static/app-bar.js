@@ -54,15 +54,23 @@
     return false;
   }
 
+  /* 배너가 떠 있다는 것을 body 에도 적어 둔다. '맨 위로' 버튼이 이 값을 보고
+     비켜 준다 — 겹치면 배너의 닫기(×)가 가려져서, 닫고 싶어도 못 닫는
+     홍보물이 된다. */
+  function setShown(on) {
+    bar.classList.toggle('show', on);
+    document.body.classList.toggle('appbar-shown', on);
+  }
+
   function update() {
     if (!bar || dismissed) return;
     var down = window.scrollY > window.innerHeight * SHOW_AFTER;
-    bar.classList.toggle('show', down && !anchorAdShowing());
+    setShown(down && !anchorAdShowing());
   }
 
   function close() {
     dismissed = true;
-    bar.classList.remove('show');
+    setShown(false);
     try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
   }
 
