@@ -39,6 +39,11 @@ from fontTools.ttLib import TTFont
 
 BASE = "https://freefontpick.co.kr"
 OUT = Path(__file__).resolve().parent.parent / "fontzips"
+# 제작사 원본 문서(README·LICENSE 등)를 그대로 넣어야 하는 폰트가 있다.
+# 여기 font-NNN/ 폴더를 만들어 두면 그 안의 파일이 **바이트 그대로** 묶인다.
+# 다시 인코딩하지 않는 것이 중요하다 — 라이선스가 'verbatim copies' 를
+# 요구하는 경우, 줄바꿈이나 문자표를 바꾸면 그 조건에서 벗어난다.
+DOCS = OUT / "_docs"
 UA = {"User-Agent": "Mozilla/5.0 (compatible; freefontpick-tools/1.0)"}
 
 # 표의 값 → 안내문에 쓸 말. 사이트가 쓰는 말과 같아야 한다.
@@ -114,8 +119,13 @@ def to_sfnt(woff2: bytes):
     return buf.getvalue(), ext, ko, inner
 
 
-def license_note(m: dict) -> str:
-    """zip 안에 넣을 안내문. 값은 전부 사이트에서 온 것이다."""
+def license_note(m: dict, keep: bool = False, docs=()) -> str:
+    """zip 안에 넣을 안내문. 값은 전부 사이트에서 온 것이다.
+
+    keep 이면 제작사 원본 파일을 그대로 넣은 것이라 마무리 문장이 달라진다.
+    docs 에 제작사 문서가 있으면 그쪽을 정본으로 가리킨다 — 우리 안내문이
+    원문보다 앞서는 것처럼 읽히면 안 된다.
+    """
     f, lic, rows, ofl = m["font"], m["lic"], m["rows"], m["ofl"]
     name = f["name"]
     lines = [name, "=" * (len(name) * 2)]
@@ -127,29 +137,69 @@ def license_note(m: dict) -> str:
 
     allowed = [k for k, v in rows.items() if v == _ALLOW]
     denied = [k for k, v in rows.items() if v not in (_ALLOW, "")]
-    lines += ["", "사용 범위", "-" * 9]
-    if allowed:
-        lines.append("%s 에 사용할 수 있습니다." % " · ".join(allowed))
-    for k in denied:
-        lines.append("%s : %s" % (k, rows[k]))
-    if ofl:
-        lines.append("폰트 파일 수정·재배포 : %s" % ofl)
+    # 사이트에 아직 라이선스를 안 넣은 폰트도 있다. 그때는 빈 제목만 남는데,
+    # 없는 정보를 있는 것처럼 보이게 하느니 통째로 뺀다.
+    if allowed or denied or ofl:
+        lines += ["", "사용 범위", "-" * 9]
+        if allowed:
+            lines.append("%s 에 사용할 수 있습니다." % " · ".join(allowed))
+        for k in denied:
+            lines.append("%s : %s" % (k, rows[k]))
+        if ofl:
+            lines.append("폰트 파일 수정·재배포 : %s" % ofl)
 
     lines += ["", "받은 곳", "-" * 7,
               "폰트픽  %s/font/%d" % (BASE, f["id"])]
     if lic.get("url"):
         lines.append("원문    %s" % lic["url"])
-    lines += ["",
-              "이 묶음은 폰트픽이 화면에 쓰는 파일로 만들었습니다.",
-              "제작사가 배포하는 원본 묶음과 구성이 다를 수 있으니,",
-              "정확한 조건은 위 원문 주소에서 확인해 주세요."]
+    lines.append("")
+    if docs:
+        lines += ["이 묶음에는 저작권자가 배포한 %s 가 함께 들어 있습니다."
+                  % " · ".join(docs),
+                  "사용 조건은 그 문서가 정본입니다. 위 내용은 참고용 요약입니다."]
+    elif keep:
+        lines += ["이 묶음의 폰트 파일은 제작사 원본 그대로입니다.",
+                  "정확한 조건은 위 원문 주소에서 확인해 주세요."]
+    else:
+        lines += ["이 묶음은 폰트픽이 화면에 쓰는 파일로 만들었습니다.",
+                  "제작사가 배포하는 원본 묶음과 구성이 다를 수 있으니,",
+                  "정확한 조건은 위 원문 주소에서 확인해 주세요."]
     return "\r\n".join(lines) + "\r\n"
 
 
-def build(font_id: int, check_only: bool = False) -> bool:
+def _existing_fonts(font_id: int):
+    """이미 있는 zip 안의 폰트 파일을 그대로 꺼내 온다.
+
+    제작사가 배포한 원본 파일이 이미 묶여 있다면 그게 가장 정확하다.
+    웹용 woff2 를 되돌린 파일은 글리프가 같아도 바이트가 다른데,
+    '수정본 배포 금지' 가 걸린 폰트에서는 그 차이를 만들 이유가 없다.
+    """
+    p = OUT / ("font-%03d.zip" % font_id)
+    if not p.is_file():
+        return []
+    out = []
+    with zipfile.ZipFile(p) as z:
+        for n in z.namelist():
+            if n.lower().endswith((".ttf", ".otf")):
+                data = z.read(n)
+                tt = TTFont(io.BytesIO(data), fontNumber=0, lazy=True)
+                ko = sum(1 for c in tt.getBestCmap() if 0xAC00 <= c <= 0xD7A3)
+                tt.close()
+                out.append((n, data, 0, ko))
+    return out
+
+
+def build(font_id: int, check_only: bool = False, keep: bool = False) -> bool:
     m = font_meta(font_id)
     f = m["font"]
     weights = sorted(set(f.get("available_weights") or [])) or [400]
+
+    if keep:
+        files = _existing_fonts(font_id)
+        if not files:
+            print("   기존 zip 에 폰트 파일이 없다")
+            return False
+        return _write(font_id, m, files, check_only, keep=True)
 
     files = []
     for w in weights:
@@ -173,8 +223,18 @@ def build(font_id: int, check_only: bool = False) -> bool:
         print("   파일을 하나도 못 만들었다")
         return False
 
+    return _write(font_id, m, files, check_only)
+
+
+def _write(font_id: int, m: dict, files, check_only: bool, keep: bool = False) -> bool:
     for nm, data, w, ko in files:
-        print("   %-28s 굵기 %-4d %7.0fKB  한글 %d자" % (nm, w, len(data) / 1024, ko))
+        print("   %-28s %s%7.0fKB  한글 %d자"
+              % (nm, ("굵기 %-4d " % w) if w else "          ", len(data) / 1024, ko))
+
+    docs = sorted(p for p in (DOCS / ("font-%03d" % font_id)).glob("*")
+                  if p.is_file()) if (DOCS / ("font-%03d" % font_id)).is_dir() else []
+    for p in docs:
+        print("   %-28s %7.0fKB  원본 문서 (바이트 그대로)" % (p.name, p.stat().st_size / 1024))
     if check_only:
         return True
 
@@ -183,7 +243,10 @@ def build(font_id: int, check_only: bool = False) -> bool:
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
         for nm, data, _w, _ko in files:
             z.writestr(nm, data)
-        z.writestr("라이선스 안내.txt", license_note(m).encode("utf-8"))
+        for p in docs:
+            z.writestr(p.name, p.read_bytes())      # 다시 인코딩하지 않는다
+        note = license_note(m, keep=keep, docs=[p.name for p in docs])
+        z.writestr("라이선스 안내.txt", note.encode("utf-8"))
     print("   → %s  %.0fKB" % (path.name, path.stat().st_size / 1024))
     return True
 
@@ -198,13 +261,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("ids", nargs="+", type=int)
     ap.add_argument("--check", action="store_true", help="만들지 않고 확인만")
+    ap.add_argument("--keep", action="store_true",
+                    help="기존 zip 의 폰트 파일을 그대로 두고 문서만 새로 넣는다")
     a = ap.parse_args()
 
     ok = 0
     for fid in a.ids:
         print("[%d]" % fid, flush=True)
         try:
-            if build(fid, a.check):
+            if build(fid, a.check, a.keep):
                 ok += 1
         except Exception as e:
             print("   실패: %s: %s" % (type(e).__name__, e))
