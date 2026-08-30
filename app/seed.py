@@ -49,6 +49,7 @@ def init_db():
         _patch_luxury_hub_title(db)
         _migrate_fancy_intros(db)
         _migrate_curator_intros(db)
+        _migrate_summaries(db)
         _migrate_webfont_weights(db)
         _migrate_clean_css_urls(db)
         _migrate_arita_weights(db)
@@ -737,6 +738,60 @@ def _migrate_fancy_intros(db: Session):
     if missing:
         msg += f" (미발견: {', '.join(missing)})"
     print(msg)
+
+
+def _migrate_summaries(db: Session):
+    """짧은 소개(meta.summary)를 넓혀 쓴 문장으로 교체한다 (app/summary_expand.py).
+
+    _migrate_curator_intros 와 같은 규칙이다. **현재 값이 표의 old 와 정확히
+    같을 때만** 손댄다. 어드민에서 사람이 고쳐 쓴 문장은 old 와 달라지므로
+    그대로 남는다 — 배포가 사람 손을 되돌리는 일은 없어야 한다.
+
+    meta 는 JSON 컬럼이라 딕셔너리를 제자리에서 고치면 SQLAlchemy 가 변경을
+    알아채지 못한다. 새 딕셔너리로 통째로 갈아끼운다.
+    """
+    from .summary_expand import EXPANDED_SUMMARIES, SUMMARY_KEY
+
+    if not EXPANDED_SUMMARIES:
+        return
+
+    done = db.query(AppMeta).filter(AppMeta.key == SUMMARY_KEY).first()
+    if done and done.value == "1":
+        return
+
+    replaced, edited, missing, mismatched = 0, [], [], []
+    for item in EXPANDED_SUMMARIES:
+        font_id, name = item["id"], item["name"]
+        f = db.query(Font).filter(Font.id == font_id).first()
+        if f is None:
+            missing.append(f"id={font_id}({name})")
+            continue
+        if f.name != name:
+            # 이름이 다르면 다른 폰트에 남의 글을 붙이는 것이라 손대지 않는다.
+            mismatched.append(f"id={font_id}: DB='{f.name}' 기대='{name}'")
+            continue
+        meta = dict(f.meta or {})
+        if (meta.get("summary") or "").strip() != item["old"].strip():
+            edited.append(f.name)
+            continue
+        meta["summary"] = item["new"].strip()
+        f.meta = meta
+        replaced += 1
+
+    if done is None:
+        db.add(AppMeta(key=SUMMARY_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+
+    msg = f"[migrate] 짧은 소개 확장 {replaced}종 교체"
+    if edited:
+        msg += f" (사람이 고쳐 둔 글이라 건너뜀: {len(edited)}종)"
+    if missing:
+        msg += f" (미발견: {', '.join(missing)})"
+    if mismatched:
+        msg += f" (이름 불일치: {'; '.join(mismatched)})"
+    print(msg, flush=True)
 
 
 def _migrate_curator_intros(db: Session):
