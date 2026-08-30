@@ -248,40 +248,37 @@
      구글 플레이에 있는 것이 글씨사진관뿐이라, 모바일 유입이 늘면서 나머지
      둘은 안드로이드에서 받을 수 없는 앱이 됐다. 링크는 app-link.js 가
      기기에 맞는 스토어로 바꾼다. */
-  .app-promo-banner{display:flex;flex-direction:column;gap:12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:16px 18px;transition:border-color .15s;min-width:0}
+  /* 한 줄이다 — 아이콘 | 글 2줄 | 버튼.
+     예전에는 버튼을 아래 줄에 따로 뒀는데, 아이콘 옆이 비고 배너만 높아졌다.
+     자리는 340px(안쪽 312px)뿐이라 여백과 버튼을 조여 글자 자리를 남긴다:
+     아이콘 36 + 여백 10 + 글 + 여백 10 + 버튼 62 → 글에 194px.
+     부제가 12자라 그 안에 들어가지만, 폰트 이름이 길어질 때를 대비해
+     두 줄 다 말줄임을 건다. */
+  .app-promo-banner{display:flex;align-items:center;gap:10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:12px 14px;transition:border-color .15s;min-width:0}
   .app-promo-banner:hover{border-color:var(--border-hover)}
-  .app-promo-top{display:flex;align-items:center;gap:12px;min-width:0}
-  .app-promo-banner .appico{width:38px;height:38px;border-radius:9px;
+  .app-promo-top{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+  .app-promo-banner .appico{width:36px;height:36px;border-radius:9px;
     border:1px solid var(--border);background:#fff}
   .app-promo-text{display:flex;flex-direction:column;flex:1;min-width:0}
-  .app-promo-title{font-size:13.5px;font-weight:700;color:var(--text-primary)}
-  .app-promo-sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
-  .app-promo-cta-row{display:flex;justify-content:flex-end}
-  .app-promo-cta{font-family:var(--ui);font-size:13px;font-weight:700;color:#fff;background:var(--accent);padding:8px 14px;border-radius:8px;transition:background-color .15s,transform .1s}
+  .app-promo-title{font-size:13.5px;font-weight:700;color:var(--text-primary);
+    line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .app-promo-sub{font-size:12px;color:var(--text-secondary);margin-top:1px;
+    line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .app-promo-cta-row{flex:0 0 auto}
+  .app-promo-cta{font-family:var(--ui);font-size:12.5px;font-weight:700;color:#fff;background:var(--accent);padding:8px 12px;border-radius:8px;white-space:nowrap;transition:background-color .15s,transform .1s}
   .app-promo-banner:hover .app-promo-cta{background:var(--accent-hover)}
   .app-promo-banner:active .app-promo-cta{transform:scale(.97)}
 
-  /* ── 모바일 상단 슬롯에 들어갔을 때: 세로 카드 → 가로 띠배너로 재구성 ──
-     아이콘 | 텍스트 2줄 | CTA(우측 끝) 구조. 사이드바에 있을 때의
-     세로 카드 형태는 그대로 두고, 슬롯 안에서만 스타일을 덮어쓴다. */
+  /* ── 모바일 상단 슬롯에 들어갔을 때 ──
+     이제 배너 자체가 한 줄이라 구조를 다시 짤 일이 없다. 모서리를 조금 더
+     둥글게 하고 글자만 한 급 줄인다. */
   #appPromoSlot{margin-top:14px}
-  #appPromoSlot .app-promo-banner{
-    flex-direction:row; align-items:center; gap:10px;
-    padding:11px 12px; border-radius:10px;
-  }
-  #appPromoSlot .app-promo-top{flex:1; min-width:0; gap:10px}
-  #appPromoSlot .app-promo-banner .appico{width:34px;height:34px;border-radius:8px;font-size:17px}
-  #appPromoSlot .app-promo-title{
-    font-size:13px; line-height:1.25;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
-  #appPromoSlot .app-promo-sub{
-    font-size:11.5px; line-height:1.25; margin-top:1px;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
-  #appPromoSlot .app-promo-cta-row{flex-shrink:0}
-  #appPromoSlot .app-promo-cta{font-size:11.5px; padding:7px 11px; white-space:nowrap}
-  /* 아주 좁은 화면에선 CTA 문구를 줄여 텍스트 2줄 공간을 확보 */
+  #appPromoSlot .app-promo-banner{padding:11px 12px;border-radius:10px}
+  #appPromoSlot .app-promo-banner .appico{width:34px;height:34px;border-radius:8px}
+  #appPromoSlot .app-promo-title{font-size:13px}
+  #appPromoSlot .app-promo-sub{font-size:11.5px}
+  #appPromoSlot .app-promo-cta{font-size:11.5px;padding:7px 11px}
+  /* 아주 좁은 화면에선 버튼을 더 조여 글 두 줄 자리를 지킨다 */
   @media(max-width:380px){
     #appPromoSlot .app-promo-cta{padding:7px 9px}
     #appPromoSlot .app-promo-sub{font-size:11px}
