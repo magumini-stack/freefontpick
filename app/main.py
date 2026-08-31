@@ -5,6 +5,7 @@
 - 세션 미들웨어: itsdangerous SessionMiddleware
 """
 import hashlib
+import json
 import os
 import re
 import secrets
@@ -164,17 +165,49 @@ def _stamp_assets(html: str) -> str:
 # 중복으로 본다. canonical 태그로 한 번 정리해 두었지만, 리다이렉트로
 # 실제 응답을 하나로 모으는 편이 낫다.
 #
-# 주의: TLS 는 카페24 엣지에서 끊기므로 앱이 보는 request.url.scheme 은
-# 늘 http 다. 그걸로 판단하면 https 로 들어온 요청까지 https 로 다시
-# 보내 무한 루프가 된다. 그래서 **엣지가 붙여 주는 X-Forwarded-Proto 가
-# 명시적으로 http 일 때만** 움직인다. 헤더가 없으면 아무것도 하지 않는다
-# (판단할 근거가 없을 때는 건드리지 않는 쪽이 안전하다).
+# 주의: TLS 는 앞단에서 끊기므로 앱이 보는 request.url.scheme 은 늘 http 다.
+# 그걸로 판단하면 https 로 들어온 요청까지 https 로 다시 보내 무한 루프가
+# 된다. 방문자가 무슨 프로토콜을 썼는지는 _visitor_scheme 으로만 판단한다.
 CANONICAL_HOST = "freefontpick.co.kr"
+
+
+def _visitor_scheme(request: Request) -> str:
+    """방문자↔앞단 구간의 프로토콜. 알 수 없으면 빈 문자열.
+
+    앞단이 두 겹이라 헤더 하나로는 알 수 없다.
+
+        방문자 ──https──> Cloudflare ──http──> 카페24 엣지 ──> 이 앱
+
+    카페24 엣지는 **자기가 받은** 프로토콜로 X-Forwarded-Proto 를
+    덮어쓴다(실측 확인). Cloudflare 를 Flexible 로 두면 그 구간이 http 라
+    엣지는 늘 `http` 를 적어 준다. 그걸 믿고 방문자를 https 로 돌려보내면
+    그 요청이 또 http 로 원본에 닿아 **무한 리다이렉트**가 된다.
+
+    그래서 Cloudflare 가 붙이는 CF-Visitor 를 먼저 본다. 이건 방문자↔
+    Cloudflare 구간의 프로토콜이라 우리가 알고 싶은 바로 그 값이고,
+    Cloudflare 는 클라이언트가 보낸 CF-* 헤더를 버리고 자기 값으로 새로
+    쓴다. Cloudflare 를 거치지 않는 직접 접속에는 이 헤더가 없으므로
+    그때는 예전처럼 X-Forwarded-Proto 로 떨어진다.
+
+    둘 다 없으면 빈 문자열을 돌려준다 — 판단할 근거가 없을 때는
+    건드리지 않는 쪽이 안전하다.
+    """
+    cf = request.headers.get("cf-visitor") or ""
+    if cf:
+        # 형식은 {"scheme":"https"}. 남이 보낸 값일 수도 있으니 깨져 있어도
+        # 그냥 다음 헤더로 넘어간다.
+        try:
+            scheme = (json.loads(cf).get("scheme") or "").strip().lower()
+        except Exception:
+            scheme = ""
+        if scheme in ("http", "https"):
+            return scheme
+    return (request.headers.get("x-forwarded-proto") or "").split(",")[0].strip().lower()
 
 
 @app.middleware("http")
 async def canonical_redirect(request: Request, call_next):
-    proto = (request.headers.get("x-forwarded-proto") or "").split(",")[0].strip().lower()
+    proto = _visitor_scheme(request)
     host = (request.headers.get("host") or "").split(":")[0].lower()
 
     # 운영 도메인이 아닐 때(로컬, 카페24 컨테이너 주소, 헬스체크)는 그대로 둔다.
@@ -268,11 +301,20 @@ def health(request: Request):
     """기본 헬스 + DB 연결 상태 + 폰트/태그 카운트 + DB 종류
 
     canonical_redirect 가 제대로 판단하는지 보려면 proxy 항목을 확인한다.
-    x_forwarded_proto 가 빈 값이면 엣지가 프로토콜을 알려 주지 않는다는
-    뜻이고, 그때는 http→https 리다이렉트가 (안전하게) 동작하지 않는다."""
+    visitor_scheme 이 실제로 쓰이는 값이다. 이게 빈 값이면 프로토콜을
+    알려 주는 앞단이 없다는 뜻이고, 그때는 http→https 리다이렉트가
+    (안전하게) 동작하지 않는다.
+
+    Cloudflare 를 앞에 세운 뒤에는 cf_visitor 가 {"scheme":"https"} 로,
+    visitor_scheme 이 https 로 찍혀야 한다. x_forwarded_proto 는 그때
+    http 로 남는데(Cloudflare→카페24 구간이 http 라서) 정상이다.
+    cf_connecting_ip 가 채워지면 Cloudflare 를 거쳐 들어온 요청이다."""
     info = {"status": "ok", "service": "freefontpick-api", "version": "1.0.0"}
     info["proxy"] = {
         "host": request.headers.get("host"),
+        "visitor_scheme": _visitor_scheme(request),
+        "cf_visitor": request.headers.get("cf-visitor"),
+        "cf_connecting_ip": request.headers.get("cf-connecting-ip"),
         "x_forwarded_proto": request.headers.get("x-forwarded-proto"),
         "x_forwarded_host": request.headers.get("x-forwarded-host"),
         "x_forwarded_for": request.headers.get("x-forwarded-for"),
