@@ -51,7 +51,7 @@
      crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Pen+Script&family=Nanum+Square:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Brush+Script&family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Gugi&family=Hi+Melody&family=Noto+Sans+KR:wght@100..900&family=Anton&family=Bangers&family=Lobster&family=Monoton&family=Raleway:wght@400;700&family=Press+Start+2P&family=Dancing+Script:wght@400;700&family=Kaushan+Script&family=Cinzel+Decorative:wght@400;700&family=Bona+Nova:ital,wght@0,400;0,700;1,400&family=Bungee&family=Petrona:wght@400;700&family=Pavanam&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.44.0/tabler-icons.min.css">
 <style>
@@ -1102,7 +1102,7 @@
     if (local.length >= 2) {
       var pick = usageWeights(local);
       if (!pick) return;
-      var rest = (f.stack || "'Nanum Gothic',sans-serif")
+      var rest = (f.stack || "sans-serif")
         .replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
       [['.u-h1', pick.head], ['.u-h2', pick.sub], ['.u-body', pick.body]]
         .forEach(function(p){
@@ -1151,7 +1151,7 @@
       // 서버에 굵기 파일이 2개 이상 개별 등록된 경우 최우선 (어드민 실제 업로드)
       // 줄마다 그 굵기 전용 family를 쓰고 font-weight는 normal로 둔다.
       // CSS로 굵기를 요구하면 브라우저가 파일을 고르거나 가짜 볼드를 합성한다.
-      var _rest = (FONT.stack || "'Nanum Gothic',sans-serif").replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
+      var _rest = (FONT.stack || "sans-serif").replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
       rows = localW.map(function(w){
         return { label: w.label, sub: String(w.weight),
                  family: "'" + weightFamily(FONT.id, w.weight) + "'," + _rest, weight: 400 };
@@ -1164,7 +1164,7 @@
          않는다 — 굵기별 보기의 목적이 굵기 차이를 보여주는 것이기 때문이다.
          업로드 파일은 폰트명·미리보기(stackOf)에서 계속 우선한다. */
       var famC = "'" + FONT.webfont_family + "'," +
-                 (FONT.stack || "'Nanum Gothic',sans-serif").replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
+                 (FONT.stack || "sans-serif").replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
       rows = cdnW.map(function(w){
         return { label: w.label, sub: String(w.weight), family: famC, weight: w.weight };
       });
@@ -1867,8 +1867,8 @@ function showToast(msg){
     const WEBFONT_MAP = {
       'notosanscjkkr': {css:'', family:"'Noto Sans KR'", weights:DS_W9},
       '노토산스':      {css:'', family:"'Noto Sans KR'", weights:DS_W9},
-      '나눔고딕': {css:'', family:"'Nanum Gothic'", weights:[[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
-      '나눔명조': {css:'', family:"'Nanum Myeongjo'", weights:[[400,'Regular'],[700,'Bold']]},
+      '나눔고딕': {css:'https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap', family:"'Nanum Gothic'", weights:[[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
+      '나눔명조': {css:'https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap', family:"'Nanum Myeongjo'", weights:[[400,'Regular'],[700,'Bold']]},
       '프리텐다드': {css:'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css', family:"'Pretendard Variable'", weights:DS_W9},
       '수트': {css:'https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css', family:"'SUIT Variable'", weights:DS_W9},
       '마루부리': {css:'https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css', family:"'MaruBuri'", weights:[[300,'Light'],[400,'Regular'],[600,'SemiBold'],[700,'Bold']]},
@@ -1944,9 +1944,9 @@ function ensureFontLoaded(id){
   ));
 }
 function getEffectiveStack(f){
-  if(!f) return "'Nanum Gothic',sans-serif";
-  if(f.webfontFamily && f.fileSource !== 'user') return `'${f.webfontFamily}',` + (f.stack || "'Nanum Gothic',sans-serif");
-  const baseStack = f.stack || "'Nanum Gothic',sans-serif";
+  if(!f) return "sans-serif";
+  if(f.webfontFamily && f.fileSource !== 'user') return `'${f.webfontFamily}',` + (f.stack || "sans-serif");
+  const baseStack = f.stack || "sans-serif";
   if(!f.hasFile) return baseStack;
   const family = `FFP-${String(f.id).padStart(3,'0')}`;
   if(baseStack.includes(family)) return baseStack;

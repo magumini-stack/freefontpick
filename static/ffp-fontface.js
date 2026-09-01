@@ -52,7 +52,7 @@
   /* stack에서 FFP-### 를 걷어낸 나머지(대체 폰트 목록). 우리가 앞에 붙일 family와
      중복되면 브라우저가 엉뚱한 걸 먼저 찾는다. */
   function baseStack(f) {
-    return (f && f.stack || "'Nanum Gothic',sans-serif")
+    return (f && f.stack || "sans-serif")
       .replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
   }
 
@@ -71,8 +71,8 @@
   var WEBFONT_MAP = {
     'notosanscjkkr': { css: '', family: "'Noto Sans KR'", weights: W9 },
     '노토산스': { css: '', family: "'Noto Sans KR'", weights: W9 },
-    '나눔고딕': { css: '', family: "'Nanum Gothic'", weights: [[400, 'Regular'], [700, 'Bold'], [800, 'ExtraBold']] },
-    '나눔명조': { css: '', family: "'Nanum Myeongjo'", weights: [[400, 'Regular'], [700, 'Bold'], [800, 'ExtraBold']] },
+    '나눔고딕': { css: 'https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap', family: "'Nanum Gothic'", weights: [[400, 'Regular'], [700, 'Bold'], [800, 'ExtraBold']] },
+    '나눔명조': { css: 'https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap', family: "'Nanum Myeongjo'", weights: [[400, 'Regular'], [700, 'Bold'], [800, 'ExtraBold']] },
     '프리텐다드': { css: 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css', family: "'Pretendard Variable'", weights: W9 },
     '수트': { css: 'https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css', family: "'SUIT Variable'", weights: W9 },
     '마루부리': { css: 'https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css', family: "'MaruBuri'", weights: [[300, 'Light'], [400, 'Regular'], [600, 'SemiBold'], [700, 'Bold']] },
@@ -173,15 +173,15 @@
        ④ 대표 파일뿐     — 1~999로 등록해 합성을 유도 → 부른 굵기 그대로 */
   var pairLoaded = {};
   function faceFor(f, weight) {
-    if (!f) return { stack: "'Nanum Gothic',sans-serif", weight: weight };
+    if (!f) return { stack: "sans-serif", weight: weight };
 
     var wf = resolveWebfont(f);
     if (wf) {                                                   // ①
-      return { stack: wf.family + ',' + (f.stack || "'Nanum Gothic',sans-serif"),
+      return { stack: wf.family + ',' + (f.stack || "sans-serif"),
                weight: weight };
     }
     if (!f.has_file) {                                          // ②
-      return { stack: f.stack || "'Nanum Gothic',sans-serif", weight: weight };
+      return { stack: f.stack || "sans-serif", weight: weight };
     }
 
     var avail = f.available_weights || [];
@@ -206,9 +206,9 @@
      font-family는 웹폰트를 가리키는 어긋남이 생긴다. */
   function stackOf(f) {
     if (f && f.webfont_family && f.file_source !== 'user') {
-      return "'" + f.webfont_family + "'," + (f.stack || "'Nanum Gothic',sans-serif");
+      return "'" + f.webfont_family + "'," + (f.stack || "sans-serif");
     }
-    var base = f && f.stack || "'Nanum Gothic',sans-serif";
+    var base = f && f.stack || "sans-serif";
     if (!f || !f.has_file) return base;
     var fam = 'FFP-' + pad3(f.id);
     return base.indexOf(fam) >= 0 ? base : "'" + fam + "'," + base;

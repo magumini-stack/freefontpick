@@ -52,6 +52,7 @@ def init_db():
         _migrate_curator_intros(db)
         _migrate_summaries(db)
         _migrate_site_urls(db)
+        _migrate_strip_webfont_fallbacks(db)
         _migrate_webfont_weights(db)
         _migrate_clean_css_urls(db)
         _migrate_arita_weights(db)
@@ -1450,6 +1451,87 @@ def _migrate_site_urls(db: Session):
     print("[migrate] 사이트 절대주소 → %s: %d종%s"
           % (SITE_URL, len(changed),
              (" — " + ", ".join(changed)) if changed else ""), flush=True)
+
+
+# 폰트 미리보기 stack 에서 걷어낼 구글 폰트들.
+# font.html / index.html 의 <head> 가 한 줄로 불러오던 24종 그대로다.
+WEBFONT_FALLBACKS = {
+    "Nanum Gothic", "Nanum Pen Script", "Nanum Square", "Nanum Myeongjo",
+    "Nanum Brush Script", "Black Han Sans", "Do Hyeon", "Jua", "Gugi",
+    "Hi Melody", "Noto Sans KR", "Anton", "Bangers", "Lobster", "Monoton",
+    "Raleway", "Press Start 2P", "Dancing Script", "Kaushan Script",
+    "Cinzel Decorative", "Bona Nova", "Bungee", "Petrona", "Pavanam",
+}
+STACK_FALLBACK_KEY = "strip_webfont_fallbacks_v1"
+
+
+def _migrate_strip_webfont_fallbacks(db: Session):
+    """폰트 stack 에서 구글 폰트 대체 서체를 걷어낸다.
+
+    무엇이 문제였나
+    --------------
+    폰트마다 stack 이 이렇게 저장돼 있었다.
+
+        'FFP-068','Nanum Pen Script',cursive
+
+    앞은 우리가 올린 폰트 파일이고, 가운데 구글 폰트는 **우리 폰트가
+    받아지는 동안 잠깐 보여줄 대체 서체**다. 그런데 브라우저는 그 잠깐을
+    위해 구글 폰트를 진짜로 내려받는다. 폰트 하나 보여주려고 두 개를
+    받는 셈이다.
+
+    상세페이지 한 장에서 실측한 값이다.
+
+        구글 폰트 2,487 KB 중 화면에 실제로 쓰인 것 1,121 KB
+        나머지 1,365 KB 는 대체 서체로만 받고 버려진다
+
+    대체 서체는 시스템 한글 폰트(sans-serif → 맑은 고딕 / Apple SD
+    고딕네오)로 충분하다. 0바이트에 즉시 보인다.
+
+    안전한가
+    -------
+    stack 은 대체 서체 목록일 뿐이다. 실제로 그릴 폰트는 클라이언트가
+    앞에 붙인다 — 파일이 있으면 FFP-NNN, 웹폰트면 webfont_family
+    (static/ffp-fontface.js 의 getEffectiveStack 참고). 그래서 구글 폰트
+    이름을 빼도 폰트가 바뀌어 보이지 않는다.
+
+    다만 파일도 웹폰트 주소도 없는 폰트라면 stack 이 유일한 단서일 수
+    있으므로 그런 행은 건너뛴다.
+    """
+    done = db.query(AppMeta).filter(AppMeta.key == STACK_FALLBACK_KEY).first()
+    if done and done.value == "1":
+        return
+
+    def _strip(stack: str) -> str:
+        # 패밀리 이름에는 콤마가 없으므로 콤마로 잘라도 안전하다.
+        parts = [p.strip() for p in stack.split(",") if p.strip()]
+        kept = [p for p in parts if p.strip("'\"") not in WEBFONT_FALLBACKS]
+        return ",".join(kept)
+
+    changed, skipped = [], []
+    for f in db.query(Font).all():
+        raw = (f.stack or "").strip()
+        if not raw:
+            continue
+        new = _strip(raw)
+        if new == raw:
+            continue
+        # 그릴 폰트를 클라이언트가 못 붙여 주는 경우에만 원본을 남긴다.
+        if not f.has_file and not f.webfont_css_url:
+            skipped.append(f.name)
+            continue
+        f.stack = new
+        changed.append(f.name)
+
+    if done is None:
+        db.add(AppMeta(key=STACK_FALLBACK_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+
+    msg = "[migrate] stack 대체 서체 정리: %d종" % len(changed)
+    if skipped:
+        msg += " (파일·웹폰트 주소가 없어 건너뜀: %s)" % ", ".join(skipped)
+    print(msg, flush=True)
 
 
 def _migrate_clean_css_urls(db: Session):

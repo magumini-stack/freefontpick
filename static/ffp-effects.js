@@ -173,7 +173,7 @@ function ffpRegisterFace(font, weight){
 }
 
 function ffpEffectiveStack(font, weight){
-  const base = (font && (font.stack)) || "'Nanum Gothic',sans-serif";
+  const base = (font && (font.stack)) || "sans-serif";
   const family = ffpRegisterFace(font, weight);
   if(!family) return base;
   if(base.includes(`'${family}'`)) return base;

@@ -25,7 +25,7 @@ class Font(Base):
     maker = Column(String(100), nullable=False)
     weights = Column(String(20), default="1종")
     url = Column(String(500))
-    stack = Column(String(200), default="'Nanum Gothic',sans-serif")
+    stack = Column(String(200), default="sans-serif")
     is_english = Column(Boolean, default=False)
     has_file = Column(Boolean, default=False)
     # 대표 굵기 — 메인 페이지/갤러리 카드에 노출되는 기본 업로드 파일(has_file)의 실제 굵기값.

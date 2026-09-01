@@ -99,7 +99,7 @@
        crossorigin="anonymous"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Pen+Script&family=Nanum+Square:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Brush+Script&family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Gugi&family=Hi+Melody&family=Noto+Sans+KR:wght@100..900&family=Anton&family=Bangers&family=Lobster&family=Monoton&family=Raleway:wght@400;700&family=Press+Start+2P&family=Dancing+Script:wght@400;700&family=Kaushan+Script&family=Cinzel+Decorative:wght@400;700&family=Bona+Nova:ital,wght@0,400;0,700;1,400&family=Bungee&family=Petrona:wght@400;700&family=Pavanam&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
   <!-- Tabler Icons — 여러 CDN을 미러링해서 하나가 실패해도 다른 것 사용 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.44.0/tabler-icons.min.css">
@@ -2794,8 +2794,8 @@ function showMoreRecommendations(){
     const WEBFONT_MAP = {
       'notosanscjkkr': {css:'', family:"'Noto Sans KR'", weights:DS_W9},
       '노토산스':      {css:'', family:"'Noto Sans KR'", weights:DS_W9},
-      '나눔고딕': {css:'', family:"'Nanum Gothic'", weights:[[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
-      '나눔명조': {css:'', family:"'Nanum Myeongjo'", weights:[[400,'Regular'],[700,'Bold']]},
+      '나눔고딕': {css:'https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap', family:"'Nanum Gothic'", weights:[[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
+      '나눔명조': {css:'https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap', family:"'Nanum Myeongjo'", weights:[[400,'Regular'],[700,'Bold']]},
       '프리텐다드': {css:'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css', family:"'Pretendard Variable'", weights:DS_W9},
       '수트': {css:'https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css', family:"'SUIT Variable'", weights:DS_W9},
       '마루부리': {css:'https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css', family:"'MaruBuri'", weights:[[300,'Light'],[400,'Regular'],[600,'SemiBold'],[700,'Bold']]},
@@ -2937,11 +2937,11 @@ function cardNavigate(e, id){
   goFontDetail(id);
 }
 function getEffectiveStack(f){
-  if(!f) return "'Nanum Gothic',sans-serif";
+  if(!f) return "sans-serif";
   // ensureFontLoaded와 같은 우선순위를 써야 한다 — 한쪽만 바꾸면
   // @font-face는 등록되는데 font-family가 웹폰트를 가리키는 어긋남이 생긴다.
-  if(f.webfontFamily && f.fileSource !== 'user') return `'${f.webfontFamily}',` + (f.stack || "'Nanum Gothic',sans-serif");
-  const baseStack = f.stack || "'Nanum Gothic',sans-serif";
+  if(f.webfontFamily && f.fileSource !== 'user') return `'${f.webfontFamily}',` + (f.stack || "sans-serif");
+  const baseStack = f.stack || "sans-serif";
   if(!f.hasFile) return baseStack;
   const family = `FFP-${String(f.id).padStart(3,'0')}`;
   if(baseStack.includes(family)) return baseStack;
