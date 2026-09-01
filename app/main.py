@@ -285,6 +285,18 @@ async def no_store_for_api(request: Request, call_next):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
+    elif (response.headers.get("content-type", "").startswith("text/html")
+            and "cache-control" not in response.headers):
+        # HTML 은 캐시하지 말라고 못 박는다.
+        #
+        # 여태 아무 헤더도 안 붙여 보냈다. 우리 서버만 있을 때는 문제가 없었는데,
+        # 앞에 CDN 을 세우면 헤더가 없는 응답에 CDN 이 **자기 기본 TTL 을**
+        # 적용한다. 상세페이지가 캐시되면 요청이 원본까지 오지 않아서 조회수·
+        # 인기순위 집계가 조용히 멈추고, 폰트를 고쳐도 한동안 옛 화면이 나간다.
+        #
+        # no-cache 는 "쓰지 말라"가 아니라 "쓸 때마다 물어보라"다. 내용이
+        # 그대로면 304 로 끝나므로 트래픽 손해는 거의 없다.
+        response.headers["Cache-Control"] = "no-cache"
     return response
 
 # API 라우터 등록
