@@ -206,21 +206,59 @@ def _ensure_worker():
     _worker.start()
 
 
+# 마지막 오류를 남겨 둔다. 운영 로그를 볼 수 없는 환경이라, 이게 없으면
+# 서브셋이 왜 안 생기는지 알 방법이 없다 (/api/debug/subset 이 읽어 간다).
+_last_error = None
+_made = 0
+
+
 def _run():
+    global _last_error, _made
     while True:
         src = _jobs.get()
         dst = cache_path(src)
         try:
             _make(src, dst)
+            _made += 1
         except Exception as e:
+            import traceback
             with _state_lock:
                 _failed.add(str(dst))
+                _last_error = "%s: %s: %s" % (
+                    src.name, type(e).__name__, traceback.format_exc()[-600:])
             print("[subset] 실패 %s: %s: %s" % (src.name, type(e).__name__, e),
                   flush=True)
         finally:
             with _state_lock:
                 _queued.discard(str(dst))
             _jobs.task_done()
+
+
+def status() -> dict:
+    """서브셋이 왜 안 생기는지 밖에서 들여다보기 위한 창."""
+    info = {
+        "cache_dir": str(CACHE_DIR),
+        "cache_dir_exists": CACHE_DIR.exists(),
+        "version": VERSION,
+        "made": _made,
+        "queued": len(_queued),
+        "failed": len(_failed),
+        "worker_alive": bool(_worker and _worker.is_alive()),
+        "last_error": _last_error,
+    }
+    try:
+        t = preview_text()
+        info["preview_chars"] = len(t)
+        info["text_sig"] = _text_sig()
+    except Exception as e:
+        info["preview_text_error"] = "%s: %s" % (type(e).__name__, e)
+    try:
+        files = sorted(CACHE_DIR.glob("*.woff2"))
+        info["cached_files"] = len(files)
+        info["sample"] = [f.name for f in files[:5]]
+    except Exception as e:
+        info["cache_list_error"] = "%s: %s" % (type(e).__name__, e)
+    return info
 
 
 def _make(src: Path, dst: Path):
