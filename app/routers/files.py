@@ -704,17 +704,35 @@ def _pick_font_file(font_id: int, weight: int = 0):
 
 @router.get("/{font_id}/file")
 def download_font_file(request: Request, font_id: int, weight: int = 0,
-                       v: str = "", db: Session = Depends(get_db)):
+                       v: str = "", preview: int = 0,
+                       db: Session = Depends(get_db)):
     """v= 는 파일의 판(file_version_of)이다. 값 자체는 쓰지 않는다 — 주소를
     가르는 것이 일이다. 붙어 있으면 파일이 바뀌면 주소도 바뀌므로 1년
     immutable로 내려도 교체가 즉시 반영된다.
 
     v가 없는 옛 주소도 그대로 받는다. 그쪽은 예전대로 재검증인데, 이제는
     If-None-Match 를 실제로 검사해 304를 돌려준다.
+
+    preview=1 은 '이 폰트를 미리보기로만 쓴다'는 뜻이다. 이름과 짧은 견본
+    문구만 그리면 되므로 가벼운 서브셋을 내려준다 (app/font_subset.py).
+    아직 서브셋이 안 만들어졌으면 원본을 그대로 준다 — 요청을 기다리게
+    하지 않는다.
     """
     path, headers = _pick_font_file(font_id, weight)
     if path is None:
         raise HTTPException(status_code=404, detail="폰트 파일이 없습니다")
+
+    if preview:
+        from ..font_subset import subset_or_none
+        sub = subset_or_none(path)
+        if sub is not None:
+            path = sub
+        elif v:
+            # 서브셋이 아직 없어 원본을 내보내는 중이다. 이때 1년 immutable 로
+            # 내리면 이 주소에 원본이 박제돼, 서브셋이 만들어져도 영영 안 쓰인다.
+            # 짧게 주고 다음 방문 때 다시 물어보게 한다.
+            return _serve_font(request, path, _CACHE_REVALIDATE)
+
     return _serve_font(request, path, _CACHE_IMMUTABLE if v else headers)
 
 

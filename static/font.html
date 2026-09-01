@@ -884,7 +884,8 @@
   }
   function loadRelatedFace(rf){
     if (rf.webfont_css_url){ var l = document.createElement('link'); l.rel='stylesheet'; l.href=rf.webfont_css_url; document.head.appendChild(l); return; }
-    if (rf.has_file){ ensureFont({ id: rf.id, has_file: true }); }
+    // 관련 폰트는 이름 한 줄만 그린다 — 미리보기 서브셋으로 충분하다.
+    if (rf.has_file){ ensureFont({ id: rf.id, has_file: true }, true); }
   }
   function renderRelated(list){
     if (!list || !list.length) return;

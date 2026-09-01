@@ -2897,8 +2897,11 @@ function ensureFontLoaded(id){
   // 없으면 매번 재검증이라 브라우저가 파일 전체를 다시 받는다 — 폰트 하나가
   // 평균 476KB라 방문할 때마다 수 MB가 다시 흐른다.
   const ver = (f && (f.fileVersion || f.file_version)) || 0;
+  // preview=1 — 갤러리 카드는 폰트 이름과 짧은 견본만 그린다. 서버가 그만큼만
+  // 담은 서브셋을 내려준다(원본의 10~36%). 아직 없으면 원본이 오므로 안전하다.
   const url = `/api/fonts/${id}/file`
-    + (pw ? `?weight=${pw}` : '') + (ver ? (pw ? '&' : '?') + `v=${ver}` : '');
+    + (pw ? `?weight=${pw}` : '') + (ver ? (pw ? '&' : '?') + `v=${ver}` : '')
+    + ((pw || ver) ? '&' : '?') + 'preview=1';
   // 받아온 파일을 'normal'로 선언해 둔다. 화면 요소는 기본 굵기로 그려지므로
   // 합성 없이 이 파일이 그대로 쓰인다.
   addFontFaceRule(

@@ -40,11 +40,16 @@
      주소가 바뀌므로 교체도 그대로 반영된다.
 
      v를 모르면(옛 응답 등) 그냥 빼고 부른다 — 예전 방식으로 안전하게 떨어진다. */
-  function fileUrl(id, weight, ver) {
+  /* preview=1 은 '이 폰트를 미리보기로만 쓴다'는 뜻이다. 서버가 이름과 짧은
+     견본 문구를 그릴 만큼만 담은 가벼운 서브셋을 내려준다(원본의 10~36%).
+     본체 폰트(상세페이지 주인공, 디자인 모달)에는 붙이지 않는다 — 거기서는
+     사용자가 아무 글자나 칠 수 있으므로 전문이 필요하다. */
+  function fileUrl(id, weight, ver, preview) {
     var u = '/api/fonts/' + id + '/file';
     var q = [];
     if (weight) q.push('weight=' + weight);
     if (ver) q.push('v=' + ver);
+    if (preview) q.push('preview=1');
     return q.length ? u + '?' + q.join('&') : u;
   }
   function verOf(f) { return f && f.file_version || 0; }
@@ -128,10 +133,10 @@
   var loaded = {};
 
   /* 대표 파일 한 벌. 굵기 구분이 필요 없는 자리(폰트명·본문 등)가 쓴다. */
-  function ensureFont(f) {
+  function ensureFont(f, preview) {
     if (!f || !f.has_file || loaded[f.id]) return;
     loaded[f.id] = true;
-    addFace('FFP-' + pad3(f.id), fileUrl(f.id, 0, verOf(f)));
+    addFace('FFP-' + pad3(f.id), fileUrl(f.id, 0, verOf(f), preview));
   }
 
   /* 굵기마다 family 이름을 따로 준다 — FFP-222-300, FFP-222-500 …
@@ -145,9 +150,9 @@
     return 'FFP-' + pad3(id) + '-' + weight;
   }
 
-  function registerWeightFaces(id, list, primaryWeight, ver) {
+  function registerWeightFaces(id, list, primaryWeight, ver, preview) {
     list.forEach(function (w) {
-      addFace(weightFamily(id, w.weight), fileUrl(id, w.weight, ver));
+      addFace(weightFamily(id, w.weight), fileUrl(id, w.weight, ver, preview));
     });
     /* 굵기 구분 없이 FFP-{id}를 쓰는 자리(stackOf)가 빈 family를 가리키지 않도록
        대표 굵기로 한 벌 더 등록한다. */
@@ -157,7 +162,7 @@
         if (!pw || Math.abs(list[i].weight - 400) < Math.abs(pw - 400)) pw = list[i].weight;
       }
     }
-    if (pw) addFace('FFP-' + pad3(id), fileUrl(id, pw, ver));
+    if (pw) addFace('FFP-' + pad3(id), fileUrl(id, pw, ver, preview));
     loaded[id] = true;
   }
 
