@@ -11,6 +11,7 @@
 import json
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 from sqlalchemy.orm import Session
 
 from .database import engine, SessionLocal, Base
@@ -50,6 +51,7 @@ def init_db():
         _migrate_fancy_intros(db)
         _migrate_curator_intros(db)
         _migrate_summaries(db)
+        _migrate_site_urls(db)
         _migrate_webfont_weights(db)
         _migrate_clean_css_urls(db)
         _migrate_arita_weights(db)
@@ -1369,6 +1371,85 @@ def _migrate_webfont_weights(db: Session):
 # 저장할 때 걸러내도록 normalize_css_url 을 고쳤다(app/webfont_check.py).
 # 이건 이미 들어가 있는 값을 한 번 훑어 고치는 쪽이다.
 CSS_URL_CLEAN_KEY = "webfont_css_url_clean_v1"
+
+
+def _migrate_site_urls(db: Session):
+    """DB 에 절대주소로 박힌 '우리 사이트' 링크를 현재 도메인으로 맞춘다.
+
+    어디에 있나
+    ----------
+    와이즈폰트 자사 폰트 14종이 배포처를 폰트픽 안(/wisefont/{slug})에 두고
+    있어서, 두 자리에 우리 도메인이 절대주소로 들어가 있다.
+
+        Font.url               배포처 링크
+        Font.meta.license.url  "저작권자 원문" — 화면에 주소가 그대로 보인다
+
+    상대경로로 바꾸지 않는 이유가 두 번째다. 화면에 "/wisefont/tadaktadak"
+    라고 뜨면 사람이 주소로 읽지 못한다.
+
+    언제 도나
+    --------
+    키에 목적지 호스트를 박아 둔다. 도메인을 옮기면 키가 저절로 달라져서
+    한 번 더 돌고, 같은 도메인에서 몇 번을 배포하든 다시 돌지는 않는다.
+
+    무엇을 바꾸나
+    ------------
+    우리 옛 주소로 **시작하는** 값만 그 앞부분을 갈아끼운다. 제작사 사이트
+    같은 남의 주소는 건드리지 않는다.
+    """
+    from .site import SITE_URL
+
+    key = "site_urls:" + (urlsplit(SITE_URL).hostname or "")
+    done = db.query(AppMeta).filter(AppMeta.key == key).first()
+    if done and done.value == "1":
+        return
+
+    # 우리 사이트를 가리키던 절대주소들. 옛 도메인은 코드에 남겨 둔다 —
+    # 환경변수를 안 넘긴 서버에서도 이 마이그레이션은 돌아야 한다.
+    hosts = ["freefontpick.co.kr", "www.freefontpick.co.kr"]
+    hosts += [h.strip().lower()
+              for h in (os.getenv("LEGACY_HOSTS") or "").split(",") if h.strip()]
+    origins = [s + "://" + h for h in dict.fromkeys(hosts) for s in ("https", "http")]
+    origins = [o for o in origins if o != SITE_URL]
+
+    def _swap(v):
+        """우리 옛 주소면 새 주소로 바꾼 값을, 아니면 None 을 돌려준다."""
+        if not isinstance(v, str):
+            return None
+        for o in origins:
+            if v.startswith(o):
+                return SITE_URL + v[len(o):]
+        return None
+
+    changed = []
+    for f in db.query(Font).all():
+        hit = False
+        new_url = _swap(f.url)
+        if new_url:
+            f.url = new_url
+            hit = True
+        meta = dict(f.meta or {})
+        lic = meta.get("license")
+        if isinstance(lic, dict):
+            new_lic = _swap(lic.get("url"))
+            if new_lic:
+                lic = dict(lic)
+                lic["url"] = new_lic
+                meta["license"] = lic
+                # JSON 컬럼은 제자리에서 고치면 SQLAlchemy 가 못 알아챈다.
+                f.meta = meta
+                hit = True
+        if hit:
+            changed.append(f.name)
+
+    if done is None:
+        db.add(AppMeta(key=key, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+    print("[migrate] 사이트 절대주소 → %s: %d종%s"
+          % (SITE_URL, len(changed),
+             (" — " + ", ".join(changed)) if changed else ""), flush=True)
 
 
 def _migrate_clean_css_urls(db: Session):

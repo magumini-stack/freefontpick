@@ -33,7 +33,8 @@ STATIC_DIR = BASE_DIR / "static"
 FONTFILES_DIR = BASE_DIR / "fontfiles"
 TEMPLATE_PATH = STATIC_DIR / "wisefont.html"
 
-BASE_URL = "https://freefontpick.co.kr"
+# 사이트 주소는 app/site.py 한 곳에서만 정한다.
+from ..site import SITE_URL as BASE_URL
 MAKER = "(주)와이즈폰트"
 
 # ── 배포 폰트 목록 ────────────────────────────────────────────────

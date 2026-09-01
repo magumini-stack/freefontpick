@@ -11,7 +11,10 @@ render_header()가 만든 실제 HTML로 서버가 치환해서 응답한다.
 
 푸터도 같은 방식이다(<!--FFP_FOOTER-->, render_footer). 2026-08 까지는
 푸터가 index.html 안에만 있어서 상세페이지·조합 페이지에는 아예 없었다.
+
+사이트 주소({{FFP_ORIGIN}})도 여기서 채운다 — inject_header 주석 참고.
 """
+from .site import SITE_URL, ORIGIN_MARKER
 
 # (내부 key, 링크, 표시 텍스트, 데스크톱용 id, 모바일용 id) — 순서가 곧 메뉴 노출 순서
 # id는 index.html의 해시 라우팅(JS)이 #notice / find-font 뷰 전환 시
@@ -264,7 +267,13 @@ def inject_header(html: str, active: str = "") -> str:
     부르고 있어서, 푸터를 따로 부르게 만들면 새 페이지를 붙일 때 한쪽을
     빠뜨리게 된다 — 지금 상세페이지에 푸터가 없는 것이 바로 그 결과다.
     마커가 없는 페이지는 아무 일도 일어나지 않는다.
+
+    사이트 주소도 여기서 채운다. static/*.html 은 파이썬이 아니라 환경변수를
+    못 읽으므로 canonical·og:url·JSON-LD 에 {{FFP_ORIGIN}} 마커를 박아 두고
+    이 자리에서 app/site.py 의 SITE_URL 로 바꾼다. 페이지를 내보내는 라우터가
+    전부 이 함수를 지나므로, 도메인을 옮길 때 채워야 할 곳은 여기 하나다.
     """
+    html = html.replace(ORIGIN_MARKER, SITE_URL)
     html = html.replace("<!--FFP_HEADER-->", render_header(active))
     return html.replace("<!--FFP_FOOTER-->", render_footer())
 

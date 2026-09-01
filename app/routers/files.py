@@ -49,6 +49,7 @@ from ..models import Font, FontWeight
 from ..redistribution import NO_REDISTRIBUTE
 from ..auth import require_password_changed
 from ..schemas import FileUploadResponse, FontWeightOut
+from ..site import SITE_URL
 
 router = APIRouter(prefix="/api/fonts", tags=["files"])
 
@@ -757,7 +758,7 @@ def webfont_css(font_id: int, key: str = "", db: Session = Depends(get_db)):
 
     사용 예:
         <link rel="stylesheet"
-              href="https://freefontpick.co.kr/api/fonts/62/webfont.css?key=발급키">
+              href="{SITE_URL}/api/fonts/62/webfont.css?key=발급키">
         <style> h1 { font-family: 'FFP-062', sans-serif; } </style>
 
     font-family 이름은 폰트픽 내부와 같은 규칙(FFP-{id:03d})을 쓴다.
@@ -777,7 +778,7 @@ def webfont_css(font_id: int, key: str = "", db: Session = Depends(get_db)):
     lines = [
         f"/* 폰트픽 웹폰트 — {font.name} ({font.maker or ''})",
         f"   font-family: '{family}'",
-        f"   상세: https://freefontpick.co.kr/font/{font_id}",
+        f"   상세: {SITE_URL}/font/{font_id}",
         "   ⚠ 폰트 라이선스는 각 배포처 조건을 따릅니다. 파일 재배포는 하지 마세요. */",
     ]
 
@@ -807,7 +808,9 @@ def webfont_css(font_id: int, key: str = "", db: Session = Depends(get_db)):
         )
 
     # 상대경로(/api/...)는 외부 문서에서 안 통한다. 절대주소로 바꿔 내려준다.
-    css = "\n".join(lines).replace("url('/api/", "url('https://freefontpick.co.kr/api/")
+    # 주소는 app/site.py 한 곳에서 온다 — 도메인을 옮기면 여기서 나가는
+    # CSS 도 같이 따라가야 남의 사이트에 박힌 임베드가 안 깨진다.
+    css = "\n".join(lines).replace("url('/api/", "url('%s/api/" % SITE_URL)
     return Response(content=css, media_type="text/css", headers=_WEBFONT_CSS_HEADERS)
 
 

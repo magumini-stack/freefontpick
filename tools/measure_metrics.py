@@ -51,9 +51,13 @@ import urllib.request
 
 from fontTools.pens.areaPen import AreaPen
 from fontTools.pens.boundsPen import BoundsPen
+import os
 from fontTools.ttLib import TTFont
 
-BASE = "https://freefontpick.co.kr"
+# 사이트 주소 — app/site.py 와 같은 환경변수를 본다.
+# 도메인을 옮기면 SITE_URL 을 주고 돌린다.
+BASE = os.getenv("SITE_URL", "https://freefontpick.co.kr").rstrip("/")
+HOST = BASE.split("://", 1)[-1]   # 이미지에 글자로 찍을 때 쓴다
 KO = "가나다라마바사아자차카타파하"
 EN = "Hamburgefonts"
 

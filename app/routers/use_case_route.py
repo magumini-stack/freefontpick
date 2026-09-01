@@ -25,7 +25,8 @@ router = APIRouter(tags=["use-case-page"])
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 TEMPLATE_PATH = BASE_DIR / "static" / "use.html"
-BASE_URL = "https://freefontpick.co.kr"
+# 사이트 주소는 app/site.py 한 곳에서만 정한다.
+from ..site import SITE_URL as BASE_URL
 
 
 def _esc(s) -> str:

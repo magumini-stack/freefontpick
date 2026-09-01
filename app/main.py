@@ -11,6 +11,7 @@ import re
 import secrets
 from pathlib import Path
 from contextlib import asynccontextmanager
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,6 +22,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from .header import inject_header, not_found_page
 from .seed import init_db
+from .site import SITE_URL
 from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, sample_image, db_migrate, gif_templates, gif, font_pair, stats
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
@@ -168,7 +170,24 @@ def _stamp_assets(html: str) -> str:
 # 주의: TLS 는 앞단에서 끊기므로 앱이 보는 request.url.scheme 은 늘 http 다.
 # 그걸로 판단하면 https 로 들어온 요청까지 https 로 다시 보내 무한 루프가
 # 된다. 방문자가 무슨 프로토콜을 썼는지는 _visitor_scheme 으로만 판단한다.
-CANONICAL_HOST = "freefontpick.co.kr"
+CANONICAL_HOST = urlsplit(SITE_URL).hostname or "freefontpick.co.kr"
+
+# 옛 도메인 → 새 도메인 301. 쉼표로 여러 개 적는다.
+#
+#     LEGACY_HOSTS=freefontpick.co.kr,www.freefontpick.co.kr
+#
+# 도메인을 옮길 때 **경로를 그대로 물고 가는 것**이 핵심이다. 등록기관의
+# 도메인 포워딩 기능은 대개 모든 요청을 루트로 보내 버려서, 색인된
+# /font/{id} 239개가 전부 첫 화면으로 뭉개진다. 그래서 포워딩에 맡기지
+# 않고 앱이 직접 301 한다. 옛 스페이스를 최소 6개월 살려 두어야 한다.
+#
+# 기본값은 비어 있다 — 이사 전에는 켜지 않는다. 그리고 지금 쓰는 도메인이
+# 실수로 들어와도 자기 자신으로 무한 리다이렉트하지 않도록 아래에서 뺀다.
+LEGACY_HOSTS = {
+    h.strip().lower()
+    for h in (os.getenv("LEGACY_HOSTS") or "").split(",")
+    if h.strip()
+} - {CANONICAL_HOST, "www." + CANONICAL_HOST}
 
 
 def _visitor_scheme(request: Request) -> str:
@@ -210,6 +229,18 @@ async def canonical_redirect(request: Request, call_next):
     proto = _visitor_scheme(request)
     host = (request.headers.get("host") or "").split(":")[0].lower()
 
+    def _to(base: str):
+        target = base + request.url.path
+        if request.url.query:
+            target += "?" + request.url.query
+        # 301: 검색엔진이 색인을 옮기도록. 주소 정책은 되돌릴 일이 없다.
+        return RedirectResponse(target, status_code=301)
+
+    # 옛 도메인으로 들어온 요청 — 경로째로 새 도메인에 넘긴다.
+    # 프로토콜은 따지지 않는다. 어차피 목적지가 https 라서 한 번에 끝난다.
+    if host in LEGACY_HOSTS:
+        return _to(SITE_URL)
+
     # 운영 도메인이 아닐 때(로컬, 카페24 컨테이너 주소, 헬스체크)는 그대로 둔다.
     if host not in (CANONICAL_HOST, "www." + CANONICAL_HOST):
         return await call_next(request)
@@ -217,11 +248,7 @@ async def canonical_redirect(request: Request, call_next):
     need_https = proto == "http"          # 헤더가 없으면 False — 손대지 않는다
     need_apex = host.startswith("www.")
     if need_https or need_apex:
-        target = f"https://{CANONICAL_HOST}{request.url.path}"
-        if request.url.query:
-            target += "?" + request.url.query
-        # 301: 검색엔진이 색인을 옮기도록. 주소 정책은 되돌릴 일이 없다.
-        return RedirectResponse(target, status_code=301)
+        return _to("https://" + CANONICAL_HOST)
 
     return await call_next(request)
 

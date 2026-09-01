@@ -23,6 +23,11 @@ ROOT = Path(__file__).resolve().parent.parent
 FONTS = ROOT / "fonts"
 OUT = ROOT / "static" / "mz"
 
+# 그림 오른쪽 아래에 찍는 출처 표기. app/site.py 와 같은 환경변수를 본다 —
+# 도메인을 옮기면 SITE_URL 을 주고 다시 돌려야 그림 속 주소도 따라간다.
+MARK_HOST = os.getenv(
+    "SITE_URL", "https://freefontpick.co.kr").rstrip("/").split("://", 1)[-1]
+
 # 화면용 그림이라 2배로 그리고 줄인다 — 도형 가장자리가 훨씬 깨끗하다.
 S = 2
 W, H = 1200, 630
@@ -129,7 +134,7 @@ class C:
             self.t(64, 96, sub, size=17, fill=T2)
 
     def mark(self):
-        self.t(W - 64, H - 44, "freefontpick.co.kr", size=14, fill=T3, anchor="ra")
+        self.t(W - 64, H - 44, MARK_HOST, size=14, fill=T3, anchor="ra")
 
     def save(self, name):
         OUT.mkdir(parents=True, exist_ok=True)

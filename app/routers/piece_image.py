@@ -188,7 +188,7 @@ def get_piece_image(
 ):
     """폰트 조각 PNG.
 
-        <img src="https://freefontpick.co.kr/api/fonts/1/piece.png
+        <img src="{SITE_URL}/api/fonts/1/piece.png   (예시 — 실제 주소는 app/site.py)
                   ?text=곧&size=1500&color=fff&weight=300&key=발급키">
 
     배경은 투명하고, 글자에 딱 맞게 잘려 나온다. 크기·여백은 받는 쪽에서

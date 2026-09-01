@@ -23,7 +23,8 @@ router = APIRouter(tags=["magazine"])
 
 STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
 TEMPLATE_PATH = STATIC_DIR / "magazine.html"
-BASE_URL = "https://freefontpick.co.kr"
+# 사이트 주소는 app/site.py 한 곳에서만 정한다.
+from ..site import SITE_URL as BASE_URL
 
 # 발행처 — Article 구조화 데이터에 로고까지 넣어 준다 (구글 권장).
 PUBLISHER = {

@@ -33,11 +33,15 @@ import sys
 import urllib.error
 import urllib.request
 import zipfile
+import os
 from pathlib import Path
 
 from fontTools.ttLib import TTFont
 
-BASE = "https://freefontpick.co.kr"
+# 사이트 주소 — app/site.py 와 같은 환경변수를 본다.
+# 도메인을 옮기면 SITE_URL 을 주고 돌린다.
+BASE = os.getenv("SITE_URL", "https://freefontpick.co.kr").rstrip("/")
+HOST = BASE.split("://", 1)[-1]   # 이미지에 글자로 찍을 때 쓴다
 OUT = Path(__file__).resolve().parent.parent / "fontzips"
 # 제작사 원본 문서(README·LICENSE 등)를 그대로 넣어야 하는 폰트가 있다.
 # 여기 font-NNN/ 폴더를 만들어 두면 그 안의 파일이 **바이트 그대로** 묶인다.

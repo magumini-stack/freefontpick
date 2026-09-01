@@ -14,7 +14,7 @@ from ..models import Font
 
 router = APIRouter(tags=["seo"])
 
-SITE_URL = os.getenv("SITE_URL", "https://freefontpick.co.kr").rstrip("/")
+from ..site import SITE_URL
 
 
 def _x(s) -> str:

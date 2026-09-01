@@ -29,7 +29,10 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FONT_DIR = os.path.join(ROOT, 'tools', '_ogfonts')
 OUT = os.path.join(ROOT, 'static', 'og-font-pair.png')
-BASE = 'https://freefontpick.co.kr'
+# 사이트 주소 — app/site.py 와 같은 환경변수를 본다.
+# 도메인을 옮기면 SITE_URL 을 주고 돌린다.
+BASE = os.getenv("SITE_URL", "https://freefontpick.co.kr").rstrip("/")
+HOST = BASE.split("://", 1)[-1]   # 이미지에 글자로 찍을 때 쓴다
 
 W, H = 1200, 630
 BG = (253, 245, 241)
@@ -123,7 +126,7 @@ for i, r in enumerate(roles):
 
 # ── ⑤ 주소 ──────────────────────────────────────────────────
 f_url = ImageFont.truetype(UI800, 24)
-w_url = center('freefontpick.co.kr', f_url, 545, NAVY)
+w_url = center(HOST, f_url, 545, NAVY)
 
 im.save(OUT, optimize=True)
 

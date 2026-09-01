@@ -38,7 +38,8 @@ STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
 INDEX_PATH = STATIC_DIR / "index.html"
 FONT_PAGE_PATH = STATIC_DIR / "font.html"
 
-BASE_URL = "https://freefontpick.co.kr"
+# 사이트 주소는 app/site.py 한 곳에서만 정한다.
+from ..site import SITE_URL as BASE_URL
 
 
 def _load_index() -> str:
