@@ -93,7 +93,19 @@ app.add_middleware(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # 도메인 확정되면 좁히기
-    allow_credentials=True,
+    # ⚠ allow_credentials=True 로 두면 안 된다.
+    #   CORS 규격상 Access-Control-Allow-Credentials: true 를 보내는 응답의
+    #   Access-Control-Allow-Origin 은 * 가 될 수 없다. 둘을 같이 보내면
+    #   브라우저가 응답을 통째로 버린다 — curl 로는 200 에 정상 파일이 오는데
+    #   브라우저에서만 "A network error occurred" 로 끊긴다.
+    #
+    #   실제로 홍보물 HTML(file://, Origin: null)에서 웹폰트가 10종 중 8종
+    #   안 잡히는 원인이었다. 웹폰트는 언제나 CORS 검사를 거치기 때문이다.
+    #
+    #   끄더라도 어드민은 영향이 없다 — 같은 출처에서 부르므로 CORS 자체를
+    #   타지 않는다. 쿠키가 필요한 교차 출처 호출이 생기면 그때는 * 대신
+    #   허용할 도메인을 나열하고 다시 켜야 한다.
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
