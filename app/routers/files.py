@@ -754,12 +754,30 @@ def download_font_file_by_path(request: Request, font_id: int, name: str):
       웹폰트가 "A network error occurred" 로 실패했다. 주소를 새로 만들면
       캐시 항목도 새로 생기므로 그 문제까지 같이 풀린다.
 
-    name 은 "300.woff2" 또는 "300" 을 받는다. 확장자는 주소만 봐도 폰트인 줄
-    알도록 붙이는 것이고, 값 자체는 앞의 숫자다.
+    name 은 아래 두 가지를 받는다. 확장자는 주소만 봐도 폰트인 줄 알도록
+    붙이는 것이고, 값 자체는 앞의 숫자다.
+
+        300.woff2                굵기만. 재검증 캐시로 내려간다
+        300.v1788317704.woff2    굵기 + 파일 판. 1년 immutable 로 내려간다
+
+    ⚠ 판(v) 이 없으면 immutable 로 내리면 안 된다
+      주소에 굵기만 있으면 어드민이 그 폰트 파일을 교체해도 주소가 그대로다.
+      1년 immutable 로 내리면 브라우저·CDN이 1년 내내 옛 바이트를 돌려준다 —
+      이 파일 위쪽 2026-08 주석이 기록한 사고가 정확히 그것이었다.
+      옛 주소(/file?weight=)가 v= 로 풀던 문제이므로 여기서도 같이 푼다.
+
+      판은 file_version_of(font_id) 값이고, webfont.css 가 주소를 만들 때
+      끼워 넣는다. 굵기 파일 하나만 바꿔도 그 폰트의 모든 주소가 함께 바뀐다.
 
     옛 주소(/file?weight=)도 그대로 둔다 — 이미 나간 홍보물이 깨지면 안 된다.
     """
     stem = name[:-6] if name.lower().endswith(".woff2") else name
+    ver = ""
+    if ".v" in stem:
+        stem, _, ver = stem.partition(".v")
+        if not ver.isdigit():
+            raise HTTPException(status_code=400,
+                                detail="판은 숫자여야 합니다. 예: /file/300.v1788317704.woff2")
     try:
         weight = int(stem)
     except ValueError:
@@ -768,11 +786,11 @@ def download_font_file_by_path(request: Request, font_id: int, name: str):
     if not 0 <= weight <= 1000:
         raise HTTPException(status_code=400, detail="굵기는 0 ~ 1000 입니다")
 
-    path, _headers = _pick_font_file(font_id, weight)
+    path, headers = _pick_font_file(font_id, weight)
     if path is None:
         raise HTTPException(status_code=404, detail="폰트 파일이 없습니다")
-    # 주소에 굵기가 박혀 있어, 파일이 바뀌지 않는 한 내용도 바뀌지 않는다.
-    return _serve_font(request, path, _CACHE_IMMUTABLE)
+    # 판이 주소에 박혀 있을 때만 1년 고정. 없으면 옛 주소와 같은 재검증 캐시.
+    return _serve_font(request, path, _CACHE_IMMUTABLE if ver else headers)
 
 # ═══════════════════════════════════════════════════════════
 # 외부용 웹폰트 CSS  GET /api/fonts/{id}/webfont.css?key=...
@@ -808,6 +826,27 @@ _WEBFONT_CSS_HEADERS = {
 }
 
 
+@router.get("/{font_id}/webfont/{name}")
+def webfont_css_by_path(font_id: int, name: str, db: Session = Depends(get_db)):
+    """발급키를 경로에 담은 웹폰트 CSS.  /api/fonts/62/webfont/발급키.css
+
+    ⚠ 왜 키를 쿼리스트링에 두지 않는가
+      앞단 CDN이 쿼리스트링을 무시하고 경로만으로 캐싱한다. 그래서
+      webfont.css?key=아무거나 가 전부 같은 캐시 항목이 되어,
+      한 번 캐시된 뒤로는 키 없이도 CSS를 받아 갈 수 있었다.
+
+      캐시가 낡는 문제도 같다. 2026-09-02 에 @font-face 의 폰트 주소를
+      경로 방식으로 바꿔 배포했는데, CDN 이 옛 CSS(age 2705)를 계속 내보내
+      브라우저는 여전히 옛 주소를 물고 있었다. 주소를 새로 만들면 캐시
+      항목도 새로 생긴다.
+
+    옛 주소(webfont.css?key=)도 그대로 둔다 — 이미 나간 홍보물이 깨지면 안 된다.
+    다만 그쪽은 CDN 에 남은 옛 내용이 나갈 수 있으니 새로 만드는 것은 이 주소를 쓴다.
+    """
+    key = name[:-4] if name.lower().endswith(".css") else name
+    return webfont_css(font_id=font_id, key=key, db=db)
+
+
 @router.get("/{font_id}/webfont.css")
 def webfont_css(font_id: int, key: str = "", db: Session = Depends(get_db)):
     """이 폰트의 @font-face 규칙을 CSS로 내려준다 (외부 사용).
@@ -831,6 +870,9 @@ def webfont_css(font_id: int, key: str = "", db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
 
     family = _ffp_family(font_id)
+    # 파일 판. 주소에 박아 두면 어드민이 폰트를 교체할 때 주소가 바뀌어
+    # 1년 immutable 로 내려도 즉시 반영된다. (없으면 재검증 캐시로 나간다)
+    ver = file_version_of(font_id)
     lines = [
         f"/* 폰트픽 웹폰트 — {font.name} ({font.maker or ''})",
         f"   font-family: '{family}'",
@@ -845,14 +887,14 @@ def webfont_css(font_id: int, key: str = "", db: Session = Depends(get_db)):
         for w in weights:
             lines.append(
                 f"@font-face{{font-family:'{family}';"
-                f"src:url('/api/fonts/{font_id}/file/{w['weight']}.woff2') format('woff2');"
+                f"src:url('/api/fonts/{font_id}/file/{w['weight']}.v{ver}.woff2') format('woff2');"
                 f"font-weight:{w['weight']};font-style:normal;font-display:swap}}"
             )
     elif font.has_file:
         # 굵기 정보가 없는 폰트 — 대표 파일 하나만 등록한다
         lines.append(
             f"@font-face{{font-family:'{family}';"
-            f"src:url('/api/fonts/{font_id}/file/0.woff2') format('woff2');"
+            f"src:url('/api/fonts/{font_id}/file/0.v{ver}.woff2') format('woff2');"
             f"font-weight:normal;font-style:normal;font-display:swap}}"
         )
     else:
