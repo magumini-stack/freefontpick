@@ -134,9 +134,24 @@ _CACHE_EXEMPT_SUFFIXES = ("/og-image.png", "/file", "/sample-image", "/webfont.c
 # HTML은 새 파일인데 거기서 부르는 GifUseCaseStore가 옛 JS에는 없었다.
 #
 # 프록시 설정을 못 바꾸니 URL을 바꾼다. HTML을 내보낼 때
-# /static/api-client.js → /static/api-client.js?v=1a2b3c4d 로 고쳐 쓰면
+# /static/api-client.js → /s/1a2b3c4d/static/api-client.js 로 고쳐 쓰면
 # 파일이 바뀔 때마다 주소가 달라져 캐시가 비켜간다. 주소가 그대로인
 # 동안에는 10년 캐시가 그대로 살아 있어 속도 손해도 없다.
+#
+# ⚠ 2026-09-02: 판을 쿼리(?v=)가 아니라 **경로**에 둔다
+#   앞단 CDN 이 쿼리스트링을 무시하고 경로로만 캐싱한다. 그래서
+#   /static/ffp-fontface.js?v=<새판> 을 불러도 CDN 에 남아 있던 옛 파일이
+#   그 주소로 나갔다. 거기에 앞단이 10년 캐시를 붙이는 바람에, 방문자
+#   브라우저가 **새 주소에 옛 코드를 10년 고정으로** 저장해 버렸다.
+#   스탬프가 다시 바뀌기 전까지 영영 풀리지 않는 상태였다.
+#
+#   실측(2026-09-02): 배포 84분 뒤에도 CDN 이 옛 md5(02c306f3)를 HIT 로
+#   내보냈고, 그 사이 방문한 브라우저는 transferSize 0 으로 옛 코드를 계속
+#   썼다. 상세페이지에서 굵기가 전부 같아 보이던 원인이 이것이었다.
+#
+#   판이 경로에 있으면 판마다 주소가 진짜로 달라진다. CDN 이 쿼리를
+#   무시하든 말든 상관이 없다 — 폰트 파일(/file/300.v….woff2)에서
+#   같은 이유로 쓴 방법과 같다.
 # ══════════════════════════════════════════════════════════════
 # /static/x.js 와 /header.css(루트로도 서빙된다) 둘 다 잡는다.
 # 홈·소개·FAQ·폰트 상세는 header.css를 루트 경로로 부르고 있어서
@@ -170,7 +185,7 @@ def _asset_version(url_path: str) -> str:
 def _stamp_assets(html: str) -> str:
     def rep(m):
         v = _asset_version(m.group(2))
-        return f'{m.group(1)}="{m.group(2)}?v={v}"' if v else m.group(0)
+        return f'{m.group(1)}="/s/{v}{m.group(2)}"' if v else m.group(0)
     return _ASSET_REF.sub(rep, html)
 
 
@@ -444,6 +459,38 @@ def _static_not_found(request: Request):
     if "text/html" in (request.headers.get("accept") or ""):
         return not_found_page()
     return JSONResponse({"detail": "Not Found"}, status_code=404)
+
+
+@app.get("/s/{ver}/{full_path:path}")
+async def serve_stamped_asset(ver: str, full_path: str, request: Request):
+    """판이 경로에 박힌 정적 자산.  /s/9388fd96/static/ffp-fontface.js
+
+    ver 은 읽기만 하고 쓰지 않는다. 하는 일은 **주소를 가르는 것**뿐이다.
+    파일이 바뀌면 _stamp_assets 가 다른 판으로 주소를 만들고, 그러면
+    CDN·브라우저 모두에게 처음 보는 주소가 되어 옛 사본을 비켜간다.
+    위 '정적 JS/CSS 캐시 무효화' 주석 참고.
+
+    판이 주소에 있으므로 1년 고정으로 내려도 안전하다. 파일이 바뀌면
+    주소가 바뀌니 옛 사본이 남아 있어도 아무도 부르지 않는다.
+
+    옛 주소(/static/x.js, /header.css)도 그대로 살려 둔다 — 이미 나간
+    HTML 을 물고 있는 브라우저가 있고, 외부에서 걸어 둔 것도 있다.
+    """
+    if not full_path:
+        return _static_not_found(request)
+    target = STATIC_DIR / (full_path[len("static/"):]
+                           if full_path.startswith("static/") else full_path)
+    try:
+        target = target.resolve()
+        if not str(target).startswith(str(STATIC_DIR.resolve())):
+            return _static_not_found(request)
+    except Exception:
+        return _static_not_found(request)
+    if not target.exists() or not target.is_file():
+        return _static_not_found(request)
+    return FileResponse(target, headers={
+        "Cache-Control": "public, max-age=31536000, immutable",
+    })
 
 
 @app.get("/{full_path:path}")
