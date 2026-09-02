@@ -1176,7 +1176,18 @@ let currentTag='all';
 let currentFontSize=26;
 /* 갤러리 보기 방식: 'grid'(4열 훑어보기) | 'list'(한 줄에 하나, 형태 확인용).
    한 줄 보기는 자리가 넓으므로 견본 글자를 키워야 의미가 있다. */
-let currentView = 'list';   // 기본은 한 줄 보기
+/* 기본 보기: 데스크톱은 한 줄, 모바일은 격자.
+
+   좁은 화면에서 한 줄 보기는 카드가 세로로 길어져 한 화면에 몇 개 안 들어온다.
+   폰트를 훑으러 온 사람에게는 격자가 낫다.
+
+   720px 은 위 .font-grid 미디어쿼리가 2열로 접히는 지점과 같은 값이다.
+   두 값이 어긋나면 "격자인데 한 열"인 어정쩡한 화면이 나온다. */
+let currentView = 'list';
+try {
+  if (window.matchMedia && window.matchMedia('(max-width:720px)').matches) currentView = 'grid';
+} catch(e){}
+/* 사람이 직접 고른 적이 있으면 그게 이긴다 — 화면 크기로 덮어쓰지 않는다. */
 try { const v = localStorage.getItem('ffp-gallery-view'); if(v==='list'||v==='grid') currentView = v; } catch(e){}
 /* 한 줄 보기는 화면 폭과 무관하게 1줄이라, 글자가 크면 그만큼 덜 보인다.
    데스크톱은 폭이 넓어 42px에서도 23자가 들어가지만 모바일은 10자에서 끊긴다.
