@@ -1,4 +1,4 @@
-"""폰트 조각 이미지 생성  GET /api/fonts/{id}/piece.png?text=곧&size=1500&color=fff
+"""폰트 조각 이미지 생성  GET /api/fonts/{id}/piece/{키}/{굵기}/{크기}/{색}/{글자}.png
 
 홍보물에서 "그 서체로만 조판돼야 하는 글자"를 배경 없는 PNG로 내려준다.
 
@@ -29,7 +29,7 @@ import re
 import threading
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 
@@ -176,20 +176,32 @@ def _prune_cache() -> None:
             pass
 
 
-@router.get("/{font_id}/piece.png")
+@router.get("/{font_id}/piece/{key}/{weight}/{size}/{color}/{name}")
 def get_piece_image(
     font_id: int,
-    text: str = Query(..., description="그릴 글자"),
-    size: int = Query(400, ge=16, le=MAX_SIZE, description="글자 크기(px)"),
-    color: str = Query("000", description="# 없는 16진수 3·6·8자리"),
-    weight: int = Query(0, ge=0, le=1000, description="굵기. 0이면 대표 파일"),
-    key: str = Query("", description="발급키"),
+    key: str,
+    weight: int,
+    size: int,
+    color: str,
+    name: str,
     db: Session = Depends(get_db),
 ):
     """폰트 조각 PNG.
 
-        <img src="{SITE_URL}/api/fonts/1/piece.png   (예시 — 실제 주소는 app/site.py)
-                  ?text=곧&size=1500&color=fff&weight=300&key=발급키">
+        <img src="{SITE_URL}/api/fonts/1/piece/발급키/300/1500/fff/곧.png">
+        (실제 주소는 app/site.py 의 SITE_URL)
+
+        순서: /piece/{키}/{굵기}/{크기}/{색}/{글자}.png
+              굵기 0 이면 대표 파일, 색은 # 없는 16진수 3·6·8자리
+
+    ⚠ 값을 왜 쿼리스트링이 아니라 경로에 두는가
+      앞단 프록시(openresty)가 **쿼리스트링을 무시하고 경로만으로 캐싱**한다.
+      쿼리로 받던 때는 size 를 200·800·1500 으로 바꿔 요청해도 맨 처음 만들어진
+      이미지 하나가 계속 돌아왔다. 응답의 Cache-Control 도 이쪽이 보낸 값이 아니라
+      max-age=315360000 으로 덮여 있었다.
+
+      그래서 그림을 가르는 값은 전부 경로에 둔다. 키까지 경로에 넣는 이유도 같다 —
+      쿼리에 두면 캐시된 뒤로는 키 없이도 같은 경로로 그림을 받아 갈 수 있다.
 
     배경은 투명하고, 글자에 딱 맞게 잘려 나온다. 크기·여백은 받는 쪽에서
     맞추는 것을 전제로 넉넉하게 그린다.
@@ -204,6 +216,14 @@ def get_piece_image(
     if key != WEBFONT_CSS_KEY:
         raise HTTPException(status_code=403, detail="유효하지 않은 키입니다")
 
+    if not 16 <= size <= MAX_SIZE:
+        raise HTTPException(status_code=400, detail=f"size 는 16 ~ {MAX_SIZE} 입니다")
+    if not 0 <= weight <= 1000:
+        raise HTTPException(status_code=400, detail="weight 는 0 ~ 1000 입니다")
+
+    # 마지막 칸은 사람이 주소만 봐도 그림인 줄 알도록 .png 로 끝낸다.
+    # 편집 도구·프록시도 확장자로 형식을 짐작하는 곳이 있다.
+    text = name[:-4] if name.lower().endswith(".png") else name
     text = (text or "").strip()
     if not text:
         raise HTTPException(status_code=400, detail="text 가 비어 있습니다")
