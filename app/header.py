@@ -96,7 +96,9 @@ def _nav_links(active: str, indent: str, mobile: bool) -> str:
 #
 # 어드민(admin.html / admin-gif.html)에는 <!--FFP_HEADER--> 마커가 없어서
 # 그대로 제외된다. 운영자 트래픽이 통계에 섞이지 않는 게 맞다.
-GA_MEASUREMENT_ID = "G-WK73M3QQVP"   # 애널리틱스
+# 2026-09-02: 도메인을 옮기면서 애널리틱스 속성을 새로 연결했다.
+# 옛 속성(G-WK73M3QQVP)의 자료는 그쪽에 그대로 남는다 — 옮겨오지는 못한다.
+GA_MEASUREMENT_ID = "G-1QCTP3ENL6"   # 애널리틱스
 ADS_CONVERSION_ID = "AW-18302402783"  # 구글 애즈
 
 
