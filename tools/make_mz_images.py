@@ -392,6 +392,55 @@ def img_webfont():
     return raw, w2, sub
 
 
+# ────────────────────────────────────────
+# 7. 굵기는 번호가 아니라 실물로 봐야 한다
+# ────────────────────────────────────────
+def wfont(rel: str, size: int):
+    """굵기 파일을 경로로 직접 연다. fonts/weights/ 아래에 있다."""
+    key = (rel, size)
+    if key not in _cache:
+        p = FONTS / rel if (FONTS / rel).exists() else FONTS / "weights" / rel
+        if not p.exists():
+            raise SystemExit("폰트 파일이 없다: %s" % p)
+        _cache[key] = ImageFont.truetype(str(p), size * S)
+    return _cache[key]
+
+
+def img_weight():
+    """선언된 굵기와 실제 두께가 따로 논다는 것을 한 화면에 보인다.
+
+    네 폰트 모두 저장소에 있는 실제 파일로 그린다. 채움비율은 글에 실린
+    실측값이다(가나다라마바사아자차카타파하 14자의 잉크 면적 ÷ 상자 넓이).
+    """
+    c = C()
+    c.head("굵기 번호는 약속이 아닙니다",
+           "같은 글자를 실제 폰트 파일로 그렸습니다. 아래 숫자가 잰 두께입니다.")
+
+    cols = [
+        ("aritaburi-100.woff2", "아리따 부리", "100", "0.059"),
+        ("../font-093.woff2",   "카페24 아네모네", "400", "0.570"),
+        ("cookierun-900.woff2", "쿠키런",     "900", "0.682"),
+        ("../font-075.woff2",   "이누아리두리네", "900", "0.820"),
+    ]
+    x, gap, w = 64, 16, 258
+    for rel, name, declared, ratio in cols:
+        c.box(x, 152, w, 392)
+        # 큰 글자 — 이 그림의 주인공
+        c.d.text(((x + w // 2) * S, 300 * S), "가", font=wfont(rel, 132),
+                 fill=T1, anchor="mm")
+        c.line(x + 24, 392, x + w - 24, 392)
+        c.t(x + w // 2, 410, name, size=16, fill=T1, anchor="ma")
+        c.t(x + w // 2, 440, "선언 " + declared, size=14, fill=T3, anchor="ma")
+        c.t(x + w // 2, 476, ratio, size=32, fill=ACC, anchor="ma")
+        c.t(x + w // 2, 516, "채움비율", size=13, fill=T2, anchor="ma")
+        x += w + gap
+
+    c.t(64, 570, "선언 400 이 900 에 가깝고, 100 과는 10 배 가까이 벌어집니다. "
+                 "번호만 보고 짝을 맞추면 위계가 뒤집힙니다.", size=15, fill=T2)
+    c.mark()
+    c.save("weight-scale.webp")
+
+
 def main():
     print("매거진 그림을 만든다 →", OUT)
     img_font_guide()
@@ -399,6 +448,7 @@ def main():
     img_pairing()
     img_license()
     img_glyphs()
+    img_weight()
     r = img_webfont()
     print("\n웹폰트 실측: 원본 %.0fKB / woff2 %.0fKB / 서브셋 %.0fKB"
           % (r[0] / 1024, r[1] / 1024, r[2] / 1024))

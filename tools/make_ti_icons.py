@@ -50,10 +50,24 @@ SOURCES = [
     "static/privacy.html", "static/use.html", "static/wisefont.html",
     "static/gif.html", "static/gif-templates.html", "static/font-pair.html",
     "static/404.html", "app/header.py",
+    # 아이콘 이름이 데이터로 들어 있는 곳. 매거진은 글마다
+    # "icon": "ti-photo" 처럼 적어 두고 목록 카드에서 쓴다.
+    "app/magazine.py", "app/use_case_data.py", "app/gif_template_data.py",
+    # 라우터가 들고 있는 대비값도 넣는다 (아이콘을 안 적은 글에 쓰인다).
+    "app/routers/magazine.py", "app/routers/use_case_route.py",
 ]
 
 
 def used_icons():
+    """소스에서 실제로 쓰는 아이콘 이름을 긁어 온다.
+
+    두 가지 형태를 모두 잡아야 한다. 처음에는 앞의 것만 봤다가 다크모드
+    토글(ti-sun · ti-moon)과 닫기 버튼(ti-x), 매거진 카드 아이콘이 통째로
+    빠졌다 — 그림이 조용히 사라지는 종류의 사고라 눈에 잘 안 띈다.
+
+        class="ti ti-search"    마크업에 직접 쓴 것
+        "icon": "ti-photo"      데이터로 적어 둔 것
+    """
     names = set()
     for rel in SOURCES:
         p = ROOT / rel
@@ -61,6 +75,7 @@ def used_icons():
             continue
         s = io.open(p, encoding="utf-8", errors="replace").read()
         names.update(re.findall(r"\bti ti-([a-z0-9-]+)", s))
+        names.update(re.findall(r"""['"]ti-([a-z0-9-]+)['"]""", s))
     return sorted(names)
 
 
