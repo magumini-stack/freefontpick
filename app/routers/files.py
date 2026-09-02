@@ -736,6 +736,44 @@ def download_font_file(request: Request, font_id: int, weight: int = 0,
     return _serve_font(request, path, _CACHE_IMMUTABLE if v else headers)
 
 
+
+@router.get("/{font_id}/file/{name}")
+def download_font_file_by_path(request: Request, font_id: int, name: str):
+    """굵기를 경로에 담은 폰트 파일 주소.  /api/fonts/58/file/100.woff2
+
+    ⚠ 왜 굵기를 쿼리스트링에 두지 않는가
+      앞단 CDN이 **쿼리스트링을 무시하고 경로만으로 캐싱**한다. 그래서
+      /file?weight=100 과 /file?weight=700 이 같은 캐시 항목이 되어,
+      굵기가 여러 종인 폰트가 전부 같은 파일 하나로 나갔다.
+      실측(2026-09-02): 아리따 돋움 100·400·700·900 이 전부 같은 ETag였고,
+      더잠실체 100·400·800 도 마찬가지였다. 웹폰트에서 굵기 구분이
+      아예 되지 않는 상태였다.
+
+      같은 이유로 캐시 항목이 낡으면 헤더도 같이 낡는다. CORS 설정을 고쳐
+      배포해도 CDN에 남은 옛 응답이 계속 나가서, 홍보물 HTML(file://)에서
+      웹폰트가 "A network error occurred" 로 실패했다. 주소를 새로 만들면
+      캐시 항목도 새로 생기므로 그 문제까지 같이 풀린다.
+
+    name 은 "300.woff2" 또는 "300" 을 받는다. 확장자는 주소만 봐도 폰트인 줄
+    알도록 붙이는 것이고, 값 자체는 앞의 숫자다.
+
+    옛 주소(/file?weight=)도 그대로 둔다 — 이미 나간 홍보물이 깨지면 안 된다.
+    """
+    stem = name[:-6] if name.lower().endswith(".woff2") else name
+    try:
+        weight = int(stem)
+    except ValueError:
+        raise HTTPException(status_code=400,
+                            detail="굵기는 숫자여야 합니다. 예: /file/300.woff2")
+    if not 0 <= weight <= 1000:
+        raise HTTPException(status_code=400, detail="굵기는 0 ~ 1000 입니다")
+
+    path, _headers = _pick_font_file(font_id, weight)
+    if path is None:
+        raise HTTPException(status_code=404, detail="폰트 파일이 없습니다")
+    # 주소에 굵기가 박혀 있어, 파일이 바뀌지 않는 한 내용도 바뀌지 않는다.
+    return _serve_font(request, path, _CACHE_IMMUTABLE)
+
 # ═══════════════════════════════════════════════════════════
 # 외부용 웹폰트 CSS  GET /api/fonts/{id}/webfont.css?key=...
 # ═══════════════════════════════════════════════════════════
@@ -807,14 +845,14 @@ def webfont_css(font_id: int, key: str = "", db: Session = Depends(get_db)):
         for w in weights:
             lines.append(
                 f"@font-face{{font-family:'{family}';"
-                f"src:url('/api/fonts/{font_id}/file?weight={w['weight']}') format('woff2');"
+                f"src:url('/api/fonts/{font_id}/file/{w['weight']}.woff2') format('woff2');"
                 f"font-weight:{w['weight']};font-style:normal;font-display:swap}}"
             )
     elif font.has_file:
         # 굵기 정보가 없는 폰트 — 대표 파일 하나만 등록한다
         lines.append(
             f"@font-face{{font-family:'{family}';"
-            f"src:url('/api/fonts/{font_id}/file') format('woff2');"
+            f"src:url('/api/fonts/{font_id}/file/0.woff2') format('woff2');"
             f"font-weight:normal;font-style:normal;font-display:swap}}"
         )
     else:
