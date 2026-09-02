@@ -179,6 +179,31 @@
      작은 글이 놓인 꼴이 됐다. 제목은 그대로 둔다 — 이 자리는 규칙을 끈 자리라
      화면까지 요란해질 이유가 없다. */
   .fp-stage[data-shape="surprise"]{--b-body:2.4cqw}
+
+  /* 좁은 화면에서는 글자 크기에 바닥을 둔다.
+
+     cqw 는 틀 폭에 비례하므로 화면이 좁아지면 같이 줄어든다. 390px 폰에서는
+     틀이 342px 이 되고, 그러면 본문이 1.95cqw = **6.6px** 까지 내려간다.
+     읽으라고 만든 화면인데 읽을 수가 없다.
+
+     max() 로 아래를 막는다. 넓은 화면에서는 계산값이 항상 바닥보다 커서
+     아무 일도 일어나지 않는다 — 데스크톱 화면은 한 픽셀도 안 바뀐다.
+     좁아질수록 계산값이 내려오다가 바닥에 닿아 멈춘다.
+
+        1280px  56/18      760px  43/14      390px  30/14
+         900px  52/17      560px  31/14
+
+     경계(760px)에서 튀지 않는다. 그 지점의 계산값이 마침 바닥과 같아서
+     이어진다. 크기 레버(--k-*)는 그대로 곱해지므로 키우는 쪽은 자유롭다. */
+  @media(max-width:760px){
+    #txtTitle{font-size:max(var(--min-title,30px), calc(var(--b-title,7cqw) * var(--k-title,1)))}
+    #txtBody {font-size:max(var(--min-body,14px),  calc(var(--b-body,2.66cqw) * var(--k-body,1)))}
+    /* 모양마다 성격이 달라 바닥도 다르다. 디스플레이는 크게 보라고 있는
+       자리라 더 높이 잡고, 손글씨는 그 중간이다. */
+    .fp-stage[data-shape="hand"]{--min-title:34px;--min-body:16px}
+    .fp-stage[data-shape="display"]{--min-title:48px;--min-body:18px}
+  }
+
   .fp-blk-title,.fp-blk-body{padding-left:var(--pl);padding-right:var(--pr)}
   .fp-blk-title{padding-top:var(--pt)}
   .fp-blk-body{padding-top:4.4cqw;padding-bottom:var(--pb)}
