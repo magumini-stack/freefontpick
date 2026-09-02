@@ -173,6 +173,15 @@ def _search_script() -> str:
 
 
 def _analytics() -> str:
+    """측정 태그. inject_header 가 <head> 끝에 끼워 넣는다.
+
+    예전에는 render_header 앞에 붙여서 <body> 로 나갔다. 구글은 이 태그를
+    <head> 안에 두라고 하고, 실제로 두 가지가 걸린다 —
+
+      · 스크립트가 늦게 떠서 첫 화면에서 빠져나간 방문이 일부 집계에 안 잡힌다
+      · 서치콘솔·서치어드바이저의 '애널리틱스로 소유확인'을 못 쓴다
+        (그쪽이 <head> 안을 요구한다)
+    """
     return f'''<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id={ADS_CONVERSION_ID}"></script>
 <script>
@@ -193,7 +202,7 @@ def render_header(active: str = "") -> str:
     nav_desktop = _nav_links(active, "      ", mobile=False)
     nav_mobile = _nav_links(active, "    ", mobile=True)
 
-    return f'''{_analytics()}<header class="header">
+    return f'''<header class="header">
   <div class="header-inner">
     <a href="/" class="logo" id="ffpLogoLink" aria-label="폰트픽 홈으로"><img class="logo-mark" src="/favicon.svg" width="24" height="24" alt="" aria-hidden="true">폰트픽</a>
     <nav>
@@ -272,8 +281,19 @@ def inject_header(html: str, active: str = "") -> str:
     못 읽으므로 canonical·og:url·JSON-LD 에 {{FFP_ORIGIN}} 마커를 박아 두고
     이 자리에서 app/site.py 의 SITE_URL 로 바꾼다. 페이지를 내보내는 라우터가
     전부 이 함수를 지나므로, 도메인을 옮길 때 채워야 할 곳은 여기 하나다.
+
+    측정 태그는 </head> 바로 앞에 끼워 넣는다(_analytics 주석 참고).
+    **헤더 마커가 있는 페이지에만** 넣는다 — 예전에 render_header 앞에
+    붙어 있어서 결과적으로 그 페이지들만 측정되고 있었다. 어드민(admin.html,
+    admin-gif.html)에는 마커가 없어 측정에서 빠져 있고, 그 상태를 그대로 둔다.
+    자리를 옮기는 김에 측정 대상까지 넓히면 통계가 어제와 오늘 사이에서
+    끊긴 것처럼 보인다.
     """
     html = html.replace(ORIGIN_MARKER, SITE_URL)
+    if "<!--FFP_HEADER-->" in html:
+        i = html.lower().find("</head>")
+        if i >= 0 and "googletagmanager.com/gtag/js" not in html:
+            html = html[:i] + _analytics() + html[i:]
     html = html.replace("<!--FFP_HEADER-->", render_header(active))
     return html.replace("<!--FFP_FOOTER-->", render_footer())
 
