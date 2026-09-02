@@ -200,17 +200,6 @@ def robots():
                     headers={"Cache-Control": "public, max-age=3600"})
 
 
-@router.get("/api/debug/subset", include_in_schema=False)
-def debug_subset():
-    """미리보기 서브셋이 만들어지고 있는지 들여다본다.
-
-    운영에서 앱 로그를 볼 수 없어서, 실패 사유를 여기로 끌어낸다.
-    문제가 정리되면 이 엔드포인트는 지운다.
-    """
-    from ..font_subset import status
-    return status()
-
-
 @router.get("/api/debug/upload-env", include_in_schema=False)
 def debug_upload_env():
     info = {"python_version": sys.version, "cwd": str(Path.cwd())}

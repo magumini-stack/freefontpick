@@ -1893,7 +1893,7 @@ function showToast(msg){
       const fam = 'FFP-' + String(id).padStart(3,'0');
       list.forEach(w=>{
         _dsWeightStyle.appendChild(document.createTextNode(
-          `@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file?weight=${w.weight}${ver?`&v=${ver}`:''}') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`
+          `@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file/${w.weight}${ver?`.v${ver}`:''}.woff2') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`
         ));
       });
     }
@@ -1937,7 +1937,7 @@ function ensureFontLoaded(id){
   // ?v= 는 파일의 판. 붙으면 서버가 1년 immutable로 내린다 — 없으면 매번
   // 재검증이라 브라우저가 파일 전체를 다시 받는다.
   const ver = (f && (f.fileVersion || f.file_version)) || 0;
-  const url = `/api/fonts/${id}/file` + (ver ? `?v=${ver}` : '');
+  const url = `/api/fonts/${id}/file/0` + (ver ? `.v${ver}` : '') + '.woff2';
   // @font-face 규칙을 누적 추가
   _fontStyleEl.appendChild(document.createTextNode(
     `@font-face{font-family:'${family}';src:url('${url}') format('woff2');font-display:swap;font-weight:normal;font-style:normal}`

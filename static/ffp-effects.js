@@ -158,8 +158,8 @@ function ffpRegisterFace(font, weight){
   if(!_ffpFaces.has(key)){
     _ffpFaces.add(key);
     const ver = font.file_version || font.fileVersion || 0;
-    const url = `/api/fonts/${font.id}/file`
-      + (w ? `?weight=${w}` : '') + (ver ? (w ? '&' : '?') + `v=${ver}` : '');
+    // 경로 방식 — CDN 이 쿼리를 무시해서 굵기가 안 갈렸다(ffp-fontface.js 주석 참고)
+    const url = `/api/fonts/${font.id}/file/${w || 0}${ver ? `.v${ver}` : ''}.woff2`;
     /* font-display:swap — 폰트가 오기 전에는 기본 글꼴로 보여준다.
        block으로 두면 목록의 문구 칸이 몇 초간 빈칸으로 보인다.
        캔버스는 ffpEnsureFontReady로 로드를 기다린 뒤에 그리므로,

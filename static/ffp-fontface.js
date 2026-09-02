@@ -40,17 +40,23 @@
      주소가 바뀌므로 교체도 그대로 반영된다.
 
      v를 모르면(옛 응답 등) 그냥 빼고 부른다 — 예전 방식으로 안전하게 떨어진다. */
-  /* preview=1 은 '이 폰트를 미리보기로만 쓴다'는 뜻이다. 서버가 이름과 짧은
+  /* 끝의 .p 는 '이 폰트를 미리보기로만 쓴다'는 뜻이다. 서버가 이름과 짧은
      견본 문구를 그릴 만큼만 담은 가벼운 서브셋을 내려준다(원본의 10~36%).
      본체 폰트(상세페이지 주인공, 디자인 모달)에는 붙이지 않는다 — 거기서는
      사용자가 아무 글자나 칠 수 있으므로 전문이 필요하다. */
+  /* 값을 전부 경로에 담는다. 앞단 CDN 이 쿼리스트링을 무시하고 경로만으로
+     캐싱해서, ?weight=100 과 ?weight=700 이 같은 캐시 항목이 됐다. 굵기를
+     바꿔도 처음 캐시된 파일 하나가 계속 나왔다(실측 2026-09-02).
+
+         /api/fonts/58/file/700.v1788318554.p.woff2
+                            굵기  판          미리보기
+
+     굵기 0 은 대표 파일이다. 판(.v)이 있어야 서버가 1년 고정으로 내린다. */
   function fileUrl(id, weight, ver, preview) {
-    var u = '/api/fonts/' + id + '/file';
-    var q = [];
-    if (weight) q.push('weight=' + weight);
-    if (ver) q.push('v=' + ver);
-    if (preview) q.push('preview=1');
-    return q.length ? u + '?' + q.join('&') : u;
+    var n = String(weight || 0);
+    if (ver) n += '.v' + ver;
+    if (preview) n += '.p';
+    return '/api/fonts/' + id + '/file/' + n + '.woff2';
   }
   function verOf(f) { return f && f.file_version || 0; }
 

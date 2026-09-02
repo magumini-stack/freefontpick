@@ -754,11 +754,19 @@ def download_font_file_by_path(request: Request, font_id: int, name: str):
       웹폰트가 "A network error occurred" 로 실패했다. 주소를 새로 만들면
       캐시 항목도 새로 생기므로 그 문제까지 같이 풀린다.
 
-    name 은 아래 두 가지를 받는다. 확장자는 주소만 봐도 폰트인 줄 알도록
+    name 은 아래 형태를 받는다. 확장자는 주소만 봐도 폰트인 줄 알도록
     붙이는 것이고, 값 자체는 앞의 숫자다.
 
-        300.woff2                굵기만. 재검증 캐시로 내려간다
-        300.v1788317704.woff2    굵기 + 파일 판. 1년 immutable 로 내려간다
+        300.woff2                  굵기만. 재검증 캐시로 내려간다
+        300.v1788317704.woff2      굵기 + 파일 판. 1년 immutable 로 내려간다
+        300.v1788317704.p.woff2    끝의 .p 는 미리보기 서브셋(preview)
+
+    ⚠ 미리보기 표시도 경로에 있어야 한다
+      preview 를 쿼리(?preview=1)로 두었더니 CDN 이 그것도 무시했다.
+      그래서 상세페이지에서 굵기를 바꿔도 처음 캐시된 파일 하나가 계속
+      나왔고, 그게 하필 서브셋이라 모든 굵기가 같은 모양으로 보였다.
+      실측(2026-09-02): 원본은 100·400·700 이 290KB·111KB·753KB 인데
+      CDN 은 넷 다 45,948바이트(서브셋) 하나를 HIT 로 돌려줬다.
 
     ⚠ 판(v) 이 없으면 immutable 로 내리면 안 된다
       주소에 굵기만 있으면 어드민이 그 폰트 파일을 교체해도 주소가 그대로다.
@@ -772,6 +780,10 @@ def download_font_file_by_path(request: Request, font_id: int, name: str):
     옛 주소(/file?weight=)도 그대로 둔다 — 이미 나간 홍보물이 깨지면 안 된다.
     """
     stem = name[:-6] if name.lower().endswith(".woff2") else name
+    # 뒤에서부터 벗긴다 — .p 가 판보다 뒤에 붙기 때문이다.
+    preview = stem.endswith(".p")
+    if preview:
+        stem = stem[:-2]
     ver = ""
     if ".v" in stem:
         stem, _, ver = stem.partition(".v")
@@ -789,6 +801,17 @@ def download_font_file_by_path(request: Request, font_id: int, name: str):
     path, headers = _pick_font_file(font_id, weight)
     if path is None:
         raise HTTPException(status_code=404, detail="폰트 파일이 없습니다")
+
+    if preview:
+        from ..font_subset import subset_or_none
+        sub = subset_or_none(path)
+        if sub is not None:
+            path = sub
+        elif ver:
+            # 서브셋이 아직 없어 원본을 내보내는 중이다. 이때 1년 고정으로
+            # 내리면 이 주소에 원본이 박제돼 서브셋이 만들어져도 안 쓰인다.
+            return _serve_font(request, path, _CACHE_REVALIDATE)
+
     # 판이 주소에 박혀 있을 때만 1년 고정. 없으면 옛 주소와 같은 재검증 캐시.
     return _serve_font(request, path, _CACHE_IMMUTABLE if ver else headers)
 
