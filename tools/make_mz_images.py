@@ -407,38 +407,46 @@ def wfont(rel: str, size: int):
 
 
 def img_weight():
-    """선언된 굵기와 실제 두께가 따로 논다는 것을 한 화면에 보인다.
+    """파일이 스스로 적어 둔 굵기와 실제 두께가 따로 논다는 것을 보인다.
 
-    네 폰트 모두 저장소에 있는 실제 파일로 그린다. 채움비율은 글에 실린
-    실측값이다(가나다라마바사아자차카타파하 14자의 잉크 면적 ÷ 상자 넓이).
+    네 폰트 모두 저장소에 있는 실제 파일로 그린다. 번호와 이름표는 파일에서
+    직접 읽은 값이고(OS/2.usWeightClass, name 17/2번), 채움비율은 실측값이다
+    (가나다라마바사아자차카타파하 14자의 잉크 면적 ÷ 상자 넓이).
+
+    사이트에 표기된 굵기를 쓰지 않는 이유: 그건 어드민에 사람이 넣은 값이다.
+    "파일이 거짓말을 한다"는 이야기를 하려면 근거가 파일이어야 한다.
     """
     c = C()
     c.head("굵기 번호는 약속이 아닙니다",
-           "같은 글자를 실제 폰트 파일로 그렸습니다. 아래 숫자가 잰 두께입니다.")
+           "가는 것부터 굵은 것 순으로 놓았습니다. 아래 회색 줄이 파일에 적힌 번호입니다.")
 
+    # bad=True 는 파일이 적어 둔 값이 실제와 어긋나는 것 — 붉게 표시한다.
     cols = [
-        ("aritaburi-100.woff2", "아리따 부리", "100", "0.059"),
-        ("../font-093.woff2",   "카페24 아네모네", "400", "0.570"),
-        ("cookierun-900.woff2", "쿠키런",     "900", "0.682"),
-        ("../font-075.woff2",   "이누아리두리네", "900", "0.820"),
+        ("aritaburi-100.woff2", "아리따 부리",   "250 · HairLine", "0.059", False),
+        ("../font-093.woff2",   "카페24 아네모네", "400 · Regular",  "0.570", True),
+        ("cookierun-900.woff2", "쿠키런",       "900 · Black",    "0.682", False),
+        ("../font-075.woff2",   "이누아리두리네",  "400 · Regular",  "0.820", True),
     ]
     x, gap, w = 64, 16, 258
-    for rel, name, declared, ratio in cols:
+    for rel, name, declared, ratio, bad in cols:
         c.box(x, 152, w, 392)
         # 큰 글자 — 이 그림의 주인공
         c.d.text(((x + w // 2) * S, 300 * S), "가", font=wfont(rel, 132),
                  fill=T1, anchor="mm")
         c.line(x + 24, 392, x + w - 24, 392)
         c.t(x + w // 2, 410, name, size=16, fill=T1, anchor="ma")
-        c.t(x + w // 2, 440, "선언 " + declared, size=14, fill=T3, anchor="ma")
+        c.t(x + w // 2, 440, "파일 " + declared, size=14,
+            fill=(WARN if bad else T3), anchor="ma")
         c.t(x + w // 2, 476, ratio, size=32, fill=ACC, anchor="ma")
         c.t(x + w // 2, 516, "채움비율", size=13, fill=T2, anchor="ma")
         x += w + gap
 
-    c.t(64, 570, "선언 400 이 900 에 가깝고, 100 과는 10 배 가까이 벌어집니다. "
-                 "번호만 보고 짝을 맞추면 위계가 뒤집힙니다.", size=15, fill=T2)
+    c.t(64, 570, "붉은 두 개는 파일이 틀린 것입니다. 이누아리두리네는 넷 중 가장 굵은데 "
+                 "파일에는 400 Regular 라고 적혀 있습니다.", size=15, fill=T2)
     c.mark()
-    c.save("weight-scale.webp")
+    # 파일 이름을 새로 준다 — 앞선 판이 잘못된 이름표로 이미 나가 캐시에
+    # 남아 있다. 경로가 같으면 CDN 이 옛 그림을 계속 내려준다.
+    c.save("weight-declared.webp")
 
 
 def main():
