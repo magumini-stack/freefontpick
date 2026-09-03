@@ -1180,9 +1180,18 @@
       document.getElementById('previewHeading').textContent = '굵기별 보기';
       document.getElementById('weightsLabel').textContent = wf.weights.length + '종';
     } else if (FILE_WEIGHTS.length === 1){
-      // 대표 파일 1개만 등록된 경우: 그 굵기로 단일 행 표시
+      /* 대표 파일 1개만 등록된 경우: 그 굵기로 단일 행 표시.
+
+         family/weight 를 직접 적지 말고 faceFor 에 맡긴다. stackOf(FONT) 가
+         주는 FFP-{id} 는 font-weight:normal 로 등록된 face 하나뿐이라,
+         여기에 CSS 로 900 을 요구하면 브라우저가 가짜 볼드를 덧씌운다.
+         획만 굵어지고 글자폭은 그대로여서 원래 굵은 폰트는 글자가 서로
+         겹쳐 뭉개진다 — 이누아리두리네에서 잉크가 14.5% 늘고 폭은 1155px
+         그대로였다. 위 localW 갈래가 같은 이유로 전용 family 를 쓴다. */
       var w0 = FILE_WEIGHTS[0];
-      rows = [{ label: w0.label, sub: String(w0.weight), family: stackOf(FONT), weight: w0.weight }];
+      var f0 = faceFor(FONT, w0.weight);
+      rows = [{ label: w0.label, sub: String(w0.weight),
+                family: f0.stack, weight: f0.weight }];
     } else {
       // 파일이 아예 없는 폰트: 대표 미리보기 1행 (굵기 파일 추가 시 확장)
       rows = [{ label: FONT.weights || '1종', sub: FONT.maker || '', family: stackOf(FONT), weight: 400 }];
