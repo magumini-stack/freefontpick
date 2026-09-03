@@ -25,7 +25,7 @@ import os
 
 # 예: SITE_URL=https://freefontpick.tdtd.io
 # 끝의 / 는 떼어 둔다 — 붙이는 쪽에서 늘 "/경로" 형태로 이어 쓴다.
-SITE_URL = os.getenv("SITE_URL", "https://freefontpick.co.kr").rstrip("/")
+SITE_URL = os.getenv("SITE_URL", "https://freefontpick.tdtd.io").rstrip("/")
 
 # 정적 HTML 이 쓰는 마커. 값이 아니라 이름을 한 곳에 둔다 —
 # 마커 문자열을 여기저기 적으면 오타가 나도 조용히 안 채워진다.
