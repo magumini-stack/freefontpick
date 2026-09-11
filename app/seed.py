@@ -11,7 +11,6 @@
 import json
 import os
 from pathlib import Path
-from urllib.parse import urlsplit
 from sqlalchemy.orm import Session
 
 from .database import engine, SessionLocal, Base
@@ -1390,8 +1389,15 @@ def _migrate_site_urls(db: Session):
 
     언제 도나
     --------
-    키에 목적지 호스트를 박아 둔다. 도메인을 옮기면 키가 저절로 달라져서
-    한 번 더 돌고, 같은 도메인에서 몇 번을 배포하든 다시 돌지는 않는다.
+    **시작할 때마다 돈다.** 폰트 239종을 한 번 훑는 일이라 가볍고, 현재
+    주소로 시작하는 값은 건드리지 않으므로 몇 번을 돌아도 결과가 같다.
+    바뀐 것이 있을 때만 커밋한다.
+
+    예전에는 목적지 호스트를 키로 "한 번만" 돌렸다. 그런데 그러면 **옛
+    도메인으로 되돌아갈 때 안 돈다.** co.kr → tdtd.io 로 옮기기 전, 코드만
+    먼저 배포된 시점에 site_urls:freefontpick.co.kr 가 이미 '완료'로 찍혀
+    있어서, tdtd.io → co.kr 로 되돌리자 와이즈폰트 14종의 링크가 tdtd.io 에
+    그대로 남을 뻔했다. 한 방향으로만 옮긴다는 가정이 틀렸던 것이다.
 
     무엇을 바꾸나
     ------------
@@ -1400,14 +1406,9 @@ def _migrate_site_urls(db: Session):
     """
     from .site import SITE_URL
 
-    key = "site_urls:" + (urlsplit(SITE_URL).hostname or "")
-    done = db.query(AppMeta).filter(AppMeta.key == key).first()
-    if done and done.value == "1":
-        return
-
     # 우리 사이트를 가리키던 절대주소들. 옛 도메인은 코드에 남겨 둔다 —
     # 환경변수를 안 넘긴 서버에서도 이 마이그레이션은 돌아야 한다.
-    hosts = ["freefontpick.co.kr", "www.freefontpick.co.kr"]
+    hosts = ["freefontpick.co.kr", "www.freefontpick.co.kr", "freefontpick.tdtd.io"]
     hosts += [h.strip().lower()
               for h in (os.getenv("LEGACY_HOSTS") or "").split(",") if h.strip()]
     origins = [s + "://" + h for h in dict.fromkeys(hosts) for s in ("https", "http")]
@@ -1443,10 +1444,8 @@ def _migrate_site_urls(db: Session):
         if hit:
             changed.append(f.name)
 
-    if done is None:
-        db.add(AppMeta(key=key, value="1"))
-    else:
-        done.value = "1"
+    if not changed:
+        return
     db.commit()
     print("[migrate] 사이트 절대주소 → %s: %d종%s"
           % (SITE_URL, len(changed),

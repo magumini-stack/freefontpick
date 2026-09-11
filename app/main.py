@@ -217,6 +217,29 @@ LEGACY_HOSTS = {
 } - {CANONICAL_HOST, "www." + CANONICAL_HOST}
 
 
+# 네이버 클라우드 CDN 이 앞에 서 있는 호스트.
+#
+# CDN 은 원본(카페24)에 요청을 넘길 때 Host 를 카페24 주소로 갈아 끼운다.
+# 그래야 카페24 앞단이 이 프로젝트로 보내 주기 때문이다. 그래서 앱이 보는
+# Host 만으로는 **tdtd.io 로 온 방문자**와 **카페24 주소로 직접 온 요청**을
+# 구별할 수 없다 — 둘 다 freefontpick-freefontpick.mycafe24.ai 로 보인다.
+#
+# 대신 CDN 을 거친 요청에만 x-ncp-cdn-origin 이 붙는다(값은 CDN 서비스
+# 번호). 직접 접속에는 없다 — 둘 다 실측으로 확인했다. 이 CDN 은 이 호스트
+# 하나만 받으므로, 헤더가 있으면 방문자가 친 주소는 이 호스트다.
+#
+# 이게 없으면 tdtd.io 를 옛 주소로 돌렸을 때(LEGACY_HOSTS) 301 이 안 나간다.
+# 앱 눈에는 tdtd.io 가 아예 들어오지 않기 때문이다.
+CDN_FRONT_HOST = "freefontpick.tdtd.io"
+
+
+def _visitor_host(request: Request) -> str:
+    """방문자가 주소창에 친 호스트. 포트는 뗀다."""
+    if request.headers.get("x-ncp-cdn-origin"):
+        return CDN_FRONT_HOST
+    return (request.headers.get("host") or "").split(":")[0].lower()
+
+
 def _visitor_scheme(request: Request) -> str:
     """방문자↔앞단 구간의 프로토콜. 알 수 없으면 빈 문자열.
 
@@ -254,7 +277,7 @@ def _visitor_scheme(request: Request) -> str:
 @app.middleware("http")
 async def canonical_redirect(request: Request, call_next):
     proto = _visitor_scheme(request)
-    host = (request.headers.get("host") or "").split(":")[0].lower()
+    host = _visitor_host(request)
 
     def _to(base: str):
         target = base + request.url.path
