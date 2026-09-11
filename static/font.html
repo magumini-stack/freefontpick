@@ -836,6 +836,7 @@
 <script src="/static/ffp-phrases.js"></script>
 <script src="/static/ffp-fontface.js"></script>
 <script src="/static/app-link.js"></script>
+<script src="/static/app-promo.js"></script>
 <script>
 (function(){
   /* 미리 써보기 기본 문구.
@@ -1428,8 +1429,20 @@
            뒤로가기가 끊겨 오히려 불편하다. */
         var isInternal = /^\//.test(dl) ||
           new RegExp('^https?://(www\\.)?' + location.hostname.replace(/^www\./, '').replace(/\./g, '\\.') + '(/|$)').test(dl);
-        if (isInternal) { location.href = dl; }
-        else { window.open(dl, '_blank', 'noopener'); }
+        function go(){
+          if (isInternal) { location.href = dl; return; }
+          /* 광고를 Esc 로 닫으면 새 창이 막힌다 — 표준이 Esc 를 '사람이 누른 입력'
+             으로 치지 않는다. 막히면 같은 탭으로 넘어간다. 다운로드를 못 하는 것보다
+             낫다. 그래서 noopener 대신 열린 창의 opener 를 직접 끊는다 — noopener 로
+             열면 늘 null 이 돌아와 막혔는지 알 수 없다. */
+          var w = window.open(dl, '_blank');
+          if (w) { try { w.opener = null; } catch (e) {} }
+          else { location.href = dl; }
+        }
+        /* 앱 팝업을 먼저 띄우고, 닫으면 다운로드한다 (static/app-promo.js).
+           팝업 스크립트가 못 떴으면 예전처럼 바로 간다. */
+        if (window.FFPAppPromo) { FFPAppPromo.show({ next: '닫고 다운로드하기', onClose: go }); return; }
+        go();
       });
 
       document.getElementById('loading').classList.add('hidden');

@@ -830,10 +830,10 @@
          둘 다 갤러리를 다루는 도구라 같은 줄에 둔다 — 줄 하나(40px)가 사라진다. -->
     <span class="tags-sep" aria-hidden="true"></span>
     <div class="view-toolbar" role="group" aria-label="갤러리 보기 방식">
-      <button type="button" class="view-btn on" id="viewBtnList" onclick="setGalleryView('list')" aria-pressed="true" title="한 줄 보기" aria-label="한 줄 보기">
+      <button type="button" class="view-btn" id="viewBtnList" onclick="setGalleryView('list')" aria-pressed="false" title="한 줄 보기" aria-label="한 줄 보기">
         <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <button type="button" class="view-btn" id="viewBtnGrid" onclick="setGalleryView('grid')" aria-pressed="false" title="격자 보기" aria-label="격자 보기">
+      <button type="button" class="view-btn on" id="viewBtnGrid" onclick="setGalleryView('grid')" aria-pressed="true" title="격자 보기" aria-label="격자 보기">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       </button>
     </div>
@@ -1102,17 +1102,13 @@ let currentTag='all';
 let currentFontSize=26;
 /* 갤러리 보기 방식: 'grid'(4열 훑어보기) | 'list'(한 줄에 하나, 형태 확인용).
    한 줄 보기는 자리가 넓으므로 견본 글자를 키워야 의미가 있다. */
-/* 기본 보기: 데스크톱은 한 줄, 모바일은 격자.
+/* 기본 보기: 화면 크기와 상관없이 격자.
 
-   좁은 화면에서 한 줄 보기는 카드가 세로로 길어져 한 화면에 몇 개 안 들어온다.
-   폰트를 훑으러 온 사람에게는 격자가 낫다.
-
-   720px 은 위 .font-grid 미디어쿼리가 2열로 접히는 지점과 같은 값이다.
-   두 값이 어긋나면 "격자인데 한 열"인 어정쩡한 화면이 나온다. */
-let currentView = 'list';
-try {
-  if (window.matchMedia && window.matchMedia('(max-width:720px)').matches) currentView = 'grid';
-} catch(e){}
+   예전에는 데스크톱만 한 줄 보기였다. 한 줄 보기는 카드가 세로로 길어서 한
+   화면에 몇 개 안 들어오는데, 폰트를 훑으러 온 사람에게는 한눈에 많이 보이는
+   격자가 낫다 — 모바일에서 먼저 격자로 바꿨고(2026-09), 데스크톱도 따랐다.
+   한 줄 보기는 버튼으로 언제든 고를 수 있다. */
+let currentView = 'grid';
 /* 사람이 직접 고른 적이 있으면 그게 이긴다 — 화면 크기로 덮어쓰지 않는다. */
 try { const v = localStorage.getItem('ffp-gallery-view'); if(v==='list'||v==='grid') currentView = v; } catch(e){}
 /* 한 줄 보기는 화면 폭과 무관하게 1줄이라, 글자가 크면 그만큼 덜 보인다.

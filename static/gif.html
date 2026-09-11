@@ -866,6 +866,7 @@ select.inp{appearance:none;cursor:pointer}
 <script src="/static/gif-render.js"></script>
 <script src="/static/vendor/gifenc.js"></script>
 <script src="/static/gif-export.js"></script>
+<script src="/static/app-promo.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════
    헤더 공통 (wisefont.html과 동일)
@@ -2595,18 +2596,38 @@ function ovLongPress(url, blob, filename){
   $('ovAction').onclick = ()=>FFPExport.downloadBlob(blob, filename);
 }
 
-async function runExport(kind){
-  if(ui.busy) return;
-  /* 사진 모드인데 사진이 없으면 빈 화면이 저장된다. 만들고 나서
-     "아무것도 안 나왔다"를 겪게 두지 말고 여기서 막는다. */
+/* 사진 모드인데 사진이 없으면 빈 화면이 저장된다. 만들고 나서
+   "아무것도 안 나왔다"를 겪게 두지 말고 여기서 막는다. */
+function exportReady(){
   if(R.state.mode === 'photo' && !(R.state.photos||[]).length){
     alert('사진을 먼저 올려주세요.');
-    return;
+    return false;
   }
   if(R.state.mode === 'video' && !R.state.video){
     alert('영상을 먼저 올려주세요.');
+    return false;
+  }
+  return true;
+}
+
+/* 저장 버튼 — 앱 팝업을 먼저 띄우고, 닫으면 저장한다 (static/app-promo.js).
+
+   순서가 중요하다.
+   · 저장할 게 없으면 광고부터 띄우지 않는다 — 사진·영상 검사가 먼저다.
+   · 팝업은 인코딩 '전'에 띄운다. 인코딩 중에는 화면이 통째로 얼어서
+     (runExport 의 '약 N초 걸립니다' 안내 참고) 팝업의 닫기가 눌리지 않는다.
+   팝업 스크립트가 못 떴으면 예전처럼 바로 저장한다. */
+function requestExport(kind){
+  if(ui.busy || !exportReady()) return;
+  if(window.FFPAppPromo){
+    FFPAppPromo.show({ next: '닫고 저장하기', onClose: ()=>runExport(kind) });
     return;
   }
+  runExport(kind);
+}
+
+async function runExport(kind){
+  if(ui.busy || !exportReady()) return;
   /* 내보내는 동안에는 영상을 세운다 — 재생 중이면 prepareFrame의 seek과
      재생이 서로 밀어내서 엉뚱한 프레임이 저장된다. */
   if(R.state.video && !R.state.video.paused) R.state.video.pause();
@@ -2680,8 +2701,8 @@ async function runExport(kind){
     if(!FFPExport.mp4Supported()) $('mp4Btn').disabled = true;
   }
 }
-$('gifBtn').onclick = ()=>runExport('gif');
-$('mp4Btn').onclick = ()=>runExport('mp4');
+$('gifBtn').onclick = ()=>requestExport('gif');
+$('mp4Btn').onclick = ()=>requestExport('mp4');
 
 /* ══════════════════════════════════════════════════════════════
    시작
@@ -2743,6 +2764,9 @@ async function boot(){
   updateCounter(); syncBar(); syncAdv(); syncPhotoSliders(); syncPlayIcon();
   requestAnimationFrame(loop);
 }
+/* 들어오면 앱 팝업부터 띄운다. 편집기는 그 뒤에서 마저 뜬다 — boot 는 기다리지
+   않고 바로 돌린다. 닫으면 따로 할 일이 없으므로 onClose 는 없다. */
+if(window.FFPAppPromo) FFPAppPromo.show({ next: '닫고 GIF 만들기' });
 boot();
 </script>
 
