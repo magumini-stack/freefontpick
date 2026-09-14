@@ -37,7 +37,8 @@
 (function (global) {
   'use strict';
 
-  var APPS_URL = 'https://www.wisefont.co.kr/apps.html';
+  /* 와이즈폰트 앱 랜딩 — 기기를 가려 맞는 스토어를 보여 준다(2026-09, 예전 apps.html) */
+  var APPS_URL = 'https://wisefont.co.kr/download.html';
   var APPS = [
     ['geulssi', '글씨사진관', '멋진 사진에 감성 글 쓰기'],
     ['umzzal',  '움짤공방',  '문구만 넣으면 움직이는 글자'],

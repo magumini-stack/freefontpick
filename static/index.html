@@ -517,7 +517,8 @@
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
     /* ── 앱 광고 카드 — 갤러리 첫 번째 칸 ──
-       와이즈폰트 앱 페이지(wisefont.co.kr/apps.html)의 옷을 그대로 입힌다.
+       와이즈폰트 앱 페이지의 옷을 그대로 입힌다(옷은 apps.html 에서 가져왔고,
+       2026-09 부터 링크는 앱 랜딩 download.html 로 보낸다).
        본(bone) 바탕 · 먹색 글자 · 빨강 하나(#ff3511). 앱 아이콘 세 개가 모두
        '흰 바탕 · 검정 획 · 빨간 점 하나'로 그려져 있어서, 카드도 이 세 색만
        쓰면 아이콘과 한 몸으로 읽힌다.
@@ -2648,7 +2649,7 @@ function renderFonts(){
   const searching = !!(document.getElementById('globalSearch').value || '').trim();
   const appAdCard = (isRecommendMode || searching) ? '' : `
     <div class="apps-card" role="listitem">
-      <a href="https://www.wisefont.co.kr/apps.html" target="_blank" rel="noopener"
+      <a href="https://wisefont.co.kr/download.html" target="_blank" rel="noopener"
          aria-label="와이즈폰트 앱 3종 보러 가기 — 글씨사진관, 움짤공방, 폰트박스 (새 창)">
         <div class="ac-head">
           <div class="ac-kick">WISEFONT APPS</div>

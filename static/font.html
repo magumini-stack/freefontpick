@@ -245,8 +245,11 @@
   /* ── APP PROMO (사이드바) ──
      [2026-08] 앱 셋을 묶어 소개하던 것을 글씨사진관 하나로 좁혔다. 셋 중
      구글 플레이에 있는 것이 글씨사진관뿐이라, 모바일 유입이 늘면서 나머지
-     둘은 안드로이드에서 받을 수 없는 앱이 됐다. 링크는 app-link.js 가
-     기기에 맞는 스토어로 바꾼다. */
+     둘은 안드로이드에서 받을 수 없는 앱이 됐다.
+     [2026-09] 링크는 와이즈폰트 앱 랜딩(download.html?app=geulssi)으로 보낸다.
+     그 페이지가 기기를 가려 맞는 스토어로 넘겨 주므로, 예전에 기기별 스토어
+     주소를 갈아 끼우던 app-link.js 는 걷어냈다. 랜딩을 거쳐야 와이즈폰트 쪽에서
+     어디서 들어왔는지 잴 수 있다 — 그래서 rel 에 noreferrer 를 넣지 않는다. */
   /* 한 줄이다 — 아이콘 | 글 2줄 | 버튼.
      예전에는 버튼을 아래 줄에 따로 뒀는데, 아이콘 옆이 비고 배너만 높아졌다.
      자리는 340px(안쪽 312px)뿐이라 여백과 버튼을 조여 글자 자리를 남긴다:
@@ -736,8 +739,8 @@
 
         <!-- 앱 프로모 배너 (모바일에선 JS가 #appPromoSlot으로 이동시킨다) -->
         <section class="blk" id="appPromoSec" style="padding:0;border-bottom:none">
-          <a class="app-promo-banner" data-applink="kphototext" href="https://play.google.com/store/apps/details?id=com.wisefont.kphototext"
-             target="_blank" rel="noopener noreferrer">
+          <a class="app-promo-banner" href="https://wisefont.co.kr/download.html?app=geulssi"
+             target="_blank" rel="noopener">
             <div class="app-promo-top">
               <img class="appico" src="/static/app-gssg.png" width="38" height="38"
                    alt="" loading="lazy" decoding="async">
@@ -835,7 +838,6 @@
 
 <script src="/static/ffp-phrases.js"></script>
 <script src="/static/ffp-fontface.js"></script>
-<script src="/static/app-link.js"></script>
 <script src="/static/app-promo.js"></script>
 <script>
 (function(){
@@ -1832,8 +1834,8 @@ window.addEventListener('pageshow', function(e){
         </div>
 
         <div class="designer-footer">
-          <a class="ds-promo-banner" data-applink="kphototext" href="https://play.google.com/store/apps/details?id=com.wisefont.kphototext"
-             target="_blank" rel="noopener noreferrer">
+          <a class="ds-promo-banner" href="https://wisefont.co.kr/download.html?app=geulssi"
+             target="_blank" rel="noopener">
             <img class="appico" src="/static/app-gssg.png" width="32" height="32"
                  alt="" loading="lazy" decoding="async">
             <div class="ds-promo-text">
