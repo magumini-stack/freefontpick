@@ -182,6 +182,10 @@ def _resolve_tags(db: Session, tag_names: list) -> List[Tag]:
     return tags
 
 
+# 목록에는 싣지 않는 meta 칸 — 상세페이지(GET /api/fonts/{id})가 따로 내려준다.
+_META_DETAIL_ONLY = frozenset({"license", "intro"})
+
+
 # 공개 API
 @router.get("", response_model=List[FontOut])
 def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
@@ -192,20 +196,26 @@ def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
     약 30ms 가 는다. 그 값이 필요한 곳은 조합 페이지의 폰트 선택창 하나뿐이라,
     홈 갤러리를 여는 모든 사람이 낼 비용은 아니다.
 
-    meta.license는 응답에서 뺀다 — 라이선스 요약표는 상세페이지에서만 쓰는데
-    약관 원문이 길어 목록 응답의 35%(127KB)를 차지했다. 상세페이지는
-    GET /api/fonts/{id} 를 따로 부르므로 화면에 나오는 정보는 그대로다.
-    어드민 편집창도 폰트 하나를 다시 불러오도록 맞춰져 있다(static/admin.html).
+    meta 중 상세페이지에서만 쓰는 칸은 응답에서 뺀다(_META_DETAIL_ONLY).
+    상세페이지는 GET /api/fonts/{id} 를 따로 부르므로 화면에 나오는 정보는
+    그대로다. 어드민 편집창도 폰트 하나를 다시 불러오도록 맞춰져 있다
+    (static/admin.html).
+
+      license  약관 원문이 길어 목록의 35%(127KB)를 차지했다
+      intro    큐레이터 소개글. 239종 전부에 있어 115KB — 뺀 시점 기준으로
+               목록 응답의 38% 였다. 홈 갤러리는 이 글을 쓰지 않는다
+               (쓰는 것은 meta.preview_text 와 추천용 태그뿐)
     """
     fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
     paired = _paired_font_ids(db)
     out = []
     for f in fonts:
         item = _to_out(f, paired, with_weights=bool(weights))
-        if item.meta and "license" in item.meta:
+        if item.meta and _META_DETAIL_ONLY & item.meta.keys():
             # font.meta를 직접 지우면 SQLAlchemy가 변경으로 보고 DB에 반영한다.
             # 반드시 복사본에서 뺀다.
-            item.meta = {k: v for k, v in item.meta.items() if k != "license"}
+            item.meta = {k: v for k, v in item.meta.items()
+                         if k not in _META_DETAIL_ONLY}
         out.append(item)
     return out
 

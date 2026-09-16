@@ -31,6 +31,7 @@
 모양마다 제목이 원하는 **백분위 목표**를 손으로 적어 둔다(아래 TITLE_TARGET).
 절대값이 아니라 백분위라, 폰트가 늘거나 측정 기준이 바뀌어도 뜻이 유지된다.
 """
+from collections import namedtuple
 import math
 import random
 from collections import deque
@@ -526,12 +527,41 @@ def generate(db, shape: str = "", script: str = "ko",
     }
 
 
+# ── 계열별 추천 폰트 캐시 ──────────────────────────────────────
+# 조합 찾기 페이지 한 장이 top_fonts_for 를 **열 번** 부른다 — 계열 5개를
+# 캔버스 아래 안내 블록과 구조화 데이터가 각각 훑는다. 한 번마다 폰트 전체를
+# 읽으므로 요청 하나가 전수 조회 스무 번이었고, 그래서 이 페이지만 첫 바이트가
+# 0.5~1.5초였다(홈·상세는 0.09초).
+#
+# 같은 입력에 늘 같은 답이 나오는 함수라 결과를 들고 있어도 된다. 열쇠는 폰트
+# 종수와 마지막 수정시각이다 — 어드민에서 폰트를 고치면 updated_at 이 바뀌므로
+# 다음 요청에서 저절로 다시 계산한다.
+#
+# ORM 객체를 그대로 담지 않는 이유: 세션이 닫힌 뒤에 꺼내 쓰면 언제 터질지
+# 모르는 값이 된다. 부르는 쪽(design.py 두 곳)이 쓰는 것은 id 와 이름뿐이라
+# 그 둘만 담는다.
+_Pick = namedtuple("_Pick", "id name")
+_top_cache: dict = {}
+_top_cache_key = None
+
+
+def _catalog_stamp(db):
+    """폰트 목록이 바뀌면 달라지는 값."""
+    from sqlalchemy import func
+    from .models import Font
+    n, ts = db.query(func.count(Font.id), func.max(Font.updated_at)).one()
+    return (n, str(ts))
+
+
 def top_fonts_for(db, shape: str, n: int = 8) -> list:
     """그 모양에서 제목으로 가장 잘 맞는 폰트 n종 (점수순, 무작위 없음).
 
-    페이지 아래 소개 블록이 쓴다. 화면이 추천하는 것과 아래 목록이 서로 다른
-    근거를 쓰면 같은 페이지에서 두 답이 어긋난다.
+    페이지 아래 소개 블록과 구조화 데이터가 쓴다. 화면이 추천하는 것과 아래
+    목록이 서로 다른 근거를 쓰면 같은 페이지에서 두 답이 어긋난다.
+
+    돌려주는 것은 id 와 name 만 가진 가벼운 값이다(위 캐시 주석 참고).
     """
+    global _top_cache, _top_cache_key
     from .models import Font
 
     cat = get_shape(shape)
@@ -540,12 +570,25 @@ def top_fonts_for(db, shape: str, n: int = 8) -> list:
         # 고르는 기준 자체가 없는 자리다. 아무 순서나 실으면 "이게 추천인가"로
         # 읽히므로 목록을 내지 않는다.
         return []
-    fonts = [f for f in db.query(Font).all()
-             if not is_english(f) and _in_shape(f, key)]
+
+    stamp = _catalog_stamp(db)
+    if stamp != _top_cache_key:
+        _top_cache = {}
+        _top_cache_key = stamp
+    hit = _top_cache.get((key, n))
+    if hit is not None:
+        return hit
+
+    # 한 번만 읽어 두 곳에 쓴다. 예전에는 같은 전수 조회를 두 번 했다.
+    rows = db.query(Font).all()
+    fonts = [f for f in rows if not is_english(f) and _in_shape(f, key)]
     if not fonts:
+        _top_cache[(key, n)] = []
         return []
-    pcts = _percentiles(db.query(Font).all())
+    pcts = _percentiles(rows)
     target = TITLE_TARGET.get(key, {"d": 0.6})
     scored = [(_slot_score(f, pcts, target, {}), f) for f in fonts]
     scored.sort(key=lambda x: x[0], reverse=True)
-    return [f for _, f in scored[:n]]
+    out = [_Pick(f.id, f.name) for _, f in scored[:n]]
+    _top_cache[(key, n)] = out
+    return out

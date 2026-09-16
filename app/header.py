@@ -99,7 +99,12 @@ def _nav_links(active: str, indent: str, mobile: bool) -> str:
 # 2026-09-02: 도메인을 옮기면서 애널리틱스 속성을 새로 연결했다.
 # 옛 속성(G-WK73M3QQVP)의 자료는 그쪽에 그대로 남는다 — 옮겨오지는 못한다.
 GA_MEASUREMENT_ID = "G-1QCTP3ENL6"   # 애널리틱스
-ADS_CONVERSION_ID = "AW-18302402783"  # 구글 애즈
+
+# 구글 애즈 전환 태그(AW-18302402783)는 2026-09 에 뺐다.
+#
+# 광고를 돌리지 않는 동안에는 값을 못 하면서 방문마다 요청을 네댓 개 더
+# 만든다 — 실측으로 rmkt/1p-user-list/ccm 이 375~509ms 씩 붙었다. 광고를
+# 다시 돌릴 때 이 줄과 아래 _analytics 의 config 한 줄을 되살리면 된다.
 
 
 def _search_script() -> str:
@@ -185,12 +190,11 @@ def _analytics() -> str:
         (그쪽이 <head> 안을 요구한다)
     """
     return f'''<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id={ADS_CONVERSION_ID}"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id={GA_MEASUREMENT_ID}"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){{dataLayer.push(arguments);}}
   gtag('js', new Date());
-  gtag('config', '{ADS_CONVERSION_ID}');
   gtag('config', '{GA_MEASUREMENT_ID}');
 </script>
 '''
