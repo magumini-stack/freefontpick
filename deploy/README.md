@@ -1,29 +1,39 @@
 # 폰트픽 서버 설치 순서
 
-에그호스팅 클라우드 서버(Ubuntu)에 올리는 절차.
-**Phase 2 는 전부 무료 서브도메인에서 한다** — 그동안 freefontpick.co.kr 은
+에그호스팅 클라우드 서버에 올리는 절차.
+
+**Phase 2 는 전부 에그호스팅 임시 주소에서 한다** — 그동안 freefontpick.co.kr 은
 카페24에서 그대로 서비스되므로 여기서 뭘 하든 운영에 영향이 없다.
+
+## 서버 (2026-09-16 확인)
+
+| | |
+|---|---|
+| 접속 | `ssh ubuntu@210.207.108.175` |
+| OS | Ubuntu 24.04.5 LTS (noble) |
+| 사양 | 1코어 / 2GB / 디스크 약 48GB |
+| Docker | **이미 설치돼 있음** (공식 Docker CE) |
+| nginx | 설치돼 있고 설정은 비어 있음 — 에그호스팅 MCP 가 관리한다 |
+
+**nginx 설정을 직접 쓰지 않는다.** `connect_domain`(SSL 발급+nginx 반영)과
+`set_routes`(경로→포트 라우팅)를 에그호스팅 MCP 가 대신 해 준다.
+같은 폴더의 `nginx-freefontpick.conf` 는 **쓰지 않는 참고본**이다 —
+그쪽 nginx 가 헤더를 제대로 안 넘길 때 무엇을 고쳐 달라고 할지의 기준.
 
 ---
 
-## 1. 서버 기본
+## 1. 기본 확인
 
 ```
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y nginx git
+sudo apt update
+sudo apt install -y git
 
-# 도커 공식 저장소 (우분투 기본 저장소의 docker.io 는 버전이 낮다)
-curl -fsSL https://get.docker.com | sudo sh
+docker --version          # 이미 깔려 있다
+sudo systemctl enable --now docker
 sudo usermod -aG docker $USER
-# 여기서 한 번 로그아웃 후 다시 접속해야 docker 를 sudo 없이 쓸 수 있다
-
-sudo ufw allow OpenSSH
-sudo ufw allow 'Nginx Full'
-sudo ufw enable
 ```
 
-**8000 번은 절대 열지 않는다.** 컨테이너가 127.0.0.1 에만 묶여 있어
-바깥에서 닿을 수 없고, nginx 를 거쳐야만 들어온다.
+마지막 줄 뒤에는 **로그아웃 후 다시 접속**해야 `docker` 를 sudo 없이 쓸 수 있다.
 
 ## 2. 코드 받기
 
@@ -37,11 +47,13 @@ git clone https://github.com/magumini-stack/freefontpick.git app
 ## 3. user_data 복원 ★ 빠뜨리면 안 되는 단계
 
 어드민이 올린 폰트·ZIP·제보 이미지와 **DB 본체**가 여기 들어 있다.
-이걸 안 넣으면 사이트는 뜨지만 내용이 텅 빈다.
+안 넣으면 사이트는 뜨지만 내용이 텅 빈다.
+
+카페24 백업(`freefontpick-freefontpick_20260916_143625.tar.gz`, 732MB)을
+서버에 올린 뒤:
 
 ```
 cd /srv/freefontpick
-# 카페24 백업 tar.gz 를 올려둔 뒤
 tar -xzf freefontpick-freefontpick_*.tar.gz data/user_data
 mv data/user_data ./user_data
 rmdir data
@@ -50,7 +62,7 @@ rmdir data
 sudo chown -R 1000:1000 /srv/freefontpick/user_data
 ```
 
-들어 있어야 하는 것 — 개수가 맞는지 본다:
+들어 있어야 하는 것 — `du -sh /srv/freefontpick/user_data/*` 로 대조한다:
 
 | 폴더 | 개수 | 용량 |
 |---|---|---|
@@ -63,16 +75,19 @@ sudo chown -R 1000:1000 /srv/freefontpick/user_data
 | freefontpick.db | 1 | 2.4 MB |
 | piece_cache | 10 | 0.05 MB |
 
-```
-du -sh /srv/freefontpick/user_data/*   # 위 표와 대조
-```
-
 ## 4. 환경변수
 
 ```
 cd /srv/freefontpick/app
 cp deploy/env.example .env
-nano .env        # WEBFONT_CSS_KEY 와 SESSION_SECRET 을 채운다
+nano .env
+```
+
+`WEBFONT_CSS_KEY` 는 카페24에서 쓰던 값 그대로,
+`SESSION_SECRET` 은 새로 만든 값을 넣는다:
+
+```
+python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 ## 5. 띄우고 확인 (아직 바깥에 안 보임)
@@ -81,15 +96,14 @@ nano .env        # WEBFONT_CSS_KEY 와 SESSION_SECRET 을 채운다
 cd /srv/freefontpick/app
 docker compose up -d --build
 
-docker compose ps          # healthy 가 될 때까지 기다린다
-docker compose logs -f     # [db] SQLite 사용: ... 이 보여야 한다
+docker compose ps          # healthy 가 될 때까지
+docker compose logs --tail 40   # [db] SQLite 사용: ... 이 보여야 한다
 ```
 
 서버 안에서만 확인:
 
 ```
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/robots.txt
-curl -s http://127.0.0.1:8000/api/fonts | head -c 200
 ```
 
 DB 가 제대로 붙었는지 — **239 가 나와야 한다**:
@@ -98,29 +112,31 @@ DB 가 제대로 붙었는지 — **239 가 나와야 한다**:
 docker compose exec app python -c "import sqlite3;print(sqlite3.connect('/app/user_data/freefontpick.db').execute('select count(*) from fonts').fetchone()[0])"
 ```
 
-## 6. nginx + 인증서
+## 6. 도메인 연결 — MCP 가 한다 (직접 nginx 를 건드리지 않는다)
 
-```
-sudo cp deploy/nginx-freefontpick.conf /etc/nginx/sites-available/freefontpick
-sudo nano /etc/nginx/sites-available/freefontpick   # YOUR_DOMAIN 5곳 치환
-sudo ln -s /etc/nginx/sites-available/freefontpick /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
+1. `set_routes` — `/` 를 8000 포트로 직결
+2. `connect_domain` — DNS 확인 → certbot SSL → nginx 반영
+3. `switch_mode app` — 도메인이 PHP 가 아니라 앱을 보게
 
-sudo nginx -t          # ★ 반드시 통과시킨 뒤에
-sudo systemctl reload nginx
-```
+> `connect_domain` 은 **도메인 A레코드가 서버 공인IP(210.207.108.175)를
+> 미리 가리켜야** SSL 이 발급된다. 그래서 운영 도메인 연결은 Phase 4(전환)
+> 에서 하고, 그 전까지는 에그호스팅 임시 주소로 검증한다.
 
-인증서 — 에그호스팅이 콘솔에서 발급해 주면 그쪽을 쓰고, 직접 받아야 하면:
+## 7. 앞단 확인 ★ 이 셋은 띄운 직후에 본다
 
-```
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d <도메인>
-```
+에그호스팅 nginx 가 어떻게 설정돼 있는지는 문서에 없다. 실제 응답으로 본다.
 
-> 인증서가 아직 없으면 nginx 가 443 블록에서 기동에 실패한다.
-> 그럴 때는 443 블록을 잠시 주석 처리하고 80 만 살린 뒤 certbot 을 돌린다.
+| 확인 | 왜 |
+|---|---|
+| `X-Forwarded-Proto` 가 `https` 로 오는가 | `http` 면 앱이 https 로 돌려보내고 그게 또 http 로 들어와 **무한 리다이렉트** |
+| `Host` 가 원래 주소로 오는가 | 아니면 www→루트 정리와 옛 주소 301 이 죽는다 |
+| 응답에 `Content-Encoding: gzip` 이 있는가 | 없으면 트래픽이 4배 (홈 62KB vs 15KB) |
+| 50MB ZIP 업로드가 되는가 | `client_max_body_size` 가 작으면 어드민 업로드가 413 |
 
-## 7. 검증 (전부 통과해야 전환)
+안 되는 항목이 있으면 `nginx-freefontpick.conf` 의 해당 부분을 근거로
+에그호스팅에 요청한다.
+
+## 8. 검증 (전부 통과해야 전환)
 
 - [ ] 홈 — 폰트 카드가 뜨고 미리보기 글자가 **실제 폰트**로 보이는가
 - [ ] 폰트 상세 — 웹폰트·라이선스·매거진 링크
@@ -131,9 +147,8 @@ sudo certbot --nginx -d <도메인>
 - [ ] OG 이미지 — 새로 그려지는가 (Pillow 동작)
 - [ ] 제보 이미지 — 기존 것이 보이는가
 - [ ] robots.txt / sitemap.xml / **ads.txt 는 404 여야 정상**
-- [ ] 어드민 로그인, 재시작 후에도 로그인 유지 (SESSION_SECRET 확인)
+- [ ] 어드민 로그인, **재시작 후에도 로그인 유지** (SESSION_SECRET 확인)
 - [ ] `docker stats` — 안정 상태 메모리
-- [ ] `curl -sI https://<도메인>/ | grep -i content-encoding` → **gzip** 이 보여야 한다
 
 ---
 
@@ -149,7 +164,7 @@ docker compose up -d --build
 
 ## 되돌리기
 
-- **컨테이너 문제** — `docker compose down` 후 이전 이미지로
+- **컨테이너 문제** — `docker compose down` 후 직전 이미지로
 - **전환 후 문제** — DNS A 레코드를 카페24(222.122.39.91)로 되돌린다.
   TTL 을 300초로 낮춰 두었으면 5분이면 복구된다.
   그래서 **카페24는 전환 후 2주간 끄지 않는다.**
