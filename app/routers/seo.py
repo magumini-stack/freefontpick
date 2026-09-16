@@ -156,33 +156,43 @@ def sitemap(db: Session = Depends(get_db)):
                     headers={"Cache-Control": "public, max-age=3600"})
 
 
-# 해지한 애드센스 게시자 ID. 이 문자열이 든 ads.txt는 내보내지 않는다.
-RETIRED_ADS_PUBLISHER = "pub-3337261318293302"
+# 지금 광고에 쓰는 게시자 ID. 비어 있으면 ads.txt 를 아예 내보내지 않는다.
+#
+# 왜 '막을 것'이 아니라 '내보낼 것'을 적나 (2026-09)
+# ------------------------------------------------
+# 예전에는 해지한 ID 하나만 막았다. 그런데 막던 ID(pub-3337261318293302)와 서버에
+# 남아 있던 파일의 ID(pub-4036975940442022)가 서로 달라서, 광고를 하나도 안 하는
+# 사이트가 계속 게시자 ID 를 광고하고 있었다 — 실제로 200 으로 나갔다.
+# ID 가 여럿 섞이면 막을 것을 세는 방식은 반드시 하나를 빠뜨린다.
+#
+# 그래서 뒤집었다. 여기 적힌 ID 가 든 파일만 내보낸다.
+ACTIVE_ADS_PUBLISHER = ""   # 예: "pub-6258337579944977"
 ADS_TXT_PATH = Path(__file__).resolve().parent.parent.parent / "static" / "ads.txt"
 
 
 @router.get("/ads.txt", include_in_schema=False)
 def ads_txt():
-    """옛 게시자 ID가 든 ads.txt만 막고, 새 파일은 그대로 서빙한다.
+    """지금 쓰는 게시자 ID 가 든 ads.txt 만 내보낸다.
 
-    저장소에서 static/ads.txt를 지웠는데도 운영에서 계속 나갔다 —
-    배포가 파일을 덮어쓰기만 하고 '없어진 파일'은 지우지 않기 때문이다.
-    (컨테이너에 예전 파일이 남아 해지한 광고주 ID를 계속 노출하고 있었다.)
-    카페24 쪽에 파일을 지우는 수단이 없어서 이 라우트로 끊는다 —
-    catch-all보다 먼저 잡힌다.
+    저장소에서 static/ads.txt 를 지워도 운영에서는 계속 나간다 — 배포가 파일을
+    덮어쓰기만 하고 '없어진 파일'은 지우지 않기 때문이다. 카페24 쪽에 파일을
+    지우는 수단이 없어서 이 라우트가 유일한 차단 수단이다. catch-all 정적
+    서빙보다 먼저 잡힌다.
 
-    광고는 계속 하고 계정만 바꾸실 예정이므로, 무조건 404를 내면 안 된다.
-    새 계정 ads.txt를 올리는 순간 애드센스가 '파일 없음'으로 보고 수익을
-    제한하기 때문이다. 그래서 '파일이 있는가'가 아니라 '옛 ID가 들어
-    있는가'로 판단한다. 새 ads.txt를 저장소에 넣고 배포하면 배포가
-    낡은 파일을 덮어쓰고, 이 라우트는 그대로 통과시킨다 — 코드를 다시
-    고칠 필요가 없다. (새 ID를 받으면 위 상수는 지워도 된다.)
+    광고를 다시 붙일 때
+    ------------------
+    ① 새 계정의 ads.txt 를 static/ads.txt 로 넣고
+    ② 위 ACTIVE_ADS_PUBLISHER 에 그 게시자 ID 를 적어
+    한 번에 배포한다. 애드센스는 파일이 없으면 '파일 없음'으로 보고 수익을
+    제한하므로, 광고를 켜는 날 둘을 같이 해야 한다.
     """
+    if not ACTIVE_ADS_PUBLISHER:
+        raise HTTPException(status_code=404)
     try:
         body = ADS_TXT_PATH.read_text(encoding="utf-8")
     except OSError:
         raise HTTPException(status_code=404)
-    if RETIRED_ADS_PUBLISHER in body:
+    if ACTIVE_ADS_PUBLISHER not in body:
         raise HTTPException(status_code=404)
     return Response(content=body, media_type="text/plain",
                     headers={"Cache-Control": "public, max-age=3600"})
