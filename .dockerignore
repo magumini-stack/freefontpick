@@ -1,0 +1,34 @@
+# 이미지에 들어갈 필요가 없는 것들.
+#
+# 주의 — fonts/ fontzips/ fontfiles/ static/ 은 런타임에 쓰인다.
+#   fonts/      번들 폰트(어드민 업로드분이 없을 때의 fallback)
+#   fontzips/   번들 ZIP (같은 구조)
+#   fontfiles/  와이즈폰트 전용 다운로드 (app/routers/wisefont.py)
+# 여기에 절대 넣지 말 것.
+
+.git
+.gitignore
+.github
+
+.venv
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ruff_cache/
+.pytest_cache/
+
+# 로컬 개발용 SQLite. 운영 DB 는 user_data/ 에 마운트해서 쓴다.
+*.db
+
+# 운영에는 안 쓰는 제작용 스크립트 (그림·ZIP·아이콘을 미리 굽는 도구)
+tools/
+
+# 문서·설정
+.claude/
+README.md
+*.md
+
+.env
+.DS_Store
