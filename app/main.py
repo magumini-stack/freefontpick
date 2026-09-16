@@ -275,6 +275,61 @@ def _visitor_scheme(request: Request) -> str:
     return (request.headers.get("x-forwarded-proto") or "").split(",")[0].strip().lower()
 
 
+# 옛 도메인에서 넘겨받은 뒤 잠깐 남겨 두는 표시. 아래 _legacy_redirect 참고.
+_HOP_COOKIE = "ffp_hop"
+
+
+def _legacy_redirect(request: Request):
+    """옛 도메인 → SITE_URL. 주소 방향을 뒤집었을 때 생기는 고리를 끊는다.
+
+    무엇이 문제인가
+    --------------
+    주소를 두 번 뒤집었다 — 9/2 co.kr → tdtd.io, 9/11 tdtd.io → co.kr,
+    9/16 다시 co.kr → tdtd.io. 그 사이 tdtd.io 는 co.kr 로 301 을 보냈고,
+    그 301 에는 캐시 헤더가 없었다. 크롬은 그런 301 을 사실상 무기한
+    기억한다(9/16 실측 — 서버가 200 으로 바뀐 뒤에도 tdtd.io/font/141 이
+    서버에 묻지 않고 co.kr 로 갔다. ?x=1 을 붙이면 멀쩡히 열렸다).
+
+    그 기억을 가진 브라우저에 이제 co.kr 이 tdtd.io 로 301 을 보내면
+
+        tdtd.io/X ─(기억)→ co.kr/X ─(301)→ tdtd.io/X ─(기억)→ co.kr/X …
+
+    를 돌다가 ERR_TOO_MANY_REDIRECTS 로 끝난다. 방문자가 캐시를 지우기
+    전까지는 사이트가 안 열리는 것과 같다.
+
+    어떻게 끊나
+    ----------
+    1) 처음 오면 평소대로 301 을 주고 30초짜리 쿠키를 심는다.
+    2) 쿠키를 들고 또 오면 기억된 301 을 따라 되돌아온 것이다. 기억에 없는
+       주소(_r=1 을 덧붙인 주소)로 302 를 보내 고리를 끊고 쿠키를 지운다.
+    3) 둘 다 no-store 다. 이 응답까지 기억되면 두 번째 방문이 서버에 오지
+       않아 2) 가 영영 돌지 않는다.
+
+    크롤러는 쿠키를 들고 다니지 않으므로 늘 깨끗한 301 만 본다 — 구글
+    주소 변경 도구도 그대로 쓸 수 있다. canonical 은 쿼리를 무시하고 만들어
+    지므로 _r=1 이 색인에 섞이지 않는다.
+
+    _r=1 을 도착한 뒤 주소창에서 지우지 않는다. 지우면 새로고침이 다시
+    기억된 주소로 가서 고리에 빠진다.
+    """
+    target = SITE_URL + request.url.path
+    query = request.url.query
+
+    if request.cookies.get(_HOP_COOKIE):
+        query = (query + "&" if query else "") + "_r=1"
+        response = RedirectResponse(target + "?" + query, status_code=302)
+        response.delete_cookie(_HOP_COOKIE, path="/")
+    else:
+        if query:
+            target += "?" + query
+        response = RedirectResponse(target, status_code=301)
+        response.set_cookie(_HOP_COOKIE, "1", max_age=30, path="/",
+                            httponly=True, secure=True, samesite="lax")
+
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @app.middleware("http")
 async def canonical_redirect(request: Request, call_next):
     proto = _visitor_scheme(request)
@@ -284,13 +339,13 @@ async def canonical_redirect(request: Request, call_next):
         target = base + request.url.path
         if request.url.query:
             target += "?" + request.url.query
-        # 301: 검색엔진이 색인을 옮기도록. 주소 정책은 되돌릴 일이 없다.
+        # 301: 검색엔진이 색인을 옮기도록.
         return RedirectResponse(target, status_code=301)
 
     # 옛 도메인으로 들어온 요청 — 경로째로 새 도메인에 넘긴다.
     # 프로토콜은 따지지 않는다. 어차피 목적지가 https 라서 한 번에 끝난다.
     if host in LEGACY_HOSTS:
-        return _to(SITE_URL)
+        return _legacy_redirect(request)
 
     # 운영 도메인이 아닐 때(로컬, 카페24 컨테이너 주소, 헬스체크)는 그대로 둔다.
     if host not in (CANONICAL_HOST, "www." + CANONICAL_HOST):
