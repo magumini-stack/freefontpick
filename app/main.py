@@ -20,6 +20,7 @@ from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
                                RedirectResponse, Response)
 from starlette.middleware.sessions import SessionMiddleware
 
+from .compress import SelectiveGZipMiddleware
 from .header import inject_header, not_found_page
 from .seed import init_db
 from .site import SITE_URL
@@ -352,6 +353,15 @@ async def no_store_for_api(request: Request, call_next):
         # 내용을 담고 있어서 원래 캐시하면 안 되는 것이었다.
         response.headers["Cache-Control"] = "no-cache"
     return response
+
+
+# 응답 압축. 반드시 **마지막에** 등록한다 — Starlette 는 나중에 등록한
+# 미들웨어를 바깥에 감싸므로, 여기 두어야 가장 바깥에서 최종 응답을 누른다.
+#
+# 안쪽에 두면 stamp_static_assets 가 압축된 바이트를 UTF-8 로 읽으려다
+# 실패하고(UnicodeDecodeError 는 조용히 넘긴다) 자산 경로 스탬프가 꺼진다.
+# 그러면 CSS·JS 가 /s/{hash}/ 없는 주소로 나가 CDN·브라우저가 옛 파일을 잡는다.
+app.add_middleware(SelectiveGZipMiddleware)
 
 # API 라우터 등록
 app.include_router(auth.router)

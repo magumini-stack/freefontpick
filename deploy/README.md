@@ -112,29 +112,70 @@ DB 가 제대로 붙었는지 — **239 가 나와야 한다**:
 docker compose exec app python -c "import sqlite3;print(sqlite3.connect('/app/user_data/freefontpick.db').execute('select count(*) from fonts').fetchone()[0])"
 ```
 
-## 6. 도메인 연결 — MCP 가 한다 (직접 nginx 를 건드리지 않는다)
+## 6. 도메인 연결 — 콘솔에서 한다
 
-1. `set_routes` — `/` 를 8000 포트로 직결
-2. `connect_domain` — DNS 확인 → certbot SSL → nginx 반영
-3. `switch_mode app` — 도메인이 PHP 가 아니라 앱을 보게
+**⚠ A 레코드는 `210.207.108.175` 다.**
 
-> `connect_domain` 은 **도메인 A레코드가 서버 공인IP(210.207.108.175)를
-> 미리 가리켜야** SSL 이 발급된다. 그래서 운영 도메인 연결은 Phase 4(전환)
-> 에서 하고, 그 전까지는 에그호스팅 임시 주소로 검증한다.
+MCP 의 `connect_domain` 응답에는 `guideIp: 210.207.108.131` 이 들어 있는데
+**이 값은 틀렸다.** 콘솔의 [도메인 연결] 안내가 맞다. `.131` 로 걸면
+공용 엣지의 기본 vhost 로 떨어져 **다른 고객 사이트(abuse.animals.or.kr)가
+뜬다** — 2026-09-16 에 실제로 겪었다.
 
-## 7. 앞단 확인 ★ 이 셋은 띄운 직후에 본다
+확인하는 법:
 
-에그호스팅 nginx 가 어떻게 설정돼 있는지는 문서에 없다. 실제 응답으로 본다.
+```
+openssl s_client -connect <도메인>:443 -servername <도메인> </dev/null 2>/dev/null   | openssl x509 -noout -subject
+```
 
-| 확인 | 왜 |
+`CN=<우리 도메인>` 이 나와야 한다. 다른 이름이 나오면 A 레코드를 의심한다.
+
+절차:
+
+1. DNS 에 A 레코드 → `210.207.108.175`
+   (루트 도메인은 `@` 와 `www` 두 개, 서브도메인은 그 라벨 하나)
+2. 콘솔 [도메인 연결] 에 입력 후 **연결 신청** — DNS 확인·SSL 발급이 자동
+3. 콘솔 [라우팅 설정] 에 `경로 /` → `포트 8000` 이 있는지 확인
+   (MCP `set_routes` 로 넣은 것이 여기 보인다)
+
+`switch_mode app` 은 쓰지 않는다 — "배포된 앱이 없다"며 거부된다.
+에그호스팅 배포 체계로 올린 앱에만 적용되는 기능이고, 우리는 포트 직결이다.
+
+### ⚠ 브라우저가 옛 IP 를 붙들고 있는다
+
+A 레코드를 바꾼 뒤에는 **모든 리졸버가 새 IP 를 보는데도 크롬만 옛 주소로
+가는** 일이 생긴다. 크롬이 자체 DNS 캐시와 **살아 있는 소켓**을 재사용하기
+때문이다. 사이트가 바뀌지 않으면 서버를 의심하기 전에 이것부터 한다.
+
+- `chrome://net-internals/#dns` → Clear host cache
+- `chrome://net-internals/#sockets` → **Flush socket pools** ← 이게 핵심
+- 그래도 안 되면 크롬 완전 종료 후 재실행
+
+서버가 맞는지는 브라우저 말고 위의 `openssl` 한 줄로 판단한다.
+
+## 7. 앞단 확인 (2026-09-16 실측)
+
+| 확인 | 결과 |
 |---|---|
-| `X-Forwarded-Proto` 가 `https` 로 오는가 | `http` 면 앱이 https 로 돌려보내고 그게 또 http 로 들어와 **무한 리다이렉트** |
-| `Host` 가 원래 주소로 오는가 | 아니면 www→루트 정리와 옛 주소 301 이 죽는다 |
-| 응답에 `Content-Encoding: gzip` 이 있는가 | 없으면 트래픽이 4배 (홈 62KB vs 15KB) |
-| 50MB ZIP 업로드가 되는가 | `client_max_body_size` 가 작으면 어드민 업로드가 413 |
+| HTTPS · 인증서 | 정상 (Let's Encrypt, 자동 발급) |
+| http → https | 301 |
+| 리다이렉트 루프 | 없음 |
+| `Host` 전달 | 정상 |
+| **gzip** | **`text/html` 만 압축된다** ⚠ |
 
-안 되는 항목이 있으면 `nginx-freefontpick.conf` 의 해당 부분을 근거로
-에그호스팅에 요청한다.
+**JSON·JS·CSS·XML 이 비압축으로 나간다.** 엣지 nginx 에 `gzip_types` 가
+설정돼 있지 않다. 에그호스팅에 요청해 둘 것. 답이 늦으면 앱에서
+직접 압축한다(단, ZIP·woff2 까지 압축하지 않도록 타입을 걸러야 한다).
+
+```
+/            text/html                227,596 B → gzip
+/api/fonts   application/json         231,388 B → 없음   (카페24에서는 35,752 B)
+/sitemap.xml application/xml           83,334 B → 없음
+*.js         application/javascript    22,240 B → 없음
+*.css        text/css                  13,625 B → 없음
+```
+
+콘솔 [사이트 상태] 가 `정상 · 405` 로 뜬다. 헬스체크가 쓰는 메서드를
+앱이 안 받아서인데, 판정은 정상이라 당장 문제는 없다.
 
 ## 8. 검증 (전부 통과해야 전환)
 
