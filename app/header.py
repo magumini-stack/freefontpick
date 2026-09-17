@@ -14,6 +14,8 @@ render_header()가 만든 실제 HTML로 서버가 치환해서 응답한다.
 
 사이트 주소({{FFP_ORIGIN}})도 여기서 채운다 — inject_header 주석 참고.
 """
+import json
+
 from .site import SITE_URL, ORIGIN_MARKER
 
 # (내부 key, 링크, 표시 텍스트, 데스크톱용 id, 모바일용 id) — 순서가 곧 메뉴 노출 순서
@@ -44,13 +46,13 @@ NAV_ITEMS = [
 
 # 메뉴 클릭 핸들러.
 #
-# navFindFont / closeMobileNav 는 index.html 에만 정의돼 있다.
-# font · about · faq · policy · privacy · use 6개 페이지에는 없어서, 그냥
-# 호출하면 그 페이지들에서 오류가 나고 브라우저에 따라 링크 이동까지 막혀
-# 죽은 메뉴가 된다 (공지사항 모바일 메뉴에 이미 있던 문제다).
-# typeof 검사로 감싸 함수가 있을 때만 부른다 — 홈에서는 뷰 전환, 다른
-# 페이지에서는 평범한 링크 이동으로 양쪽 모두 동작한다.
-_JS_FIND = "if(typeof navFindFont==='function')navFindFont(event)"
+# closeMobileNav 는 index.html 에만 정의돼 있다. 다른 페이지에는 없어서
+# 그냥 호출하면 오류가 나고 브라우저에 따라 링크 이동까지 막혀 죽은 메뉴가
+# 된다 (공지사항 모바일 메뉴에 이미 있던 문제다). typeof 검사로 감싼다.
+#
+# '폰트 찾기'는 2026-09-17 부터 홈에서도 평범한 링크로 이동한다. 예전에는
+# 홈에서만 페이지를 다시 읽지 않고 화면만 바꿨는데(navFindFont), 그러면
+# 전면 광고(VIGNETTE_PATHS)가 뜰 기회가 없다 — 구글은 페이지를 옮길 때만 띄운다.
 _JS_CLOSE = "if(typeof closeMobileNav==='function')closeMobileNav()"
 
 
@@ -74,15 +76,15 @@ def _nav_links(active: str, indent: str, mobile: bool) -> str:
         # GIF 생성기와 조합 찾기는 새 창으로 연다. 둘 다 화면에서 뭔가를
         # 맞춰 가는 자리라, 보던 페이지를 덮으면 뒤로 가기로 돌아왔을 때
         # 맞춰 두었던 것이 사라진다.
-        # rel은 보안·성능 때문에 함께 둔다 — 새 창이 window.opener로 원래 탭을
-        # 건드리지 못하게 막고, 브라우저가 두 탭을 다른 프로세스로 띄우게 한다.
-        target = (' target="_blank" rel="noopener noreferrer"'
+        # noopener 는 새 창이 window.opener로 원래 탭을 건드리지 못하게 막고,
+        # 브라우저가 두 탭을 다른 프로세스로 띄우게 한다. noreferrer 는 뺐다 —
+        # 같은 사이트 안이라 감출 것이 없고, 구글 전면 광고는 '같은 사이트의
+        # 페이지를 새 탭으로 열었을 때'도 띄우는데 출처를 지우면 그걸 못 알아본다.
+        target = (' target="_blank" rel="noopener"'
                   if key in ("gif", "fontpair") else "")
-        onclick = f' onclick="{_JS_FIND}"' if key == "findfont" else ""
+        onclick = ""
         if mobile and key == "notice":
             onclick = f' onclick="{_JS_CLOSE}"'
-        elif mobile and key == "findfont":
-            onclick = f' onclick="{_JS_FIND};{_JS_CLOSE}"'
         lines.append(f'{indent}<a href="{href}"{id_attr}{cls}{target}{onclick}>{label}</a>')
     return "\n".join(lines)
 
@@ -166,9 +168,6 @@ def _search_script() -> str:
     try{ localStorage.setItem('ffp-theme', next); }catch(e){}
     icons();
   };
-  /* 공유 헤더의 '폰트 찾기'가 부르는 함수. SPA가 아닌 페이지에서는 링크를
-     그대로 따라가면 된다 — 없으면 onclick 에서 예외가 난다. */
-  window.navFindFont = window.navFindFont || function(){};
   icons();
   if(window.matchMedia){
     var mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -210,8 +209,174 @@ def _analytics() -> str:
 # 셋을 함께 본다.
 ADSENSE_CLIENT = "ca-pub-4036975940442022"
 
+# ── 광고 배치 (2026-09-17 사용자가 정한 자리) ──
+#
+# 오버레이(하단 앵커·전면 광고)는 광고 단위로는 못 만들고 자동 광고에만 있다.
+# 그런데 자동 광고 설정은 사이트(tdtd.io) 단위라 켜면 tdtd.io 본 사이트(유료 폰트
+# 판매)에도 뜬다. 그래서 켜기 전에 tdtd.io 의 <head>(/inc/common.php)에서
+# 애드센스 스크립트를 빼 둔다 — 스크립트가 없는 페이지에는 자동 광고가 못 붙는다.
+# 소유 확인 meta 는 거기에 남긴다.
+#
+# 자동 광고 설정: 페이지 내 광고 끔 · 앵커 끔 · 전면 광고(비네트) 켬 · 사이드 레일 끔.
+# 앵커는 설정에서 꺼 두고 홈·상세페이지에서만 코드로 켠다(inject_header 의 anchor).
+#
+#   홈 갤러리 첫 칸, 이후 폰트 8개마다   광고 단위 "gallery"  (static/index.html)
+#   홈·상세페이지 하단 앵커              자동 광고, 코드로 켬    (anchor=True)
+#   조합 찾기·GIF 생성기·폰트 찾기 진입  자동 광고 전면 광고     (VIGNETTE_PATHS)
+#   조합 찾기 아래 안내 제목 밑          광고 단위 "pair"     (routers/design.py)
+#
+# 상세 '무료 다운로드'와 GIF 'mp4·gif로 받기'를 누를 때 오버레이를 띄우는 것은
+# 못 한다. 전면 광고는 구글이 페이지를 옮길 때만 띄우고, 버튼을 누를 때 띄우라고
+# 시킬 방법이 없다. 직접 만든 창에 광고 단위를 넣는 것은 정책에 걸린다
+# (사용자가 부르지 않은 창 금지, 다운로드 버튼 가까이 광고 금지).
 
-def _adsense() -> str:
+# 광고 단위(슬롯) 번호 — 애드센스 → 광고 → 광고 단위 기준 → 디스플레이 광고(반응형)
+# 에서 만든 코드의 data-ad-slot 값이다. 비어 있는 자리는 그리지 않는다 — 번호 없이
+# 배포해도 빈 광고 상자가 나가지 않는다.
+AD_SLOTS = {
+    "gallery": "8661560354",   # 홈 갤러리        (애드센스 이름: 갤러리용)
+    "pair": "4496927948",      # 폰트 조합 찾기 아래 (애드센스 이름: 조합하단용)
+}
+
+# 전면 광고(비네트)를 띄워도 되는 목적지. 비네트는 페이지마다 켜고 끌 수 없고,
+# 사이트 안 링크를 누르면 구글이 알아서 띄운다. 그래서 반대로 막는다 — 이 목록
+# 밖으로 가는 링크에는 누르는 순간 data-google-vignette="false" 를 붙인다
+# (구글이 안내하는 방법). 뒤로 가기에서 뜨는 것은 막을 수 없다.
+VIGNETTE_PATHS = ("/font-pair", "/gif", "/find-font")
+
+
+# 광고 단위 채우기 · 전면 광고 목적지 제한. 모든 광고 페이지에 들어간다.
+_ADS_JS = r"""<script>
+/* 광고 칸 하나를 채운다. box 는 .ffp-ad 요소, key 는 FFP_ADS.slots 의 이름.
+   번호가 없으면 아무것도 하지 않는다. */
+window.ffpHasAd = function(key){
+  return !!(window.FFP_ADS && FFP_ADS.slots && FFP_ADS.slots[key]);
+};
+window.ffpFillAd = function(box, key){
+  if(!box || box.hasAttribute('data-ad-filled') || !ffpHasAd(key)) return;
+  box.setAttribute('data-ad-filled', '');
+  var ins = document.createElement('ins');
+  ins.className = 'adsbygoogle';
+  ins.style.display = 'block';
+  ins.setAttribute('data-ad-client', FFP_ADS.client);
+  ins.setAttribute('data-ad-slot', FFP_ADS.slots[key]);
+  /* data-ad-format 이 있으면 구글 기본 반응형(높이를 구글이 정한다),
+     없으면 페이지 CSS 가 정한 상자 크기 그대로 받는다. */
+  var fmt = box.getAttribute('data-ad-format');
+  if(fmt){
+    ins.setAttribute('data-ad-format', fmt);
+    ins.setAttribute('data-full-width-responsive', 'true');
+  }
+  box.appendChild(ins);
+  try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch(e) {}
+};
+
+/* 화면에 가까워진 광고 칸만 채운다. 홈 갤러리에는 폰트 사이로 광고 칸이 서른 개쯤
+   생긴다 — 한꺼번에 부르면 첫 화면이 무거워지고, 보지도 않을 광고를 요청하게 된다.
+   reset 은 목록을 통째로 다시 그리는 쪽(갤러리)이 넘긴다. 떨어져 나간 옛 칸을
+   계속 지켜보지 않게 한다. */
+(function(){
+  var io = null;
+  function onSeen(entries, obs){
+    entries.forEach(function(en){
+      if(!en.isIntersecting) return;
+      obs.unobserve(en.target);
+      if(en.target.isConnected) ffpFillAd(en.target, en.target.getAttribute('data-ad-key'));
+    });
+  }
+  window.ffpLazyAds = function(scope, reset){
+    if(reset && io){ io.disconnect(); io = null; }
+    var boxes = (scope || document).querySelectorAll('.ffp-ad[data-ad-key]:not([data-ad-filled])');
+    if(!boxes.length) return;
+    if(!('IntersectionObserver' in window)){
+      Array.prototype.forEach.call(boxes, function(b){ ffpFillAd(b, b.getAttribute('data-ad-key')); });
+      return;
+    }
+    if(!io) io = new IntersectionObserver(onSeen, {rootMargin: '600px 0px'});
+    Array.prototype.forEach.call(boxes, function(b){ io.observe(b); });
+  };
+  if(document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', function(){ ffpLazyAds(document); });
+  else ffpLazyAds(document);
+})();
+
+/* 전면 광고는 정해 둔 목적지로 갈 때만 — header.py VIGNETTE_PATHS 주석 참고.
+   구글이 링크를 읽기 전에 붙여야 하므로 캡처 단계에서 본다. 누르기 시작할 때와
+   클릭 때 두 번, 휠 클릭(auxclick, 새 탭)까지. 같은 페이지 안 이동도 막는다. */
+(function(){
+  var allow = (window.FFP_ADS && FFP_ADS.vignette) || [];
+  function mark(e){
+    var t = e.target;
+    var a = t && t.closest ? t.closest('a[href]') : null;
+    if(!a || a.hasAttribute('data-google-vignette')) return;
+    var u;
+    try { u = new URL(a.getAttribute('href'), location.href); } catch(_) { return; }
+    if(u.origin !== location.origin) return;
+    var path = u.pathname.replace(/\/+$/, '') || '/';
+    var samePage = u.pathname === location.pathname && u.search === location.search;
+    if(samePage || allow.indexOf(path) < 0) a.setAttribute('data-google-vignette', 'false');
+  }
+  ['pointerdown', 'click', 'auxclick'].forEach(function(type){
+    window.addEventListener(type, mark, true);
+  });
+})();
+</script>
+"""
+
+# 하단 앵커가 떠 있는 동안 그 높이를 --ffp-anchor-h 로 알린다. 앵커가 켜진 페이지만.
+#
+# 앵커는 구글이 화면 맨 아래에 고정하고 맨 위에 올린다. 그 자리에 우리 버튼
+# (맨 위로, 텍스트 디자인의 저장, 알림 토스트)이 있으면 광고에 덮여 광고를 잘못
+# 누르게 된다 — 애드센스 정책이 조심하라는 바로 그 배치다. 그래서 바닥에 붙는
+# 우리 요소는 이 값만큼 올라간다(각 페이지 CSS 가 var(--ffp-anchor-h, 0px) 를 쓴다).
+#
+# 앵커 요소는 구글이 만드는 ins.adsbygoogle-noablate 다. 같은 클래스를 전면 광고도
+# 쓰므로, 화면 바닥에 붙은 띠(화면 높이의 60% 미만)만 앵커로 친다.
+_ANCHOR_JS = r"""<script>
+(function(){
+  var root = document.documentElement, seen = [], timer = 0;
+  function measure(){
+    var vh = window.innerHeight, h = 0;
+    for(var i = 0; i < seen.length; i++){
+      var el = seen[i];
+      if(!el.isConnected) continue;
+      var cs = getComputedStyle(el);
+      if(cs.position !== 'fixed' || cs.display === 'none' || cs.visibility === 'hidden') continue;
+      var r = el.getBoundingClientRect();
+      if(r.height <= 0 || r.height > vh * 0.6 || r.bottom < vh - 4 || r.top >= vh) continue;
+      h = Math.max(h, Math.round(vh - r.top));
+    }
+    root.style.setProperty('--ffp-anchor-h', h + 'px');
+  }
+  /* 앵커는 미끄러져 올라오고 접히기도 한다. 움직임이 끝난 뒤에 한 번 더 잰다. */
+  function update(){ measure(); clearTimeout(timer); timer = setTimeout(measure, 500); }
+  function track(el){
+    if(seen.indexOf(el) >= 0) return;
+    seen.push(el);
+    new MutationObserver(update).observe(el, {attributes: true});
+    if(window.ResizeObserver) new ResizeObserver(update).observe(el);
+    update();
+  }
+  function start(){
+    new MutationObserver(function(list){
+      for(var i = 0; i < list.length; i++){
+        var nodes = list[i].addedNodes;
+        for(var j = 0; j < nodes.length; j++){
+          var n = nodes[j];
+          if(n.nodeType === 1 && n.tagName === 'INS' && n.classList.contains('adsbygoogle-noablate')) track(n);
+        }
+      }
+    }).observe(document.body, {childList: true, subtree: true});
+    window.addEventListener('resize', update, {passive: true});
+  }
+  if(document.body) start();
+  else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+"""
+
+
+def _adsense(anchor: bool = False) -> str:
     """애드센스 공통 스크립트. inject_header 가 <head> 끝에 끼워 넣는다.
 
     자동 광고는 이것만으로 붙고, 광고 단위(<ins class="adsbygoogle">)를 둘 때도
@@ -223,10 +388,17 @@ def _adsense() -> str:
     애드센스 몫이 요청 13개·241KB 였다. load 가 늦게 오는 페이지(웹폰트가 많은
     홈)는 3초에서 끊는다. 그때쯤이면 첫 화면은 이미 그려져 있다.
 
+    anchor=True 면 스크립트에 data-overlays="bottom" 을 단다. 구글 안내대로
+    자동 광고 설정에서 앵커를 꺼 두어도 이 페이지에는 하단 앵커가 켜진다.
+
     소유 확인용 meta 는 곧바로 둔다. 확인 크롤러는 스크립트를 기다리지 않는다.
     """
+    cfg = json.dumps({"client": ADSENSE_CLIENT, "slots": AD_SLOTS,
+                      "vignette": list(VIGNETTE_PATHS)})
+    overlays = "s.setAttribute('data-overlays', 'bottom');\n    " if anchor else ""
     return f'''<meta name="google-adsense-account" content="{ADSENSE_CLIENT}">
 <script>
+window.FFP_ADS = {cfg};
 (function(){{
   var done = false;
   function load(){{
@@ -234,14 +406,14 @@ def _adsense() -> str:
     var s = document.createElement('script');
     s.async = true;
     s.crossOrigin = 'anonymous';
-    s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE_CLIENT}';
+    {overlays}s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE_CLIENT}';
     document.head.appendChild(s);
   }}
   if (document.readyState === 'complete') load();
   else {{ window.addEventListener('load', load, {{once: true}}); setTimeout(load, 3000); }}
 }})();
 </script>
-'''
+''' + _ADS_JS + (_ANCHOR_JS if anchor else "")
 
 
 def render_header(active: str = "") -> str:
@@ -318,7 +490,8 @@ def render_footer() -> str:
     return FOOTER_HTML
 
 
-def inject_header(html: str, active: str = "", ads: bool = True) -> str:
+def inject_header(html: str, active: str = "", ads: bool = True,
+                  anchor: bool = False) -> str:
     """html 안의 <!--FFP_HEADER--> / <!--FFP_FOOTER--> 마커를 실제 마크업으로
     치환한다.
 
@@ -342,6 +515,7 @@ def inject_header(html: str, active: str = "", ads: bool = True) -> str:
     애드센스(_adsense)도 같은 자리, 같은 대상이다. 어드민은 마커가 없어 빠진다.
     ads=False 로 부르면 광고만 뺀다 — 404 같은 오류 화면에 광고를 두는 것은
     애드센스 정책 위반이라 not_found_page 가 그렇게 부른다.
+    anchor=True 는 하단 앵커 광고를 켠다 — 홈과 상세페이지만 (_adsense 참고).
     """
     html = html.replace(ORIGIN_MARKER, SITE_URL)
     if "<!--FFP_HEADER-->" in html:
@@ -349,7 +523,7 @@ def inject_header(html: str, active: str = "", ads: bool = True) -> str:
         if "googletagmanager.com/gtag/js" not in html:
             head += _analytics()
         if ads and "google-adsense-account" not in html:
-            head += _adsense()
+            head += _adsense(anchor)
         i = html.lower().find("</head>")
         if head and i >= 0:
             html = html[:i] + head + html[i:]
@@ -387,7 +561,7 @@ document.documentElement.classList.add('pairband-off');}catch(e){}})();
      한다는 뜻이라, 어느 한 뷰 안에 넣으면 그 뷰를 벗어날 때 같이 사라진다. -->
 <div class="pair-band" id="pairBand" role="region" aria-label="폰트 조합 찾기 안내">
   <div class="pair-band-in">
-    <a href="/font-pair" target="_blank" rel="noopener noreferrer">
+    <a href="/font-pair" target="_blank" rel="noopener">
       <span class="pair-band-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h3"/><path d="M14 20h7"/><path d="M6.9 15h6.9"/><path d="M10.2 6.3l5.8 13.7"/><path d="M5 20l6-16h2l7 16"/></svg></span>
       <span class="pair-band-txt">
         <span class="pair-band-t">폰트 조합 찾기</span>

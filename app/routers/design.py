@@ -824,7 +824,10 @@ def font_detail_page(font_id: int, request: Request, db: Session = Depends(get_d
     except Exception:
         pass
     html = _load_font_page()
-    html = inject_header(html, "")  # 상세페이지는 nav 항목 중 활성 표시할 게 없음
+    # 상세페이지는 nav 항목 중 활성 표시할 게 없음. 하단 앵커 광고는 켠다(홈과 여기만).
+    # /font/{id}/design 은 같은 파일이지만 켜지 않는다 — 텍스트 디자인 창이 곧바로
+    # 열리는 주소라, 들어오자마자 광고가 그 창 밑을 차지해 작업 자리를 줄인다.
+    html = inject_header(html, "", anchor=True)
     html = _replace_meta_for_font_detail(html, font)
     # 본문 서버 렌더링 — 옛 <noscript> 두 줄을 대신한다. 자세한 이유는
     # _font_ssr_block 주석 참조.
@@ -841,7 +844,7 @@ def home_page(db: Session = Depends(get_db)):
       없던 것을 메운다.
     """
     html = _load_index()
-    html = inject_header(html, "home")
+    html = inject_header(html, "home", anchor=True)   # 하단 앵커 광고 — 홈과 상세페이지만
     html = html.replace("{{FFP_HOME_SSR}}", _home_ssr_block(db), 1)
     return HTMLResponse(html)
 
@@ -1018,9 +1021,16 @@ def _pair_guide_block(db: Session) -> str:
             % (_esc(c["label"]), _esc(c["desc"]), t, links)
         )
 
+    # 제목 바로 밑 광고 칸(2026-09-17 사용자가 정한 자리). 번호가 없으면 칸을 안 그린다.
+    # 채우는 일은 공유 헤더의 ffpLazyAds 가 한다 (app/header.py).
+    from ..header import AD_SLOTS
+    ad = ('<div class="ffp-ad fp-guide-ad" data-ad-key="pair" data-ad-format="auto">'
+          '<span class="ffp-ad-lbl">광고</span></div>') if AD_SLOTS.get("pair") else ""
+
     return (
         '<section class="fp-guide">'
         "<h1>폰트 조합 찾기 — 글자 모양부터 고르세요</h1>"
+        + ad +
         '<p class="lead">글자의 <b>모양</b>부터 고르세요. 고딕을 고르면 고딕 제목에 '
         "어울리는 본문이 붙습니다. 붙는 폰트는 <b>둘</b>뿐입니다 — 제목과 본문의 "
         "관계만 보면 짝이 맞는지 바로 읽히기 때문입니다. 고딕·명조 제목에는 본문도 "

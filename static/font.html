@@ -326,8 +326,12 @@
   /* ── 폰트 조합 찾기 모달 ──
      클래스명에 'overlay'가 들어가야 한다 — 뒤로가기(bfcache) 복구 핸들러가
      [class*="overlay"]로 열린 오버레이를 닫는다. 빼면 되돌아왔을 때 굳는다. */
+  /* --ffp-anchor-h: 하단 앵커 광고가 떠 있는 동안의 높이 (app/header.py _ANCHOR_JS).
+     앵커는 구글이 모든 것 위에 올리므로, 바닥에 닿는 창·버튼은 그만큼 올려야
+     광고에 덮이지 않는다. 광고가 없으면 0 이라 아무 차이가 없다. */
   .fp-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;
-    align-items:flex-start;justify-content:center;padding:28px 24px;overflow-y:auto}
+    align-items:flex-start;justify-content:center;padding:28px 24px;overflow-y:auto;
+    padding-bottom:calc(28px + var(--ffp-anchor-h, 0px))}
   .fp-overlay.open{display:flex}
   .fp-sheet{background:var(--bg-card);border-radius:12px;max-width:1180px;width:100%;
     box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
@@ -370,8 +374,8 @@
     color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;border-radius:3px;padding:9px 16px;
     cursor:pointer;width:100%;display:block;box-sizing:border-box;text-align:center;text-decoration:none}
   @media(max-width:640px){
-    .fp-overlay{padding:0;align-items:flex-end}
-    .fp-sheet{border-radius:14px 14px 0 0;max-height:92vh;overflow-y:auto}
+    .fp-overlay{padding:0 0 var(--ffp-anchor-h, 0px);align-items:flex-end}
+    .fp-sheet{border-radius:14px 14px 0 0;max-height:calc(92vh - var(--ffp-anchor-h, 0px));overflow-y:auto}
     #fpModal .pairs{grid-template-columns:1fr}
   }
 
@@ -420,9 +424,9 @@
   }
 
 /* ══ 텍스트 디자인 모달 (index.html에서 이관) ══ */
-    .designer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+    .designer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:center;justify-content:center;padding:16px;padding-bottom:calc(16px + var(--ffp-anchor-h, 0px));backdrop-filter:blur(4px)}
     .designer-overlay.open{display:flex;animation:fadeIn .2s ease}
-    .designer-sheet{background:var(--bg-card);width:100%;max-width:960px;height:min(88vh,700px);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .22s ease}
+    .designer-sheet{background:var(--bg-card);width:100%;max-width:960px;height:min(88vh,700px,calc(100vh - 32px - var(--ffp-anchor-h, 0px)));border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .22s ease}
     .designer-head{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
     .designer-head strong{font-size:14.5px;color:var(--text-primary)}
     .designer-close{border:none;background:var(--bg-secondary);color:var(--text-primary);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;flex-shrink:0}
@@ -502,7 +506,7 @@
     .designer-save{width:100%;border:none;background:linear-gradient(135deg,var(--accent),#E8431F);color:#fff;font-weight:800;font-size:15px;padding:14px;border-radius:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
     .designer-save:active{transform:scale(.99)}
     /* 광고 인터스티셜 */
-    .dsave-overlay{display:none;position:fixed;inset:0;background:rgba(10,8,7,.85);z-index:650;align-items:center;justify-content:center;padding:20px}
+    .dsave-overlay{display:none;position:fixed;inset:0;background:rgba(10,8,7,.85);z-index:650;align-items:center;justify-content:center;padding:20px;padding-bottom:calc(20px + var(--ffp-anchor-h, 0px))}
     .dsave-overlay.open{display:flex}
     .dsave-card{background:var(--bg-card);border-radius:18px;max-width:340px;width:100%;overflow:hidden;text-align:center}
     .dsave-visual{height:200px;background:linear-gradient(135deg,#FFD8CC,#FFB199,var(--accent));display:flex;align-items:center;justify-content:center;color:#7A2E1A;font-weight:900;font-size:15px;flex-direction:column;gap:6px}
@@ -513,8 +517,8 @@
     .dsave-btn.primary{background:var(--accent);color:#fff}
     .dsave-sub{margin-top:8px;width:100%;border:none;background:none;color:var(--text-muted);font-size:11.5px;text-decoration:underline;cursor:pointer;padding:4px;font-family:inherit}
     @media(max-width:760px){
-      .designer-overlay{align-items:flex-end;padding:0}
-      .designer-sheet{max-width:100%;border-radius:20px 20px 0 0;height:92vh}
+      .designer-overlay{align-items:flex-end;padding:0 0 var(--ffp-anchor-h, 0px)}
+      .designer-sheet{max-width:100%;border-radius:20px 20px 0 0;height:calc(92vh - var(--ffp-anchor-h, 0px))}
       .designer-text-row{padding:12px 16px}
       .designer-main{grid-template-columns:1fr;grid-template-rows:auto 1fr}
       .designer-preview-pane{border-right:none;border-bottom:1px solid var(--border);padding:12px 16px;gap:6px}
@@ -1754,7 +1758,7 @@ function showToast(msg){
   if(!el){
     el = document.createElement('div');
     el.id='ffpToast';
-    el.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--text-primary,#111);color:var(--bg-card,#fff);padding:11px 20px;border-radius:30px;font-size:13px;font-weight:700;z-index:700;opacity:0;transition:opacity .25s;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.15)';
+    el.style.cssText='position:fixed;bottom:calc(28px + var(--ffp-anchor-h, 0px));left:50%;transform:translateX(-50%);background:var(--text-primary,#111);color:var(--bg-card,#fff);padding:11px 20px;border-radius:30px;font-size:13px;font-weight:700;z-index:700;opacity:0;transition:opacity .25s;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.15)';
     document.body.appendChild(el);
   }
   el.textContent=msg;

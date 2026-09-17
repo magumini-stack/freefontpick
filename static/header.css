@@ -193,3 +193,15 @@ footer{padding:56px 24px 32px;max-width:1240px;margin:0 auto}
 .footer-lic-note{max-width:720px;margin:10px auto 0;font-size:11px;line-height:1.6;
   color:var(--text-muted);text-align:center;word-break:keep-all}
 .footer-copyright{font-size:11px;color:var(--text-muted);margin-top:14px;letter-spacing:.3px;text-align:center}
+
+/* ── 광고 칸 (애드센스 광고 단위) ──
+   칸은 페이지가 그리고, 안의 광고는 app/header.py 의 ffpFillAd 가 채운다.
+   표시는 '광고' 한 가지만 쓴다 — 애드센스가 허용하는 이름표는
+   '광고(Advertisements)'와 '스폰서 링크'뿐이다.
+   폰트 카드와 헷갈리지 않게 카드 옷(글꼴 견본·버튼)은 입히지 않는다. */
+.ffp-ad{min-width:0}
+.ffp-ad-lbl{display:block;font-size:10.5px;font-weight:700;letter-spacing:.08em;
+  line-height:1;color:var(--text-muted);margin-bottom:8px}
+/* 광고가 안 왔으면 칸째 접는다(구글이 안내하는 data-ad-status 방식).
+   빈 상자에 '광고' 이름표만 남는 것보다 낫다. */
+.ffp-ad:has(ins.adsbygoogle[data-ad-status="unfilled"]){display:none}

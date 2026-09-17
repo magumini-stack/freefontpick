@@ -513,6 +513,29 @@
     .font-card:hover{background:var(--bg-card)}
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
+    /* ── 갤러리 광고 칸 (애드센스) ──
+       첫 칸, 이후 폰트 8개마다 한 칸 (renderFonts). 2026-09-17 사용자가 정한 자리로,
+       옛 앱 광고 카드가 있던 곳이다. 이름표·바탕은 header.css 의 .ffp-ad 가 맡는다.
+
+       격자 보기에서는 세로 두 줄을 차지한다. 광고는 300×250 이 가장 흔한데, 카드
+       한 줄(176~198px)에 넣으면 그 줄만 300px 가까이 부풀어 옆 카드 두 장이 휑해진다.
+       두 줄에 걸치면 줄 높이가 그대로다.
+       한 줄 보기에서는 가로 띠다 — 데스크톱 728×90, 휴대폰 320×100 자리이고,
+       카드 한 줄(140px / 114~134px)과 키가 비슷하다.
+
+       높이를 CSS 로 못박는다. 크기를 구글에게 맡기면(data-ad-format) 광고가 온 뒤에
+       칸 높이가 바뀌어 그 아래 카드가 통째로 밀린다.
+       좌우 여백은 0 이다. 카드처럼 2px 씩 두면 1280px 화면에서 칸이 298px 이 되어
+       300×250 광고가 못 들어온다(열 폭 302px). */
+    .ad-cell{border-bottom:1px solid var(--border);padding:16px 0 18px;
+      display:flex;flex-direction:column;justify-content:center;animation:fadeUp .25s ease both}
+    .ad-cell ins.adsbygoogle{width:100%;height:250px}
+    .font-grid[data-view="grid"] .ad-cell{grid-row:span 2}
+    .font-grid[data-view="list"] .ad-cell ins.adsbygoogle{height:90px}
+    @media(max-width:767px){
+      .font-grid[data-view="list"] .ad-cell ins.adsbygoogle{height:100px}
+    }
+
     /* ── 격자 보기 ──
        한 줄 보기와 같은 구도: 1행 정보, 2행 견본.
        두 보기에서 폰트명 위치가 달라지면 토글할 때마다 시선이 위아래로 튄다.
@@ -703,7 +726,8 @@
 
 
     /* SCROLL TOP */
-    .scroll-top{position:fixed;bottom:28px;right:28px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(30,58,138,.4);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s,bottom .2s;z-index:300}
+    /* 하단 앵커 광고가 떠 있으면 그 위로 올라간다(--ffp-anchor-h, app/header.py). */
+    .scroll-top{position:fixed;bottom:calc(28px + var(--ffp-anchor-h, 0px));right:28px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(30,58,138,.4);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s,bottom .2s;z-index:300}
     .scroll-top.visible{opacity:1;transform:translateY(0)}
     .scroll-top:hover{background:var(--accent-hover)}
 
@@ -2576,13 +2600,27 @@ function renderFonts(){
   const list=getFilteredFonts();
   const grid=document.getElementById('fontGrid');
   const isRecommendMode = list.length > 0 && list[0]._isRecommend === true;
+  /* 목록을 통째로 다시 그리므로, 지켜보던 옛 광고 칸은 놓는다 (app/header.py ffpLazyAds). */
+  const lazyAds = (typeof window.ffpLazyAds === 'function') ? window.ffpLazyAds : null;
   if(!list.length){
     grid.innerHTML=`<div class="no-results" role="status"><i class="ti ti-mood-sad" aria-hidden="true"></i><p>검색 결과가 없어요</p><small>다른 키워드를 시도해보세요</small></div>`;
+    if(lazyAds) lazyAds(grid, true);
     return;
   }
-  const adSlots = '';   // 광고 없음
 
-  grid.innerHTML = list.map((f,idx)=>{
+  /* 광고 칸 — 첫 칸, 이후 폰트 8개마다 한 칸 (2026-09-17 사용자가 정한 자리).
+     검색·추천 결과에는 넣지 않는다. 사람이 찾는 답이 첫 칸에서 밀려나고, 추천은
+     몇 개뿐이라 광고가 '더 보기' 버튼에 붙는다 — 버튼 옆 광고는 애드센스가
+     잘못 누르기 쉽다고 조심하라는 배치다.
+     광고 단위 번호가 없으면(app/header.py AD_SLOTS) 칸 자체를 안 그린다. */
+  const searching = !!(document.getElementById('globalSearch').value || '').trim();
+  const withAds = !isRecommendMode && !searching &&
+                  typeof window.ffpHasAd === 'function' && window.ffpHasAd('gallery');
+  const AD_EVERY = 8;
+  const adCell = '<div class="ffp-ad ad-cell" role="listitem" data-ad-key="gallery">'
+               + '<span class="ffp-ad-lbl">광고</span></div>';
+
+  const cards = list.map((f,idx)=>{
     // [2026-08] 카드에서 태그 알약 제거 — 폰트 형태보다 알약이 먼저 눈에 들어왔다.
     //           카테고리 필터는 상단 레일이, 태그 확인은 상세페이지가 담당한다.
       // [2026-08] 조합추천 알약 제거 — 카드에는 견본과 이름만 남긴다.
@@ -2626,7 +2664,14 @@ function renderFonts(){
       </div>
       </div>
     </article>`;
-  }).join('');
+  });
+
+  let html = withAds ? adCell : '';
+  cards.forEach((card, i) => {
+    html += card;
+    if(withAds && (i + 1) % AD_EVERY === 0 && i + 1 < cards.length) html += adCell;
+  });
+  grid.innerHTML = html;
 
   // 추천 모드일 때 더보기 버튼 추가
   if(isRecommendMode){
@@ -2645,6 +2690,8 @@ function renderFonts(){
 
   // 폰트 지연 로딩: 화면에 들어오는 카드만 폰트 등록
   observeFontCards(document.getElementById('fontGrid'));
+  // 광고도 같은 식으로 — 화면에 가까워진 칸만 채운다
+  if(lazyAds) lazyAds(grid, true);
 }
 
 /* 추천 더보기: show count를 3씩 증가시키고 다시 렌더 */
@@ -3096,8 +3143,11 @@ async function init(){
 
   // 라우팅 처리 (해시 기반)
   await route();
-  window.addEventListener('hashchange', route);
-  window.addEventListener('popstate', route);
+  /* 애드센스 전면 광고가 주소에 #google_vignette 만 붙인 경우에는 다시 그리지 않는다
+     (route 첫머리 주석 참고). */
+  const onNavigate = () => { if(location.hash !== '#google_vignette') route(); };
+  window.addEventListener('hashchange', onNavigate);
+  window.addEventListener('popstate', onNavigate);
       /* 상세페이지의 [라이선스 보기] → /?license=1 로 진입하면 요약표 모달 자동 오픈 */
       if(new URLSearchParams(location.search).has('license')){
         try{ openLicense(); history.replaceState(null, '', '/'); }catch(e){}
@@ -3148,7 +3198,10 @@ async function route(){
     window.scrollTo({top:0});
     return;
   }
-  const hash = location.hash;
+  /* 애드센스 전면 광고(비네트)는 주소 끝에 #google_vignette 를 붙인다. 우리 화면
+     주소가 아니므로 없는 것으로 친다 — 모르는 해시로 읽으면 맨 아래 else 로 빠져
+     보던 검색·카테고리를 지운다. */
+  const hash = location.hash === '#google_vignette' ? '' : location.hash;
 
   if(hash === '#notice'){
     showNoticeView();
@@ -3253,13 +3306,9 @@ function goHome(){
   location.hash = '';
   route();
 }
-/* 폰트 찾아주세요 — 고유 URL(/find-font)로 이동 (SEO용 실제 경로, SPA 내비게이션 유지) */
-function navFindFont(e){
-  if(e) e.preventDefault();
-  if(location.pathname !== '/find-font') history.pushState(null, '', '/find-font');
-  location.hash = '';
-  route();
-}
+/* [제거 2026-09-17] navFindFont — 홈에서 '폰트 찾기'를 누르면 페이지를 다시 읽지 않고
+   화면만 바꾸던 함수. 메뉴가 평범한 링크로 /find-font 에 가도록 바꿨다. 페이지를
+   옮겨야 구글 전면 광고가 뜰 수 있다 (app/header.py VIGNETTE_PATHS 참고). */
 function goNoticeList(){ location.hash = '#notice'; }
 function goNoticeDetail(id){ location.hash = '#notice/' + id; }
 
@@ -3591,7 +3640,8 @@ function showToast(msg){
   if(!el){
     el = document.createElement('div');
     el.id='ffpToast';
-    el.style.cssText='position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--text-primary);color:var(--bg-card);font-size:13px;font-weight:700;padding:12px 18px;border-radius:12px;z-index:900;opacity:0;transition:opacity .25s ease;pointer-events:none;font-family:inherit';
+    /* bottom 은 하단 앵커 광고 높이만큼 올린다(--ffp-anchor-h, app/header.py). */
+    el.style.cssText='position:fixed;left:50%;bottom:calc(28px + var(--ffp-anchor-h, 0px));transform:translateX(-50%);background:var(--text-primary);color:var(--bg-card);font-size:13px;font-weight:700;padding:12px 18px;border-radius:12px;z-index:900;opacity:0;transition:opacity .25s ease;pointer-events:none;font-family:inherit';
     document.body.appendChild(el);
   }
   el.textContent = msg;
