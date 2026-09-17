@@ -200,6 +200,50 @@ def _analytics() -> str:
 '''
 
 
+# ── 애드센스 ─────────────────────────────────────────────────
+# tdtd.io 로 승인받은 계정이다(2026-09). freefontpick.tdtd.io 는 그 하위 도메인이라
+# 따로 승인받지 않고, ads.txt 도 루트(tdtd.io/ads.txt)의 것이 적용된다 — 구글은
+# 루트 도메인의 ads.txt 로 하위 도메인까지 판단한다(게시자가 같을 때).
+#
+# 게시자 ID 가 한때 셋 섞여 있었다(3337…, 4036…, 6258…). 쓰는 것은 이 하나다.
+# tdtd.io 본 사이트의 <head> 와 tdtd.io/ads.txt 가 같은 값을 쓴다 — 바꿀 때는
+# 셋을 함께 본다.
+ADSENSE_CLIENT = "ca-pub-4036975940442022"
+
+
+def _adsense() -> str:
+    """애드센스 공통 스크립트. inject_header 가 <head> 끝에 끼워 넣는다.
+
+    자동 광고는 이것만으로 붙고, 광고 단위(<ins class="adsbygoogle">)를 둘 때도
+    이 스크립트가 있어야 한다. 단위 쪽의 adsbygoogle.push({}) 는 스크립트가
+    늦게 떠도 줄을 서 있다가 처리된다.
+
+    스크립트를 바로 붙이지 않고 페이지 load 뒤에 붙인다. 애드센스가 첫 화면의
+    웹폰트·이미지와 회선을 다투면 갤러리가 늦게 뜬다 — 걷어냈던 2026-09 실측에서
+    애드센스 몫이 요청 13개·241KB 였다. load 가 늦게 오는 페이지(웹폰트가 많은
+    홈)는 3초에서 끊는다. 그때쯤이면 첫 화면은 이미 그려져 있다.
+
+    소유 확인용 meta 는 곧바로 둔다. 확인 크롤러는 스크립트를 기다리지 않는다.
+    """
+    return f'''<meta name="google-adsense-account" content="{ADSENSE_CLIENT}">
+<script>
+(function(){{
+  var done = false;
+  function load(){{
+    if (done) return; done = true;
+    var s = document.createElement('script');
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE_CLIENT}';
+    document.head.appendChild(s);
+  }}
+  if (document.readyState === 'complete') load();
+  else {{ window.addEventListener('load', load, {{once: true}}); setTimeout(load, 3000); }}
+}})();
+</script>
+'''
+
+
 def render_header(active: str = "") -> str:
     """active: 'about' | 'notice' | 'faq' | 'findfont' | 'gif' | '' (해당 없음)
 
@@ -274,7 +318,7 @@ def render_footer() -> str:
     return FOOTER_HTML
 
 
-def inject_header(html: str, active: str = "") -> str:
+def inject_header(html: str, active: str = "", ads: bool = True) -> str:
     """html 안의 <!--FFP_HEADER--> / <!--FFP_FOOTER--> 마커를 실제 마크업으로
     치환한다.
 
@@ -294,12 +338,21 @@ def inject_header(html: str, active: str = "") -> str:
     admin-gif.html)에는 마커가 없어 측정에서 빠져 있고, 그 상태를 그대로 둔다.
     자리를 옮기는 김에 측정 대상까지 넓히면 통계가 어제와 오늘 사이에서
     끊긴 것처럼 보인다.
+
+    애드센스(_adsense)도 같은 자리, 같은 대상이다. 어드민은 마커가 없어 빠진다.
+    ads=False 로 부르면 광고만 뺀다 — 404 같은 오류 화면에 광고를 두는 것은
+    애드센스 정책 위반이라 not_found_page 가 그렇게 부른다.
     """
     html = html.replace(ORIGIN_MARKER, SITE_URL)
     if "<!--FFP_HEADER-->" in html:
+        head = ""
+        if "googletagmanager.com/gtag/js" not in html:
+            head += _analytics()
+        if ads and "google-adsense-account" not in html:
+            head += _adsense()
         i = html.lower().find("</head>")
-        if i >= 0 and "googletagmanager.com/gtag/js" not in html:
-            html = html[:i] + _analytics() + html[i:]
+        if head and i >= 0:
+            html = html[:i] + head + html[i:]
     html = html.replace("<!--FFP_HEADER-->", render_header(active))
     return html.replace("<!--FFP_FOOTER-->", render_footer())
 
@@ -409,7 +462,7 @@ _NOT_FOUND_PATH = _Path(__file__).resolve().parent.parent / "static" / "404.html
 def not_found_page() -> _HTMLResponse:
     """브랜드 404 페이지를 상태 코드 404 와 함께 돌려준다."""
     try:
-        html = inject_header(_NOT_FOUND_PATH.read_text(encoding="utf-8"), "")
+        html = inject_header(_NOT_FOUND_PATH.read_text(encoding="utf-8"), "", ads=False)
     except Exception:
         # 파일이 없어도 404 자체는 정확히 내보낸다 — 상태 코드가 본질이다.
         html = "<!DOCTYPE html><html lang=ko><meta charset=utf-8>"                "<title>404 — 폰트픽</title><p>페이지를 찾을 수 없습니다. "                "<a href=\"/\">폰트픽 홈</a></p>"

@@ -185,6 +185,13 @@ def ads_txt():
     ② 위 ACTIVE_ADS_PUBLISHER 에 그 게시자 ID 를 적어
     한 번에 배포한다. 애드센스는 파일이 없으면 '파일 없음'으로 보고 수익을
     제한하므로, 광고를 켜는 날 둘을 같이 해야 한다.
+
+    **단, 하위 도메인(freefontpick.tdtd.io)에 있는 동안은 할 일이 없다.**
+    2026-09-17 광고를 다시 붙였지만 이 라우트는 404 그대로 둔다. 구글은 루트
+    도메인의 ads.txt(tdtd.io/ads.txt, 타닥타닥 서버)로 하위 도메인까지 판단하고,
+    거기에 우리 게시자(pub-4036975940442022)가 이미 있다. 하위 도메인의 파일은
+    루트가 subdomain= 으로 가리킬 때만 읽힌다. 위 ①② 는 독립 도메인으로 옮길 때의
+    이야기다. 게시자 ID 는 app/header.py 의 ADSENSE_CLIENT 와 같아야 한다.
     """
     if not ACTIVE_ADS_PUBLISHER:
         raise HTTPException(status_code=404)

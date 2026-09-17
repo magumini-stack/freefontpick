@@ -239,50 +239,6 @@
   .curator p + p{margin-top:1.1em}
   .curator .sign{font-family:var(--ui);font-size:13px;color:var(--text-muted);margin-top:14px}
 
-  /* ── APP PROMO (사이드바) ──
-     [2026-08] 앱 셋을 묶어 소개하던 것을 글씨사진관 하나로 좁혔다. 셋 중
-     구글 플레이에 있는 것이 글씨사진관뿐이라, 모바일 유입이 늘면서 나머지
-     둘은 안드로이드에서 받을 수 없는 앱이 됐다.
-     [2026-09] 링크는 와이즈폰트 앱 랜딩(download.html?app=geulssi)으로 보낸다.
-     그 페이지가 기기를 가려 맞는 스토어로 넘겨 주므로, 예전에 기기별 스토어
-     주소를 갈아 끼우던 app-link.js 는 걷어냈다. 랜딩을 거쳐야 와이즈폰트 쪽에서
-     어디서 들어왔는지 잴 수 있다 — 그래서 rel 에 noreferrer 를 넣지 않는다. */
-  /* 한 줄이다 — 아이콘 | 글 2줄 | 버튼.
-     예전에는 버튼을 아래 줄에 따로 뒀는데, 아이콘 옆이 비고 배너만 높아졌다.
-     자리는 340px(안쪽 312px)뿐이라 여백과 버튼을 조여 글자 자리를 남긴다:
-     아이콘 36 + 여백 10 + 글 + 여백 10 + 버튼 62 → 글에 194px.
-     부제가 12자라 그 안에 들어가지만, 폰트 이름이 길어질 때를 대비해
-     두 줄 다 말줄임을 건다. */
-  .app-promo-banner{display:flex;align-items:center;gap:10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:12px 14px;transition:border-color .15s;min-width:0}
-  .app-promo-banner:hover{border-color:var(--border-hover)}
-  .app-promo-top{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
-  .app-promo-banner .appico{width:36px;height:36px;border-radius:9px;
-    border:1px solid var(--border);background:#fff}
-  .app-promo-text{display:flex;flex-direction:column;flex:1;min-width:0}
-  .app-promo-title{font-size:13.5px;font-weight:700;color:var(--text-primary);
-    line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .app-promo-sub{font-size:12px;color:var(--text-secondary);margin-top:1px;
-    line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .app-promo-cta-row{flex:0 0 auto}
-  .app-promo-cta{font-family:var(--ui);font-size:12.5px;font-weight:700;color:#fff;background:var(--accent);padding:8px 12px;border-radius:8px;white-space:nowrap;transition:background-color .15s,transform .1s}
-  .app-promo-banner:hover .app-promo-cta{background:var(--accent-hover)}
-  .app-promo-banner:active .app-promo-cta{transform:scale(.97)}
-
-  /* ── 모바일 상단 슬롯에 들어갔을 때 ──
-     이제 배너 자체가 한 줄이라 구조를 다시 짤 일이 없다. 모서리를 조금 더
-     둥글게 하고 글자만 한 급 줄인다. */
-  #appPromoSlot{margin-top:14px}
-  #appPromoSlot .app-promo-banner{padding:11px 12px;border-radius:10px}
-  #appPromoSlot .app-promo-banner .appico{width:34px;height:34px;border-radius:8px}
-  #appPromoSlot .app-promo-title{font-size:13px}
-  #appPromoSlot .app-promo-sub{font-size:11.5px}
-  #appPromoSlot .app-promo-cta{font-size:11.5px;padding:7px 11px}
-  /* 아주 좁은 화면에선 버튼을 더 조여 글 두 줄 자리를 지킨다 */
-  @media(max-width:380px){
-    #appPromoSlot .app-promo-cta{padding:7px 9px}
-    #appPromoSlot .app-promo-sub{font-size:11px}
-  }
-
   /* ── LICENSE inline ── */
   .lic-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
   .lic-title{font-size:20px;font-weight:800;letter-spacing:-.4px;display:flex;align-items:center;gap:8px}
@@ -543,18 +499,6 @@
     .dhl-dot{width:100%;aspect-ratio:1;border-radius:7px;border:2px solid var(--border);cursor:pointer}
     .dhl-dot.active{border-color:var(--text-primary)}
     .designer-footer{padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:10px}
-    /* 앱 배너 아이콘 — 글씨사진관의 실제 앱 아이콘 이미지다
-       (/static/app-gssg.png). 크기·모서리는 자리마다 아래에서 따로 정한다. */
-    .appico{display:block;flex:0 0 auto}
-    .ds-promo-banner{display:flex;flex-direction:row;align-items:center;gap:9px;padding:8px 10px;border-radius:12px;background:var(--bg-secondary);border:1px solid var(--border);text-decoration:none;color:inherit;transition:transform .12s ease,border-color .12s ease}
-    .ds-promo-banner:active{transform:scale(.98)}
-    .ds-promo-banner:hover{border-color:var(--accent)}
-      .ds-promo-banner .appico{width:32px;height:32px;border-radius:8px;
-      border:1px solid var(--border);background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-    .ds-promo-banner .ds-promo-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
-    .ds-promo-banner .ds-promo-title{font-size:11.5px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .ds-promo-banner .ds-promo-sub{font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .ds-promo-banner .ds-promo-cta{flex-shrink:0;font-size:10.5px;font-weight:800;color:#fff;background:var(--accent);padding:6px 10px;border-radius:8px;white-space:nowrap;margin-left:auto}
     .designer-save{width:100%;border:none;background:linear-gradient(135deg,var(--accent),#E8431F);color:#fff;font-weight:800;font-size:15px;padding:14px;border-radius:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
     .designer-save:active{transform:scale(.99)}
     /* 광고 인터스티셜 */
@@ -614,13 +558,6 @@
         <a class="btn-design" id="designBtnTop" href="#pairings">폰트 조합 찾기</a>
       </div>
     </div>
-
-    <!-- 모바일 전용 앱 프로모 슬롯 —
-         앱 배너(#appPromoSec)는 데스크톱에선 우측 사이드바 하단에 있지만,
-         모바일에선 컬럼이 세로로 쌓이면서 페이지 맨 아래로 밀려 노출이 거의 안 된다.
-         그래서 모바일(≤768px)에서만 JS로 배너를 이 슬롯(=액션 버튼 바로 아래)으로
-         옮겨온다. 배너 요소 자체는 하나만 유지해서 base64 아이콘 중복을 피한다. -->
-    <div id="appPromoSlot"></div>
 
     <div class="layout">
       <div class="col-main">
@@ -734,24 +671,6 @@
           <div class="rel-grid" id="relatedGrid"></div>
         </section>
 
-        <!-- 앱 프로모 배너 (모바일에선 JS가 #appPromoSlot으로 이동시킨다) -->
-        <section class="blk" id="appPromoSec" style="padding:0;border-bottom:none">
-          <a class="app-promo-banner" href="https://wisefont.co.kr/download.html?app=geulssi"
-             target="_blank" rel="noopener">
-            <div class="app-promo-top">
-              <img class="appico" src="/static/app-gssg.png" width="38" height="38"
-                   alt="" loading="lazy" decoding="async">
-              <div class="app-promo-text">
-                <span class="app-promo-title">글씨사진관</span>
-                <span class="app-promo-sub">멋진 사진에 감성글 쓰기</span>
-              </div>
-            </div>
-            <div class="app-promo-cta-row">
-              <span class="app-promo-cta">앱 받기 →</span>
-            </div>
-          </a>
-        </section>
-
       </div>
     </div>
 
@@ -804,38 +723,11 @@
       if(!document.documentElement.hasAttribute('data-theme')) applyThemeIcons();
     });
   }
-
-  /* ── 앱 프로모 배너 위치 제어 (모바일 전용) ──
-     데스크톱: 우측 사이드바(.col-side) 하단에 세로 카드로 유지.
-     모바일(≤768px): 컬럼이 세로로 쌓이면서 페이지 맨 아래로 밀려 사실상
-     노출이 안 되므로, '이 폰트로 텍스트 디자인' 버튼 바로 아래 슬롯으로
-     옮겨 가로 띠배너 형태로 보여준다(스타일은 #appPromoSlot CSS가 담당).
-     구글의 모바일 인터스티셜 페널티 대상이 아닌 인라인 배너 방식이라
-     검색 순위에 영향이 없다. 요소를 복제하지 않고 이동만 시켜서
-     base64 아이콘이 중복 로드되지 않는다. */
-  (function(){
-    var MOBILE_MAX = 768;
-    var sec  = document.getElementById('appPromoSec');
-    var slot = document.getElementById('appPromoSlot');
-    if(!sec || !slot) return;
-    var home = sec.parentNode;   // 원래 자리(.col-side)
-    function place(){
-      var isMobile = window.innerWidth <= MOBILE_MAX;
-      var target = isMobile ? slot : home;
-      if(sec.parentNode !== target) target.appendChild(sec);
-    }
-    place();
-    var t;
-    window.addEventListener('resize', function(){
-      clearTimeout(t); t = setTimeout(place, 150);
-    });
-  })();
 })();
 </script>
 
 <script src="/static/ffp-phrases.js"></script>
 <script src="/static/ffp-fontface.js"></script>
-<script src="/static/app-promo.js"></script>
 <script>
 (function(){
   /* 미리 써보기 기본 문구.
@@ -1430,17 +1322,14 @@
           new RegExp('^https?://(www\\.)?' + location.hostname.replace(/^www\./, '').replace(/\./g, '\\.') + '(/|$)').test(dl);
         function go(){
           if (isInternal) { location.href = dl; return; }
-          /* 광고를 Esc 로 닫으면 새 창이 막힌다 — 표준이 Esc 를 '사람이 누른 입력'
-             으로 치지 않는다. 막히면 같은 탭으로 넘어간다. 다운로드를 못 하는 것보다
-             낫다. 그래서 noopener 대신 열린 창의 opener 를 직접 끊는다 — noopener 로
+          /* 새 창이 막히면 같은 탭으로 넘어간다. 다운로드를 못 하는 것보다 낫다.
+             (앱 팝업을 다시 붙이면 꼭 필요해진다 — 팝업을 Esc 로 닫은 뒤에는 새 창이
+             막힌다. 표준이 Esc 를 '사람이 누른 입력'으로 치지 않기 때문이다.) 그래서 noopener 대신 열린 창의 opener 를 직접 끊는다 — noopener 로
              열면 늘 null 이 돌아와 막혔는지 알 수 없다. */
           var w = window.open(dl, '_blank');
           if (w) { try { w.opener = null; } catch (e) {} }
           else { location.href = dl; }
         }
-        /* 앱 팝업을 먼저 띄우고, 닫으면 다운로드한다 (static/app-promo.js).
-           팝업 스크립트가 못 떴으면 예전처럼 바로 간다. */
-        if (window.FFPAppPromo) { FFPAppPromo.show({ next: '닫고 다운로드하기', onClose: go }); return; }
         go();
       });
 
@@ -1831,16 +1720,6 @@ window.addEventListener('pageshow', function(e){
         </div>
 
         <div class="designer-footer">
-          <a class="ds-promo-banner" href="https://wisefont.co.kr/download.html?app=geulssi"
-             target="_blank" rel="noopener">
-            <img class="appico" src="/static/app-gssg.png" width="32" height="32"
-                 alt="" loading="lazy" decoding="async">
-            <div class="ds-promo-text">
-              <span class="ds-promo-title">글씨사진관</span>
-              <span class="ds-promo-sub">멋진 사진에 감성글 쓰기</span>
-            </div>
-            <span class="ds-promo-cta">앱 받기</span>
-          </a>
           <button class="designer-save" onclick="startDesignerSave()"><i class="ti ti-download" aria-hidden="true"></i> PNG로 저장</button>
         </div>
       </div>

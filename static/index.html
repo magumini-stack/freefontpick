@@ -513,69 +513,6 @@
     .font-card:hover{background:var(--bg-card)}
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-    /* ── 앱 광고 카드 — 갤러리 첫 번째 칸 ──
-       와이즈폰트 앱 페이지의 옷을 그대로 입힌다(옷은 apps.html 에서 가져왔고,
-       2026-09 부터 링크는 앱 랜딩 download.html 로 보낸다).
-       본(bone) 바탕 · 먹색 글자 · 빨강 하나(#ff3511). 앱 아이콘 세 개가 모두
-       '흰 바탕 · 검정 획 · 빨간 점 하나'로 그려져 있어서, 카드도 이 세 색만
-       쓰면 아이콘과 한 몸으로 읽힌다.
-
-       사이트 색(파랑)을 쓰지 않는 게 요점이다. 폰트 카드와 같은 옷이면 광고인지
-       폰트인지 헷갈린다. 다른 옷을 입어야 한눈에 갈린다.
-
-       .font-card 클래스는 붙이지 않는다. 그쪽 :hover 가 배경을 --bg-card 로
-       덮어써서 본 바탕이 사라진다. data-font-id 도 없으므로 폰트 지연 로딩
-       (observeFontCards)은 이 칸을 건너뛴다. */
-    .apps-card{--ac-bg:#f0efeb;--ac-ink:#0d0d0d;--ac-sub:#6f6a64;--ac-red:#ff3511;
-      --ac-line:#dbd6ce;margin:12px 0;min-width:0;animation:fadeUp .25s ease both}
-    /* 어두운 화면에서 본 바탕이 그대로 뜨면 눈이 부시다. 바탕만 가라앉히고
-       빨강은 한 단계 밝혀 대비를 맞춘다. 아이콘 타일은 흰 채로 둔다 —
-       폰 홈 화면에서도 앱 아이콘은 그렇게 보인다. */
-    :root[data-theme="dark"] .apps-card{--ac-bg:#1d1c1a;--ac-ink:#f0efeb;--ac-sub:#a39d95;
-      --ac-red:#ff5a3c;--ac-line:rgba(255,255,255,.08)}
-    @media(prefers-color-scheme:dark){
-      :root:not([data-theme="light"]):not([data-theme="dark"]) .apps-card{--ac-bg:#1d1c1a;
-        --ac-ink:#f0efeb;--ac-sub:#a39d95;--ac-red:#ff5a3c;--ac-line:rgba(255,255,255,.08)}
-    }
-    .apps-card > a{display:flex;flex-direction:column;gap:16px;height:100%;box-sizing:border-box;
-      padding:18px 20px;border-radius:14px;background:var(--ac-bg);color:var(--ac-ink);
-      text-decoration:none;transition:box-shadow .15s,transform .1s}
-    .apps-card > a:hover{box-shadow:0 6px 22px rgba(0,0,0,.10)}
-    .apps-card > a:active{transform:scale(.99)}
-    .apps-card > a:focus-visible{outline:2px solid var(--ac-red);outline-offset:3px}
-    .ac-kick{display:flex;align-items:center;gap:8px;margin-bottom:8px;
-      font-size:10.5px;font-weight:700;letter-spacing:.14em;color:var(--ac-sub)}
-    .ac-kick::before{content:"";width:16px;height:1.5px;background:var(--ac-red)}
-    .ac-title{font-size:19px;font-weight:800;letter-spacing:-.035em;line-height:1.3;word-break:keep-all}
-    .ac-title em{font-style:normal;color:var(--ac-red)}
-    .ac-sub{margin-top:5px;font-size:12.5px;color:var(--ac-sub);word-break:keep-all}
-    /* 아이콘 밑에 이름을 따로 달지 않는다 — 윗줄(.ac-sub)이 같은 순서로 이름을
-       부른다. 이름을 달면 버튼과 아이콘의 가운데가 어긋나 줄이 삐뚤어진다. */
-    .ac-foot{display:flex;align-items:center;justify-content:space-between;gap:12px 16px;
-      flex-wrap:wrap;margin-top:auto}
-    .ac-apps{display:flex;gap:8px}
-    .ac-apps img{width:40px;height:40px;border-radius:10px;display:block;background:#fff;
-      border:1px solid var(--ac-line);box-shadow:0 2px 6px rgba(0,0,0,.06)}
-    .ac-cta{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;
-      background:var(--ac-ink);color:var(--ac-bg);font-size:12.5px;font-weight:700;white-space:nowrap}
-    /* 한 줄 보기: 글은 왼쪽, 아이콘과 버튼은 오른쪽. 폰트 카드 한 줄과 키를 맞춘다. */
-    .font-grid[data-view="list"] .apps-card > a{flex-direction:row;align-items:center;gap:32px;
-      padding:20px 26px}
-    .font-grid[data-view="list"] .ac-head{flex:1;min-width:0}
-    .font-grid[data-view="list"] .ac-title{font-size:24px}
-    .font-grid[data-view="list"] .ac-foot{margin-top:0;flex:0 0 auto;flex-wrap:nowrap}
-    .font-grid[data-view="list"] .ac-apps{gap:10px}
-    .font-grid[data-view="list"] .ac-apps img{width:48px;height:48px;border-radius:12px}
-    .font-grid[data-view="list"] .ac-cta{padding:9px 16px;font-size:13px}
-    @media(max-width:640px){
-      .font-grid[data-view="list"] .apps-card > a{flex-direction:column;align-items:stretch;gap:16px;
-        padding:18px 20px}
-      .font-grid[data-view="list"] .ac-title{font-size:19px}
-      .font-grid[data-view="list"] .ac-foot{flex-wrap:wrap}
-      .font-grid[data-view="list"] .ac-apps{gap:8px}
-      .font-grid[data-view="list"] .ac-apps img{width:40px;height:40px;border-radius:10px}
-      .font-grid[data-view="list"] .ac-cta{padding:7px 13px;font-size:12.5px}
-    }
     /* ── 격자 보기 ──
        한 줄 보기와 같은 구도: 1행 정보, 2행 견본.
        두 보기에서 폰트명 위치가 달라지면 토글할 때마다 시선이 위아래로 튄다.
@@ -1100,13 +1037,20 @@ let currentTag='all';
 let currentFontSize=26;
 /* 갤러리 보기 방식: 'grid'(4열 훑어보기) | 'list'(한 줄에 하나, 형태 확인용).
    한 줄 보기는 자리가 넓으므로 견본 글자를 키워야 의미가 있다. */
-/* 기본 보기: 화면 크기와 상관없이 격자.
+/* 기본 보기: 데스크톱은 한 줄, 모바일은 격자.
 
-   예전에는 데스크톱만 한 줄 보기였다. 한 줄 보기는 카드가 세로로 길어서 한
-   화면에 몇 개 안 들어오는데, 폰트를 훑으러 온 사람에게는 한눈에 많이 보이는
-   격자가 낫다 — 모바일에서 먼저 격자로 바꿨고(2026-09), 데스크톱도 따랐다.
-   한 줄 보기는 버튼으로 언제든 고를 수 있다. */
-let currentView = 'grid';
+   좁은 화면에서 한 줄 보기는 카드가 세로로 길어져 한 화면에 몇 개 안 들어온다.
+   폰트를 훑으러 온 사람에게는 격자가 낫다.
+
+   720px 은 위 .font-grid 미디어쿼리가 2열로 접히는 지점과 같은 값이다.
+   두 값이 어긋나면 "격자인데 한 열"인 어정쩡한 화면이 나온다.
+
+   2026-09-16 에 데스크톱도 격자로 바꿨다가 이튿날 되돌렸다(사용자 요청) —
+   데스크톱에서는 한 줄 보기로 글자 모양을 크게 보는 쪽을 기본으로 둔다. */
+let currentView = 'list';
+try {
+  if (window.matchMedia && window.matchMedia('(max-width:720px)').matches) currentView = 'grid';
+} catch(e){}
 /* 사람이 직접 고른 적이 있으면 그게 이긴다 — 화면 크기로 덮어쓰지 않는다. */
 try { const v = localStorage.getItem('ffp-gallery-view'); if(v==='list'||v==='grid') currentView = v; } catch(e){}
 /* 한 줄 보기는 화면 폭과 무관하게 1줄이라, 글자가 크면 그만큼 덜 보인다.
@@ -2638,33 +2582,7 @@ function renderFonts(){
   }
   const adSlots = '';   // 광고 없음
 
-  /* 앱 광고 카드 — 갤러리 첫 칸(인기 1위가 오던 자리). 와이즈폰트 앱 소개로 보낸다.
-     추천·검색 결과에는 넣지 않는다 — 사람이 찾는 답이 첫 칸에서 밀려난다.
-     카테고리를 고르며 둘러볼 때는 그대로 둔다.
-     아이콘을 바꾸면 파일 이름도 바꿀 것. 카페24 앞단이 이미지를 오래 붙들고 있어서
-     같은 이름으로 덮으면 옛 그림이 계속 나간다. */
-  const searching = !!(document.getElementById('globalSearch').value || '').trim();
-  const appAdCard = (isRecommendMode || searching) ? '' : `
-    <div class="apps-card" role="listitem">
-      <a href="https://wisefont.co.kr/download.html" target="_blank" rel="noopener"
-         aria-label="와이즈폰트 앱 3종 보러 가기 — 글씨사진관, 움짤공방, 폰트박스 (새 창)">
-        <div class="ac-head">
-          <div class="ac-kick">WISEFONT APPS</div>
-          <div class="ac-title">글자로 노는 앱, <em>지금 받으세요.</em></div>
-          <div class="ac-sub">글씨사진관 · 움짤공방 · 폰트박스 — 모두 무료</div>
-        </div>
-        <div class="ac-foot">
-          <span class="ac-apps" aria-hidden="true">
-            <img src="/apps/geulssi.webp" alt="" width="40" height="40" decoding="async">
-            <img src="/apps/umzzal.webp" alt="" width="40" height="40" decoding="async">
-            <img src="/apps/fontbox.webp" alt="" width="40" height="40" decoding="async">
-          </span>
-          <span class="ac-cta">앱 보러 가기 →</span>
-        </div>
-      </a>
-    </div>`;
-
-  grid.innerHTML = appAdCard + list.map((f,idx)=>{
+  grid.innerHTML = list.map((f,idx)=>{
     // [2026-08] 카드에서 태그 알약 제거 — 폰트 형태보다 알약이 먼저 눈에 들어왔다.
     //           카테고리 필터는 상단 레일이, 태그 확인은 상세페이지가 담당한다.
       // [2026-08] 조합추천 알약 제거 — 카드에는 견본과 이름만 남긴다.

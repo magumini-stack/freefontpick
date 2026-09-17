@@ -863,7 +863,6 @@ select.inp{appearance:none;cursor:pointer}
 <script src="/static/gif-render.js"></script>
 <script src="/static/vendor/gifenc.js"></script>
 <script src="/static/gif-export.js"></script>
-<script src="/static/app-promo.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════
    헤더 공통 (wisefont.html과 동일)
@@ -2607,19 +2606,14 @@ function exportReady(){
   return true;
 }
 
-/* 저장 버튼 — 앱 팝업을 먼저 띄우고, 닫으면 저장한다 (static/app-promo.js).
+/* 저장 버튼 — 바로 저장한다.
 
-   순서가 중요하다.
-   · 저장할 게 없으면 광고부터 띄우지 않는다 — 사진·영상 검사가 먼저다.
+   2026-09-17 앱 팝업을 걷어냈다(애드센스로 전환). 팝업을 다시 붙인다면 순서를 지킬 것 —
+   · 저장할 게 없으면 팝업부터 띄우지 않는다 — exportReady 검사가 먼저다.
    · 팝업은 인코딩 '전'에 띄운다. 인코딩 중에는 화면이 통째로 얼어서
-     (runExport 의 '약 N초 걸립니다' 안내 참고) 팝업의 닫기가 눌리지 않는다.
-   팝업 스크립트가 못 떴으면 예전처럼 바로 저장한다. */
+     (runExport 의 '약 N초 걸립니다' 안내 참고) 팝업의 닫기가 눌리지 않는다. */
 function requestExport(kind){
   if(ui.busy || !exportReady()) return;
-  if(window.FFPAppPromo){
-    FFPAppPromo.show({ next: '닫고 저장하기', onClose: ()=>runExport(kind) });
-    return;
-  }
   runExport(kind);
 }
 
@@ -2761,9 +2755,6 @@ async function boot(){
   updateCounter(); syncBar(); syncAdv(); syncPhotoSliders(); syncPlayIcon();
   requestAnimationFrame(loop);
 }
-/* 들어오면 앱 팝업부터 띄운다. 편집기는 그 뒤에서 마저 뜬다 — boot 는 기다리지
-   않고 바로 돌린다. 닫으면 따로 할 일이 없으므로 onClose 는 없다. */
-if(window.FFPAppPromo) FFPAppPromo.show({ next: '닫고 GIF 만들기' });
 boot();
 </script>
 

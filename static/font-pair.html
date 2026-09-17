@@ -133,57 +133,6 @@
             overflow:hidden;background:var(--bg-card);color:var(--text-primary);
             display:flex;flex-direction:column}
 
-  /* ── 캔버스 왼쪽 배너 — 와이즈폰트 앱 ──────────────────
-     캔버스와 같은 높이로 선다. 둘을 .fp-main 한 칸에 묶고 그 안을 다시 그리드로
-     나눈다. 줄 높이는 캔버스(16:9)가 정하고, 배너는 그 줄만큼 늘어난다.
-
-     배너에 contain:size 를 주는 이유 — 이게 없으면 배너 안의 글이 길어졌을 때
-     배너가 줄 높이를 밀어 올려 캔버스보다 길어진다. 주면 배너는 줄 높이를
-     정하는 데 끼지 않고, 넘치는 것은 잘린다.
-
-     DOM 에서는 캔버스 뒤에 두고 order:-1 로 왼쪽에 세운다. 화면 읽기 프로그램은
-     캔버스(이 페이지의 본론)를 먼저 읽는다.
-
-     페이지 폭(1240px)이 막고 있어서 배너 폭만큼 캔버스가 좁아진다(916 → 750px,
-     본문 글자 17.9 → 14.6px). 1180px 아래에서는 배너를 감춘다 — 거기서 캔버스가
-     더 줄면 본문이 읽히지 않는다. 그 폭에서는 캔버스가 예전과 같다.
-
-     옷은 홈 갤러리 첫 칸의 앱 카드(.apps-card)와 같은 값이다. */
-  .fp-main{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;
-           align-self:start;min-width:0}
-  .fp-ad{--ad-bg:#f0efeb;--ad-ink:#0d0d0d;--ad-sub:#6f6a64;--ad-red:#ff3511;--ad-line:#dbd6ce;
-         order:-1;contain:size;align-self:stretch;overflow:hidden;box-sizing:border-box;
-         display:flex;flex-direction:column;justify-content:space-between;gap:12px;
-         padding:18px 15px 16px;border:1px solid var(--ad-line);border-radius:var(--radius-md);
-         background:var(--ad-bg);color:var(--ad-ink);text-decoration:none;transition:box-shadow .15s}
-  .fp-ad:hover{box-shadow:0 6px 22px rgba(0,0,0,.10)}
-  .fp-ad:focus-visible{outline:2px solid var(--ad-red);outline-offset:2px}
-  /* 어두운 화면에서는 캔버스와 바탕이 거의 같아진다. 테두리가 둘을 가른다. */
-  :root[data-theme="dark"] .fp-ad{--ad-bg:#1d1c1a;--ad-ink:#f0efeb;--ad-sub:#a39d95;
-         --ad-red:#ff5a3c;--ad-line:rgba(255,255,255,.1)}
-  @media(prefers-color-scheme:dark){
-    :root:not([data-theme="light"]):not([data-theme="dark"]) .fp-ad{--ad-bg:#1d1c1a;--ad-ink:#f0efeb;
-         --ad-sub:#a39d95;--ad-red:#ff5a3c;--ad-line:rgba(255,255,255,.1)}
-  }
-  .fp-ad-kick{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:700;
-              letter-spacing:.1em;color:var(--ad-sub);white-space:nowrap}
-  .fp-ad-kick::before{content:"";flex:none;width:12px;height:1.5px;background:var(--ad-red)}
-  .fp-ad-title{margin-top:10px;font-size:15.5px;font-weight:800;letter-spacing:-.04em;
-               line-height:1.32;word-break:keep-all}
-  .fp-ad-title em{font-style:normal;color:var(--ad-red)}
-  .fp-ad-sub{margin-top:6px;font-size:11px;color:var(--ad-sub)}
-  .fp-ad-apps{display:flex;flex-direction:column;gap:10px}
-  .fp-ad-apps div{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;
-                  letter-spacing:-.03em;white-space:nowrap}
-  .fp-ad-apps img{flex:none;display:block;width:36px;height:36px;border-radius:9px;
-                  border:1px solid var(--ad-line);background:#fff}
-  .fp-ad-cta{flex:none;display:flex;align-items:center;justify-content:center;height:34px;
-             border-radius:999px;background:var(--ad-ink);color:var(--ad-bg);font-size:12.5px;font-weight:700}
-  @media(max-width:1179px){
-    .fp-main{grid-template-columns:minmax(0,1fr)}
-    .fp-ad{display:none}
-  }
-
   .fp-err{margin:12px auto 0;max-width:62ch;text-align:center;font-size:13px;color:var(--text-muted)}
   .fp-text{outline:none;word-break:keep-all;white-space:pre-line}
   .fp-text:focus{outline:2px dashed currentColor;outline-offset:4px;border-radius:3px}
@@ -441,33 +390,14 @@
   <p class="fp-catdesc" id="fpCatDesc">{{FFP_PAIR_DESC}}</p>
 
   <div class="fp-shell">
-    <div class="fp-main">
-      <section class="fp-stage" id="fpStage">
-        <div class="fp-blk-title">
-          <div class="fp-text" id="txtTitle" contenteditable="true" spellcheck="false"></div>
-        </div>
-        <div class="fp-blk-body">
-          <div class="fp-text" id="txtBody" contenteditable="true" spellcheck="false"></div>
-        </div>
-      </section>
-
-      <!-- 캔버스 왼쪽 배너 — 위 .fp-main / .fp-ad 주석 참고. 아이콘을 바꾸면 파일
-           이름도 바꿀 것(카페24 앞단이 이미지를 오래 붙들고 있다). -->
-      <a class="fp-ad" href="https://wisefont.co.kr/download.html" target="_blank" rel="noopener"
-         aria-label="와이즈폰트 앱 3종 보러 가기 — 글씨사진관, 움짤공방, 폰트박스 (새 창)">
-        <div>
-          <div class="fp-ad-kick">WISEFONT APPS</div>
-          <div class="fp-ad-title">글자로 노는 앱,<br><em>지금 받으세요.</em></div>
-          <div class="fp-ad-sub">앱 3종 · 모두 무료</div>
-        </div>
-        <div class="fp-ad-apps" aria-hidden="true">
-          <div><img src="/apps/geulssi.webp" alt="" width="36" height="36" decoding="async">글씨사진관</div>
-          <div><img src="/apps/umzzal.webp" alt="" width="36" height="36" decoding="async">움짤공방</div>
-          <div><img src="/apps/fontbox.webp" alt="" width="36" height="36" decoding="async">폰트박스</div>
-        </div>
-        <div class="fp-ad-cta">앱 보기 →</div>
-      </a>
-    </div>
+    <section class="fp-stage" id="fpStage">
+      <div class="fp-blk-title">
+        <div class="fp-text" id="txtTitle" contenteditable="true" spellcheck="false"></div>
+      </div>
+      <div class="fp-blk-body">
+        <div class="fp-text" id="txtBody" contenteditable="true" spellcheck="false"></div>
+      </div>
+    </section>
 
     <aside class="fp-side">
       <section class="fp-slots" id="fpSlots"></section>
