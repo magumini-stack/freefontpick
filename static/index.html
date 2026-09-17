@@ -514,7 +514,7 @@
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
     /* ── 갤러리 광고 칸 (애드센스) ──
-       첫 칸, 이후 폰트 8개마다 한 칸 (renderFonts). 2026-09-17 사용자가 정한 자리로,
+       갤러리 첫 칸 하나 (renderFonts). 2026-09-17 사용자가 정한 자리로,
        옛 앱 광고 카드가 있던 곳이다. 이름표·바탕은 header.css 의 .ffp-ad 가 맡는다.
 
        격자 보기에서는 세로 두 줄을 차지한다. 광고는 300×250 이 가장 흔한데, 카드
@@ -2608,17 +2608,18 @@ function renderFonts(){
     return;
   }
 
-  /* 광고 칸 — 첫 칸, 이후 폰트 8개마다 한 칸 (2026-09-17 사용자가 정한 자리).
-     검색·추천 결과에는 넣지 않는다. 사람이 찾는 답이 첫 칸에서 밀려나고, 추천은
-     몇 개뿐이라 광고가 '더 보기' 버튼에 붙는다 — 버튼 옆 광고는 애드센스가
-     잘못 누르기 쉽다고 조심하라는 배치다.
+  /* 광고 칸 — 갤러리 첫 칸 하나 (2026-09-17 사용자가 정한 자리).
+     처음에는 이후 폰트 8개마다 한 칸씩 더 넣었는데, 같은 날 "너무 지저분하다"는
+     사용자 판단으로 첫 칸만 남겼다.
+     검색·추천 결과에는 넣지 않는다. 사람이 찾는 답이 첫 칸에서 밀려난다.
      광고 단위 번호가 없으면(app/header.py AD_SLOTS) 칸 자체를 안 그린다. */
   const searching = !!(document.getElementById('globalSearch').value || '').trim();
   const withAds = !isRecommendMode && !searching &&
                   typeof window.ffpHasAd === 'function' && window.ffpHasAd('gallery');
-  const AD_EVERY = 8;
-  const adCell = '<div class="ffp-ad ad-cell" role="listitem" data-ad-key="gallery">'
-               + '<span class="ffp-ad-lbl">광고</span></div>';
+  const adCell = withAds
+    ? '<div class="ffp-ad ad-cell" role="listitem" data-ad-key="gallery">'
+      + '<span class="ffp-ad-lbl">광고</span></div>'
+    : '';
 
   const cards = list.map((f,idx)=>{
     // [2026-08] 카드에서 태그 알약 제거 — 폰트 형태보다 알약이 먼저 눈에 들어왔다.
@@ -2666,12 +2667,7 @@ function renderFonts(){
     </article>`;
   });
 
-  let html = withAds ? adCell : '';
-  cards.forEach((card, i) => {
-    html += card;
-    if(withAds && (i + 1) % AD_EVERY === 0 && i + 1 < cards.length) html += adCell;
-  });
-  grid.innerHTML = html;
+  grid.innerHTML = adCell + cards.join('');
 
   // 추천 모드일 때 더보기 버튼 추가
   if(isRecommendMode){
