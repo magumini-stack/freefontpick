@@ -235,6 +235,42 @@ button{font-family:inherit;cursor:pointer}
 .stagebar{display:flex;align-items:center;gap:10px;padding:10px 18px;flex-wrap:wrap;
           border-bottom:1px solid var(--border);background:var(--bg-card)}
 .vsep{width:1px;height:20px;background:var(--border)}
+
+/* ── 움짤공방 앱 띠배너 (2026-09-18 사용자 요청) ──
+   캔버스 비율·배경색 줄 바로 아래. 누르면 와이즈폰트의 움짤공방 소개 페이지
+   (download.html?app=umzzal)로 간다 — 그 페이지가 기기를 가려 맞는 스토어로 보낸다.
+   rel 에 noreferrer 를 넣지 않는다. 와이즈폰트 쪽에서 어디서 들어왔는지 잰다.
+
+   색은 사이트 파랑이 아니라 움짤공방 앱의 라벤더(#F7F5FD)·보라(#7A5AF0)를 쓴다.
+   사이트 도구와 같은 옷이면 편집기 기능인지 앱 광고인지 헷갈린다.
+   아이콘은 앱 광고를 걷어낼 때 남겨 둔 static/apps/umzzal.webp (132px). */
+.appstrip{--as-bg:#F7F5FD;--as-ink:#2B2340;--as-sub:#6A6180;--as-accent:#7A5AF0;
+  --as-line:rgba(122,90,240,.18);
+  display:flex;align-items:center;gap:14px;padding:9px 18px;background:var(--as-bg);
+  border-bottom:1px solid var(--as-line);color:var(--as-ink);text-decoration:none;
+  transition:background-color .15s}
+.appstrip:hover{background:#F0ECFC}
+.appstrip:focus-visible{outline:2px solid var(--as-accent);outline-offset:-2px}
+.appstrip-msg{flex:1;min-width:0;font-size:13.5px;font-weight:600;letter-spacing:-.02em;
+  line-height:1.4;word-break:keep-all}
+.appstrip-app{display:inline-flex;align-items:center;gap:8px;flex:none;font-size:13px;font-weight:700}
+.appstrip-app img{width:28px;height:28px;border-radius:7px;display:block;
+  box-shadow:0 1px 3px rgba(43,35,64,.18)}
+.appstrip-cta{flex:none;display:inline-flex;align-items:center;gap:3px;padding:6px 12px 6px 14px;
+  border-radius:999px;background:var(--as-accent);color:#fff;font-size:12.5px;font-weight:700;
+  white-space:nowrap}
+.appstrip-cta svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.4;
+  stroke-linecap:round;stroke-linejoin:round}
+/* 어두운 화면 — 라벤더 바탕이 그대로 뜨면 편집 화면에서 혼자 번쩍인다 */
+:root[data-theme="dark"] .appstrip{--as-bg:#221D33;--as-ink:#EDE9FB;--as-sub:#A79FC2;
+  --as-accent:#8C70F5;--as-line:rgba(140,112,245,.28)}
+:root[data-theme="dark"] .appstrip:hover{background:#2A2440}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .appstrip{--as-bg:#221D33;--as-ink:#EDE9FB;
+    --as-sub:#A79FC2;--as-accent:#8C70F5;--as-line:rgba(140,112,245,.28)}
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .appstrip:hover{background:#2A2440}
+}
+
 .canvaswrap{flex:1;display:flex;align-items:center;justify-content:center;padding:26px}
 .checker{background:repeating-conic-gradient(var(--bg-card) 0% 25%, var(--bg-secondary) 0% 50%) 0 0/18px 18px;
          box-shadow:var(--shadow-hover);border:1px solid var(--border)}
@@ -511,6 +547,13 @@ select.inp{appearance:none;cursor:pointer}
   #cv{max-height:28vh}
   .stagebar{padding:8px 12px;gap:8px}
   .stagebar .seg button{padding:5px 9px;font-size:12px}
+  /* 모바일에서는 캔버스 영역째 화면 위에 붙어 다니므로(.stage sticky) 띠배너도
+     함께 붙는다. 붙어 있는 높이가 곧 아래 메뉴를 가리는 높이라 한 단계 조인다. */
+  .appstrip{gap:10px;padding:7px 12px}
+  .appstrip-msg{font-size:12.5px}
+  .appstrip-app{gap:6px;font-size:12px}
+  .appstrip-app img{width:24px;height:24px;border-radius:6px}
+  .appstrip-cta{padding:5px 10px 5px 12px;font-size:12px}
   .timeline{padding:9px 12px 11px;gap:7px}
   .tlmeta{font-size:11px;gap:10px}
   .tlmeta span:last-child{margin-left:0;width:100%}
@@ -615,6 +658,17 @@ select.inp{appearance:none;cursor:pointer}
       </div>
       <div style="margin-left:auto" class="psub" id="zoomLabel"></div>
     </div>
+
+    <!-- 움짤공방 앱 띠배너 — 모양·링크 이유는 CSS .appstrip 주석 참고 -->
+    <a class="appstrip" href="https://wisefont.co.kr/download.html?app=umzzal" target="_blank" rel="noopener"
+       aria-label="움짤공방 앱 다운로드 — GIF를 모바일에서 쉽고, 편하게 만들어보세요">
+      <span class="appstrip-msg">GIF를 모바일에서 쉽고, 편하게 만들어보세요</span>
+      <span class="appstrip-app">
+        <img src="/static/apps/umzzal.webp" width="28" height="28" alt="" decoding="async">
+        움짤공방
+      </span>
+      <span class="appstrip-cta">다운로드받기<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span>
+    </a>
 
     <div class="canvaswrap">
       <canvas id="cv" class="checker" width="800" height="450"></canvas>

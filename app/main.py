@@ -6,6 +6,7 @@
 """
 import hashlib
 import json
+import mimetypes
 import os
 import re
 import secrets
@@ -520,6 +521,12 @@ def health(request: Request):
 
 # ─── 정적 파일 서빙 ─────────────────────────────────────
 # 우선순위: API 경로(/api/*)가 먼저 매칭되고, 나머지는 정적 파일
+
+# 슬림 도커 이미지에는 /etc/mime.types 가 없어서 파이썬이 .webp 를 모른다.
+# 그래서 StaticFiles 가 앱 아이콘·매거진 사진(static/**/*.webp)을 text/plain 으로
+# 내보냈다(2026-09-18 실측). 브라우저는 내용을 보고 그려 주지만, 이미지 검색과
+# 공유 미리보기는 형식을 보고 거른다.
+mimetypes.add_type("image/webp", ".webp")
 
 # /static/* 명시적 경로 (이미지, JS, CSS 등 직접 참조)
 if STATIC_DIR.exists():
