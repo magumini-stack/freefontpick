@@ -20,7 +20,7 @@ from pathlib import Path
 
 from PIL import Image
 
-SRC = Path(r"C:\Users\jypark\Desktop\캐러셀\글씨사진관\글씨사진관-캐러셀")
+SRC = Path(r"C:\Users\jypark\Desktop\projects\폰트픽\캐러셀\글씨사진관\글씨사진관-캐러셀")
 OUT = Path(__file__).resolve().parent.parent / "static" / "mz"
 
 # 본문에 넣을 슬라이드 → 내보낼 이름. 글의 각 절이 말하는 것을 그대로
