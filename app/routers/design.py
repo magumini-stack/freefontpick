@@ -17,6 +17,7 @@ import html as _html
 import json as _json
 import re
 from pathlib import Path
+from urllib.parse import urlencode
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
@@ -834,15 +835,54 @@ def font_detail_page(font_id: int, request: Request, db: Session = Depends(get_d
     return HTMLResponse(_fill_font_markers(html, font, db))
 
 
+# ── 홈 주소는 하나로 ─────────────────────────────────────────────
+#
+# 2026-09-21 네이버를 보니 홈이 `/` 가 아니라 `/?v=3` 으로 색인돼 있었다
+# (옛 co.kr 홈은 `/?gad_source=1&gad_campaignid=…`). canonical 은 `/` 를
+# 가리키지만 네이버는 그걸 참고만 한다. 그래서 "폰트픽"으로 찾으면 홈은 안 나오고
+# 상세페이지만 나왔다. `?v=3` 은 우리 코드 어디에도 없는 꼬리다 — 예전에 어딘가
+# 걸렸던 링크로 들어온 것이다.
+#
+# 홈이 쓰지 않는 꼬리는 떼고 `/` 로 301 을 보낸다. 대신 아래는 남긴다:
+#   license  상세페이지 [라이선스 보기] 가 여는 요약표 (static/index.html)
+#   _r       옛 도메인 301 고리를 끊는 표시. 떼면 고리가 되살아난다
+#            (app/main.py _legacy_redirect)
+#   광고·분석 꼬리  떼면 광고 성과와 유입 경로가 끊긴다. 이 주소들은 canonical 에 맡긴다
+#
+# /index.html 도 같은 홈이라 `/` 로 보낸다.
+# no-store 를 붙이는 것은 옛 주소 301 과 같은 이유다 — 브라우저가 301 을 무기한
+# 기억하면, 나중에 꼬리를 쓰게 됐을 때 되돌릴 수가 없다.
+_HOME_KEEP = {"license", "_r"}
+_TRACKING_KEYS = {
+    "gclid", "gad_source", "gad_campaignid", "gbraid", "wbraid", "dclid",   # 구글 광고
+    "_gl", "_ga",                                                          # 구글 애널리틱스
+    "fbclid", "msclkid", "NaPm",                                           # 메타·빙·네이버 광고
+}
+_TRACKING_PREFIXES = ("utm_", "n_")     # n_media · n_query … = 네이버 검색광고
+
+
+def _home_param_ok(key: str) -> bool:
+    return (key in _HOME_KEEP or key in _TRACKING_KEYS
+            or key.startswith(_TRACKING_PREFIXES))
+
+
 @router.get("/", response_class=HTMLResponse)
 @router.get("/index.html", response_class=HTMLResponse)
-def home_page(db: Session = Depends(get_db)):
+def home_page(request: Request, db: Session = Depends(get_db)):
     """홈 — 서버가 공유 헤더를 주입해서 응답 (헤더 단일 소스화)
 
     + 용도 허브와 전체 폰트 목록을 본문 HTML로 심는다(_home_ssr_block).
       갤러리와 허브 그리드가 모두 JS로 그려져서, 서버 응답만 보면 헤더·푸터밖에
       없던 것을 메운다.
     """
+    params = request.query_params.multi_items()
+    kept = [(k, v) for k, v in params if _home_param_ok(k)]
+    if request.url.path != "/" or len(kept) != len(params):
+        target = "/" + ("?" + urlencode(kept) if kept else "")
+        response = RedirectResponse(target, status_code=301)
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
     html = _load_index()
     html = inject_header(html, "home", anchor=True)   # 하단 앵커 광고 — 홈과 상세페이지만
     html = html.replace("{{FFP_HOME_SSR}}", _home_ssr_block(db), 1)
