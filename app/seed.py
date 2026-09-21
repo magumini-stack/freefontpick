@@ -36,10 +36,12 @@ def init_db():
     _ensure_is_pick_column()
     _ensure_tag_axis_column()
     _ensure_use_case_tips_column()
+    _ensure_metric_columns()
     db = SessionLocal()
     try:
         _seed_admin(db)
         _seed_fonts_and_tags(db)
+        _migrate_font_metrics(db)
         _migrate_tag_axes(db)
         _seed_pairings(db)
         _seed_use_cases(db)
@@ -198,6 +200,68 @@ def _ensure_tag_axis_column():
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE tags ADD COLUMN axis VARCHAR(10) NULL"))
     print("[migrate] tags.axis 컬럼 추가 완료")
+
+
+def _ensure_metric_columns():
+    """fonts 테이블에 조판 실측값 칸(metric_x · metric_w · metric_d)이 없으면 추가.
+
+    실측값을 코드 표(app/font_metrics.py)에서 DB 로 옮기기 위해 필요하다.
+    ⚠ ORM 이 Font 를 한 번이라도 읽기 전에 돌아야 한다 — 모델에 칸이 생겼는데
+    테이블에 없으면 폰트 조회가 전부 실패한다. 그래서 init_db 의 세션보다 앞에 둔다.
+    """
+    from sqlalchemy import text, inspect
+    inspector = inspect(engine)
+    if "fonts" not in inspector.get_table_names():
+        return  # create_all이 이번에 만들었음
+    columns = {col["name"] for col in inspector.get_columns("fonts")}
+    added = []
+    with engine.begin() as conn:
+        for name in ("metric_x", "metric_w", "metric_d"):
+            if name not in columns:
+                conn.execute(text(f"ALTER TABLE fonts ADD COLUMN {name} FLOAT NULL"))
+                added.append(name)
+    if added:
+        print(f"[migrate] fonts 실측값 컬럼 추가 완료: {added}")
+
+
+# ── 실측값을 코드 표에서 DB 로 (2026-09, 일회성) ─────────────────────
+#
+# 조합 점수의 실측값(x·w·d)은 app/font_metrics.py 의 표에 박혀 있었다. 폰트를
+# 올릴 때마다 코드를 고쳐 배포해야 했고, 그 사이 새 폰트는 점수 없이 조합에
+# 들어갔다 — 2026-09-21 에 56종을 올렸을 때 그대로 드러났다.
+#
+# 이제 값은 폰트 행에 산다. 표의 239종을 여기서 한 번 옮겨 담고, 그 뒤로는
+# 어드민 API(POST /api/fonts/metrics)로 올린다.
+#
+# 원시 SQL 로 쓰는 이유: ORM 으로 고치면 updated_at 이 239종 전부 오늘로 바뀐다.
+# 값을 옮겼을 뿐 폰트가 고쳐진 것은 아니다.
+# 비어 있는 칸에만 넣는다 — 이미 DB 에 올라간 값(다시 잰 값)을 옛 표가 덮지 않게.
+FONT_METRICS_KEY = "font_metrics_db_v1"
+
+
+def _migrate_font_metrics(db: Session):
+    done = db.query(AppMeta).filter(AppMeta.key == FONT_METRICS_KEY).first()
+    if done and done.value == "1":
+        return
+
+    from sqlalchemy import text
+    from .font_metrics import FONT_METRICS
+
+    n = 0
+    for fid, (x, w, d) in FONT_METRICS.items():
+        r = db.execute(
+            text("UPDATE fonts SET metric_x = :x, metric_w = :w, metric_d = :d "
+                 "WHERE id = :id AND metric_x IS NULL"),
+            {"id": fid, "x": x, "w": w, "d": d},
+        )
+        n += r.rowcount or 0
+
+    if done is None:
+        db.add(AppMeta(key=FONT_METRICS_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+    print("[migrate] 실측값을 DB 로 옮김: 표 %d종 중 %d종" % (len(FONT_METRICS), n))
 
 
 # ── 태그 정리 마이그레이션 데이터 (2026-08 태그 3축 분리) ─────────────────

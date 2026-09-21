@@ -1,11 +1,13 @@
-"""폰트 조판 지표(x·w·d)를 재서 app/font_metrics.py 에 넣을 줄을 뽑는다.
+"""폰트 조판 지표(x·w·d)를 재서 DB 에 올릴 값을 뽑는다.
 
 왜 도구가 필요한가
 ----------------
-`app/font_metrics.py` 는 값을 코드에 박아 둔다. 재는 데 폰트 한 종당 수 초가
-들어서(woff2 압축 해제 + 글리프 재구성이 순수 파이썬이다) 512MB 운영
-컨테이너에서 돌릴 수도, 업로드 응답에 끼울 수도 없기 때문이다. 그래서 로컬에서
-한 번 재고 결과만 싣는다.
+재는 데 폰트 한 종당 수 초가 들어서(woff2 압축 해제 + 글리프 재구성이 순수
+파이썬이다) 운영 컨테이너에서 돌릴 수도, 업로드 응답에 끼울 수도 없다.
+그래서 로컬에서 재고 결과만 올린다.
+
+값은 DB(fonts.metric_x · metric_w · metric_d)에 산다. 2026-09-21 전에는
+app/font_metrics.py 의 표에 박아 넣고 배포했는데, 이제 그 표는 첫 적재용이다.
 
 그동안 그 '한 번'을 매번 손으로 다시 짰다. 스크립트가 저장소에 없었던 탓인데,
 폰트를 추가할 때마다 방식을 문서만 보고 다시 구현하는 셈이라 어긋날 여지가
@@ -34,11 +36,22 @@ CDN 웹폰트만 있는 폰트
 쓰는 법
 ------
     python tools/measure_metrics.py --check           # 기존 값 재현되는지만 확인
-    python tools/measure_metrics.py --missing         # 표에 없는 폰트를 전부
+    python tools/measure_metrics.py --missing         # 값이 빈 폰트를 전부
     python tools/measure_metrics.py 238 239 240       # 특정 id 만
+    ... --out metrics.json                            # 올릴 값을 파일로도
 
---check 를 먼저 돌린다. 이미 표에 있는 폰트를 다시 재서 같은 값이 나오는지
+--check 를 먼저 돌린다. 이미 DB 에 있는 폰트를 다시 재서 같은 값이 나오는지
 보는 것이라, 재는 법이 어긋나면 새 값을 믿을 수 없다.
+
+빈 폰트는 GET /api/fonts/metrics 로 찾는다. 새로 올린 폰트, 그리고 대표 파일을
+갈아 끼워 값이 비워진 폰트가 여기 걸린다(app/routers/files.py _forget_metrics).
+
+올리기 — 로그인이 필요해서 이 스크립트가 직접 올리지 않는다. 어드민에 로그인한
+브라우저의 개발자 콘솔에서, 끝에 찍힌 JSON 을 그대로 넣는다:
+
+    await FontStore.saveMetrics([{"id": 246, "x": 0.85, "w": 0.833, "d": 0.298}, ...])
+
+그다음 어드민 '페어링 관리 → 빈 폰트 채우기' 를 누르면 새 폰트의 조합이 생긴다.
 """
 import argparse
 import io
@@ -238,40 +251,50 @@ def load_catalog():
     return {d["id"]: d for d in json.loads(raw)}
 
 
+def load_db_metrics():
+    """운영 DB 에 올라가 있는 값. {id: (x, w, d) 또는 None}"""
+    raw = fetch(BASE + "/api/fonts/metrics").decode("utf-8")
+    out = {}
+    for r in json.loads(raw):
+        v = (r.get("x"), r.get("w"), r.get("d"))
+        out[r["id"]] = None if None in v else tuple(round(a, 3) for a in v)
+    return out
+
+
 def main():
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8",
                                   errors="replace")
     ap = argparse.ArgumentParser()
     ap.add_argument("ids", nargs="*", type=int)
     ap.add_argument("--check", action="store_true",
-                    help="표에 이미 있는 폰트를 다시 재서 같은 값이 나오는지 본다")
+                    help="DB 에 이미 있는 폰트를 다시 재서 같은 값이 나오는지 본다")
     ap.add_argument("--missing", action="store_true",
-                    help="표에 없는 폰트를 전부 잰다")
+                    help="DB 에 값이 없는 폰트를 전부 잰다")
+    ap.add_argument("--out", metavar="FILE",
+                    help="올릴 값을 JSON 파일로도 남긴다")
     args = ap.parse_args()
 
-    sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent.parent))
-    from app.font_metrics import FONT_METRICS
-
     cat = load_catalog()
+    db_vals = load_db_metrics()
 
     if args.check:
-        print("재는 법 확인 — 표에 있는 값이 그대로 나오는가\n")
+        print("재는 법 확인 — DB 에 있는 값이 그대로 나오는가\n")
         okn = 0
         for fid in CHECK_IDS:
-            want = FONT_METRICS.get(fid)
+            want = db_vals.get(fid)
             got, why = measure_font(cat[fid])
             same = got == want
             okn += same
-            print("  %3d %-20s 표 %s" % (fid, cat[fid]["name"], want))
+            print("  %3d %-20s DB %s" % (fid, cat[fid]["name"], want))
             print("      %-24s 측정 %s  %s" % ("", got, "일치" if same else "<<< 다름"))
         print("\n%d/%d 일치" % (okn, len(CHECK_IDS)))
         return 0 if okn == len(CHECK_IDS) else 1
 
     ids = args.ids
     if args.missing:
-        ids = sorted(i for i in cat if i not in FONT_METRICS)
+        ids = sorted(i for i in cat if db_vals.get(i) is None)
     if not ids:
-        print("잴 폰트를 지정하세요 (--missing 또는 id 나열)")
+        print("잴 폰트가 없습니다 (--missing 에 걸린 폰트가 없거나 id 를 안 줬다)")
         return 1
 
     print("%d종 측정\n" % len(ids))
@@ -291,9 +314,20 @@ def main():
             print("  %3d %-24s 못 쟀다 — %s" % (fid, meta["name"], why))
 
     if ok:
-        print("\n── app/font_metrics.py 에 넣을 줄 ──")
-        for fid, name, v in ok:
-            print("    %-4d: (%.3f, %.3f, %.3f),   # %s" % (fid, v[0], v[1], v[2], name))
+        items = [{"id": fid, "x": v[0], "w": v[1], "d": v[2]} for fid, _, v in ok]
+        changed = [(fid, name, db_vals.get(fid), v) for fid, name, v in ok
+                   if db_vals.get(fid) not in (None, v)]
+        if changed:
+            print("\nDB 에 이미 있던 값과 다른 폰트 (올리면 덮어쓴다):")
+            for fid, name, old, new in changed:
+                print("  %3d %-24s DB %s → 측정 %s" % (fid, name, old, new))
+        if args.out:
+            with open(args.out, "w", encoding="utf-8") as fp:
+                json.dump(items, fp, ensure_ascii=False, indent=1)
+            print("\n올릴 값을 %s 에 남겼다 (%d종)" % (args.out, len(items)))
+        print("\n── 어드민 콘솔에서 올리기 ──")
+        print("await FontStore.saveMetrics(%s)"
+              % json.dumps(items, separators=(",", ":")))
     if fail:
         print("\n못 잰 %d종:" % len(fail))
         for fid, name, why in fail:

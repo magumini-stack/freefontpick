@@ -122,6 +122,11 @@ const FontStore = {
     return fonts.map(_fromServer);
   },
 
+  /** 조판 실측값 올리기. items: [{id, x, w, d}, ...] — tools/measure_metrics.py 가 만든다 */
+  async saveMetrics(items) {
+    return await apiFetch('/fonts/metrics', {method: 'POST', body: {items}});
+  },
+
   async move(id, delta) {
     const all = await this.getAll();
     const idx = all.findIndex(f => f.id === id);
@@ -342,6 +347,10 @@ const PairingStore = {
   /** ⚠️ 전체 조합을 지금 알고리즘으로 다시 만들어 통째로 교체한다 (되돌릴 수 없음) */
   async regenerateAll(topN) {
     return await apiFetch(`/pairings/regenerate-all?top_n=${topN || 6}`, {method: 'POST'});
+  },
+  /** 조합이 하나도 없는 폰트에만 만들어 덧붙인다 (기존 조합은 그대로) */
+  async fillMissing(topN) {
+    return await apiFetch(`/pairings/fill-missing?top_n=${topN || 6}`, {method: 'POST'});
   },
 };
 

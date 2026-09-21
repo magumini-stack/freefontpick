@@ -56,7 +56,7 @@ freefontpick/
     ├── auth.py             # 세션 인증 의존성
     ├── seed.py             # 테이블 생성 + 시드 + 마이그레이션
     ├── header.py           # 공용 헤더 HTML 주입 (헤더 단일 소스화)
-    ├── font_metrics.py     # 폰트 메트릭 계산 (페어링 점수용)
+    ├── font_metrics.py     # 조판 실측값 정의 + 첫 적재용 표 (값은 DB fonts.metric_*)
     ├── webfont_check.py    # 외부 웹폰트(CDN) 유효성 점검
     ├── pairing_data.py     # 페어링 시드 데이터
     ├── pairing_phrases.py  # 페어링 예시 문구
@@ -109,11 +109,11 @@ freefontpick/
 | 그룹 | 대표 엔드포인트 | 인증 |
 |---|---|---|
 | `auth` | `POST /api/auth/login` · `logout` · `change-password`, `GET /api/auth/status` | — |
-| `fonts` | `GET/POST /api/fonts`, `GET/PATCH/DELETE /api/fonts/{id}`, `POST /api/fonts/reorder`, `GET /api/fonts/webfont-audit`, `POST /api/fonts/webfont-check` | 쓰기는 관리자 |
+| `fonts` | `GET/POST /api/fonts`, `GET/PATCH/DELETE /api/fonts/{id}`, `POST /api/fonts/reorder`, `GET/POST /api/fonts/metrics`, `GET /api/fonts/webfont-audit`, `POST /api/fonts/webfont-check` | 쓰기는 관리자 |
 | `files` | `GET/POST/DELETE /api/fonts/{id}/file`, `GET/POST /api/fonts/{id}/weights`, `DELETE .../weights/{weight}` | 쓰기는 관리자 |
 | `tags` | `GET/POST /api/tags`, `PATCH/DELETE /api/tags/{id}`, `POST /api/tags/reorder` | 쓰기는 관리자 |
 | `notices` | `GET/POST /api/notices`, `GET/PATCH/DELETE /api/notices/{id}` | 쓰기는 관리자 |
-| `pairings` | `GET /api/pairings`, `GET /api/fonts/{id}/pairings`, `GET /api/pairings/themes`, `auto-generate` · `regenerate-all` · `purge-orphans`, `GET /api/debug/font-audit` | 쓰기는 관리자 |
+| `pairings` | `GET /api/pairings`, `GET /api/fonts/{id}/pairings`, `GET /api/pairings/themes`, `auto-generate` · `regenerate-all` · `fill-missing` · `purge-orphans`, `GET /api/debug/font-audit` | 쓰기는 관리자 |
 | `likes` | `POST/DELETE /api/fonts/{id}/like` | 공개 |
 | `submissions` | `GET/POST /api/submissions`, `GET/PATCH/DELETE /api/submissions/{id}`, `POST .../answers`, `GET .../image` | 일부 관리자 |
 | `use-cases` | `GET /api/use-cases`, `GET /api/use-cases/{slug}` | 공개 |

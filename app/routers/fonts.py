@@ -22,6 +22,22 @@ class WebfontCheckRequest(BaseModel):
     webfont_weights: List[int] = Field(default_factory=list)
 
 
+class MetricItem(BaseModel):
+    """폰트 하나의 조판 실측값 (정의는 app/font_metrics.py).
+
+    범위는 넉넉히 잡되 0 과 음수는 막는다. 지금까지 잰 296종이
+    x 0.36~1.06 · w 0.29~1.2 · d 0.12~0.82 안에 있다.
+    """
+    id: int
+    x: float = Field(gt=0, lt=3)
+    w: float = Field(gt=0, lt=3)
+    d: float = Field(gt=0, le=1)
+
+
+class MetricsUpload(BaseModel):
+    items: List[MetricItem] = Field(min_length=1)
+
+
 def _paired_font_ids(db: Session) -> set:
     """페어링에 포함된 폰트 id 집합 (조합추천 뱃지용)"""
     ids = set()
@@ -333,6 +349,49 @@ def popular_fonts(days: int = 7, limit: int = 10, mode: str = "mixed",
     except Exception:
         ids = []
     return [{"id": fid, "rank": i + 1} for i, fid in enumerate(ids)]
+
+
+@router.get("/metrics")
+def list_metrics(db: Session = Depends(get_db)):
+    """폰트마다 조판 실측값(x·w·d). 값이 없는 폰트는 셋 다 null 이다.
+
+    tools/measure_metrics.py 가 '아직 안 잰 폰트'를 찾고, 다시 잰 값이 DB 와
+    같은지 대 볼 때 쓴다. 숫자 세 개뿐이라 로그인 없이 열어 둔다.
+
+    ⚠️ 이 경로는 "/{font_id}" 보다 위에 있어야 한다(위 popular 와 같은 이유).
+    """
+    rows = db.query(Font.id, Font.name, Font.metric_x, Font.metric_w,
+                    Font.metric_d).order_by(Font.id).all()
+    return [{"id": i, "name": n, "x": x, "w": w, "d": d}
+            for i, n, x, w, d in rows]
+
+
+@router.post("/metrics")
+def save_metrics(
+    payload: MetricsUpload,
+    db: Session = Depends(get_db),
+    _admin = Depends(require_password_changed),
+):
+    """재 온 실측값을 폰트에 적는다. 배포 없이 조합 점수에 바로 쓰인다.
+
+    값은 로컬에서 tools/measure_metrics.py 로 잰다(운영에서 재지 않는 이유는
+    app/font_metrics.py). ORM 으로 고치므로 updated_at 이 바뀌고, 조합 페이지의
+    계열별 추천 캐시(font_pair_engine._catalog_stamp)도 그걸 보고 새로 계산한다.
+    """
+    by_id = {f.id: f for f in db.query(Font).filter(
+        Font.id.in_([it.id for it in payload.items])).all()}
+    updated, not_found = [], []
+    for it in payload.items:
+        f = by_id.get(it.id)
+        if f is None:
+            not_found.append(it.id)
+            continue
+        f.metric_x = round(it.x, 3)
+        f.metric_w = round(it.w, 3)
+        f.metric_d = round(it.d, 3)
+        updated.append(it.id)
+    db.commit()
+    return {"updated": len(updated), "ids": updated, "not_found": not_found}
 
 
 @router.get("/{font_id}/license", include_in_schema=False)

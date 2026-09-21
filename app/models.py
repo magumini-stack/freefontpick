@@ -4,7 +4,7 @@
 """
 from sqlalchemy import (
     Column, Integer, String, Boolean, DateTime, Date, Text, ForeignKey,
-    UniqueConstraint, Index, JSON,
+    UniqueConstraint, Index, JSON, Float,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -45,6 +45,14 @@ class Font(Base):
     webfont_family = Column(String(200), nullable=True)
     webfont_css_url = Column(String(500), nullable=True)
     webfont_weights = Column(String(100), nullable=True)
+    # ── 조판 실측값 — 조합 점수의 뼈대 (정의와 재는 법은 app/font_metrics.py) ──
+    # x 글자 높이 · w 글자 폭 · d 채움비율(=실제 굵기). 대표 파일을 로컬에서 재서
+    # 어드민 API(POST /api/fonts/metrics)로 올린다. 비어 있으면 그 폰트는 점수의
+    # 대비·조화 항목이 빠질 뿐 조합에서 빠지지는 않는다. 대표 파일을 갈아 끼우면
+    # 옛 파일로 잰 값이 남지 않도록 비운다(files.upload_font_file).
+    metric_x = Column(Float, nullable=True)
+    metric_w = Column(Float, nullable=True)
+    metric_d = Column(Float, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

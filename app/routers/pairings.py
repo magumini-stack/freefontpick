@@ -9,6 +9,7 @@
 - DELETE /api/pairings/{id}         : 페어링 삭제 — 관리자
 - POST /api/pairings/purge-orphans  : orphan 정리 — 관리자
 - POST /api/pairings/regenerate-all : 전체 재생성·교체 — 관리자
+- POST /api/pairings/fill-missing   : 조합이 없는 폰트에만 만들어 덧붙임 — 관리자
 """
 import math
 import random
@@ -16,7 +17,7 @@ import re
 from collections import Counter
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -725,8 +726,8 @@ _CONTRAST_HI = 0.45      # 이 위는 과해서 따로 논다
 
 def _contrast(title_font: Font, body_font: Font) -> float:
     """제목이 본문보다 충분히 굵은가. 측정값이 없으면 0(감점 아님)."""
-    t = metrics_of(title_font.id)
-    b = metrics_of(body_font.id)
+    t = metrics_of(title_font)
+    b = metrics_of(body_font)
     if not t or not b:
         return 0.0
     gap = t[2] - b[2]                      # 채움비율 차이
@@ -744,8 +745,8 @@ def _contrast(title_font: Font, body_font: Font) -> float:
 
 def _harmony(title_font: Font, body_font: Font) -> float:
     """비율(x-height·글자 폭)이 서로 닮았는가. 측정값이 없으면 0."""
-    t = metrics_of(title_font.id)
-    b = metrics_of(body_font.id)
+    t = metrics_of(title_font)
+    b = metrics_of(body_font)
     if not t or not b:
         return 0.0
     dx = abs(t[0] - b[0])
@@ -1078,5 +1079,86 @@ def regenerate_all_pairings(
         "removed": removed,
         "created": len(rows),
         "fonts": len(fonts),
+        "themes": dict(sorted(themes.items(), key=lambda kv: -kv[1])),
+    }
+
+
+@router.post("/pairings/fill-missing")
+def fill_missing_pairings(
+    top_n: int = 6,
+    db: Session = Depends(get_db),
+    _admin = Depends(require_password_changed),
+):
+    """조합이 하나도 없는 폰트에만 조합을 만들어 **덧붙인다.** 기존 조합은 그대로 둔다.
+
+    새 폰트를 올릴 때마다 전체 재생성을 돌리면 사람이 고친 조합과 문구까지
+    전부 갈아엎인다. 새 폰트에 필요한 것은 '자기 조합 몇 벌'뿐이라 그것만 만든다.
+    폰트마다 만드는 방식은 전체 재생성과 같다(_generate_for) — 제목·본문 방향,
+    테마, 문구, 굵기, 실측값 대비·조화까지.
+
+    대상은 제목으로도 본문으로도 한 번도 안 쓰인 폰트다. 펜시처럼 조합에서
+    빼 두는 폰트는 _GenContext 가 이미 걸러 낸다. 대상은 **시작할 때 한 번**
+    정한다 — 앞 폰트의 상대로 뽑혀 조합이 한 벌 생긴 새 폰트도 자기 몫을 받게.
+
+    사용 횟수(단골 감점)를 두 가지로 손본다. 안 하면 새 폰트끼리만 짝을 짓는다:
+      ① 대상 폰트는 처음부터 top_n 번 쓰인 것으로 센다. 곧 그만큼 생기기
+         때문이다. 기존 폰트는 거의 다 6회 이상이라 감점이 3.6~4점인데, 새 폰트만
+         0점이면 서로를 상대로 몰아서 고른다.
+      ② 만들 때마다 상대 폰트와 테마의 횟수를 올린다. 전체 재생성은 한 번에
+         갈아 끼우니 옛 횟수로 충분하지만, 여기서는 앞에서 만든 것이 바로
+         쌓이므로 그것까지 셈해야 같은 상대·같은 테마로 쏠리지 않는다.
+
+    실측(2026-09-21, 운영 데이터를 본뜬 DB · 대상 60종 · 3회씩): 새 조합 중
+    '새 폰트끼리' 짝이 보정 없이 95%, 보정하면 64%. 남는 쏠림은 메타 탓이다 —
+    새 폰트의 메타는 어드민이 태그에서 자동으로 채운 값이라 서로 겹치는 값이
+    많다(궁합 _cohesion 평균: 새-새 5.5 · 새-기존 3.8). 점수는 떨어지지 않았다
+    (조합 페이지 눈금 평균 82점, 기존 조합 76점).
+    """
+    top_n = max(1, min(int(top_n or 6), 12))
+    ctx = _GenContext(db)
+
+    used = set()
+    for (a, b) in db.query(FontPairing.title_font_id, FontPairing.body_font_id).all():
+        used.add(a)
+        used.add(b)
+    targets = sorted((f for f in ctx.fonts if f.id not in used), key=lambda f: f.id)
+    if not targets:
+        return {"created": 0, "fonts": [], "themes": {}}
+
+    for f in targets:                                   # ①
+        ctx.usage_counts[f.id] = max(ctx.usage_counts.get(f.id, 0), top_n)
+
+    rows, per_font = [], []
+    for f in targets:
+        got = _generate_for(f, ctx, top_n)
+        for p in got:                                   # ②
+            partner = p["body_font_id"] if p["title_font_id"] == f.id else p["title_font_id"]
+            ctx.usage_counts[partner] = ctx.usage_counts.get(partner, 0) + 1
+            ctx.exposure[p["theme"]] += 1
+        rows.extend(got)
+        per_font.append({"id": f.id, "name": f.name, "created": len(got)})
+
+    start = db.query(func.max(FontPairing.sort_order)).scalar() or 0
+    for i, p in enumerate(rows):
+        db.add(FontPairing(
+            theme=p["theme"],
+            title_font_id=p["title_font_id"],
+            body_font_id=p["body_font_id"],
+            sample_title=p["sample_title"],
+            sample_body=p["sample_body"],
+            description=p["description"],
+            title_weight=p["title_weight"],
+            body_weight=p["body_weight"],
+            sort_order=start + (i + 1) * 10,
+        ))
+    db.commit()
+
+    themes: dict = {}
+    for p in rows:
+        themes[p["theme"]] = themes.get(p["theme"], 0) + 1
+    print(f"[pairings] 빈 폰트 채우기: {len(targets)}종 → {len(rows)}건 생성")
+    return {
+        "created": len(rows),
+        "fonts": per_font,
         "themes": dict(sorted(themes.items(), key=lambda kv: -kv[1])),
     }

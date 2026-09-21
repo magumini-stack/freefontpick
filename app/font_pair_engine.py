@@ -17,8 +17,8 @@
 새 폰트를 아무리 추가해도 이 페이지에는 나오지 않는 구조였다.
 
 그래서 이 모듈은 **FontPairing을 읽지 않는다.** 폰트 자체에서 나오는 것만 본다:
-`app/font_metrics.py`의 실측값, `Font.meta`, `font.tags`, `Font.is_english`,
-`FontWeight`. 저장 조합이 0건이어도 똑같이 동작한다.
+실측값(`Font.metric_*`, 정의는 `app/font_metrics.py`), `Font.meta`, `font.tags`,
+`Font.is_english`, `FontWeight`. 저장 조합이 0건이어도 똑같이 동작한다.
 
 무엇을 근거로 고르나
 ------------------
@@ -132,7 +132,7 @@ def _percentiles(fonts):
     cols = {"x": [], "w": [], "d": []}
     vals = {}
     for f in fonts:
-        m = metrics_of(f.id)
+        m = metrics_of(f)
         if not m:
             continue
         vals[f.id] = {"x": m[0], "w": m[1], "d": m[2]}
@@ -171,8 +171,8 @@ def _slot_score(font, pcts, prof_slot, cat_prof):
             s += (1.0 - abs(p[axis] - target) * 2.0) * 2.0
     else:
         # 실측값이 없는 폰트는 이 항목이 빠질 뿐 감점하지 않는다.
-        # (지금은 239종 전부 값이 있다. 새 폰트가 들어오면 재기 전까지 여기 온다 —
-        #  tools/measure_metrics.py --missing 로 재서 표를 갱신하면 빠져나간다)
+        # (새 폰트가 들어오거나 대표 파일이 바뀌면 재기 전까지 여기 온다 —
+        #  tools/measure_metrics.py --missing 로 재서 DB 에 올리면 빠져나간다)
         s += 0.0
 
     names = {t.name for t in (font.tags or [])}

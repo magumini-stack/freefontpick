@@ -398,6 +398,18 @@ def _validate_woff2(content: bytes):
         )
 
 
+def _forget_metrics(font: Font):
+    """대표 파일이 바뀌면 조판 실측값을 비운다.
+
+    값은 그 파일을 재서 얻은 것이라, 파일을 갈아 끼우고 값을 두면 옛 글자의
+    굵기·크기로 조합 점수를 계속 매긴다. 실제로 2번(HS산토끼체 → 2.0)과
+    28번(던파 비트비트체 → v2)이 그랬다. 비워 두면 점수에서 그 항목만 빠지고
+    (app/font_metrics.py '값이 없는 폰트'), tools/measure_metrics.py --missing
+    이 다시 잡아 준다.
+    """
+    font.metric_x = font.metric_w = font.metric_d = None
+
+
 @router.post("/{font_id}/file", response_model=FileUploadResponse)
 async def upload_font_file(
     font_id: int,
@@ -440,6 +452,7 @@ async def upload_font_file(
     try:
         font.has_file = True
         font.stack = _ensure_stack_has_family(font.stack or "", font_id)
+        _forget_metrics(font)
         db.commit()
     except Exception as e:
         traceback.print_exc()
@@ -947,6 +960,7 @@ def delete_font_file(
     p = font_path(font_id)
     if p.exists():
         p.unlink()
+        _forget_metrics(font)       # 이제 다른 파일(번들·웹폰트)이 그려진다
     FONT_RESOLUTION.pop(font_id, None)
     if not bundled_font_path(font_id).exists():
         font.has_file = False
