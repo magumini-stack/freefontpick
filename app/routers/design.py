@@ -740,7 +740,10 @@ def _font_detail_meta(font: Font) -> dict:
     first_para = " ".join(re.split(r"\n\s*\n", intro)[0].split()) if intro else ""
     desc = " ".join(summary.split())
     if len(desc) < TARGET and first_para:
-        for sent in re.findall(r"[^.!?]+[.!?]*", first_para):
+        # 숫자 사이의 점(2.0 · 3.0 · 0.60)은 문장 끝이 아니다. 예전 식은 거기서
+        # 끊고 공백을 넣어 이어 붙여서 "2. 0으로" 가 검색 설명에 그대로 나갔다
+        # (2026-09 확인 당시 8종 — 세방고딕 2.0 · 하나체 · 서울알림체 …).
+        for sent in re.findall(r"(?:\d\.\d|[^.!?])+[.!?]*", first_para):
             sent = sent.strip()
             if not sent or sent in desc:
                 continue
