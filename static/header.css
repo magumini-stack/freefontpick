@@ -23,6 +23,17 @@ nav{display:flex;gap:2px}
 nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:6px;text-decoration:none;transition:all .15s;white-space:nowrap}
 nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
 nav a.active{color:var(--accent);background:var(--accent-light);font-weight:700}
+/* ── About ▾ 묶음 (app/header.py ABOUT_ITEMS) ──
+   마우스를 올리거나 키보드 초점이 안에 있으면 펼쳐진다. 부모는 /about 링크라
+   펼침이 안 되는 환경에서도 막다른 길이 아니다. */
+.nav-dd{position:relative}
+.nav-dd > a{display:flex;align-items:center;gap:3px}
+.nav-dd > a svg{width:12px;height:12px;display:block}
+.nav-dd-menu{position:absolute;top:calc(100% + 4px);left:0;min-width:150px;padding:6px;
+  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,.1);display:none;flex-direction:column;gap:2px;z-index:210}
+.nav-dd:hover .nav-dd-menu,.nav-dd:focus-within .nav-dd-menu{display:flex}
+.nav-dd-menu a{padding:8px 10px}
 
 /* ── GIF 생성기 메뉴 ──────────────────────────────
    글자 자체에 그라데이션을 흘려 넣는다(background-clip:text).

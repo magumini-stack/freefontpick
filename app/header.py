@@ -22,27 +22,38 @@ from .site import SITE_URL, ORIGIN_MARKER
 # id는 index.html의 해시 라우팅(JS)이 #notice 뷰 전환 시
 # 활성(active) 표시를 동적으로 토글하기 위해 특정 id를 필요로 해서 부여함.
 # 다른 페이지(about/faq/font)에는 해당 JS가 없어 id가 있어도 그냥 무시됨 — 안전.
+#
+# 2026-09-22 메인 개편으로 메뉴를 다시 짰다.
+#   전체 무료폰트 보기(/fonts) — 옛 홈 갤러리가 이 주소로 옮겨 갔다.
+#   Apps — 글씨사진관·움짤공방 소개(tdtd.io/apps.html), 새 창.
+#   About ▾ — 소개·공지사항·자주 묻는 질문·매거진을 한 묶음으로 접었다.
+#     읽는 페이지 넷을 메뉴 한 줄에 늘어놓으면 '고르고 만드는' 항목이 묻힌다.
 NAV_ITEMS = [
-    ("about", "/about", "소개", None, None),
-    ("notice", "/#notice", "공지사항", "noticeMenuLink", "mNoticeMenuLink"),
-    ("faq", "/faq.html", "자주 묻는 질문", None, None),
+    ("fonts", "/fonts", "전체 무료폰트 보기", None, None),
     # '폰트 찾기'는 별도 페이지다(static/find-font.html, 2026-09-22 index.html 에서
     # 떼어 냄). 어느 페이지에서든 평범한 링크로 /find-font 를 연다.
     ("findfont", "/find-font", "폰트 찾기", "findFontMenuLink", "mFindFontMenuLink"),
-    # 매거진은 '폰트 조합 찾기' 바로 왼쪽에 둔다.
-    ("magazine", "/magazine", "매거진", None, None),
-    # 폰트 조합 찾기. 폰트 찾기 다음에 두는 이유 — 둘 다 '고르는' 일이라
-    # 나란히 있어야 하나를 고르고 나서 다음으로 넘어가는 흐름이 읽힌다.
     ("fontpair", "/font-pair", "폰트 조합 찾기", None, None),
     # gif 라우터가 inject_header(html, "gif")로 넘기는 키와 같아야 활성 표시가 붙는다.
-    #
     # 2026-08: 템플릿 목록(/gif/templates) 대신 편집기(/gif)로 바로 보낸다.
-    # 예전에는 "빈 편집기부터 만나면 뭘 만들 수 있는 곳인지 알기 어렵다"는 이유로
-    # 목록을 거치게 했는데, 편집기에 텍스트·사진·영상 세 모드가 생기면서 전제가
-    # 바뀌었다 — 이제 편집기 자체가 '무엇을 만들 수 있는지'를 보여준다.
-    # 템플릿 목록은 편집기 안의 'GIF 템플릿 전체보기' 카드로 계속 갈 수 있다.
     ("gif", "/gif", "GIF 생성기", None, None),
+    ("apps", "https://tdtd.io/apps.html", "Apps", None, None),
 ]
+
+# About 묶음 — 데스크톱은 마우스를 올리면 펼쳐지는 메뉴, 모바일은 그냥 늘어놓는다.
+# 이 안의 어느 페이지가 활성이면 'About' 글자에 활성 표시가 붙는다.
+ABOUT_ITEMS = [
+    ("about", "/about", "소개", None, None),
+    ("notice", "/#notice", "공지사항", "noticeMenuLink", "mNoticeMenuLink"),
+    ("faq", "/faq.html", "자주 묻는 질문", None, None),
+    ("magazine", "/magazine", "매거진", None, None),
+]
+ABOUT_KEYS = {k for k, *_ in ABOUT_ITEMS}
+
+# 새 창으로 여는 항목. GIF 생성기와 조합 찾기는 화면에서 뭔가를 맞춰 가는
+# 자리라, 보던 페이지를 덮으면 뒤로 가기로 돌아왔을 때 맞춰 두었던 것이
+# 사라진다. Apps 는 다른 사이트(tdtd.io)다.
+_NEW_WINDOW = {"gif", "fontpair", "apps"}
 
 # 메뉴 클릭 핸들러.
 #
@@ -56,36 +67,49 @@ NAV_ITEMS = [
 _JS_CLOSE = "if(typeof closeMobileNav==='function')closeMobileNav()"
 
 
+def _nav_link(item, active: str, indent: str, mobile: bool, extra_cls=()) -> str:
+    key, href, label, id_d, id_m = item
+    # 클래스는 여러 개가 붙을 수 있으므로 목록으로 모아 한 번에 쓴다.
+    classes = list(extra_cls)
+    if key == active:
+        classes.append("active")
+    if key == "gif":
+        # GIF 생성기는 메뉴에서 유일하게 '만드는' 기능이다. 실제 강조는
+        # header.css의 .nav-gif가 담당한다.
+        classes.append("nav-gif")
+    cls = f' class="{" ".join(classes)}"' if classes else ""
+    elid = id_m if mobile else id_d
+    id_attr = f' id="{elid}"' if elid else ""
+    # noopener 는 새 창이 window.opener로 원래 탭을 건드리지 못하게 막고,
+    # 브라우저가 두 탭을 다른 프로세스로 띄우게 한다. noreferrer 는 뺐다 —
+    # 같은 사이트 안이라 감출 것이 없고, 구글 전면 광고는 '같은 사이트의
+    # 페이지를 새 탭으로 열었을 때'도 띄우는데 출처를 지우면 그걸 못 알아본다.
+    target = ' target="_blank" rel="noopener"' if key in _NEW_WINDOW else ""
+    onclick = ""
+    if mobile and key == "notice":
+        onclick = f' onclick="{_JS_CLOSE}"'
+    return f'{indent}<a href="{href}"{id_attr}{cls}{target}{onclick}>{label}</a>'
+
+
 def _nav_links(active: str, indent: str, mobile: bool) -> str:
-    lines = []
-    for key, href, label, id_d, id_m in NAV_ITEMS:
-        # 클래스는 여러 개가 붙을 수 있으므로 목록으로 모아 한 번에 쓴다.
-        # 예전처럼 'active' 하나만 문자열로 박아두면 다른 표식을 붙일 때
-        # class 속성이 두 개 생겨 뒤엣것이 무시된다.
-        classes = []
-        if key == active:
-            classes.append("active")
-        if key == "gif":
-            # GIF 생성기는 메뉴에서 유일하게 '만드는' 기능이다.
-            # 나머지 항목(소개·공지·FAQ)은 읽는 페이지라, 같은 무게로 두면 묻힌다.
-            # 실제 강조는 header.css의 .nav-gif가 담당한다.
-            classes.append("nav-gif")
-        cls = f' class="{" ".join(classes)}"' if classes else ""
-        elid = id_m if mobile else id_d
-        id_attr = f' id="{elid}"' if elid else ""
-        # GIF 생성기와 조합 찾기는 새 창으로 연다. 둘 다 화면에서 뭔가를
-        # 맞춰 가는 자리라, 보던 페이지를 덮으면 뒤로 가기로 돌아왔을 때
-        # 맞춰 두었던 것이 사라진다.
-        # noopener 는 새 창이 window.opener로 원래 탭을 건드리지 못하게 막고,
-        # 브라우저가 두 탭을 다른 프로세스로 띄우게 한다. noreferrer 는 뺐다 —
-        # 같은 사이트 안이라 감출 것이 없고, 구글 전면 광고는 '같은 사이트의
-        # 페이지를 새 탭으로 열었을 때'도 띄우는데 출처를 지우면 그걸 못 알아본다.
-        target = (' target="_blank" rel="noopener"'
-                  if key in ("gif", "fontpair") else "")
-        onclick = ""
-        if mobile and key == "notice":
-            onclick = f' onclick="{_JS_CLOSE}"'
-        lines.append(f'{indent}<a href="{href}"{id_attr}{cls}{target}{onclick}>{label}</a>')
+    lines = [_nav_link(it, active, indent, mobile) for it in NAV_ITEMS]
+    if mobile:
+        # 모바일은 접을 자리가 없다 — About 안의 것도 같은 높이로 늘어놓는다.
+        lines += [_nav_link(it, active, indent, True) for it in ABOUT_ITEMS]
+        return "\n".join(lines)
+    # 데스크톱 About ▾ — 마우스를 올리면 펼쳐진다(header.css .nav-dd).
+    # 부모 글자는 /about 으로 가는 진짜 링크라 키보드·크롤러도 막히지 않는다.
+    on = ' class="active"' if active in ABOUT_KEYS else ""
+    sub = "\n".join(_nav_link(it, active, indent + "    ", False) for it in ABOUT_ITEMS)
+    caret = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+             'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+             '<path d="M6 9l6 6 6-6"/></svg>')
+    lines.append(f'{indent}<div class="nav-dd">')
+    lines.append(f'{indent}  <a href="/about"{on}>About{caret}</a>')
+    lines.append(f'{indent}  <div class="nav-dd-menu">')
+    lines.append(sub)
+    lines.append(f'{indent}  </div>')
+    lines.append(f'{indent}</div>')
     return "\n".join(lines)
 
 
@@ -127,13 +151,15 @@ def _search_script() -> str:
   if(!el) return;
   el.addEventListener('keydown', function(e){
     if(e.key !== 'Enter') return;
-    // 홈은 페이지 안에서 바로 걸러내는 자체 구현(applySearch)이 있다.
-    // 그쪽이 있으면 넘긴다 — 여기서 또 이동시키면 화면이 두 번 움직인다.
+    // 전체 폰트 페이지(/fonts)는 페이지 안에서 바로 걸러내는 자체 구현(applySearch)이
+    // 있다. 그쪽이 있으면 넘긴다 — 여기서 또 이동시키면 화면이 두 번 움직인다.
+    // 나머지 페이지에서는 /fonts 로 옮겨 가서 거른다(2026-09-22, 갤러리가 홈에서
+    // /fonts 로 이사).
     if(typeof window.applySearch === 'function') return;
     var q = (el.value || '').trim();
     if(!q) return;
     e.preventDefault();
-    location.href = '/#search/' + encodeURIComponent(q);
+    location.href = '/fonts#search/' + encodeURIComponent(q);
   });
 })();
 
