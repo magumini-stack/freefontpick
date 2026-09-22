@@ -215,6 +215,16 @@ def _load_weight_manifests() -> dict:
     return merged
 
 
+def _bump_content_cache() -> None:
+    """파일 교체·삭제는 DB 커밋 없이도 목록(has_file·file_version)을 바꾼다.
+    읽기 캐시(app/content_cache.py)가 모르는 변화라 여기서 직접 알린다."""
+    try:
+        from .. import content_cache
+        content_cache.bump()
+    except Exception:
+        pass
+
+
 def build_font_resolution(db) -> dict:
     from ..models import Font as _Font
 
@@ -464,6 +474,7 @@ async def upload_font_file(
     # 이 폰트는 이제 '어드민 업로드'가 된다. 이후 /file 응답이 재검증 헤더로
     # 나가야 교체가 즉시 반영되므로, 여기서 반드시 갱신해 둔다.
     FONT_RESOLUTION[font_id] = (str(out_path), "user")
+    _bump_content_cache()
 
     size = len(content)
     msg = f"업로드 완료 (woff2 원본 그대로 저장: {size // 1024}KB)"
@@ -707,6 +718,7 @@ def _pick_font_file(font_id: int, weight: int = 0):
     p = font_path(font_id)
     if p.exists():
         FONT_RESOLUTION[font_id] = (str(p), "user")
+        _bump_content_cache()
         # 방금 'user'로 밝혀졌으므로 재검증 헤더로 내린다
         return p, _CACHE_REVALIDATE
     bp = bundled_font_path(font_id)
@@ -962,6 +974,7 @@ def delete_font_file(
         p.unlink()
         _forget_metrics(font)       # 이제 다른 파일(번들·웹폰트)이 그려진다
     FONT_RESOLUTION.pop(font_id, None)
+    _bump_content_cache()
     if not bundled_font_path(font_id).exists():
         font.has_file = False
     db.commit()

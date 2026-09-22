@@ -22,6 +22,8 @@ from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
 from starlette.middleware.sessions import SessionMiddleware
 
 from .compress import SelectiveGZipMiddleware
+from . import content_cache
+from .database import SessionLocal as _SessionLocal
 from .header import inject_header, not_found_page
 from .seed import init_db
 from .site import SITE_URL
@@ -124,6 +126,14 @@ app.add_middleware(
 #   - /api/fonts/{id}/webfont.css  : 외부용 웹폰트 CSS. 홍보물·프레스킷이 매번
 #     새로 받을 이유가 없고, 라우터가 직접 max-age=300을 지정한다.
 _CACHE_EXEMPT_SUFFIXES = ("/og-image.png", "/file", "/sample-image", "/webfont.css")
+# 판이 주소에 박힌 폰트 파일(/api/fonts/58/file/300.v1788317704.p.woff2)은 files.py 가
+# 1년 immutable 로 내린다. 그런데 이 미들웨어가 /api/ 라는 이유로 no-store 로
+# 덮어써서, 방문할 때마다 폰트 수백 개를 다시 받고 있었다(2026-09-22 실측 —
+# 홈 48개·전체 폰트 296개 파일이 매번 새로 내려갔다). 경로에 /file/ 이 있으면 손대지 않는다.
+_CACHE_EXEMPT_PARTS = ("/file/", "/webfont/", "/piece/")
+
+# 읽기 캐시(app/content_cache.py) — 내용 표에 커밋이 나면 캐시가 낡는다.
+content_cache.install(_SessionLocal)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -388,7 +398,8 @@ async def stamp_static_assets(request: Request, call_next):
 async def no_store_for_api(request: Request, call_next):
     response = await call_next(request)
     path = request.url.path
-    if path.startswith("/api/") and not path.endswith(_CACHE_EXEMPT_SUFFIXES):
+    if (path.startswith("/api/") and not path.endswith(_CACHE_EXEMPT_SUFFIXES)
+            and not any(part in path for part in _CACHE_EXEMPT_PARTS)):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"

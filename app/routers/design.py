@@ -26,6 +26,7 @@ from ..database import get_db
 from ..models import (Font, FontPairing, FontSubmission, SubmissionAnswer,
                       UseCase, UseCaseFont)
 from ..header import inject_header, not_found_page
+from .. import content_cache
 
 
 def _esc(s) -> str:
@@ -1026,7 +1027,10 @@ def home_page(request: Request, db: Session = Depends(get_db)):
     html = inject_header(html, "home", anchor=True)   # 하단 앵커 광고 — 홈·전체 폰트·상세
     # 2026-09-22 메인 개편: 본문은 용도별 추천 4종 섹션(서버 렌더). 옛 갤러리와
     # 숨긴 목록(_home_ssr_block)은 /fonts 로 갔다.
-    sections = _home_sections_data(db)
+    # 섹션 자료는 순수 dict 라 캐시해도 세션과 무관하다. 폰트·용도를 고치면
+    # 판이 올라 바로 새로 만들고, 인기 배지(조회수 기반)는 5분 안에 따라온다.
+    sections = content_cache.get("home:sections", ttl=300,
+                                 build=lambda: _home_sections_data(db))
     html = html.replace("{{FFP_HOME_SECTIONS}}", render_home_sections(sections), 1)
     html = html.replace("{{FFP_HOME_FONTS}}", home_fonts_json(sections), 1)
     return HTMLResponse(html)
@@ -1044,7 +1048,8 @@ def fonts_page(db: Session = Depends(get_db)):
     """
     html = FONTS_PAGE_PATH.read_text(encoding="utf-8")
     html = inject_header(html, "fonts", anchor=True)
-    html = html.replace("{{FFP_HOME_SSR}}", _home_ssr_block(db), 1)
+    ssr = content_cache.get("fonts:ssr", ttl=300, build=lambda: _home_ssr_block(db))
+    html = html.replace("{{FFP_HOME_SSR}}", ssr, 1)
     return HTMLResponse(html)
 
 

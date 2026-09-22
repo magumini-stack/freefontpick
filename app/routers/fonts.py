@@ -1,10 +1,12 @@
 """폰트 CRUD API"""
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from ..database import get_db
+from .. import content_cache
 from ..models import Font, Tag, FontPairing
 from ..auth import require_password_changed
 from ..license_text import full_text
@@ -222,18 +224,29 @@ def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
                목록 응답의 38% 였다. 홈 갤러리는 이 글을 쓰지 않는다
                (쓰는 것은 meta.preview_text 와 추천용 태그뿐)
     """
-    fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
-    paired = _paired_font_ids(db)
-    out = []
-    for f in fonts:
-        item = _to_out(f, paired, with_weights=bool(weights))
-        if item.meta and _META_DETAIL_ONLY & item.meta.keys():
-            # font.meta를 직접 지우면 SQLAlchemy가 변경으로 보고 DB에 반영한다.
-            # 반드시 복사본에서 뺀다.
-            item.meta = {k: v for k, v in item.meta.items()
-                         if k not in _META_DETAIL_ONLY}
-        out.append(item)
-    return out
+    # 응답을 JSON 바이트째 캐시한다(app/content_cache.py). 296종을 매번 검증·
+    # 직렬화하면 0.7~2.2초가 걸렸다(2026-09-22 실측). 어드민이 폰트·태그를
+    # 고치면 판이 올라 다음 요청이 새로 굽고, 파일만 바뀌는 경우는 TTL 이 받는다.
+    # Response 를 직접 돌려주므로 response_model 검증도 건너뛴다 — 만들 때 이미
+    # FontOut 으로 검증한 값이다.
+    def build() -> bytes:
+        import json as _json
+        from fastapi.encoders import jsonable_encoder
+        fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
+        paired = _paired_font_ids(db)
+        out = []
+        for f in fonts:
+            item = _to_out(f, paired, with_weights=bool(weights))
+            if item.meta and _META_DETAIL_ONLY & item.meta.keys():
+                # font.meta를 직접 지우면 SQLAlchemy가 변경으로 보고 DB에 반영한다.
+                # 반드시 복사본에서 뺀다.
+                item.meta = {k: v for k, v in item.meta.items()
+                             if k not in _META_DETAIL_ONLY}
+            out.append(item)
+        return _json.dumps(jsonable_encoder(out), ensure_ascii=False).encode("utf-8")
+
+    body = content_cache.get(f"fonts:list:{int(bool(weights))}", ttl=120, build=build)
+    return Response(content=body, media_type="application/json")
 
 
 # ⚠️ 아래 두 경로는 반드시 `/{font_id}` 보다 먼저 선언해야 한다.
