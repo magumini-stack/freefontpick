@@ -123,6 +123,138 @@ def _home_ssr_block(db: Session) -> str:
     return f'<div id="homeSsr">{"".join(parts)}</div>'
 
 
+# ── 새 홈 (2026-09-22 메인 개편) ───────────────────────────────────
+# 홈 본문은 '용도별 추천 4종' 섹션 12개다. 서버가 통째로 그려서 내린다.
+#
+# 왜 서버 렌더인가: 예전 홈은 빈 그리드를 JS 가 채워서 크롤러가 보는 본문이
+# 헤더·푸터뿐이었고(애드센스 리젝 사유), 그걸 메우려고 숨긴 목록(#homeSsr)을
+# 따로 심었다. 새 홈은 카드 자체를 서버가 그리므로 화면과 크롤러가 같은 것을
+# 본다. JS 는 카드에 글꼴을 입히는 일만 한다(index.html 의 짧은 스크립트).
+# 카드 자료는 <script type="application/json" id="homeFonts"> 로 함께 내린다 —
+# 12개 용도 API 를 따로 부르지 않는다.
+#
+# 카드 모양·정보(이름·종수·제작사·태그·인기 배지·견본·화살표)는 /fonts 격자
+# 보기와 같다. 견본 문구는 app/home_phrases.py.
+
+HOME_PICKS = 4   # 용도마다 카드로 보여줄 추천 수
+
+
+def _home_font_slim(f: Font) -> dict:
+    """카드에 글꼴을 입히는 데 필요한 것만. fonts.py _to_out 의 부분집합이라
+    같은 필드 이름을 쓴다(ffp-fontface.js 가 그 이름으로 읽는다)."""
+    from .fonts import _file_source, _file_version, _parse_webfont_weights
+    return {
+        "id": f.id,
+        "name": f.name,
+        "stack": f.stack or "'Nanum Gothic',sans-serif",
+        "is_english": bool(f.is_english),
+        "primary_weight": int(f.primary_weight or 400),
+        "webfont_family": f.webfont_family or None,
+        "webfont_css_url": f.webfont_css_url or None,
+        "webfont_weights": _parse_webfont_weights(f.webfont_weights),
+        "has_file": bool(f.has_file),
+        "file_source": _file_source(f.id),
+        "file_version": _file_version(f.id),
+    }
+
+
+def _home_sections_data(db: Session) -> list:
+    """홈 섹션 자료. 화면에 그릴 것만 담은 순수 dict 목록이라 렌더 함수와 분리한다
+    (미리보기 도구가 라이브 API 자료로 같은 렌더를 돌려 보기 위해서다)."""
+    from ..home_phrases import phrase_for
+    from .use_cases import _tag_fonts
+    try:
+        hubs = (db.query(UseCase).filter(UseCase.is_active.is_(True))
+                .order_by(UseCase.sort_order, UseCase.id).all())
+    except Exception:
+        return []
+    try:
+        from ..font_views import mixed_top
+        rank = {fid: i + 1 for i, fid in enumerate(mixed_top(db, days=7, limit=10))}
+    except Exception:
+        rank = {}
+    out = []
+    for uc in hubs:
+        linked = [x for x in uc.fonts if x.font is not None]
+        pick_ids = {x.font_id for x in linked}
+        tag_ids = {f.id for f in _tag_fonts(db, uc.tag_id)}
+        chips = [p.text for p in uc.phrases]
+        cards = []
+        for i, x in enumerate(linked[:HOME_PICKS], start=1):
+            f = x.font
+            own = ((getattr(f, "meta", None) or {}).get("preview_text") or "").strip()
+            is_en = bool(f.is_english)
+            # 어드민이 그 폰트에 직접 정한 문구가 있으면 그것(갤러리와 같은 규칙).
+            # 단 영문 전용 폰트에 한글 문구면 깨지므로 거른다.
+            if own and not (is_en and re.search(r"[가-힣]", own)):
+                text = own
+            else:
+                text = phrase_for(uc.slug, i, is_en, chips)
+            cards.append({
+                "font": _home_font_slim(f),
+                "maker": f.maker or "",
+                "weights": f.weights or "1종",
+                "tags": [t.name for t in f.tags],
+                "rank": rank.get(f.id),
+                "text": text,
+            })
+        out.append({
+            "slug": uc.slug, "title": uc.title, "subtitle": uc.subtitle or "",
+            "count": len(pick_ids | tag_ids), "cards": cards,
+        })
+    return out
+
+
+def render_home_sections(sections: list) -> str:
+    """섹션 자료 → 홈 본문 HTML. 카드 마크업은 fonts.html 격자 보기와 같은 이름을 쓴다."""
+    if not sections:
+        return ""
+    chips = "".join(
+        f'<a class="use-chip" href="#use-{_esc(s["slug"])}">{_esc(s["title"])}</a>'
+        for s in sections)
+    html = [
+        '<div class="use-bar" id="useBar" role="navigation" aria-label="쓰는 자리로 이동">'
+        '<span class="use-bar-label">쓰는 자리</span>'
+        f'<div class="use-bar-scroll">{chips}</div></div>',
+        # 광고 — 쓰는 자리 바 바로 아래 가로 띠(2026-09-22 사용자가 정한 자리).
+        # 슬롯은 갤러리용 번호를 그대로 쓴다. 광고가 안 오면 header.css 가 칸째 접는다.
+        '<div class="ffp-ad home-ad" data-ad-key="gallery" data-ad-format="horizontal">'
+        '<span class="ffp-ad-lbl">광고</span></div>',
+    ]
+    for s in sections:
+        cards = []
+        for c in s["cards"]:
+            f = c["font"]
+            rank = (f'<span class="font-tag rank" title="요즘 많이 보는 폰트 {c["rank"]}위">인기 {c["rank"]}</span>'
+                    if c.get("rank") else "")
+            tags = "".join(f'<span class="font-tag">{_esc(t)}</span>' for t in c["tags"])
+            text = "<br>".join(_esc(p) for p in c["text"].split("|"))
+            cards.append(
+                f'<a class="font-card" href="/font/{f["id"]}" data-font-id="{f["id"]}">'
+                '<div class="font-meta"><div>'
+                f'<div class="font-line1">{rank}<span class="font-name">{_esc(f["name"])}</span>'
+                f'<span class="font-weights">{_esc(c["weights"])}</span></div>'
+                f'<div class="font-line2"><span class="font-maker">{_esc(c["maker"])}</span>{tags}</div>'
+                '</div></div>'
+                f'<div class="font-preview"><div class="font-preview-text" data-english="{1 if f["is_english"] else 0}">{text}</div></div>'
+                '<div class="font-actions"><span class="btn-download" aria-hidden="true">'
+                '<svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/></svg>'
+                '</span></div></a>')
+        sub = f'<p>{_esc(s["subtitle"])}</p>' if s["subtitle"] else ""
+        html.append(
+            f'<section class="use-sec" id="use-{_esc(s["slug"])}">'
+            f'<div class="use-head"><div><h2>{_esc(s["title"])}</h2>{sub}</div>'
+            f'<a class="more" href="/use/{_esc(s["slug"])}">{s["count"]}종 전체 보기 →</a></div>'
+            f'<div class="font-grid">{"".join(cards)}</div></section>')
+    return "".join(html)
+
+
+def home_fonts_json(sections: list) -> str:
+    fonts = [c["font"] for s in sections for c in s["cards"]]
+    # </script> 가 자료 안에 있으면 스크립트가 끊긴다 — 부등호를 이스케이프한다.
+    return _json.dumps(fonts, ensure_ascii=False).replace("<", "\\u003c")
+
+
 
 
 def _design_page_meta(font: Font) -> dict:
@@ -891,8 +1023,12 @@ def home_page(request: Request, db: Session = Depends(get_db)):
         return response
 
     html = _load_index()
-    html = inject_header(html, "home", anchor=True)   # 하단 앵커 광고 — 홈과 상세페이지만
-    html = html.replace("{{FFP_HOME_SSR}}", _home_ssr_block(db), 1)
+    html = inject_header(html, "home", anchor=True)   # 하단 앵커 광고 — 홈·전체 폰트·상세
+    # 2026-09-22 메인 개편: 본문은 용도별 추천 4종 섹션(서버 렌더). 옛 갤러리와
+    # 숨긴 목록(_home_ssr_block)은 /fonts 로 갔다.
+    sections = _home_sections_data(db)
+    html = html.replace("{{FFP_HOME_SECTIONS}}", render_home_sections(sections), 1)
+    html = html.replace("{{FFP_HOME_FONTS}}", home_fonts_json(sections), 1)
     return HTMLResponse(html)
 
 
