@@ -37,6 +37,7 @@ router = APIRouter(tags=["design"])
 
 STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
 INDEX_PATH = STATIC_DIR / "index.html"
+FONTS_PAGE_PATH = STATIC_DIR / "fonts.html"   # 전체 무료폰트 보기 (/fonts, 2026-09-22)
 FONT_PAGE_PATH = STATIC_DIR / "font.html"
 FIND_FONT_PATH = STATIC_DIR / "find-font.html"
 
@@ -110,8 +111,10 @@ def _home_ssr_block(db: Session) -> str:
             if f.maker:
                 line += f" · {_esc(f.maker)}"
             rows.append(line + "</li>")
+        # 제목에 총수를 넣지 않는다 — 화면 어디에도 전체 폰트 수를 쓰지 않기로
+        # 했다(2026-09-22). 용도별 개수는 괜찮다.
         parts.append(
-            f"<section><h2>무료폰트 {len(fonts)}종</h2>"
+            "<section><h2>전체 무료폰트</h2>"
             "<ul>" + "".join(rows) + "</ul></section>"
         )
 
@@ -889,6 +892,22 @@ def home_page(request: Request, db: Session = Depends(get_db)):
 
     html = _load_index()
     html = inject_header(html, "home", anchor=True)   # 하단 앵커 광고 — 홈과 상세페이지만
+    html = html.replace("{{FFP_HOME_SSR}}", _home_ssr_block(db), 1)
+    return HTMLResponse(html)
+
+
+@router.get("/fonts", response_class=HTMLResponse)
+def fonts_page(db: Session = Depends(get_db)):
+    """전체 무료폰트 보기 — static/fonts.html (2026-09-22 메인 개편으로 홈에서 분리)
+
+    옛 홈의 갤러리(태그 필터·한 줄/격자 보기·검색·첫 칸 광고)가 통째로 이리
+    옮겨 왔고, 홈은 용도별 추천으로 바뀌었다. 서버가 채우는 목록(용도 링크 +
+    전체 폰트)도 이 페이지의 본문이다 — 같은 목록이 홈에도 실리면 중복 콘텐츠다.
+
+    하단 앵커 광고는 갤러리를 따라온다(홈·상세와 같은 anchor=True).
+    """
+    html = FONTS_PAGE_PATH.read_text(encoding="utf-8")
+    html = inject_header(html, "fonts", anchor=True)
     html = html.replace("{{FFP_HOME_SSR}}", _home_ssr_block(db), 1)
     return HTMLResponse(html)
 

@@ -1,0 +1,3255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <script>
+    (function(){
+      try{
+        var t = localStorage.getItem('ffp-theme');
+        if(t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+        if(localStorage.getItem('ffp-hero-collapsed') === '1') document.documentElement.setAttribute('data-hero-collapsed', '1');
+      }catch(e){}
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>전체 무료폰트 보기 - 상업용 무료 한글폰트 | 폰트픽</title>
+  <link rel="stylesheet" href="/header.css">
+
+  <!-- 구글 태그(gtag.js)는 app/header.py가 헤더 마커 자리에 함께 넣는다.
+       여기 직접 적어두면 페이지마다 빠뜨리게 되고(실제로 /gif·/use가 그랬다),
+       양쪽에 두면 조회수가 두 번 잡힌다. -->
+
+  <!-- ── 기본 SEO ── -->
+  <meta name="description" content="폰트픽이 고른 상업용 무료 한글폰트를 한 화면에서 훑어보세요. 모양별 카테고리로 거르고, 원하는 문구를 입력해 모든 폰트에 바로 적용해 볼 수 있습니다.">
+  <meta name="keywords" content="무료폰트, 한글폰트, 상업용폰트, 무료한글폰트, 폰트추천, 디자인폰트, 카페폰트, 유튜브폰트, 브랜드폰트, 캘리그라피, 폰트 조합, 폰트 페어링, 제목 본문 폰트, 텍스트 디자인, 글자 디자인, 글씨 꾸미기, 타이포그래피, 썸네일 글씨, 투명배경 글자 PNG, 텍스트 효과">
+  <meta name="author" content="(주)와이즈폰트">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <!-- 검색엔진별 크롤링 허용 -->
+  <meta name="googlebot" content="index, follow, max-image-preview:large">
+  <meta name="yeti" content="index, follow">
+  <meta name="daumoa" content="index, follow">
+  <meta name="bingbot" content="index, follow">
+  <meta name="theme-color" content="#1E3A8A">
+  <meta name="google-site-verification" content="GWfxCqlFA6zzRtxxiGlxanuesad8mnU76VYEe1-JQ5I" />
+  <!-- 소유확인 토큰은 사이트(주소)마다 따로 발급된다. 도메인을 옮기면서
+       두 주소를 한동안 같이 두므로 둘 다 남긴다. 위가 freefontpick.co.kr,
+       아래가 freefontpick.tdtd.io 다. 서로 간섭하지 않는다 —
+       각자 자기 토큰만 찾아 읽는다.
+       하나 지우면 그 주소의 소유확인이 풀리므로, 옛 주소를 완전히 접기 전에는
+       그대로 둔다. -->
+  <meta name="naver-site-verification" content="9ba8766e4f703330b05f34778c1a7edfaf98c466" />
+  <meta name="naver-site-verification" content="c26c8d49a4c6af77465fcd858c71a6eda7dff9a0" />
+  <meta name="naver-site-verification" content="9a11ab95f8071f98e4986c3db199cbace41f648d" />
+  <link rel="canonical" href="{{FFP_ORIGIN}}/fonts">
+
+  <!-- ── Open Graph (카카오톡, 페이스북) ── -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="폰트픽">
+  <meta property="og:title" content="전체 무료폰트 보기 | 폰트픽">
+  <meta property="og:description" content="전문가 추천 무료폰트를 다운로드하고, 제목·본문에 어울리는 폰트 조합까지 한 번에 찾으세요.">
+  <meta property="og:url" content="{{FFP_ORIGIN}}/fonts">
+  <meta property="og:image" content="{{FFP_ORIGIN}}/og-image-v3.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="폰트픽-무료폰트 큐레이션 및 폰트 조합 찾기">
+  <meta property="og:locale" content="ko_KR">
+
+  <!-- ── Twitter Card ── -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="전체 무료폰트 보기 | 폰트픽">
+  <meta name="twitter:description" content="전문가 추천 무료폰트를 다운로드하고, 제목·본문에 어울리는 폰트 조합까지 한 번에 찾으세요.">
+  <meta name="twitter:image" content="{{FFP_ORIGIN}}/og-image-v3.png">
+
+  <!-- ── 구조화 데이터 (JSON-LD) ── -->
+  <!-- WebSite·Organization 구조화 데이터는 홈(index.html)에만 둔다. 여기 또 두면 같은 사이트가 두 번 선언된다. -->
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+  <!-- Tabler Icons — 여러 CDN을 미러링해서 하나가 실패해도 다른 것 사용 -->
+  <link rel="stylesheet" href="/ti-icons.css">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#FFFFFF;--bg-card:#fff;--bg-secondary:#F5F5F3;
+      --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+      --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+      --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
+      --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+      --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
+      --status-allow-bg:#E8F7EE;--status-allow-fg:#1A8A3A;
+      --status-deny-bg:#FDECEC;--status-deny-fg:#C8281F;
+      --status-reviewed-bg:#FFF4E0;--status-reviewed-fg:#B8790A;
+      --status-added-bg:#E8F7EE;--status-added-fg:#1A8A3A;
+      --ofl-grad-a:#F4F7FD;--ofl-border:#CBD8F2;
+      color-scheme:light;
+    }
+    :root[data-theme="dark"]{
+      --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+      --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+      --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+      --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+      --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+      --status-allow-bg:#0F2A18;--status-allow-fg:#5FCB85;
+      --status-deny-bg:#2A0F0E;--status-deny-fg:#FF7873;
+      --status-reviewed-bg:#2E2410;--status-reviewed-fg:#E0AC4D;
+      --status-added-bg:#0F2A18;--status-added-fg:#5FCB85;
+      --ofl-grad-a:#151B2B;--ofl-border:#243357;
+      color-scheme:dark;
+    }
+    @media(prefers-color-scheme:dark){
+      :root:not([data-theme="light"]):not([data-theme="dark"]){
+        --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+        --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+        --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+        --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+        --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+        --status-allow-bg:#0F2A18;--status-allow-fg:#5FCB85;
+        --status-deny-bg:#2A0F0E;--status-deny-fg:#FF7873;
+        --status-reviewed-bg:#2E2410;--status-reviewed-fg:#E0AC4D;
+        --status-added-bg:#0F2A18;--status-added-fg:#5FCB85;
+        --ofl-grad-a:#151B2B;--ofl-border:#243357;
+        color-scheme:dark;
+      }
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;line-height:1.6}
+
+    /* HERO */
+    /* 아래 여백이 곧 '제목과 용도 그리드 사이'다. 서브 문구를 지우면서
+       57px → 24px 로 붙어 버렸고, 높이는 줄었는데 되레 빡빡해 보였다.
+       글을 다시 넣는 대신 여백으로 그 자리를 지킨다. */
+    .hero{max-width:1400px;margin:0 auto;padding:36px 32px 42px}
+    /* 페이지 제목 — 목록 위 한 줄 */
+    .page-title{max-width:1400px;margin:0 auto;padding:26px 32px 14px;font-size:20px;font-weight:800;
+      letter-spacing:-.5px;color:var(--text-primary)}
+    @media(max-width:768px){.page-title{padding:20px 16px 12px;font-size:18px}}
+    /* ── 미리 써보기 바 (상세페이지 .preview-bar 와 같은 옷) ── */
+    .preview-bar{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;
+      padding:13px 18px;display:flex;align-items:center;gap:12px;margin:0 0 14px}
+    .preview-label{font-size:12px;color:var(--text-muted);white-space:nowrap;display:flex;align-items:center;gap:5px}
+    .preview-label svg{width:14px;height:14px;display:block}
+    .preview-input{flex:1;border:none;outline:none;font-family:inherit;font-size:15px;
+      background:transparent;color:var(--text-primary);min-width:0}
+    .preview-input::placeholder{color:var(--text-muted)}
+    .preview-roll{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+      width:28px;height:28px;padding:0;border:none;background:none;border-radius:4px;
+      color:var(--text-muted);cursor:pointer;transition:color .15s,background .15s}
+    .preview-roll:hover{color:var(--accent);background:var(--accent-light)}
+    .preview-roll svg{width:16px;height:16px;display:block}
+    .preview-roll.spin svg{animation:ffpRoll .45s ease}
+    @keyframes ffpRoll{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+    .preview-divider{width:1px;height:20px;background:var(--border);flex-shrink:0}
+    .size-wrap{display:flex;align-items:center;gap:7px;flex-shrink:0}
+    .size-wrap label{font-size:12px;color:var(--text-muted)}
+    .size-wrap input[type=range]{width:110px;accent-color:var(--accent);cursor:pointer}
+    .size-val{font-size:12px;color:var(--text-secondary);min-width:36px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+    @media(max-width:560px){
+      .preview-bar{padding:11px 13px;gap:9px}
+      .preview-label,.preview-divider{display:none}
+      .size-wrap input[type=range]{width:80px}
+    }
+    .hero-kicker{font-size:13px;color:var(--accent);font-weight:700;margin-bottom:16px}
+    /* 히어로 타이틀은 본문과 같은 고딕(Noto Sans KR)을 그대로 쓴다.
+       v7 시안은 명조였지만, 사이트 전체가 고딕이라 여기만 세리프면 겉돈다. */
+    .hero-title{font-size:clamp(21px,3.1vw,32px);font-weight:800;color:var(--text-primary);line-height:1.32;letter-spacing:-.8px;word-break:keep-all}
+    .hero-title em{font-style:normal;box-shadow:inset 0 -.3em 0 var(--accent-light)}
+
+    /* ── 용도 그리드 ("어디에 쓰실 건가요?") ──
+       각 칸은 /use/{slug} 허브 페이지로 가는 진짜 링크다.
+       홈에서 브리핑까지 펼치면 허브 페이지와 같은 화면이 두 벌 생기므로,
+       홈은 진입만 만들고 답은 허브 페이지가 한다. */
+    .use-section{max-width:1400px;margin:0 auto;padding:0 32px 26px}
+    /* 6열 × 2줄 = 12칸 고정.
+       격자선은 gap 1px 사이로 배경색이 비쳐 만들어진다. 그래서 마지막 줄에
+       빈칸이 생기면 그 자리에 회색 배경이 그대로 드러나 '깨진 표'처럼 보인다.
+       렌더 단계에서 .use-fill 로 부족분을 메운다(아래 fillCells). */
+    .use-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);
+      border:1px solid var(--border)}
+    .use-fill{background:var(--bg-card)}
+    @media(max-width:1080px){.use-grid{grid-template-columns:repeat(4,1fr)}}
+    @media(max-width:820px){.use-grid{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:520px){.use-grid{grid-template-columns:repeat(2,1fr)}}
+    .use-cell{background:var(--bg-card);padding:15px 15px 14px;cursor:pointer;text-decoration:none;
+      display:block;min-width:0;transition:background .15s}
+    .use-cell:hover{background:var(--accent-light)}
+    .use-nm{font-size:18px;font-weight:700;letter-spacing:-.035em;line-height:1.25;color:var(--text-primary);
+      display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    @media(max-width:520px){.use-nm{font-size:15.5px}.use-cell{padding:12px 12px 11px}}
+
+    /* LICENSE BUTTON */
+    .btn-license{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+    .btn-license:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .btn-license i{font-size:14px}
+
+    /* LICENSE MODAL */
+
+    .license-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;backdrop-filter:blur(4px)}
+    .license-overlay.open{display:flex;animation:fadeIn .2s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .license-modal{background:var(--bg-card);border-radius:20px;max-width:680px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideUp .25s ease}
+    @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .license-head{padding:28px 28px 20px;background:linear-gradient(135deg,var(--accent-light) 0%,var(--bg-card) 100%);border-bottom:1px solid var(--border);position:relative}
+    .license-head-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--accent);background:var(--bg-card);padding:4px 10px;border-radius:20px;margin-bottom:10px;border:1px solid var(--accent-light);letter-spacing:.5px}
+    .license-head h2{font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-.5px;margin-bottom:4px}
+    .license-head p{font-size:13px;color:var(--text-secondary);line-height:1.5}
+    .license-close{position:absolute;top:20px;right:20px;width:34px;height:34px;border-radius:50%;border:none;background:var(--bg-card);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    .license-close:hover{background:var(--accent);color:#fff;transform:rotate(90deg)}
+    .license-body{padding:24px 28px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .license-item{background:var(--bg-secondary);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;border:1px solid transparent;transition:border-color .15s}
+    .license-item:hover{border-color:var(--border-hover)}
+    .license-item-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .license-item-cat{display:flex;align-items:center;gap:8px}
+    .license-item-icon{width:32px;height:32px;border-radius:10px;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--accent);flex-shrink:0}
+    .license-item-name{font-size:14px;font-weight:800;color:var(--text-primary);letter-spacing:-.2px}
+    .license-status{font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap;letter-spacing:.3px}
+    .license-status.allow{background:var(--status-allow-bg);color:var(--status-allow-fg)}
+    .license-status.deny{background:var(--status-deny-bg);color:var(--status-deny-fg)}
+    .license-item-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
+    .license-item.is-ofl{background:linear-gradient(135deg,var(--ofl-grad-a) 0%,var(--bg-secondary) 100%);border-color:var(--ofl-border)}
+    .license-item.is-ofl .license-item-icon{color:var(--status-deny-fg);background:var(--status-deny-bg)}
+    .license-item.is-ofl .license-item-name{color:var(--status-deny-fg)}
+    .license-foot{padding:16px 28px 24px;border-top:1px solid var(--border);background:var(--bg-secondary)}
+    .license-foot p{font-size:11px;color:var(--text-muted);line-height:1.6;margin:0}
+    .license-foot p+p{margin-top:4px}
+    .license-foot strong{color:var(--text-secondary);font-weight:700}
+    @media(max-width:600px){
+      .license-body{grid-template-columns:1fr;padding:20px}
+      .license-head{padding:24px 24px 18px}
+      .license-head h2{font-size:19px}
+    }
+
+    /* FAQ 모달 — 아코디언 */
+    .btn-secondary{background:var(--bg-card);color:var(--text-primary);border:1.5px solid var(--border);border-radius:10px;font-weight:700;cursor:pointer;transition:border-color .15s,background-color .15s;font-family:inherit}
+    .btn-secondary:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+    .faq-modal{max-width:640px}
+    .faq-body{padding:16px 28px 8px;display:flex;flex-direction:column;gap:8px}
+    .faq-item{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg-secondary)}
+    .faq-q{
+      width:100%;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:15px 18px;
+      background:transparent;
+      border:none;
+      cursor:pointer;
+      text-align:left;
+      font-size:14.5px;
+      font-weight:700;
+      color:var(--text-primary);
+      font-family:inherit;
+      letter-spacing:-.2px;
+    }
+    .faq-q:hover{background:var(--accent-light)}
+    .faq-q-icon{flex-shrink:0;font-size:16px;color:var(--text-muted);transition:transform .2s}
+    .faq-item.open .faq-q-icon{transform:rotate(180deg);color:var(--accent)}
+    .faq-a{
+      max-height:0;
+      overflow:hidden;
+      transition:max-height .25s ease, padding .25s ease;
+      padding:0 18px;
+    }
+    .faq-item.open .faq-a{max-height:220px;padding:0 18px 16px}
+    .faq-a p{font-size:13px;line-height:1.7;color:var(--text-secondary)}
+    .faq-a strong{color:var(--text-primary);font-weight:700}
+    .faq-a u{text-decoration-color:var(--accent);text-underline-offset:2px}
+    .faq-foot{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+    .faq-notice-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;font-size:12.5px;white-space:nowrap}
+    @media(max-width:600px){
+      .faq-body{padding:14px 18px 6px}
+      .faq-q{padding:13px 14px;font-size:13.5px}
+    }
+
+    /* [제거 2026-08] 큐레이터 픽 — 마크업(#picksSection/#picksList)이 사라져서
+       .picks-* / .pick-* 스타일도 함께 지웠다. 되살리려면 git 히스토리 참고. */
+
+    /* MAIN */
+    .main{max-width:1400px;margin:0 auto;padding:14px 32px 80px}
+
+    .preview-toggle{
+      flex-shrink:0;
+      display:flex;align-items:center;gap:5px;
+      padding:6px 12px;
+      border:1px solid var(--accent);
+      background:none;
+      color:var(--accent);
+      cursor:pointer;
+      border-radius:2px;
+      font-size:13px;
+      font-weight:600;
+      font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+      transition:background-color .15s,color .15s;
+      white-space:nowrap;
+    }
+    .preview-toggle:hover{background:var(--accent-light)}
+    .preview-toggle.open{background:var(--accent-light)}
+    .preview-toggle.open svg{transform:rotate(180deg)}
+    .preview-toggle svg{transition:transform .2s;display:block;flex-shrink:0}
+    .preview-toggle-text{display:inline-block}
+    /* 프리셋 문구 선택 영역 */
+    /* 문구 목록은 인라인으로 펼치지 않고 버튼에 붙는 펼침 메뉴로 띄운다.
+       바로 아래가 갤러리라, 인라인으로 밀어내면 문구를 고르는 순간
+       결과가 화면 밖으로 나가버린다. */
+    .preview-presets{
+      display:none;
+      position:absolute;
+      top:calc(100% + 6px);
+      right:0;
+      z-index:120;
+      width:min(520px, calc(100vw - 40px));
+      max-height:min(340px, 60vh);
+      overflow-y:auto;
+      overscroll-behavior:contain;
+      background:var(--bg-card);
+      border:1px solid var(--border-hover);
+      border-radius:10px;
+      box-shadow:var(--shadow-hover);
+      padding:12px 14px 14px;
+      flex-direction:column;
+      gap:10px;
+    }
+    .preview-presets.open{display:flex}
+    .preset-menu-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
+      font-size:11.5px;color:var(--text-muted);font-weight:700}
+    .preset-menu-head button{border:none;background:none;color:var(--text-muted);cursor:pointer;
+      font-family:inherit;font-size:11.5px;font-weight:700;padding:2px 4px}
+    .preset-menu-head button:hover{color:var(--accent)}
+    .preset-tabs{display:none}
+    .preset-tab{
+      border:none;background:none;color:var(--text-secondary);
+      font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+      font-size:13px;font-weight:600;padding:5px 11px;border-radius:12px;
+      cursor:pointer;white-space:nowrap;transition:background-color .15s,color .15s;
+    }
+    .preset-tab:hover{color:var(--text-primary)}
+    .preset-tab.active{background:var(--accent-light);color:var(--accent)}
+    .preset-chip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px}
+    .preset-empty{font-size:12.5px;color:var(--text-muted);padding:8px 0}
+    .preset-chip{
+      border:1px solid var(--border);
+      background:none;
+      color:var(--text-secondary);
+      font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+      font-size:13px;
+      font-weight:500;
+      padding:8px 12px;
+      border-radius:2px;
+      cursor:pointer;
+      text-align:left;
+      transition:border-color .15s,color .15s;
+    }
+    .preset-chip:hover{border-color:var(--text-primary);color:var(--text-primary)}
+    .preset-chip.active{border-color:var(--accent);color:var(--accent);font-weight:700}
+
+    /* TAGS — 모양 카테고리 */
+    /* 헤더(position:fixed, height:60px)가 끝나는 자리에 붙인다.
+       갤러리가 아무리 길어도 필터가 화면에서 사라지지 않아야 한다.
+       z-index는 용도 레일(.hub-rail, 10)보다 크고 헤더(200)보다 작게 둔다.
+       레일은 top:124px로 이 바 바로 아래에서 시작한다 — 겹치면 레일 제목이 가린다. */
+    .tags-bar{position:sticky;top:60px;z-index:20;
+      display:flex;align-items:center;gap:10px;
+      /* 고정된 채 뒤로 카드가 지나가므로 배경은 반드시 불투명해야 한다 */
+      background:var(--bg);border-bottom:1px solid var(--border);
+      /* 고정되면 margin은 시각적으로 의미가 없어 padding으로 옮겼다 */
+      padding:10px 0;margin-bottom:14px;scroll-margin-top:60px}
+    .tags-label{font-size:13px;font-weight:700;color:var(--text-secondary);
+      letter-spacing:-.02em;flex:0 0 auto;white-space:nowrap}
+    /* 태그와 보기 버튼 사이. 태그 스크롤 오른쪽 끝이 마스크로 흐려지므로
+       이 선이 없으면 흐려진 태그가 버튼 쪽으로 흘러든 것처럼 보인다. */
+    .tags-sep{width:1px;height:18px;background:var(--border);flex:0 0 auto;margin:0 2px}
+    /* 형태 카테고리는 항상 한 줄로 둔다.
+       줄바꿈을 허용하면 태그가 늘 때마다 바 높이가 들쭉날쭉해지고,
+       고정 바라서 그 변화가 갤러리 전체를 흔든다. 대신 넘치면 가로 스크롤. */
+    .tags-scroll{display:flex;gap:4px;flex-wrap:nowrap;min-width:0;flex:1 1 auto;
+      overflow-x:auto;overscroll-behavior-x:contain;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;-ms-overflow-style:none;
+      /* 잘리는 쪽 끝을 흐리게 처리해 '더 있다'는 걸 알린다.
+         마스크를 바깥(.tags-bar)에 걸면 배경까지 투명해져 카드가 비친다. */
+      padding-bottom:2px;
+      -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);
+      mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);
+      -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+    .tags-scroll::-webkit-scrollbar{display:none}
+    .tag{font-size:13px;padding:6px 11px;border-radius:2px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;font-weight:500;flex:0 0 auto}
+    .tag:hover{border-color:var(--text-primary);color:var(--text-primary)}
+    .tag.active{color:var(--accent);border-color:var(--accent);font-weight:700;background:var(--bg-card)}
+    /* 좁은 화면에서는 라벨이 칩 자리를 너무 먹는다 */
+    @media(max-width:520px){
+      .tags-label{display:none}
+      .tags-bar{gap:0;padding:8px 0}
+      .tag{font-size:12.5px;padding:5px 10px}
+    }
+
+    /* FILTER BAR */
+
+    /* 앱 배너 아이콘 — 앱 세 개를 묶어 소개하는 자리라 특정 앱 아이콘 대신
+       글리프를 쓴다. 크기·모서리는 자리마다 아래에서 따로 정한다. */
+    .appico{display:flex;align-items:center;justify-content:center;
+      background:var(--accent);color:#fff;flex:0 0 auto}
+    .appico i{line-height:1;display:block}
+    /* GRID */
+    /* 갤러리 — 카드마다 상자를 그리지 않는다.
+       190개가 깔리면 테두리가 격자처럼 보여서 정작 폰트 형태가 안 읽힌다.
+       구분은 여백과 아래쪽 얇은 선으로만 한다. */
+    /* 카테고리를 고르면 여기로 스크롤한다(setTag → scrollBelowFilter).
+       띄우는 양은 JS가 바 높이를 실측해 계산하므로 여기선 값을 두지 않는다 —
+       두 곳에 적어두면 한쪽만 고쳐져 어긋난다. */
+    .font-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0 28px;grid-auto-flow:dense}
+    .font-card{cursor:pointer;background:none;border:none;border-bottom:1px solid var(--border);
+      border-radius:0;padding:24px 2px 20px;transition:background-color .15s;position:relative;
+      display:flex;flex-direction:column;min-width:0;animation:fadeUp .25s ease both}
+    @media(max-width:980px){ .font-grid{grid-template-columns:repeat(3,1fr)} }
+    @media(max-width:720px){ .font-grid{grid-template-columns:repeat(2,1fr);gap:0 20px} }
+    @media(max-width:460px){ .font-grid{grid-template-columns:1fr} }
+
+    /* ── 한 줄 보기 (눈누·dafont 참조) ──
+       정보는 위 한 줄에 몰고, 견본은 아래에서 전체 폭을 쓴다.
+       왼쪽에 정보 칸을 두면 그만큼 견본이 좁아지는데,
+       한글 문장은 길어서 폭이 곧 판단 근거다. */
+    .font-grid[data-view="list"]{grid-template-columns:1fr;gap:0}
+    .font-grid[data-view="list"] .font-card{flex-direction:column;align-items:stretch;gap:0;
+      padding:20px 2px 22px}
+    .font-grid[data-view="list"] .font-bottom{display:contents}
+    .font-grid[data-view="list"] .card-divider{display:none}
+
+    /* 1행 — 이름 · 제작자 · 종수 */
+    .font-grid[data-view="list"] .font-meta{order:1;display:flex;align-items:baseline;gap:10px;
+      justify-content:flex-start;margin-bottom:10px;padding-right:44px}
+    .font-grid[data-view="list"] .font-meta > div{display:flex;align-items:baseline;gap:10px;min-width:0}
+    .font-grid[data-view="list"] .font-name{font-size:14px;margin-bottom:0;flex:0 0 auto}
+    .font-grid[data-view="list"] .font-maker{flex:0 1 auto}
+    .font-grid[data-view="list"] .font-weights{flex:0 0 auto}
+    /* 목록 보기에서는 두 줄이 나란히 서므로(위 .font-meta > div) 줄 사이
+       여백이 필요 없다. 두면 이름 줄만 위로 떠 보인다. */
+    .font-grid[data-view="list"] .font-line1{margin-bottom:0}
+    .font-grid[data-view="list"] .font-line2{align-items:baseline}
+
+    /* 2행 — 견본. 전체 폭, 한 줄 말줄임 */
+    .font-grid[data-view="list"] .font-preview{order:2;margin-bottom:0;min-height:0;display:block;
+      padding-right:44px}
+    .font-grid[data-view="list"] .font-preview-text{-webkit-line-clamp:1;display:-webkit-box;
+      line-height:1.45;padding:2px 0}
+
+    @media(max-width:900px){
+      .font-grid[data-view="list"] .font-meta{padding-right:0;flex-wrap:wrap}
+      .font-grid[data-view="list"] .font-preview{padding-right:0}
+      .font-grid[data-view="list"] .font-actions{top:12px}
+      /* 한 줄 보기는 화면 폭과 무관하게 1줄 — 모바일에서도 줄바꿈하지 않는다 */
+      .font-grid[data-view="list"] .font-preview-text{-webkit-line-clamp:1}
+    }
+
+    /* ── 좌측 용도 레일 ──
+       상단 용도 그리드의 박스를 그대로 세로로 옮긴 것.
+       화면이 넓으면(1700px↑) 본문 폭 바깥으로 밀어내 갤러리가 4열을 그대로 쓴다.
+       상단 그리드가 화면에서 벗어날 때 나타난다 — 둘이 동시에 보이면
+       같은 목록이 두 번 나오는 셈이라 산만하다. */
+    .body-cols{display:grid;grid-template-columns:196px 1fr;gap:34px;align-items:start}
+    @media(min-width:1700px){
+      /* 레일 폭(196) + 간격(34) = 230 만큼 왼쪽으로 밀면
+         갤러리 왼쪽 끝이 본문 기준선과 정확히 맞는다 */
+      .body-cols{margin-left:-230px}
+    }
+    .hub-rail{position:sticky;
+      /* 헤더(fixed 60px) + 모양 필터 바(.tags-bar, 고정, 약 56px)를 지나야
+         레일 제목과 첫 칸이 안 가린다. 60 + 56 + 여백 8 = 124px.
+         헤더 높이나 필터 바 높이를 바꾸면 이 값도 같이 바꿔야 한다. */
+      top:124px;z-index:10;opacity:0;transform:translateX(-10px);pointer-events:none;
+      /* 허브가 늘어나면 레일 세로가 화면을 넘길 수 있다.
+         스티키 컬럼이 화면보다 길면 아래쪽 항목에 영영 닿지 못한다. */
+      max-height:calc(100vh - 140px);overflow-y:auto;scrollbar-width:thin;
+      transition:opacity .25s ease,transform .25s ease}
+    .hub-rail.show{opacity:1;transform:none;pointer-events:auto}
+    /* 모노 스택에는 한글 글리프가 없어 '용도별 추천'이 OS 기본 고딕으로 떨어졌다.
+       본문 서체를 그대로 쓴다. 자간 .08em도 라틴 대문자 레이블용 값이라 한글엔 과했다. */
+    .hub-rail h2{font-size:12.5px;font-weight:700;
+      color:var(--text-secondary);letter-spacing:-.02em;margin-bottom:8px;padding-left:2px}
+    .rail-boxes{display:grid;grid-template-columns:1fr;gap:1px;background:var(--border);
+      border:1px solid var(--border)}
+    .rail-cell{background:var(--bg-card);padding:11px 13px;text-decoration:none;display:block;
+      color:inherit;transition:background .15s;min-width:0}
+    .rail-cell:hover{background:var(--accent-light)}
+    .rail-nm{font-size:14px;font-weight:700;letter-spacing:-.03em;display:block;white-space:nowrap;
+      overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+    /* '12종' — 숫자는 모노, 종은 OS 고딕으로 갈라지던 자리 */
+    .rail-ct{font-size:11px;color:var(--text-muted);margin-top:3px;display:block}
+    @media(max-width:1000px){
+      .body-cols{grid-template-columns:1fr;gap:0;margin-left:0}
+      .hub-rail{display:none}
+    }
+    /* [제거 2026-09-22] 1700px↑ 4열 예외 — 격자는 이제 항상 4열이다. */
+
+    /* 보기 전환 */
+    /* 모양으로 찾기 바 오른쪽 끝. 예전에는 갤러리 위 전용 줄이었다.
+       바 높이는 그대로다 — 태그가 34px, 버튼이 30px 이라 큰 쪽이 안 바뀐다.
+       (.hub-rail{top:124px} 이 바 높이를 전제로 하므로 바뀌면 그쪽도 고쳐야 한다) */
+
+    .view-toolbar{display:flex;gap:2px;flex:0 0 auto;align-items:center}
+    .view-btn{color:var(--text-muted);background:none;border:1px solid transparent;border-radius:2px;
+      padding:6px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;
+      justify-content:center;width:30px;height:30px}
+    .view-btn:hover{color:var(--text-primary)}
+    .view-btn.on{color:var(--accent);border-color:var(--accent)}
+    .view-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+    /* 추천 카드 스타일
+       [2026-08] 왼쪽 세로선(inset box-shadow) 제거. 검색하면 결과가 추천 모드로
+       렌더되면서 모든 카드에 파란 선이 붙었는데, 그걸 설명하던 '추천 매칭' 배지는
+       이미 걷어낸 뒤라 선만 남아 정체불명의 줄로 보였다.
+       추천 모드 자체는 유지된다 — '다른 추천 N개 더 보기' 버튼이 그 역할을 한다. */
+    .recommend-more-btn{display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-size:13px;font-weight:700;color:var(--accent);background:var(--bg-card);border:1.5px dashed var(--accent);border-radius:24px;padding:12px 22px;cursor:pointer;transition:all .15s}
+    .recommend-more-btn:hover{background:var(--accent);color:#fff;border-style:solid}
+    .recommend-more-btn i{font-size:15px}
+    .recommend-more-btn small{font-weight:400;opacity:.8;font-size:11px}
+    .font-card{transition:border-color .15s}
+    .font-card:hover{border-bottom-color:var(--accent)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── 갤러리 광고 칸 (애드센스) ──
+       갤러리 첫 칸 하나 (renderFonts). 2026-09-17 사용자가 정한 자리로,
+       옛 앱 광고 카드가 있던 곳이다. 이름표·바탕은 header.css 의 .ffp-ad 가 맡는다.
+
+       격자 보기에서는 세로 두 줄을 차지한다. 광고는 300×250 이 가장 흔한데, 카드
+       한 줄(176~198px)에 넣으면 그 줄만 300px 가까이 부풀어 옆 카드 두 장이 휑해진다.
+       두 줄에 걸치면 줄 높이가 그대로다.
+       한 줄 보기에서는 가로 띠다 — 데스크톱 728×90, 휴대폰 320×100 자리이고,
+       카드 한 줄(140px / 114~134px)과 키가 비슷하다.
+
+       높이를 CSS 로 못박는다. 크기를 구글에게 맡기면(data-ad-format) 광고가 온 뒤에
+       칸 높이가 바뀌어 그 아래 카드가 통째로 밀린다.
+       좌우 여백은 0 이다. 카드처럼 2px 씩 두면 1280px 화면에서 칸이 298px 이 되어
+       300×250 광고가 못 들어온다(열 폭 302px). */
+    .ad-cell{border-bottom:1px solid var(--border);padding:16px 0 18px;
+      display:flex;flex-direction:column;justify-content:center;animation:fadeUp .25s ease both}
+    .ad-cell ins.adsbygoogle{width:100%;height:250px}
+    .font-grid[data-view="grid"] .ad-cell{grid-row:span 2}
+    .font-grid[data-view="list"] .ad-cell ins.adsbygoogle{height:90px}
+    @media(max-width:767px){
+      .font-grid[data-view="list"] .ad-cell ins.adsbygoogle{height:100px}
+    }
+
+    /* ── 격자 보기 ──
+       한 줄 보기와 같은 구도: 1행 정보, 2행 견본.
+       두 보기에서 폰트명 위치가 달라지면 토글할 때마다 시선이 위아래로 튄다.
+
+       다만 한 줄 보기처럼 '이름·제작자·종수'를 가로 한 줄에 늘어놓지는 않는다.
+       격자는 열 폭이 1/3이라 긴 폰트명이 오면 제작자가 통째로 잘린다.
+       기본 .font-meta 배치(좌: 이름+제작자 2줄 / 우: 종수)를 그대로 쓰고
+       순서만 위로 올린다. */
+    /* 카드 높이 = 위여백24 + 정보줄35 + 간격20 + 견본 2줄69 + 아래여백20 ≈ 168.
+       문구가 35자라 어떤 서체든 2줄을 넘긴다 → 클램프 2줄에 항상 걸린다.
+       즉 견본 높이가 서체와 무관하게 고정이라, 예전처럼 3줄분을 비워둘
+       필요가 없다. 176px은 최소 여유분. */
+    /* [2026-09-22] 격자 보기는 홈의 용도별 추천 카드와 같은 상자 카드다 — 옅은 테두리,
+       둥근 모서리, 4열. 마우스를 올리면 테두리만 남색으로. */
+    .font-grid[data-view="grid"]{grid-template-columns:repeat(4,1fr);gap:16px;padding-top:4px}
+    @media(max-width:1080px){.font-grid[data-view="grid"]{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:720px){.font-grid[data-view="grid"]{grid-template-columns:repeat(2,1fr);gap:10px}}
+    @media(max-width:460px){.font-grid[data-view="grid"]{grid-template-columns:1fr}}
+    .font-grid[data-view="grid"] .font-card{min-height:240px;padding:22px 34px 26px 22px;
+      border:1px solid var(--border);border-radius:12px;background:var(--bg-card)}
+    .font-grid[data-view="grid"] .font-card:hover{border-color:var(--accent)}
+    .font-grid[data-view="grid"] .font-actions{right:10px;top:12px}
+    .font-grid[data-view="grid"] .ad-cell{border:1px solid var(--border);border-radius:12px;padding:16px}
+    .font-grid[data-view="grid"] .font-preview-text{-webkit-line-clamp:3}
+    .font-grid[data-view="grid"] .font-bottom{display:contents}
+    /* 정보줄과 견본 사이 간격. 14px이면 이름에 견본이 달라붙어 한 덩어리로 읽힌다. */
+    .font-grid[data-view="grid"] .font-meta{order:1;margin-bottom:26px}
+    /* 구분선은 정보가 아래에 있을 때 견본과 갈라주던 것. 위로 올라오면
+       카드 상단을 가로지르는 줄이 되어 카드 경계선과 헷갈린다. */
+    .font-grid[data-view="grid"] .card-divider{display:none}
+    /* 견본은 남은 높이 안에서 세로 가운데 (.font-preview 기본값 align-items:center).
+       한때 위쪽 정렬로 못박았던 건 폰트마다 다른 문구를 쓰던 때의 잔재다.
+       문구를 전부 같게 바꾼 뒤로는 줄 수가 거의 같아서 가운데 정렬이 안전하고,
+       위쪽 정렬은 남는 높이를 전부 아래로 몰아 카드 밑이 비어 보인다. */
+    .font-grid[data-view="grid"] .font-preview{order:2;flex:1 1 auto;min-height:0;margin-bottom:0}
+    .font-preview{min-height:64px;display:flex;align-items:center;margin-bottom:14px}
+    .font-preview-text{color:var(--text-primary);line-height:1.32;word-break:keep-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;-webkit-user-select:none;user-select:none}
+    .card-divider{height:1px;background:var(--border);margin-bottom:12px}
+    .font-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;min-width:0}
+    /* 두 줄로 읽는다 — 윗줄은 폰트 자체(이름·종수), 아랫줄은 그 폰트에 붙는 것
+       (배포처·태그·순위). 순위는 늘 맨 오른쪽이다. */
+    .font-line1{display:flex;align-items:center;gap:6px;min-width:0;margin-bottom:3px}
+    /* 태그가 최대 네 개라 한 줄에 다 안 들어간다. 넘치면 다음 줄로 내린다 —
+       잘라내면 그 폰트가 어디에 쓰이는지가 사라진다. */
+    .font-line2{display:flex;align-items:center;gap:6px;row-gap:4px;min-width:0;flex-wrap:wrap}
+    .font-name{font-size:13.5px;font-weight:700;color:var(--text-primary);letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+    .font-maker{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+    .font-weights{font-size:11px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+    /* 종수 옆 태그. 이름·제작사와 같은 줄에 서므로 아주 얇은 테두리만 두고
+       배경은 주지 않는다 — 칠을 넣으면 그쪽이 먼저 읽혀 폰트 이름이 밀린다.
+
+       하나만 보여준다. 3열 격자에서 카드가 379px인데 태그가 '유튜브 썸네일 추천'
+       처럼 10자까지 있어, 두 개를 넣으면 폰트 이름 자리가 안 남는다.
+       나머지 태그는 title에 담아 올려두면 보이게 한다. */
+    .font-tag{font-size:10px;line-height:1;color:var(--text-muted);
+              border:1px solid var(--border);border-radius:3px;padding:3px 6px;
+              white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:112px}
+    /* 인기 순위는 맨 오른쪽에, 태그와 같은 칩 모양으로 색만 다르게.
+       태그와 나란히 서므로 생김새까지 같으면 구별이 안 된다.
+       줄어들지 않게 고정한다 — 줄면 '인기 10'이 '인기 1…'로 잘린다. */
+    .font-tag.rank{color:var(--accent);border-color:var(--accent);font-weight:700;
+                   flex:none;max-width:none}
+
+    /* 자세히 보기 — 카드 오른쪽 위 모서리에 아이콘만.
+       텍스트 링크를 190행에 반복하면 견본보다 그게 먼저 보인다. */
+    .font-actions{position:absolute;right:0;top:14px;margin:0;padding:0;width:auto}
+    .btn-download{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;
+      color:var(--text-muted);background:none;border:none;border-radius:2px;padding:0;cursor:pointer;
+      text-decoration:none;flex:0 0 auto;transition:color .15s,background .15s}
+    .btn-download svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;
+      stroke-linecap:round;stroke-linejoin:round}
+    .font-card:hover .btn-download{color:var(--accent);background:var(--accent-light)}
+    .btn-download i{font-size:12px}
+
+    /* NO RESULTS */
+    .no-results{grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-muted)}
+    .no-results i{font-size:40px;display:block;margin-bottom:12px}
+    .no-results p{font-size:15px;margin-bottom:6px;color:var(--text-secondary)}
+
+    /* FOOTER */
+    /* NOTICE VIEW */
+    .notice-hero{max-width:1400px;margin:0 auto;padding:44px 32px 28px;text-align:center}
+    .notice-hero-sub{font-size:14px;color:var(--text-secondary)}
+    .notice-list{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-card)}
+    .notice-row{display:flex;align-items:center;gap:14px;padding:18px 22px;border-top:1px solid var(--border);cursor:pointer;transition:background .15s;text-decoration:none;color:inherit}
+    .notice-row:first-child{border-top:none}
+    .notice-row:hover{background:var(--bg-secondary)}
+    .notice-pin{width:24px;height:24px;border-radius:6px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+    .notice-pin.empty{visibility:hidden}
+    .notice-row-content{flex:1;min-width:0}
+    .notice-row-title{font-size:14px;font-weight:700;color:var(--text-primary);letter-spacing:-.2px;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+    .notice-row-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:var(--accent-light);color:var(--accent);letter-spacing:.3px;flex-shrink:0}
+    .notice-row-date{font-size:12px;color:var(--text-muted)}
+    .notice-row i.chevron{color:var(--text-muted);font-size:18px;flex-shrink:0}
+    .notice-empty{padding:80px 20px;text-align:center;color:var(--text-muted)}
+    .notice-empty i{font-size:40px;display:block;margin-bottom:10px}
+
+    .notice-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text-secondary);background:transparent;border:none;cursor:pointer;padding:6px 0;margin-bottom:16px;font-family:inherit;transition:color .15s}
+    .notice-back:hover{color:var(--accent)}
+    .notice-detail{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px 32px 36px;box-shadow:var(--shadow-card)}
+    .notice-detail-head{padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:24px}
+    .notice-detail-head h2{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--text-primary);line-height:1.4;margin-bottom:10px}
+    .notice-detail-meta{font-size:12px;color:var(--text-muted);display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+    .notice-detail-meta .pin{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-weight:700}
+    .notice-detail-body{font-size:14px;line-height:1.8;color:var(--text-primary);word-break:break-word}
+    .notice-detail-body p{margin-bottom:1em}
+    .notice-detail-body p:last-child{margin-bottom:0}
+    .notice-detail-body strong,.notice-detail-body b{font-weight:800;color:var(--text-primary)}
+    .notice-detail-body a{color:var(--accent);text-decoration:underline}
+
+    @media(max-width:640px){
+      .notice-hero{padding:28px 16px 20px}
+      .notice-row{padding:16px 16px;gap:10px}
+      .notice-detail{padding:24px 20px}
+      .notice-detail-head h2{font-size:18px}
+    }
+
+    /* [이동 2026-09-22] 폰트 찾기 게시판 CSS 는 static/find-font.html 로 옮겼다. */
+
+
+    /* SCROLL TOP */
+    /* 하단 앵커 광고가 떠 있으면 그 위로 올라간다(--ffp-anchor-h, app/header.py). */
+    .scroll-top{position:fixed;bottom:calc(28px + var(--ffp-anchor-h, 0px));right:28px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(30,58,138,.4);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s,bottom .2s;z-index:300}
+    .scroll-top.visible{opacity:1;transform:translateY(0)}
+    .scroll-top:hover{background:var(--accent-hover)}
+
+    @media(max-width:768px){
+      nav{display:none}
+      .hamburger-btn{display:flex}
+      .btn-subscribe{display:none}
+      .header-inner .search-wrap{margin-left:12px;flex:1}
+      .header-inner .search-wrap input{width:100%}
+      .header-inner .search-wrap input:focus{width:100%}
+      .hero{padding:30px 16px 34px}.hero-title{font-size:22px}
+      .use-section{padding:0 16px 20px}
+      .main{padding:16px 16px 60px}
+      .preview-presets{padding:12px 14px 14px}
+      .preset-chip{font-size:13px;padding:8px 12px}
+      .preview-toggle{padding:7px;border-radius:50%}
+      .preview-toggle-text{display:none}
+    }
+    @media(prefers-reduced-motion:reduce){.font-card{animation:none}*{transition:none!important}}
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<!--FFP_HEADER-->
+
+<!-- ━━━━ 전체 무료폰트 보기 (/fonts) ━━━━
+     2026-09-22 메인 개편으로 홈(index.html)에 있던 갤러리를 이 파일로 옮겼다.
+     홈은 용도별 추천으로 바뀌었고, 훑어보는 갤러리는 여기가 맡는다.
+     라우터: app/routers/design.py fonts_page. 서버가 채우는 목록: {{FFP_HOME_SSR}} -->
+<div id="homeView"><!-- 옛 이름. JS(showHomeView)가 이 id 를 쓴다 -->
+
+  <!-- 페이지 제목 — 히어로는 홈(index.html)으로 갔다(2026-09-22 메인 개편).
+       여기는 목록이 주인공이라 제목은 한 줄로 작게 둔다. 크롤러가 이 문서의
+       주제를 읽을 h1 은 있어야 한다. -->
+  <h1 class="page-title">폰트픽이 고른 무료폰트 전체</h1>
+
+  <!-- USE CASE GRID — 각 칸은 /use/{slug} 허브 페이지 링크 -->
+  <section class="use-section" id="useSection" aria-label="용도별 무료폰트 추천" style="display:none">
+    <div class="use-grid" id="useGrid"></div>
+  </section>
+
+  <!-- CURATOR PICKS -->
+  <!-- [제거 2026-08] 큐레이터 픽 섹션.
+       용도 허브 10칸이 추천 진입로가 되면서 역할이 겹쳐 걷어냄.
+       fonts.is_pick 컬럼과 어드민 체크박스는 그대로 남아 있으므로 되살릴 수 있다. -->
+  <!-- [제거 2026-08] 접기/펼치기 토글 — 허브를 6열×2줄로 고정 노출하면서
+       숨길 것이 없어져 걷어냄. -->
+
+<!-- MAIN -->
+<main class="main">
+  <!-- 모양 카테고리 — 갤러리를 훑는 내내 손이 닿아야 하므로 헤더 아래 고정한다.
+       바깥(.tags-bar)이 고정·배경·경계선을, 안쪽(.tags-scroll)이 가로 스크롤과
+       끝단 페이드를 맡는다. 한 요소에 몰면 mask-image가 배경까지 갉아먹어
+       고정된 바 오른쪽으로 폰트 카드가 비친다. -->
+  <div class="tags-bar" id="tagsBar">
+    <span class="tags-label">모양으로 찾기</span>
+    <div class="tags-scroll" id="tagsScroll" role="group" aria-label="폰트 모양 카테고리 필터"></div>
+    <!-- [이동 2026-08] 보기 방식은 아이콘 두 개짜리 전용 줄을 따로 쓰고 있었다.
+         둘 다 갤러리를 다루는 도구라 같은 줄에 둔다 — 줄 하나(40px)가 사라진다. -->
+    <span class="tags-sep" aria-hidden="true"></span>
+    <div class="view-toolbar" role="group" aria-label="갤러리 보기 방식">
+      <button type="button" class="view-btn on" id="viewBtnList" onclick="setGalleryView('list')" aria-pressed="true" title="한 줄 보기" aria-label="한 줄 보기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <button type="button" class="view-btn" id="viewBtnGrid" onclick="setGalleryView('grid')" aria-pressed="false" title="격자 보기" aria-label="격자 보기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 미리 써보기 · 크기 — 상세페이지(font.html)의 미리보기 바와 같은 모양.
+       [2026-08] 에 갤러리에서 상세페이지로 옮겼던 것을, 갤러리가 /fonts 로 독립하면서
+       (2026-09-22) 다시 가져왔다. 문구를 치면 모든 카드가 그 문구로 바뀌고,
+       비우면 폰트마다 배정된 문구로 돌아간다. -->
+  <div class="preview-bar" id="previewBar">
+    <span class="preview-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> 미리 써보기</span>
+    <input class="preview-input" type="text" id="tryInput" maxlength="60"
+           placeholder="원하는 문구를 입력하면 모든 폰트에 바로 적용돼요" aria-label="미리보기 문구"
+           oninput="setCustomPreview(this.value)">
+    <button type="button" class="preview-roll" id="previewRoll" onclick="rollPreviewPhrase()"
+            title="다른 문구로 바꾸기" aria-label="다른 미리보기 문구 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"/><path d="M21 20v-5h-5"/></svg></button>
+    <div class="preview-divider"></div>
+    <div class="size-wrap">
+      <label for="trySize">크기</label>
+      <input type="range" id="trySize" min="14" max="80" step="1" value="26" aria-label="미리보기 글자 크기" oninput="setPreviewSize(this.value)">
+      <span class="size-val" id="trySizeVal">26px</span>
+    </div>
+  </div>
+
+  <!-- [제거 2026-08] 정렬 드롭다운(추천순/최신순/이름순).
+       기본값인 '추천순'(어드민이 정한 저장 순서)만 남긴다. -->
+  <!-- [이동 2026-08] 미리보기 바(문구 입력 · 새로고침 · 크기 레버)를
+       폰트 상세페이지로 옮겼다. 갤러리는 훑어보는 자리, 상세페이지는
+       한 서체를 따져보는 자리라 문구를 직접 넣어 보는 일은 그쪽에 속한다.
+       카드에 깔리는 문구는 그대로다 — 폰트마다 다른 문구가 자동 배정된다
+       (getPreviewTextFor). 카드를 누르면 그 문구가 상세페이지 입력창으로
+       이어진다(stashPreviewText → sessionStorage). -->
+
+  <!-- [제거 2026-09-22] 좌측 용도 레일(.hub-rail) — 이 페이지는 위 용도 12칸만 둔다. -->
+  <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
+
+
+
+  <!-- 서버가 채우는 목록 (용도 허브 + 전체 폰트).
+       용도 그리드는 display:none으로, 갤러리는 빈 채로 시작하기 때문에
+       크롤러가 홈에서 볼 수 있는 것이 헤더·푸터뿐이었다. JS가 진짜 갤러리를
+       그리면 이 블록은 감춘다 — font.html의 #fontSsr과 같은 방식이다. -->
+  {{FFP_HOME_SSR}}
+</main>
+
+</div><!-- /homeView -->
+
+<!-- 공지사항 화면은 홈(index.html, /#notice)에 있다. 여기로 #notice 가 오면 route() 가 홈으로 보낸다. -->
+
+
+<!--FFP_FOOTER-->
+
+<button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="맨 위로">
+  <i class="ti ti-arrow-up" aria-hidden="true"></i>
+</button>
+
+
+
+<!-- [제거 2026-08] 다운로드 전에 띄우던 광고 모달.
+     openDownloadAd()가 이미 새 창으로 바로 보내도록 바뀌어서 아무도 열지
+     않는 죽은 마크업이었는데, 안내 문구는 HTML에 그대로 남아 크롤러와
+     애드센스 심사자에게 계속 보였다. 광고를 본 대가로 다운로드를 준다는
+     뜻으로 읽히는 문장이라 마크업·CSS·JS를 통째로 지운다.
+     (되살릴 일은 없겠지만 필요하면 git 히스토리에 있다.) -->
+
+
+<!-- LICENSE MODAL -->
+<div class="license-overlay" id="licenseOverlay" role="dialog" aria-modal="true" aria-labelledby="licenseTitle">
+  <div class="license-modal">
+    <div class="license-head">
+      <div class="license-head-eyebrow"><i class="ti ti-license" aria-hidden="true"></i> LICENSE</div>
+      <h2 id="licenseTitle">라이선스 요약표</h2>
+      <p>큐레이션된 무료폰트의 상업적 이용 범위 안내</p>
+      <button class="license-close" onclick="closeLicense()" aria-label="닫기">
+        <svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="license-body">
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-printer" aria-hidden="true"></i></div>
+            <div class="license-item-name">인쇄</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">브로슈어, 포스터, 책, 잡지 및 출판용 인쇄물 등</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-world" aria-hidden="true"></i></div>
+            <div class="license-item-name">웹사이트</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">웹페이지, 광고 배너, 메일, E-브로슈어 등</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-package" aria-hidden="true"></i></div>
+            <div class="license-item-name">포장지</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">판매용 상품의 패키지</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-video" aria-hidden="true"></i></div>
+            <div class="license-item-name">영상</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">유튜브, CF, 상업영화, 뮤직비디오, 영상 자막, 영상 오프닝/엔딩 크레딧 등</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-code" aria-hidden="true"></i></div>
+            <div class="license-item-name">임베딩</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">웹사이트 및 프로그램 서버 내 폰트 탑재, E-book 제작</p>
+      </div>
+
+      <div class="license-item">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-building-store" aria-hidden="true"></i></div>
+            <div class="license-item-name">BI/CI</div>
+          </div>
+          <span class="license-status allow">사용 가능</span>
+        </div>
+        <p class="license-item-desc">회사명, 브랜드명, 상품명, 로고, 마크, 슬로건, 캐치프레이즈</p>
+      </div>
+
+      <div class="license-item is-ofl" style="grid-column:1/-1">
+        <div class="license-item-head">
+          <div class="license-item-cat">
+            <div class="license-item-icon"><i class="ti ti-ban" aria-hidden="true"></i></div>
+            <div class="license-item-name">OFL</div>
+          </div>
+          <span class="license-status deny">금지</span>
+        </div>
+        <p class="license-item-desc">폰트 파일의 수정·복제·배포 및 유료 판매 모두 금지</p>
+      </div>
+    </div>
+
+    <div class="license-foot">
+      <p>※ 위 사용범위는 <strong>참고용</strong>으로, 정확한 사용범위는 이용 전 폰트 저작권자에게 확인 바랍니다.</p>
+      <p>사용범위는 저작권자의 규정에 따라 달라질 수 있습니다. 조건부 허용의 경우, 사용 조건을 꼭 원본 라이선스 내용에서 확인 후 이용하세요.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 공유 데이터 레이어 (관리자 페이지와 동일 파일을 사용) -->
+
+<script src="/static/ffp-phrases.js"></script>
+<script src="/static/api-client.js"></script>
+<script>
+let FONTS=[];
+/* 용도 허브 목록 — init()에서 먼저 받아 그리고, FONTS가 온 뒤 글꼴만 입혀
+   다시 그릴 때 재사용한다. 같은 목록을 두 번 받지 않기 위한 것. */
+let HUB_CACHE=null;
+let currentTag='all';
+let currentFontSize=26;
+/* 갤러리 보기 방식: 'grid'(4열 훑어보기) | 'list'(한 줄에 하나, 형태 확인용).
+   한 줄 보기는 자리가 넓으므로 견본 글자를 키워야 의미가 있다. */
+/* 기본 보기: 데스크톱은 한 줄, 모바일은 격자.
+
+   좁은 화면에서 한 줄 보기는 카드가 세로로 길어져 한 화면에 몇 개 안 들어온다.
+   폰트를 훑으러 온 사람에게는 격자가 낫다.
+
+   720px 은 위 .font-grid 미디어쿼리가 2열로 접히는 지점과 같은 값이다.
+   두 값이 어긋나면 "격자인데 한 열"인 어정쩡한 화면이 나온다.
+
+   2026-09-16 에 데스크톱도 격자로 바꿨다가 이튿날 되돌렸다(사용자 요청) —
+   데스크톱에서는 한 줄 보기로 글자 모양을 크게 보는 쪽을 기본으로 둔다. */
+let currentView = 'list';
+try {
+  if (window.matchMedia && window.matchMedia('(max-width:720px)').matches) currentView = 'grid';
+} catch(e){}
+/* 사람이 직접 고른 적이 있으면 그게 이긴다 — 화면 크기로 덮어쓰지 않는다. */
+try { const v = localStorage.getItem('ffp-gallery-view'); if(v==='list'||v==='grid') currentView = v; } catch(e){}
+/* 한 줄 보기는 화면 폭과 무관하게 1줄이라, 글자가 크면 그만큼 덜 보인다.
+   데스크톱은 폭이 넓어 42px에서도 23자가 들어가지만 모바일은 10자에서 끊긴다.
+   좁은 화면에서만 배율을 낮춰 18자까지 보이게 한다 (26px 기준 24px). */
+function isNarrowView(){
+  try { return window.matchMedia('(max-width:900px)').matches; } catch(e){ return false; }
+}
+function previewSizeFor(){
+  if(currentView !== 'list') return currentFontSize;
+  return Math.round(currentFontSize * (isNarrowView() ? 0.92 : 1.6));
+}
+/* 폭이 900px 경계를 넘나들면 견본 크기 기준이 바뀌므로 다시 그린다 */
+let _wasNarrowView = isNarrowView();
+window.addEventListener('resize', () => {
+  const n = isNarrowView();
+  if(n !== _wasNarrowView){
+    _wasNarrowView = n;
+    if(currentView === 'list') renderFonts();
+  }
+});
+function setGalleryView(v){
+  if(v!=='list' && v!=='grid') return;
+  currentView = v;
+  try { localStorage.setItem('ffp-gallery-view', v); } catch(e){}
+  applyGalleryView();
+  renderFonts();   // 견본 글자 크기가 달라지므로 다시 그린다
+}
+function applyGalleryView(){
+  const grid = document.getElementById('fontGrid');
+  if(grid) grid.setAttribute('data-view', currentView);
+  const bg = document.getElementById('viewBtnGrid'), bl = document.getElementById('viewBtnList');
+  if(bg && bl){
+    bg.classList.toggle('on', currentView==='grid');
+    bl.classList.toggle('on', currentView==='list');
+    bg.setAttribute('aria-pressed', String(currentView==='grid'));
+    bl.setAttribute('aria-pressed', String(currentView==='list'));
+  }
+}
+
+/* ── 갤러리 미리보기 샘플 문구 ──
+   예전에는 폰트마다 다른 문구를 뿌렸다. 그러면 갤러리를 훑을 때 '글자가 달라서
+   다르게 보이는 것'인지 '서체가 달라서 다르게 보이는 것'인지 구분이 안 된다.
+   비교가 목적인 화면이므로 문구는 전부 같아야 한다.
+
+   대신 5개를 랜덤으로 돌린다 — 하나로 고정하면 재방문자가 늘 같은 화면을 본다.
+
+톤은 시·감성글. 길이 22~25자.
+
+   한글은 정사각 자면이라 글자 폭이 거의 글자 크기와 같다. 실측:
+     한 줄 보기 데스크톱 3열 : 918px / 42px → 한 줄 약 23자
+     한 줄 보기 모바일 390px : 428px / 24px → 한 줄 약 18자
+     격자 보기 데스크톱 3열  : 열 266px / 26px → 2줄 약 21자
+   데스크톱 한 줄 보기는 거의 다 보이고, 모바일·격자는 뒤쪽 몇 자가
+   말줄임된다. 잘림 위치가 모든 카드에서 같으므로 행 높이는 어긋나지 않는다.
+
+   ko/en은 같은 인덱스로 짝지어 함께 돈다 (영문 전용 폰트는 한글을 못 그린다).
+   번역이 아니라 대체다 — 영문 폰트 카드에 한글 대신 얹히는 문장이면 된다.
+
+   문구는 app/pairing_phrases.py의 문구 뱅크에서 가져왔다. 조합 카드가 쓰는
+   것과 같은 우물을 쓰면 사이트 전체의 말투가 한 사람 것으로 들린다.
+   가져온 테마: 블로그·매거진 / 모던 미니멀 / 감성 카페 / 캘리 손글씨 /
+                굵은 산세리프 슬로건 / 포인트 서체 조합 */
+const SAMPLE_PHRASES = FFPPhrases.SAMPLE;   /* 목록은 static/ffp-phrases.js */
+let _sampleIdx = Math.floor(Math.random() * SAMPLE_PHRASES.length);
+function currentSample(){ return SAMPLE_PHRASES[_sampleIdx]; }
+
+/* 카드에 그릴 문구 — 폰트마다 다른 문구가 올라간다.
+   ① 어드민에서 그 폰트에 지정한 문구(meta.preview_text)
+   ② 없으면 문구 풀에서 자동 배정 — 어드민 안내문의 '비워두면 준비된 문구
+      풀에서 자동 배정됩니다'가 이 자리다.
+
+   배정은 폰트 id로 정한다. 매번 랜덤으로 뽑으면 스크롤·필터 때마다 카드 문구가
+   바뀌어 어느 서체를 보고 있었는지 놓친다. id를 쓰면 같은 폰트는 늘 같은 문구다.
+
+   [2026-08] 예전에는 상단 입력창에 쓴 문구가 이 배정을 모두 이겼다. 그 입력창은
+   상세페이지로 옮겼다 — 갤러리는 여러 문장이 한 화면에 있어야 서체끼리 비교가
+   되는 자리라, 문구를 하나로 통일하는 일이 오히려 손해였다. */
+function poolPhraseFor(font){
+  const n = SAMPLE_PHRASES.length;
+  const id = (font && typeof font.id === 'number') ? font.id : 0;
+  return SAMPLE_PHRASES[(id + _sampleIdx) % n];
+}
+
+/* 미리 써보기 입력창 문구. 비어 있으면 폰트마다 배정된 문구를 쓴다.
+   영문 전용 폰트에 한글을 치면 글자가 깨지므로 그 카드만 자기 문구를 지킨다. */
+let customPreview = '';
+function setCustomPreview(v){
+  customPreview = (v || '').trim();
+  updatePreviews();
+}
+function rollPreviewPhrase(){
+  _sampleIdx = (_sampleIdx + 1 + Math.floor(Math.random() * (SAMPLE_PHRASES.length - 1))) % SAMPLE_PHRASES.length;
+  const input = document.getElementById('tryInput');
+  if(input){ input.value = currentSample().ko; }
+  customPreview = currentSample().ko;
+  const btn = document.getElementById('previewRoll');
+  if(btn){ btn.classList.remove('spin'); void btn.offsetWidth; btn.classList.add('spin'); }
+  updatePreviews();
+}
+function setPreviewSize(v){
+  const n = parseInt(v, 10);
+  if(!n) return;
+  currentFontSize = n;
+  const lab = document.getElementById('trySizeVal');
+  if(lab) lab.textContent = n + 'px';
+  const px = previewSizeFor() + 'px';
+  document.querySelectorAll('.font-preview-text').forEach(el => { el.style.fontSize = px; });
+}
+function getPreviewTextFor(font){
+  const isEn = !!(font && font.isEnglish);
+  if(customPreview && !(isEn && /[가-힣]/.test(customPreview))) return customPreview;
+  const own = (font && font.meta && font.meta.preview_text || '').trim();
+  /* 영문 전용 폰트에 한글 문구가 지정돼 있으면 글자가 통째로 깨진다.
+     어드민 안내문이 '영문 문장 권장'이라고만 하고 막지는 않으므로 여기서 거른다. */
+  if(own && !(isEn && /[가-힣]/.test(own))) return own;
+
+  const p = poolPhraseFor(font);
+  return isEn ? p.en : p.ko;
+}
+
+function updatePreviews(){
+  document.querySelectorAll('.font-preview-text').forEach(el=>{
+    const card = el.closest('[data-font-id]');
+    const f = card ? FONTS.find(x=>x.id===parseInt(card.dataset.fontId,10)) : null;
+    el.textContent = getPreviewTextFor(f);
+  });
+}
+
+/* ── 문구 미리보기로 추천 받기 (탭+프리셋, 어드민 등록 데이터 기반) ── */
+let PREVIEW_PHRASES = [];
+let activePhrasesTab = null;  // null = 전체 (탭 미선택 상태) — 별도 "전체" 탭은 없음
+let activePhraseId = null;
+
+async function loadPreviewPhrases(){
+  try {
+    const res = await fetch('/api/preview-phrases');
+    PREVIEW_PHRASES = res.ok ? await res.json() : [];
+  } catch(e){
+    PREVIEW_PHRASES = [];
+  }
+  renderPresetTabs();
+  renderPresetChips();
+}
+
+function _presetTabsForPhrases(){
+  const tabs = new Set();
+  PREVIEW_PHRASES.forEach(p => (p.tags && p.tags.usage || []).forEach(u => tabs.add(u)));
+  return ['전체', ...[...tabs].sort()];
+}
+
+/* 문구 카테고리(탭)는 걷어냈다. 펼침 메뉴 안에서 탭까지 두면 조작이 2단이 되는데,
+   문구 수가 그 정도 분류를 요구할 만큼 많지 않다. 필요해지면 검색을 붙이는 쪽이 낫다. */
+function renderPresetTabs(){
+  const wrap = document.getElementById('presetTabs');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  return;
+  const tabs = _presetTabsForPhrases();
+  wrap.innerHTML = tabs.map(t => {
+    const isActive = (t === '전체') ? activePhrasesTab === null : t === activePhrasesTab;
+    return `<button type="button" class="preset-tab${isActive?' active':''}" onclick="setPresetTab('${t.replace(/'/g,"\\'")}')">${t}</button>`;
+  }).join('');
+}
+
+function setPresetTab(tab){
+  // "전체"는 항상 필터 해제. 이미 선택된 탭을 다시 누르면 전체 보기로 해제
+  if(tab === '전체'){
+    activePhrasesTab = null;
+  } else {
+    activePhrasesTab = (activePhrasesTab === tab) ? null : tab;
+  }
+  renderPresetTabs();
+  renderPresetChips();
+}
+
+function renderPresetChips(){
+  const wrap = document.getElementById('presetChipGrid');
+  if(!wrap) return;
+  const list = PREVIEW_PHRASES;   // 카테고리 필터 없음 — 전체를 한 목록으로 보여준다
+  if(!list.length){
+    wrap.innerHTML = '<div class="preset-empty">등록된 문구가 없어요</div>';
+    return;
+  }
+  wrap.innerHTML = list.map(p =>
+    `<button type="button" class="preset-chip${p.id===activePhraseId?' active':''}" onclick="applyPresetPhrase(${p.id}, this)">${escapeHtmlIdx(p.text)}</button>`
+  ).join('');
+}
+
+function escapeHtmlIdx(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function applyPresetPhrase(id, btnEl){
+  const phrase = PREVIEW_PHRASES.find(p => p.id === id);
+  if(!phrase) return;
+  /* [2026-08] 상단 미리보기 입력창이 상세페이지로 옮겨가 여기엔 없다.
+     프리셋 추천을 되살릴 때는 문구를 어디에 꽂을지부터 다시 정해야 한다. */
+  updatePreviews();
+  document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+  activePhraseId = id;
+
+  // 어드민이 이 문구에 붙인 8차원 태그로 바로 스코어링 (자연어 키워드 추출 단계 생략 — 정확도 우선)
+  const tags = phrase.tags || {};
+  const extracted = {
+    mood: new Set(tags.mood || []), usage: new Set(tags.usage || []),
+    industry: new Set(tags.industry || []), personality: new Set(tags.personality || []),
+    formality: tags.formality || null, weight_feel: tags.weight_feel || null,
+    reading_length: tags.reading_length || null,
+  };
+  const requirePrimary = extracted.usage.size > 0 || extracted.mood.size > 0;
+  const scored = FONTS.filter(f => !f.isEnglish).map(f => ({font: f, ...scoreFont(f, extracted)}))
+    .filter(x => x.score > 0 && (!requirePrimary || x.primaryMatch));
+  scored.sort((a,b) => b.score - a.score || a.font.id - b.font.id);
+  _lastRecommended = scored;
+  _recommendShowCount = 7;
+
+  // 펼침 메뉴는 선택 즉시 닫는다. 열어두면 바로 아래 추천 결과를 가린다.
+  // 다시 고르려면 버튼을 누르면 되고, 고른 문구는 활성 상태로 남아 있다.
+  closePreviewPresets();
+  renderFonts();
+}
+
+function clearPhraseRecommend(){
+  activePhraseId = null;
+  _lastRecommended = null;
+  document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
+  renderFonts();
+}
+
+/* ── 문구 프리셋 (펼침) ── */
+function togglePreviewPresets(){
+  const panel = document.getElementById('previewPresets');
+  const btn = document.getElementById('previewToggleBtn');
+  const isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  btn.setAttribute('aria-expanded', String(isOpen));
+}
+function closePreviewPresets(){
+  const panel = document.getElementById('previewPresets');
+  const btn = document.getElementById('previewToggleBtn');
+  if(!panel || !panel.classList.contains('open')) return;
+  panel.classList.remove('open');
+  btn.classList.remove('open');
+  btn.setAttribute('aria-expanded', 'false');
+}
+
+/* 펼침 메뉴 바깥 클릭 / ESC 로 닫기 — 메뉴의 기본 기대 동작 */
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('previewPresets');
+  if(!panel || !panel.classList.contains('open')) return;
+  if(e.target.closest('#previewPresets') || e.target.closest('#previewToggleBtn')) return;
+  closePreviewPresets();
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') closePreviewPresets();
+});
+
+function clearPresetActive(){
+  document.querySelectorAll('.preset-chip.active').forEach(chip => chip.classList.remove('active'));
+  if(activePhraseId !== null) clearPhraseRecommend();
+}
+
+/* ════════════════════════════════════════════
+   개별 카드 미리보기 — 클릭하면 직접 텍스트 입력 가능
+   카드별로 독립적으로 동작. 상단 입력창과 영문 자동 전환은 영향 없음.
+════════════════════════════════════════════ */
+/* [2026-08] 카드 안 직접입력 제거.
+   문구는 상단 미리보기 입력창 하나로만 바꾸고, 카드는 통째로 상세페이지로 간다.
+   편집과 이동이 한 자리에 섞이면 어느 쪽인지 매번 헷갈린다. */
+
+/* 대상을 고정된 모양 필터 바 바로 아래로 올려놓는다.
+   sticky 요소(#tagsBar) 자신에게 scrollIntoView를 쓰면 안 된다 —
+   이미 60px에 붙어 있으면 목표가 충족된 것으로 판정돼 아무 데도 가지 않는다.
+   검색 후 화면이 내려간 자리에 그대로 남아 결과 중간부터 보이던 원인이었다.
+   그래서 목적지를 직접 계산한다. 바 높이는 실측한다 — 칩 크기를 손볼 때
+   숫자가 조용히 어긋나지 않게. */
+function scrollBelowFilter(el){
+  if(!el) return;
+  const bar = document.getElementById('tagsBar');
+  const barH = bar ? bar.getBoundingClientRect().height : 56;
+  /* 조합 찾기 띠가 떠 있으면 그만큼 더 내려야 갤러리가 안 가린다.
+     닫혀 있으면 display:none 이라 높이가 0이다. */
+  const y = window.scrollY + el.getBoundingClientRect().top - (60 + bandHeight() + barH + 8);
+  window.scrollTo({top: Math.max(0, y), behavior:'smooth'});
+}
+
+function setTag(tag, el, pushHash){
+  if(pushHash === undefined) pushHash = true;
+  currentTag=tag;
+  if(activePhraseId !== null){
+    activePhraseId = null;
+    _lastRecommended = null;
+    document.querySelectorAll('.preset-chip').forEach(chip => chip.classList.remove('active'));
+  }
+  document.querySelectorAll('.tag').forEach(t=>t.classList.remove('active'));
+  if(el){
+    el.classList.add('active');
+  } else {
+    // route()에서 복원 호출한 경우 — 태그 이름으로 버튼을 찾아 활성화
+    const label = (tag === 'all') ? '전체' : tag;
+    const btn = [...document.querySelectorAll('.tag')].find(t => t.textContent === label);
+    if(btn) btn.classList.add('active');
+  }
+  // 카테고리 클릭 시: 검색창 클리어
+  const input = document.getElementById('globalSearch');
+  if(input && input.value){
+    input.value = '';
+  }
+  renderFonts();
+
+  // 브라우저 히스토리에 카테고리 상태 push
+  // - 첫 카테고리 클릭: '#tag/xxx' push → 뒤로가기 시 전체(홈)로 복귀
+  // - 이후 다른 카테고리 클릭: 매번 push → 뒤로가기로 이전 카테고리 순회
+  // - '전체' 클릭: hash 비움 → 뒤로가기 시 이전 상태(검색/다른 태그)로 복귀
+  if(pushHash){
+    const newHash = (tag === 'all') ? '' : '#tag/' + encodeURIComponent(tag);
+    const currentHash = location.hash;
+    if(newHash !== currentHash){
+      const target = newHash || (location.pathname + location.search);
+      history.pushState({tag: tag}, '', target);
+    }
+  }
+
+  /* 고른 카테고리의 목록 맨 위로 데려간다.
+     필터는 갤러리 어디서든 누를 수 있는데(바가 고정이라), 그대로 두면
+     방금 고른 목록의 중간이나 끝자락을 보게 된다. 결과가 몇 개인지도 모른다.
+
+     pushHash가 false인 경우(route()의 해시 복원, 뒤로가기)에는 움직이지 않는다.
+     되돌아온 사용자를 원래 보던 자리에서 끌어내리면 안 된다.
+
+     목적지는 갤러리(.font-grid) 첫 줄이다. 검색은 미리보기 바부터
+     보여줘야 해서 목적지가 다르지만, 띄우는 계산은 같은 함수를 쓴다. */
+  if(pushHash){
+    // 렌더가 끝난 뒤의 위치를 기준으로 잡아야 목적지가 어긋나지 않는다
+    requestAnimationFrame(()=> scrollBelowFilter(document.getElementById('fontGrid')));
+  }
+}
+
+/* 검색창 입력: 디바운스 후 hash 동기화 (뒤로가기로 복귀 가능) */
+let _searchHashTimer = null;
+function filterFonts(){
+  // 검색을 새로 시작하면 문구 추천 모드는 해제 (필터 우선순위 충돌 방지)
+  if(activePhraseId !== null){
+    activePhraseId = null;
+  }
+  /* 검색은 카테고리를 넘어선다.
+     예전에는 카테고리를 고른 채로 검색하면 그 카테고리 안에서만 찾아서,
+     분명히 있는 폰트가 "없음"으로 나왔다. 찾는 사람은 그 폰트가 어느 분류에
+     들어 있는지 모르니 카테고리를 먼저 풀라고 요구할 수 없다.
+     검색어가 있으면 '전체'로 되돌린다(칩 표시도 함께). 검색어가 비어 있을
+     때는 건드리지 않는다 — 카테고리만 보고 있는 사람을 흔들지 않기 위해서다. */
+  if((document.getElementById('globalSearch').value || '').trim() && currentTag !== 'all'){
+    resetTagToAll();
+  }
+  // 새 검색 시작 시 추천 카운트 초기화
+  _recommendShowCount = 5;
+  renderFonts();
+  // hash 업데이트는 디바운스 — 타이핑 한 글자마다 history 쌓이지 않도록
+  clearTimeout(_searchHashTimer);
+  const q = document.getElementById('globalSearch').value.trim();
+  _searchHashTimer = setTimeout(() => {
+    const targetHash = q ? '#search/' + encodeURIComponent(q) : '';
+    const currentHash = location.hash;
+    if(targetHash !== currentHash){
+      if(q){
+        // 새 검색 시작 시점에 한 번만 history push
+        if(currentHash.startsWith('#search/')){
+          // 이미 검색 상태 — replace로 갱신 (같은 화면 내 검색어 수정)
+          history.replaceState(null, '', targetHash);
+        } else {
+          // 다른 상태 → 검색 진입 (push해서 뒤로가기 가능)
+          history.pushState(null, '', targetHash);
+        }
+      } else {
+        // 검색어 비움 → 홈 hash로 복귀 (replace)
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+    }
+  }, 400);
+}
+
+function getFilteredFonts(){
+  // 문구 미리보기로 추천 받기가 활성화된 상태면, 태그/검색보다 우선해서 추천 결과를 보여준다.
+  if(activePhraseId !== null && _lastRecommended){
+    return _lastRecommended.slice(0, _recommendShowCount).map(s => ({...s.font, _matches: s.matches, _isRecommend: true}));
+  }
+
+  // 정렬 드롭다운 제거 — 항상 어드민이 정한 저장 순서(추천순)를 따른다
+  const q=(document.getElementById('globalSearch').value||'').trim().toLowerCase();
+  let list=[...FONTS];
+  if(currentTag!=='all') list=list.filter(f=>f.tags.includes(currentTag));
+
+  if(q){
+    // 1단계: 일반 텍스트 검색 (폰트명/제작자/카테고리)
+    const textMatches = list.filter(f =>
+      f.name.toLowerCase().includes(q) ||
+      f.maker.toLowerCase().includes(q) ||
+      f.tags.some(t => t.toLowerCase().includes(q))
+    );
+
+    // 2단계: 추천 키워드 매칭 시도
+    const recommendations = recommendFonts(q, list);
+
+    if(textMatches.length > 0){
+      // 텍스트 매칭이 있으면 우선 표시
+      list = textMatches;
+    } else if(recommendations.length > 0){
+      // 추천 결과 (이미 점수순 정렬됨)
+      list = recommendations;
+      // sort 무시하고 추천 점수 순서 유지 (아래 sort 단계 스킵)
+      return list;
+    } else {
+      list = [];
+    }
+  }
+
+  /* 인기 순위가 있는 폰트를 순위대로 맨 앞으로 당긴다.
+
+     '모양으로 찾기'로 걸러도 마찬가지다 — 손글씨를 고른 사람에게는 손글씨
+     중에서 지금 많이 보는 것이 먼저 나와야 한다. 걸러진 목록 안에 있는
+     것만 올라오므로, 그 분류에 인기 폰트가 없으면 순서가 그대로다.
+
+     순위 숫자는 사이트 전체 기준을 그대로 쓴다. 분류 안에서 1·2·3으로 다시
+     매기면 '인기 1'이 화면마다 다른 폰트를 가리켜 거짓말이 된다.
+
+     검색 중일 때는 건드리지 않는다 — 검색은 찾는 것을 위에 놓는 게 먼저다.
+     나머지는 어드민이 정한 저장 순서 그대로다. */
+  if(!q && Object.keys(POPULAR).length){
+    const top = list.filter(f => POPULAR[f.id]).sort((a, b) => POPULAR[a.id] - POPULAR[b.id]);
+    if(top.length){
+      const topIds = new Set(top.map(f => f.id));
+      list = top.concat(list.filter(f => !topIds.has(f.id)));
+    }
+  }
+  return list;
+}
+
+/* ════════════════════════════════════════════════════
+   폰트 추천 키워드 사전 (237개)
+   사용자 자연어 입력 → 메타데이터 태그 매핑
+════════════════════════════════════════════════════ */
+const RECOMMEND_KEYWORDS = {
+  '따뜻한':{mood:["따뜻한", "부드러운", "친근한"]},
+  '따뜻':{mood:["따뜻한", "부드러운", "친근한"]},
+  '따스한':{mood:["따뜻한", "부드러운"]},
+  '따스':{mood:["따뜻한", "부드러운"]},
+  '포근한':{mood:["따뜻한", "부드러운"]},
+  '포근':{mood:["따뜻한", "부드러운"]},
+  '아늑한':{mood:["따뜻한", "감성적"]},
+  '아늑':{mood:["따뜻한", "감성적"]},
+  '온화한':{mood:["따뜻한", "부드러운"]},
+  '온순한':{mood:["부드러운", "친근한"]},
+  '훈훈한':{mood:["따뜻한", "친근한"]},
+  '다정한':{mood:["따뜻한", "친근한"]},
+  '다정':{mood:["따뜻한", "친근한"]},
+  '정겨운':{mood:["따뜻한", "친근한"]},
+  '정감':{mood:["따뜻한", "친근한"]},
+  '부드러운':{mood:["부드러운", "친근한"]},
+  '부드러':{mood:["부드러운", "친근한"]},
+  '말랑한':{mood:["부드러운", "장난스러운"]},
+  '말랑':{mood:["부드러운", "장난스러운"]},
+  '폭신한':{mood:["부드러운"]},
+  '말캉한':{mood:["부드러운", "장난스러운"]},
+  '소프트':{mood:["부드러운"]},
+  '편안한':{mood:["친근한", "부드러운"]},
+  '편안':{mood:["친근한", "부드러운"]},
+  '편한':{mood:["친근한"],formality:'캐주얼'},
+  '잔잔한':{mood:["부드러운", "감성적"]},
+  '잔잔':{mood:["부드러운", "감성적"]},
+  '여유로운':{mood:["부드러운"]},
+  '감성':{mood:["감성적", "부드러운"]},
+  '감성적':{mood:["감성적", "부드러운"]},
+  '감성적인':{mood:["감성적", "부드러운"]},
+  '서정적':{mood:["감성적"],personality:["전통적"]},
+  '서정':{mood:["감성적"],personality:["전통적"]},
+  '낭만적':{mood:["감성적", "고급스러운"]},
+  '낭만':{mood:["감성적", "고급스러운"]},
+  '로맨틱':{mood:["감성적", "고급스러운"],personality:["여성적"]},
+  '로멘틱':{mood:["감성적", "고급스러운"],personality:["여성적"]},
+  '몽환적':{mood:["감성적", "꿈같은", "독특한"]},
+  '몽환':{mood:["감성적", "꿈같은"]},
+  '꿈같은':{mood:["꿈같은", "감성적"]},
+  '꿈결':{mood:["꿈같은", "감성적"]},
+  '환상적':{mood:["꿈같은", "독특한"]},
+  '아련한':{mood:["감성적", "꿈같은"]},
+  '아련':{mood:["감성적", "꿈같은"]},
+  '센치한':{mood:["감성적"]},
+  '센치':{mood:["감성적"]},
+  '시적인':{mood:["감성적"]},
+  '시적':{mood:["감성적"]},
+  '서사적':{mood:["진중한", "감성적"]},
+  '강한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강렬한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강렬':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강조':{mood:["임팩트"],weight_feel:'굵음'},
+  '강인한':{mood:["강인한", "임팩트"]},
+  '강인':{mood:["강인한", "임팩트"]},
+  '굵은':{weight_feel:'굵음'},
+  '굵직한':{mood:["임팩트"],weight_feel:'굵음'},
+  '두꺼운':{weight_feel:'굵음'},
+  '진한':{mood:["임팩트"],weight_feel:'굵음'},
+  '진중한':{mood:["진중한"],formality:'격식'},
+  '임팩트':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '임팩트있는':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '눈에띄는':{mood:["임팩트"],usage:["제목", "캐치프레이즈"],weight_feel:'굵음'},
+  '눈길':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '시선':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '주목':{mood:["임팩트"],weight_feel:'굵음'},
+  '주목받는':{mood:["임팩트"],weight_feel:'굵음'},
+  '존재감':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '카리스마':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '파워':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '파워풀':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '박력':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '대담한':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '대담':{mood:["임팩트", "강인한"],weight_feel:'굵음'},
+  '볼드':{weight_feel:'굵음'},
+  '도전적':{mood:["임팩트"]},
+  '터프한':{mood:["강인한", "임팩트"],personality:["남성적"]},
+  '터프':{mood:["강인한", "임팩트"],personality:["남성적"]},
+  '핫한':{mood:["임팩트"],personality:["현대적"]},
+  '얇은':{weight_feel:'얇음'},
+  '가는':{weight_feel:'얇음'},
+  '가느다란':{weight_feel:'얇음'},
+  '날렵한':{mood:["깔끔한"],weight_feel:'얇음'},
+  '슬림':{weight_feel:'얇음'},
+  '라이트':{weight_feel:'얇음'},
+  '섬세한':{mood:["고급스러운"],weight_feel:'얇음'},
+  '섬세':{mood:["고급스러운"],weight_feel:'얇음'},
+  '여린':{mood:["부드러운"],weight_feel:'얇음'},
+  '연약한':{mood:["부드러운"],weight_feel:'얇음'},
+  '우아한':{mood:["고급스러운", "감성적"],personality:["여성적"]},
+  '우아':{mood:["고급스러운", "감성적"],personality:["여성적"]},
+  '엘레강스':{mood:["고급스러운"],personality:["여성적"]},
+  '여성적':{mood:["부드러운", "감성적"],personality:["여성적"]},
+  '여성스러운':{mood:["부드러운"],personality:["여성적"]},
+  '여리여리':{mood:["부드러운"],personality:["여성적"]},
+  '남성적':{mood:["강인한"],personality:["남성적"]},
+  '남성스러운':{mood:["강인한"],personality:["남성적"]},
+  '중성적':{personality:["중성적"]},
+  '유니섹스':{personality:["중성적"]},
+  '젠더리스':{personality:["중성적"]},
+  '고급':{mood:["고급스러운"],formality:'격식'},
+  '고급스러운':{mood:["고급스러운"],formality:'격식'},
+  '고급스러':{mood:["고급스러운"],formality:'격식'},
+  '럭셔리':{mood:["고급스러운"],formality:'격식'},
+  '럭셔리한':{mood:["고급스러운"],formality:'격식'},
+  '럭스':{mood:["고급스러운"]},
+  '명품':{mood:["고급스러운"],formality:'격식'},
+  '프리미엄':{mood:["고급스러운"],formality:'격식'},
+  '품격':{mood:["고급스러운", "진중한"],formality:'격식'},
+  '기품':{mood:["고급스러운", "진중한"]},
+  '고상한':{mood:["고급스러운", "진중한"]},
+  '고풍스러운':{mood:["고급스러운"],personality:["전통적"]},
+  '클래식':{mood:["고급스러운", "진중한"],personality:["전통적"]},
+  '클래시컬':{mood:["고급스러운"],personality:["전통적"]},
+  '세련된':{mood:["고급스러운"],personality:["현대적"]},
+  '세련':{mood:["고급스러운"],personality:["현대적"]},
+  '시크한':{mood:["고급스러운"],personality:["현대적"]},
+  '시크':{mood:["고급스러운"],personality:["현대적"]},
+  '도시적':{mood:["깔끔한"],personality:["현대적"]},
+  '도시':{mood:["깔끔한"],personality:["현대적"]},
+  '스타일리시':{mood:["고급스러운"],personality:["현대적"]},
+  '쿨한':{mood:["깔끔한"],personality:["현대적"]},
+  '쿨':{mood:["깔끔한"],personality:["현대적"]},
+  '미니멀':{mood:["깔끔한"],personality:["현대적"]},
+  '미니멀한':{mood:["깔끔한"],personality:["현대적"]},
+  '심플':{mood:["깔끔한"],personality:["현대적"]},
+  '심플한':{mood:["깔끔한"],personality:["현대적"]},
+  '간결한':{mood:["깔끔한"]},
+  '간결':{mood:["깔끔한"]},
+  '단정한':{mood:["깔끔한", "진중한"]},
+  '단정':{mood:["깔끔한", "진중한"]},
+  '깔끔한':{mood:["깔끔한"]},
+  '깔끔':{mood:["깔끔한"]},
+  '깨끗한':{mood:["깔끔한"]},
+  '깨끗':{mood:["깔끔한"]},
+  '클린':{mood:["깔끔한"],personality:["현대적"]},
+  '말끔한':{mood:["깔끔한"]},
+  '명료한':{mood:["깔끔한", "신뢰감"]},
+  '힙한':{mood:["독특한"],personality:["현대적"]},
+  '힙':{mood:["독특한"],personality:["현대적"]},
+  '트렌디':{mood:["독특한"],personality:["현대적"]},
+  '트렌디한':{mood:["독특한"],personality:["현대적"]},
+  '트렌드':{personality:["현대적"]},
+  '모던':{mood:["깔끔한"],personality:["현대적"]},
+  '모던한':{mood:["깔끔한"],personality:["현대적"]},
+  '현대적':{personality:["현대적"]},
+  '현대적인':{personality:["현대적"]},
+  '최신':{personality:["현대적"]},
+  '요즘':{personality:["현대적"]},
+  '요새':{personality:["현대적"]},
+  'MZ':{personality:["현대적", "어린이"]},
+  'mz':{personality:["현대적", "어린이"]},
+  '신선한':{personality:["현대적"]},
+  '신선':{personality:["현대적"]},
+  '미래적':{mood:["독특한"],personality:["미래적"]},
+  '미래':{personality:["미래적"]},
+  '미래적인':{mood:["독특한"],personality:["미래적"]},
+  '퓨처':{personality:["미래적"]},
+  '퓨처리스틱':{mood:["독특한"],personality:["미래적"]},
+  '테크':{industry:["IT"],personality:["미래적", "현대적"]},
+  '테크니컬':{industry:["IT"],personality:["미래적"]},
+  '디지털':{industry:["IT"],personality:["미래적", "현대적"]},
+  '하이테크':{industry:["IT"],personality:["미래적"]},
+  '사이버':{mood:["독특한"],personality:["미래적"]},
+  '신기술':{industry:["IT"],personality:["미래적"]},
+  '혁신':{personality:["미래적", "현대적"]},
+  '혁신적':{personality:["미래적", "현대적"]},
+  '전통':{mood:["진중한"],personality:["전통적"]},
+  '전통적':{personality:["전통적"]},
+  '전통적인':{personality:["전통적"]},
+  '한국적':{mood:["진중한"],personality:["전통적"]},
+  '한국적인':{mood:["진중한"],personality:["전통적"]},
+  '한국풍':{personality:["전통적"]},
+  '한식':{industry:["푸드"],personality:["전통적"]},
+  '한복':{mood:["고급스러운"],personality:["전통적"]},
+  '한옥':{mood:["진중한"],personality:["전통적"]},
+  '국악':{personality:["전통적"]},
+  '동양':{personality:["전통적"]},
+  '동양적':{personality:["전통적"]},
+  '고전':{mood:["진중한"],personality:["전통적"]},
+  '고전적':{mood:["진중한"],personality:["전통적"]},
+  '복고':{mood:["독특한"],personality:["복고적"]},
+  '복고풍':{mood:["독특한"],personality:["복고적"]},
+  '레트로':{mood:["독특한"],personality:["복고적"]},
+  '레트로풍':{mood:["독특한"],personality:["복고적"]},
+  '빈티지':{mood:["독특한"],personality:["복고적"]},
+  '빈티지한':{mood:["독특한"],personality:["복고적"]},
+  '뉴트로':{mood:["독특한"],personality:["복고적", "현대적"]},
+  '아날로그':{mood:["감성적"],personality:["복고적"]},
+  '추억':{mood:["감성적"],personality:["복고적"]},
+  '8090':{personality:["복고적"]},
+  '90년대':{personality:["복고적"]},
+  '80년대':{personality:["복고적"]},
+  '70년대':{personality:["복고적"]},
+  '옛날':{personality:["전통적", "복고적"]},
+  '옛것':{personality:["전통적", "복고적"]},
+  '친근한':{mood:["친근한"],formality:'캐주얼'},
+  '친근':{mood:["친근한"],formality:'캐주얼'},
+  '친숙한':{mood:["친근한"],formality:'캐주얼'},
+  '캐주얼':{formality:'캐주얼'},
+  '캐쥬얼':{formality:'캐주얼'},
+  '일상적':{formality:'캐주얼'},
+  '일상':{formality:'캐주얼'},
+  '자유로운':{mood:["독특한"],formality:'캐주얼'},
+  '자유':{formality:'캐주얼'},
+  '소박한':{mood:["친근한", "부드러운"]},
+  '소박':{mood:["친근한", "부드러운"]},
+  '진지한':{mood:["진중한"],formality:'격식'},
+  '진지':{mood:["진중한"],formality:'격식'},
+  '격식':{formality:'격식'},
+  '격식있는':{mood:["진중한"],formality:'격식'},
+  '공식적':{mood:["진중한", "신뢰감"],formality:'격식'},
+  '공식':{mood:["진중한"],formality:'격식'},
+  '엄숙한':{mood:["진중한"],formality:'격식'},
+  '점잖은':{mood:["진중한"],formality:'격식'},
+  '점잖':{mood:["진중한"],formality:'격식'},
+  '신뢰감':{mood:["신뢰감", "진중한"]},
+  '신뢰':{mood:["신뢰감", "진중한"]},
+  '신뢰감있는':{mood:["신뢰감", "진중한"]},
+  '안정적':{mood:["신뢰감"]},
+  '안정감':{mood:["신뢰감"]},
+  '믿음직한':{mood:["신뢰감"]},
+  '믿을':{mood:["신뢰감"]},
+  '안전한':{mood:["신뢰감"]},
+  '단단한':{mood:["강인한", "신뢰감"]},
+  '튼튼한':{mood:["신뢰감", "강인한"]},
+  '견고한':{mood:["신뢰감", "강인한"]},
+  '권위':{mood:["진중한"],formality:'격식'},
+  '권위적':{mood:["진중한"],formality:'격식'},
+  '위엄':{mood:["진중한"],formality:'격식'},
+  '장난스러운':{mood:["장난스러운"],formality:'캐주얼'},
+  '장난스런':{mood:["장난스러운"],formality:'캐주얼'},
+  '장난':{mood:["장난스러운"],formality:'캐주얼'},
+  '귀여운':{mood:["장난스러운", "친근한"],personality:["어린이", "여성적"]},
+  '귀여움':{mood:["장난스러운", "친근한"],personality:["어린이"]},
+  '귀여':{mood:["장난스러운", "친근한"],personality:["어린이"]},
+  '귀엽':{mood:["장난스러운", "친근한"],personality:["어린이"]},
+  '깜찍한':{mood:["장난스러운"],personality:["어린이"]},
+  '깜찍':{mood:["장난스러운"],personality:["어린이"]},
+  '발랄한':{mood:["장난스러운", "친근한"]},
+  '발랄':{mood:["장난스러운", "친근한"]},
+  '경쾌한':{mood:["장난스러운", "친근한"]},
+  '경쾌':{mood:["장난스러운", "친근한"]},
+  '활기찬':{mood:["장난스러운", "임팩트"]},
+  '활기':{mood:["장난스러운", "임팩트"]},
+  '명랑한':{mood:["장난스러운", "친근한"]},
+  '명랑':{mood:["장난스러운", "친근한"]},
+  '재밌는':{mood:["장난스러운", "독특한"]},
+  '재미':{mood:["장난스러운", "독특한"]},
+  '재미있는':{mood:["장난스러운", "독특한"]},
+  '유쾌한':{mood:["장난스러운", "친근한"]},
+  '유쾌':{mood:["장난스러운", "친근한"]},
+  '키치':{mood:["독특한", "장난스러운"]},
+  '키치한':{mood:["독특한", "장난스러운"]},
+  '톡톡튀는':{mood:["독특한", "장난스러운"]},
+  '톡톡':{mood:["독특한", "장난스러운"]},
+  '톡톡한':{mood:["독특한", "장난스러운"]},
+  '발랄발랄':{mood:["장난스러운", "친근한"]},
+  '엉뚱한':{mood:["장난스러운", "독특한"]},
+  '엉뚱':{mood:["장난스러운", "독특한"]},
+  '동심':{mood:["장난스러운"],personality:["어린이"]},
+  '동화':{mood:["장난스러운", "꿈같은"],personality:["어린이"]},
+  '동화적':{mood:["장난스러운", "꿈같은"],personality:["어린이"]},
+  '독특한':{mood:["독특한"]},
+  '독특':{mood:["독특한"]},
+  '특이한':{mood:["독특한"]},
+  '특이':{mood:["독특한"]},
+  '개성있는':{mood:["독특한"]},
+  '개성':{mood:["독특한"]},
+  '개성적':{mood:["독특한"]},
+  '창의적':{mood:["독특한"]},
+  '창의':{mood:["독특한"]},
+  '실험적':{mood:["독특한"]},
+  '실험':{mood:["독특한"]},
+  '아방가르드':{mood:["독특한"],personality:["현대적"]},
+  '예술적':{mood:["독특한", "감성적"]},
+  '예술':{mood:["독특한", "감성적"]},
+  '아트':{mood:["독특한", "감성적"]},
+  '독창적':{mood:["독특한"]},
+  '자연':{mood:["따뜻한", "부드러운"]},
+  '자연스러운':{mood:["부드러운"]},
+  '내추럴':{mood:["부드러운", "따뜻한"]},
+  '봄':{mood:["부드러운", "감성적", "장난스러운"]},
+  '봄날':{mood:["부드러운", "감성적"]},
+  '봄날씨':{mood:["부드러운", "감성적"]},
+  '벚꽃':{mood:["부드러운", "감성적"],personality:["여성적"]},
+  '여름':{mood:["친근한", "장난스러운"]},
+  '여름밤':{mood:["감성적"]},
+  '한여름':{mood:["친근한", "장난스러운"]},
+  '시원한':{mood:["시원한"]},
+  '청량한':{mood:["시원한", "깔끔한"]},
+  '청량':{mood:["시원한", "깔끔한"]},
+  '청춘':{mood:["장난스러운"],personality:["어린이", "현대적"]},
+  '가을':{mood:["감성적", "따뜻한"]},
+  '가을밤':{mood:["감성적"]},
+  '단풍':{mood:["감성적", "따뜻한"]},
+  '겨울':{mood:["고급스러운", "진중한"]},
+  '눈':{mood:["고급스러운", "깔끔한"]},
+  '눈꽃':{mood:["고급스러운"]},
+  '크리스마스':{mood:["따뜻한", "장난스러운"]},
+  '연말':{mood:["따뜻한", "고급스러운"]},
+  '새해':{mood:["따뜻한", "신뢰감"]},
+  '꽃':{mood:["감성적", "부드러운"],personality:["여성적"]},
+  '꽃잎':{mood:["감성적", "부드러운"],personality:["여성적"]},
+  '하늘':{mood:["감성적", "시원한"]},
+  '바다':{mood:["감성적", "시원한"]},
+  '바닷가':{mood:["감성적", "시원한"]},
+  '나무':{mood:["따뜻한"]},
+  '숲':{mood:["따뜻한"]},
+  '들꽃':{mood:["감성적", "부드러운"]},
+  '햇살':{mood:["따뜻한", "부드러운"]},
+  '햇볕':{mood:["따뜻한"]},
+  '본문':{usage:["본문"],reading_length:'장문 가능'},
+  '본문용':{usage:["본문"],reading_length:'장문 가능'},
+  '긴글':{usage:["본문"],reading_length:'장문 가능'},
+  '긴 글':{usage:["본문"],reading_length:'장문 가능'},
+  '장문':{usage:["본문"],reading_length:'장문 가능'},
+  '읽기':{usage:["본문"],reading_length:'장문 가능'},
+  '읽는':{usage:["본문"],reading_length:'장문 가능'},
+  '독서':{usage:["본문"],reading_length:'장문 가능'},
+  '제목':{usage:["제목", "캐치프레이즈"],reading_length:'짧은 글자',weight_feel:'굵음'},
+  '제목용':{usage:["제목", "캐치프레이즈"],weight_feel:'굵음'},
+  '헤드라인':{usage:["제목", "캐치프레이즈"],weight_feel:'굵음'},
+  '헤더':{usage:["제목"],weight_feel:'굵음'},
+  '큰글씨':{usage:["제목"],weight_feel:'굵음'},
+  '큰 글씨':{usage:["제목"],weight_feel:'굵음'},
+  '큰글자':{usage:["제목"],weight_feel:'굵음'},
+  '타이틀':{usage:["제목", "캐치프레이즈"],weight_feel:'굵음'},
+  '메인타이틀':{usage:["제목"],weight_feel:'굵음'},
+  '메인제목':{usage:["제목"],weight_feel:'굵음'},
+  '서브타이틀':{usage:["제목"]},
+  '로고':{usage:["로고", "캐치프레이즈"]},
+  '로고타입':{usage:["로고"]},
+  '로고체':{usage:["로고"]},
+  '심볼':{usage:["로고"]},
+  '브랜드':{usage:["로고", "캐치프레이즈"]},
+  '브랜딩':{usage:["로고", "캐치프레이즈"]},
+  'BI':{usage:["로고"]},
+  'CI':{usage:["로고"]},
+  '간판':{usage:["로고", "캐치프레이즈"],weight_feel:'굵음'},
+  '슬로건':{usage:["캐치프레이즈"]},
+  '카피':{usage:["캐치프레이즈"]},
+  '카피라이팅':{usage:["캐치프레이즈"]},
+  '캐치프레이즈':{usage:["캐치프레이즈"]},
+  '캐치카피':{usage:["캐치프레이즈"]},
+  '문구':{usage:["캐치프레이즈"]},
+  '간판체':{usage:["로고", "캐치프레이즈"],weight_feel:'굵음'},
+  'SNS':{usage:["SNS카드"]},
+  'sns':{usage:["SNS카드"]},
+  '인스타':{usage:["SNS카드"],personality:["현대적"]},
+  '인스타그램':{usage:["SNS카드"],personality:["현대적"]},
+  '페이스북':{usage:["SNS카드"]},
+  '트위터':{usage:["SNS카드"]},
+  '엑스':{usage:["SNS카드"]},
+  '카드뉴스':{usage:["SNS카드", "정보전달"]},
+  '카드':{usage:["SNS카드"]},
+  '피드':{usage:["SNS카드"]},
+  '게시물':{usage:["SNS카드"]},
+  '게시글':{usage:["SNS카드"]},
+  '스토리':{usage:["SNS카드"]},
+  '프로필':{usage:["SNS카드"]},
+  '해시태그':{usage:["SNS카드"],personality:["현대적"]},
+  '썸네일':{usage:["썸네일", "캐치프레이즈"],weight_feel:'굵음'},
+  '섬네일':{usage:["썸네일", "캐치프레이즈"],weight_feel:'굵음'},
+  '유튜브':{usage:["썸네일", "영상자막"]},
+  '유튭':{usage:["썸네일", "영상자막"]},
+  '유튜버':{usage:["썸네일", "영상자막"]},
+  '쇼츠':{usage:["썸네일", "영상자막"],personality:["현대적"]},
+  '릴스':{usage:["SNS카드", "썸네일"],personality:["현대적"]},
+  '틱톡':{usage:["SNS카드", "썸네일"],personality:["현대적"]},
+  '자막':{usage:["영상자막"]},
+  '자막용':{usage:["영상자막"]},
+  '영상':{usage:["영상자막", "썸네일"]},
+  '영상자막':{usage:["영상자막"]},
+  '영상편집':{usage:["영상자막"]},
+  '브이로그':{mood:["친근한"],usage:["영상자막"]},
+  '동영상':{usage:["영상자막", "썸네일"]},
+  '미디어':{usage:["영상자막"]},
+  '포스터':{usage:["포스터", "캐치프레이즈"],weight_feel:'굵음'},
+  '포스터용':{usage:["포스터", "캐치프레이즈"],weight_feel:'굵음'},
+  '벽보':{usage:["포스터", "캐치프레이즈"]},
+  '전단':{usage:["포스터", "정보전달"]},
+  '전단지':{usage:["포스터", "정보전달"]},
+  '리플렛':{usage:["포스터", "정보전달"]},
+  '브로슈어':{usage:["포스터", "출판"]},
+  '카탈로그':{usage:["포스터", "출판"]},
+  '광고':{usage:["포스터", "캐치프레이즈"]},
+  '광고용':{usage:["포스터", "캐치프레이즈"]},
+  '배너':{usage:["포스터", "캐치프레이즈"],weight_feel:'굵음'},
+  '배너용':{usage:["포스터", "캐치프레이즈"]},
+  '디스플레이':{usage:["포스터"]},
+  '간판이미지':{usage:["포스터"]},
+  '패키지':{usage:["패키지", "로고"]},
+  '패키지디자인':{usage:["패키지"]},
+  '포장':{usage:["패키지"]},
+  '포장지':{usage:["패키지"]},
+  '박스':{usage:["패키지"]},
+  '라벨':{usage:["패키지"]},
+  '제품':{usage:["패키지", "로고"]},
+  '굿즈':{usage:["패키지", "로고"]},
+  '머천다이즈':{usage:["패키지"]},
+  '책':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '책자':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '도서':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '출판':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '출판물':{usage:["출판", "본문"]},
+  '잡지':{usage:["출판", "캐치프레이즈"]},
+  '신문':{usage:["출판", "본문"],formality:'격식',reading_length:'장문 가능'},
+  '에세이':{mood:["감성적"],usage:["출판", "본문"],reading_length:'장문 가능'},
+  '수필':{mood:["감성적"],usage:["출판", "본문"]},
+  '시집':{mood:["감성적"],usage:["출판"]},
+  '소설':{usage:["출판", "본문"],reading_length:'장문 가능'},
+  '단편':{usage:["출판", "본문"]},
+  '동화책':{usage:["출판", "본문"],personality:["어린이"]},
+  '그림책':{usage:["출판"],personality:["어린이"]},
+  '편집':{usage:["출판", "본문"]},
+  '편집디자인':{usage:["출판", "본문"]},
+  'UI':{usage:["UI"],industry:["IT"]},
+  'ui':{usage:["UI"],industry:["IT"]},
+  'UX':{usage:["UI"],industry:["IT"]},
+  'ux':{usage:["UI"],industry:["IT"]},
+  '웹':{usage:["UI"],industry:["IT"]},
+  '웹사이트':{usage:["UI"],industry:["IT"]},
+  '홈페이지':{usage:["UI"],industry:["IT"]},
+  '앱':{usage:["UI"],industry:["IT"]},
+  '앱디자인':{usage:["UI"],industry:["IT"]},
+  '어플':{usage:["UI"],industry:["IT"]},
+  '모바일':{usage:["UI"],industry:["IT"]},
+  '서비스':{usage:["UI"]},
+  '대시보드':{usage:["UI"],formality:'중간'},
+  '인터페이스':{usage:["UI"]},
+  '뷰':{usage:["UI"]},
+  '화면':{usage:["UI"]},
+  '플랫폼':{usage:["UI"],industry:["IT"]},
+  '정보':{usage:["정보전달"],formality:'중간'},
+  '정보전달':{usage:["정보전달"]},
+  '안내':{usage:["정보전달"],formality:'중간'},
+  '안내문':{usage:["정보전달"],formality:'격식'},
+  '공지':{usage:["정보전달"],formality:'격식'},
+  '공지사항':{usage:["정보전달"],formality:'격식'},
+  '문서':{usage:["본문", "출판"],formality:'격식'},
+  '리포트':{usage:["본문", "정보전달"],formality:'격식'},
+  '보고서':{usage:["본문", "정보전달"],formality:'격식'},
+  '논문':{usage:["본문"],formality:'격식',reading_length:'장문 가능'},
+  '발표':{usage:["정보전달", "제목"],formality:'중간'},
+  'PPT':{usage:["정보전달", "제목"]},
+  'ppt':{usage:["정보전달", "제목"]},
+  '슬라이드':{usage:["정보전달", "제목"]},
+  '키노트':{usage:["정보전달", "제목"]},
+  '프레젠테이션':{usage:["정보전달", "제목"]},
+  '제안서':{usage:["본문", "정보전달"],formality:'격식'},
+  '기획서':{usage:["본문", "정보전달"],formality:'격식'},
+  '교재':{usage:["본문", "정보전달"],industry:["교육"]},
+  '교과서':{usage:["본문", "정보전달"],industry:["교육"]},
+  '워크북':{usage:["본문"],industry:["교육"]},
+  '인포그래픽':{usage:["정보전달", "SNS카드"]},
+  '카페':{mood:["따뜻한", "감성적"],industry:["카페", "푸드"]},
+  '커피':{mood:["따뜻한"],industry:["카페", "푸드"]},
+  '커피숍':{mood:["따뜻한"],industry:["카페", "푸드"]},
+  '베이커리':{mood:["따뜻한"],industry:["카페", "푸드"]},
+  '빵집':{mood:["따뜻한"],industry:["카페", "푸드"]},
+  '디저트':{mood:["장난스러운", "부드러운"],industry:["카페", "푸드"]},
+  '케이크':{mood:["장난스러운"],industry:["카페", "푸드"]},
+  '쿠키':{mood:["장난스러운"],industry:["카페", "푸드"]},
+  '브런치':{mood:["감성적"],industry:["카페", "푸드"]},
+  '레스토랑':{industry:["푸드"]},
+  '식당':{industry:["푸드"]},
+  '음식':{industry:["푸드"]},
+  '맛집':{industry:["푸드"]},
+  '푸드':{industry:["푸드"]},
+  '음료':{industry:["푸드", "카페"]},
+  '와인':{mood:["고급스러운"],industry:["푸드"]},
+  '바':{mood:["고급스러운"],industry:["푸드"]},
+  '주점':{industry:["푸드"]},
+  '술집':{industry:["푸드"]},
+  '치맥':{mood:["친근한"],industry:["푸드"]},
+  '치킨':{industry:["푸드"]},
+  '피자':{industry:["푸드"]},
+  '버거':{industry:["푸드"]},
+  '햄버거':{industry:["푸드"]},
+  '분식':{mood:["친근한"],industry:["푸드"]},
+  '일식':{industry:["푸드"]},
+  '중식':{industry:["푸드"]},
+  '양식':{industry:["푸드"]},
+  '디저트카페':{industry:["카페", "푸드"]},
+  '도시락':{industry:["푸드"]},
+  '먹방':{mood:["친근한"],industry:["푸드"]},
+  '뷰티':{mood:["고급스러운"],industry:["뷰티"],personality:["여성적"]},
+  '화장품':{mood:["고급스러운"],industry:["뷰티"]},
+  '코스메틱':{mood:["고급스러운"],industry:["뷰티"]},
+  '메이크업':{industry:["뷰티"],personality:["여성적"]},
+  '미용실':{industry:["뷰티"]},
+  '미용':{industry:["뷰티"]},
+  '헤어':{industry:["뷰티"]},
+  '헤어샵':{industry:["뷰티"]},
+  '네일':{industry:["뷰티"],personality:["여성적"]},
+  '네일아트':{industry:["뷰티"],personality:["여성적"]},
+  '스파':{mood:["부드러운"],industry:["뷰티", "헬스케어"]},
+  '에스테틱':{mood:["고급스러운"],industry:["뷰티"]},
+  '피부':{industry:["뷰티"]},
+  '스킨케어':{industry:["뷰티"]},
+  '향수':{mood:["고급스러운"],industry:["뷰티"]},
+  '패션':{industry:["패션"]},
+  '의류':{industry:["패션"]},
+  '옷':{industry:["패션"]},
+  '쇼핑':{industry:["패션"]},
+  '쇼핑몰':{industry:["패션"]},
+  '편집샵':{industry:["패션"],personality:["현대적"]},
+  '주얼리':{mood:["고급스러운"],industry:["패션", "뷰티"]},
+  '액세서리':{industry:["패션", "뷰티"]},
+  '가방':{industry:["패션"]},
+  '신발':{industry:["패션"]},
+  '스타일링':{mood:["고급스러운"],industry:["패션"]},
+  '룩북':{industry:["패션"],personality:["현대적"]},
+  '키즈':{mood:["장난스러운"],industry:["키즈", "교육"],personality:["어린이"]},
+  '어린이':{mood:["장난스러운"],industry:["키즈", "교육"],personality:["어린이"]},
+  '아동':{industry:["키즈"],personality:["어린이"]},
+  '유아':{industry:["키즈"],personality:["어린이"]},
+  '아이':{industry:["키즈"],personality:["어린이"]},
+  '아기':{mood:["부드러운"],industry:["키즈"],personality:["어린이"]},
+  '어린이집':{industry:["키즈", "교육"]},
+  '유치원':{industry:["키즈", "교육"]},
+  '초등':{industry:["교육"],personality:["어린이"]},
+  '초등학생':{industry:["교육"],personality:["어린이"]},
+  '중등':{industry:["교육"]},
+  '고등':{industry:["교육"]},
+  '학원':{industry:["교육"]},
+  '학교':{mood:["친근한"],industry:["교육"]},
+  '교육':{mood:["신뢰감"],industry:["교육"]},
+  '강의':{industry:["교육"]},
+  '강좌':{industry:["교육"]},
+  '학습':{industry:["교육"]},
+  '공부':{industry:["교육"]},
+  '튜토리얼':{industry:["교육"]},
+  '스터디':{industry:["교육"]},
+  '입시':{mood:["진중한"],industry:["교육"]},
+  '학습지':{industry:["교육"]},
+  '온라인강의':{industry:["교육", "IT"]},
+  '병원':{mood:["신뢰감"],industry:["헬스케어"]},
+  '병원용':{mood:["신뢰감"],industry:["헬스케어"]},
+  '약국':{mood:["신뢰감"],industry:["헬스케어"]},
+  '의료':{mood:["신뢰감", "진중한"],industry:["헬스케어"]},
+  '의약':{mood:["신뢰감"],industry:["헬스케어"]},
+  '치과':{mood:["깔끔한"],industry:["헬스케어"]},
+  '한의원':{industry:["헬스케어"],personality:["전통적"]},
+  '클리닉':{mood:["신뢰감"],industry:["헬스케어"]},
+  '헬스':{industry:["헬스케어"]},
+  '운동':{mood:["강인한"],industry:["헬스케어"]},
+  '피트니스':{mood:["강인한"],industry:["헬스케어"]},
+  '체육관':{mood:["강인한"],industry:["헬스케어"]},
+  '요가':{mood:["부드러운"],industry:["헬스케어"]},
+  '필라테스':{mood:["부드러운"],industry:["헬스케어"]},
+  '명상':{mood:["부드러운"],industry:["헬스케어"]},
+  '웰니스':{mood:["부드러운"],industry:["헬스케어"]},
+  '재활':{mood:["신뢰감"],industry:["헬스케어"]},
+  '심리':{mood:["부드러운"],industry:["헬스케어"]},
+  '상담':{mood:["신뢰감", "부드러운"],industry:["헬스케어"]},
+  '스타트업':{industry:["IT"],personality:["현대적"]},
+  '기술':{industry:["IT"],personality:["미래적"]},
+  '게임':{mood:["장난스러운", "독특한"],industry:["IT"]},
+  '소프트웨어':{industry:["IT"]},
+  '하드웨어':{industry:["IT"]},
+  '코딩':{industry:["IT"]},
+  '개발':{industry:["IT"]},
+  '개발자':{industry:["IT"]},
+  '프로그래밍':{industry:["IT"]},
+  '데이터':{mood:["신뢰감"],industry:["IT"]},
+  '클라우드':{industry:["IT"]},
+  '서버':{industry:["IT"]},
+  '인공지능':{industry:["IT"],personality:["미래적"]},
+  'AI':{industry:["IT"],personality:["미래적"]},
+  '머신러닝':{industry:["IT"],personality:["미래적"]},
+  '핀테크':{mood:["신뢰감"],industry:["IT"]},
+  '플랫폼서비스':{industry:["IT"]},
+  'IT':{industry:["IT"],personality:["현대적"]},
+  'it':{industry:["IT"],personality:["현대적"]},
+  '관공서':{mood:["신뢰감", "진중한"],industry:["공공기관"],formality:'격식'},
+  '공공':{mood:["신뢰감"],industry:["공공기관"]},
+  '공공기관':{mood:["신뢰감", "진중한"],industry:["공공기관"]},
+  '시청':{industry:["공공기관"]},
+  '구청':{industry:["공공기관"]},
+  '도청':{industry:["공공기관"]},
+  '정부':{mood:["진중한"],industry:["공공기관"],formality:'격식'},
+  '국가':{mood:["진중한"],industry:["공공기관"]},
+  '공기업':{mood:["신뢰감"],industry:["공공기관"]},
+  '협회':{mood:["진중한"],industry:["공공기관"]},
+  '재단':{mood:["진중한"],industry:["공공기관"]},
+  '복지':{mood:["따뜻한"],industry:["공공기관"]},
+  '기부':{mood:["따뜻한"],industry:["공공기관"]},
+  '자선':{mood:["따뜻한"],industry:["공공기관"]},
+  '이벤트':{mood:["장난스러운", "임팩트"],industry:["이벤트"]},
+  '축제':{mood:["장난스러운"],industry:["이벤트"]},
+  '행사':{industry:["이벤트"]},
+  '결혼식':{mood:["고급스러운", "감성적"],industry:["이벤트"]},
+  '청첩장':{mood:["고급스러운", "감성적"],industry:["이벤트"]},
+  '돌잔치':{mood:["장난스러운"],industry:["이벤트"],personality:["어린이"]},
+  '생일':{mood:["장난스러운"],industry:["이벤트"]},
+  '파티':{mood:["장난스러운"],industry:["이벤트"]},
+  '콘서트':{mood:["임팩트"],industry:["이벤트"]},
+  '공연':{mood:["임팩트"],industry:["이벤트"]},
+  '전시':{mood:["감성적"],industry:["이벤트"]},
+  '전시회':{mood:["감성적"],industry:["이벤트"]},
+  '컨퍼런스':{mood:["진중한"],industry:["이벤트", "공공기관"]},
+  '세미나':{mood:["진중한"],industry:["이벤트", "교육"]},
+  '워크숍':{industry:["이벤트", "교육"]},
+  '박람회':{industry:["이벤트"]},
+  '페스티벌':{mood:["장난스러운", "임팩트"],industry:["이벤트"]},
+  '캠페인':{mood:["임팩트"],industry:["이벤트"]},
+  '플리마켓':{mood:["친근한"],industry:["이벤트"]},
+  '팝업스토어':{industry:["이벤트", "패션"],personality:["현대적"]},
+  '독립출판':{mood:["감성적"],industry:["출판"]},
+  '잡지사':{industry:["출판"]},
+  '북디자인':{industry:["출판"]},
+  '20대':{personality:["현대적"]},
+  '30대':{personality:["현대적", "중성적"]},
+  '40대':{personality:["전통적", "중성적"]},
+  '50대':{personality:["전통적"]},
+  '60대':{personality:["전통적"]},
+  '10대':{personality:["현대적", "어린이"]},
+  '청소년':{personality:["현대적", "어린이"]},
+  '학생':{industry:["교육"],personality:["어린이"]},
+  '대학생':{personality:["현대적"]},
+  '직장인':{personality:["중성적"],formality:'중간'},
+  '회사원':{personality:["중성적"],formality:'중간'},
+  '주부':{mood:["친근한"],personality:["중성적"]},
+  '여성':{personality:["여성적"]},
+  '남성':{personality:["남성적"]},
+  '여자':{personality:["여성적"]},
+  '남자':{personality:["남성적"]},
+  '시니어':{personality:["전통적"]},
+  '어른':{personality:["중성적"]},
+  '청년':{personality:["현대적"]},
+  '가독성':{mood:["깔끔한"],reading_length:'장문 가능'},
+  '가독성좋은':{mood:["깔끔한"],reading_length:'장문 가능'},
+  '읽기쉬운':{mood:["깔끔한"],reading_length:'장문 가능'},
+  '읽기편한':{mood:["부드러운"],reading_length:'장문 가능'},
+  '눈에편한':{mood:["부드러운"],reading_length:'장문 가능'},
+  '편한글씨':{mood:["부드러운"],reading_length:'장문 가능'},
+  '잘읽히는':{mood:["깔끔한"],reading_length:'장문 가능'},
+  '손글씨':{mood:["친근한", "부드러운"],personality:["전통적", "중성적"],formality:'캐주얼'},
+  '손편지':{mood:["친근한", "감성적"],personality:["전통적"]},
+  '편지':{mood:["감성적", "친근한"]},
+  '연필':{mood:["친근한", "감성적"]},
+  '펜글씨':{mood:["친근한"],personality:["전통적"]},
+  '캘리그라피':{mood:["감성적", "독특한"],personality:["전통적"]},
+  '캘리':{mood:["감성적", "독특한"],personality:["전통적"]},
+  '붓글씨':{mood:["진중한"],personality:["전통적"],formality:'격식'},
+  '서예':{mood:["진중한"],personality:["전통적"],formality:'격식'},
+  '한글서예':{mood:["진중한"],personality:["전통적"]},
+  '몽글몽글':{mood:["부드러운", "장난스러운"],personality:["여성적"]},
+  '말랑말랑':{mood:["부드러운", "장난스러운"]},
+  '뽀송뽀송':{mood:["부드러운", "장난스러운"]},
+  '동글동글':{mood:["부드러운", "장난스러운"],personality:["어린이"]},
+  '둥근':{mood:["부드러운", "친근한"]},
+  '둥글둥글':{mood:["부드러운", "친근한"]},
+  '각진':{mood:["강인한"],weight_feel:'굵음'},
+  '각이살아있는':{mood:["강인한", "깔끔한"]},
+  '날카로운':{mood:["임팩트", "강인한"]},
+  '뾰족한':{mood:["임팩트"]},
+  '부드럽고':{mood:["부드러운"]},
+  '진하고':{mood:["임팩트"],weight_feel:'굵음'},
+  '애틋한':{mood:["감성적", "부드러운"]},
+  '애틋':{mood:["감성적", "부드러운"]},
+  '그리운':{mood:["감성적", "부드러운"]},
+  '추억의':{mood:["감성적", "부드러운"]},
+  '노스탤지어':{mood:["감성적", "부드러운"]},
+  '서글픈':{mood:["감성적", "부드러운"]},
+  '애잔한':{mood:["감성적", "부드러운"]},
+  '애잔':{mood:["감성적", "부드러운"]},
+  '쓸쓸한':{mood:["감성적", "부드러운"]},
+  '쓸쓸':{mood:["감성적", "부드러운"]},
+  '외로운':{mood:["감성적", "부드러운"]},
+  '고독한':{mood:["감성적", "부드러운"]},
+  '고독':{mood:["감성적", "부드러운"]},
+  '적막한':{mood:["감성적", "부드러운"]},
+  '고요한':{mood:["감성적", "부드러운"]},
+  '고요':{mood:["감성적", "부드러운"]},
+  '평온한':{mood:["감성적", "부드러운"]},
+  '평온':{mood:["감성적", "부드러운"]},
+  '차분한':{mood:["감성적", "부드러운"]},
+  '차분':{mood:["감성적", "부드러운"]},
+  '잔향':{mood:["감성적", "부드러운"]},
+  '여운':{mood:["감성적", "부드러운"]},
+  '은은한':{mood:["감성적", "부드러운"]},
+  '은은':{mood:["감성적", "부드러운"]},
+  '담담한':{mood:["감성적", "부드러운"]},
+  '담담':{mood:["감성적", "부드러운"]},
+  '묵직한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '묵직':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '단단':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '견고':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '웅장한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '웅장':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '압도적':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '압도':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '폭발적':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강렬함':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '센':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '쎈':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강력한':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '강력':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '힘찬':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '힘있는':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '역동적':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '역동':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '다이나믹':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '스트롱':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '와일드':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '야성적':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '야성':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '거친':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '거칠은':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '터프가이':{mood:["강인한", "임팩트"],weight_feel:'굵음'},
+  '품격있는':{mood:["고급스러운"]},
+  '격조있는':{mood:["고급스러운"]},
+  '격조':{mood:["고급스러운"]},
+  '클래식한':{mood:["고급스러운"]},
+  '앤틱':{mood:["고급스러운"]},
+  '귀족적':{mood:["고급스러운"]},
+  '귀족':{mood:["고급스러운"]},
+  '고귀한':{mood:["고급스러운"]},
+  '고귀':{mood:["고급스러운"]},
+  '우아함':{mood:["고급스러운"]},
+  '세련된느낌':{mood:["고급스러운"]},
+  '품위있는':{mood:["고급스러운"]},
+  '품위':{mood:["고급스러운"]},
+  '고상':{mood:["고급스러운"]},
+  '깊이있는':{mood:["고급스러운"]},
+  '정갈한':{mood:["깔끔한"]},
+  '정갈':{mood:["깔끔한"]},
+  '심플한느낌':{mood:["깔끔한"]},
+  '말끔':{mood:["깔끔한"]},
+  '정돈된':{mood:["깔끔한"]},
+  '군더더기없는':{mood:["깔끔한"]},
+  '여백있는':{mood:["깔끔한"]},
+  '미니멀한느낌':{mood:["깔끔한"]},
+  '클린한':{mood:["깔끔한"]},
+  '깔끔깔끔':{mood:["깔끔한"]},
+  '단순명료':{mood:["깔끔한"]},
+  '군더더기 없는':{mood:["깔끔한"]},
+  '신비로운':{mood:["꿈같은", "독특한"]},
+  '신비':{mood:["꿈같은", "독특한"]},
+  '환상같은':{mood:["꿈같은", "독특한"]},
+  '비현실적':{mood:["꿈같은", "독특한"]},
+  '초현실적':{mood:["꿈같은", "독특한"]},
+  '초현실':{mood:["꿈같은", "독특한"]},
+  '공상적':{mood:["꿈같은", "독특한"]},
+  '공상':{mood:["꿈같은", "독특한"]},
+  '판타지':{mood:["꿈같은", "독특한"]},
+  '판타지스러운':{mood:["꿈같은", "독특한"]},
+  '기묘한':{mood:["꿈같은", "독특한"]},
+  '기묘':{mood:["꿈같은", "독특한"]},
+  '기이한':{mood:["꿈같은", "독특한"]},
+  '기이':{mood:["꿈같은", "독특한"]},
+  '괴짜같은':{mood:["꿈같은", "독특한"]},
+  '괴짜':{mood:["꿈같은", "독특한"]},
+  '실험적인':{mood:["꿈같은", "독특한"]},
+  '전위적':{mood:["꿈같은", "독특한"]},
+  '전위':{mood:["꿈같은", "독특한"]},
+  '살가운':{mood:["따뜻한", "친근한"]},
+  '살갑':{mood:["따뜻한", "친근한"]},
+  '싹싹한':{mood:["따뜻한", "친근한"]},
+  '싹싹':{mood:["따뜻한", "친근한"]},
+  '붙임성있는':{mood:["따뜻한", "친근한"]},
+  '붙임성':{mood:["따뜻한", "친근한"]},
+  '다감한':{mood:["따뜻한", "친근한"]},
+  '다감':{mood:["따뜻한", "친근한"]},
+  '인정있는':{mood:["따뜻한", "친근한"]},
+  '인정':{mood:["따뜻한", "친근한"]},
+  '훈훈함':{mood:["따뜻한", "친근한"]},
+  '마음따뜻한':{mood:["따뜻한", "친근한"]},
+  '동네친구같은':{mood:["따뜻한", "친근한"]},
+  '이웃같은':{mood:["따뜻한", "친근한"]},
+  '가족같은':{mood:["따뜻한", "친근한"]},
+  '정다운':{mood:["따뜻한", "친근한"]},
+  '정다움':{mood:["따뜻한", "친근한"]},
+  '살뜰한':{mood:["따뜻한", "친근한"]},
+  '살뜰':{mood:["따뜻한", "친근한"]},
+  '몰랑한':{mood:["부드러운"]},
+  '몰랑':{mood:["부드러운"]},
+  '보들보들':{mood:["부드러운"]},
+  '보드라운':{mood:["부드러운"]},
+  '포슬포슬':{mood:["부드러운"]},
+  '사르르':{mood:["부드러운"]},
+  '살랑한':{mood:["부드러운"]},
+  '살랑':{mood:["부드러운"]},
+  '산들한':{mood:["부드러운"]},
+  '산들':{mood:["부드러운"]},
+  '나긋한':{mood:["부드러운"]},
+  '나긋나긋':{mood:["부드러운"]},
+  '순한':{mood:["부드러운"]},
+  '순함':{mood:["부드러운"]},
+  '연한느낌':{mood:["부드러운"]},
+  '매끄러운':{mood:["부드러운"]},
+  '매끈한':{mood:["부드러운"]},
+  '상쾌한':{mood:["시원한"]},
+  '상쾌':{mood:["시원한"]},
+  '시원시원':{mood:["시원한"]},
+  '쿨함':{mood:["시원한"]},
+  '산뜻한':{mood:["시원한"]},
+  '산뜻':{mood:["시원한"]},
+  '청아한':{mood:["시원한"]},
+  '청아':{mood:["시원한"]},
+  '맑은느낌':{mood:["시원한"]},
+  '깨끗한느낌':{mood:["시원한"]},
+  '시원스러운':{mood:["시원한"]},
+  '트인':{mood:["시원한"]},
+  '탁트인':{mood:["시원한"]},
+  '믿음직':{mood:["신뢰감"],formality:'격식'},
+  '안정적인':{mood:["신뢰감"],formality:'격식'},
+  '견실한':{mood:["신뢰감"],formality:'격식'},
+  '견실':{mood:["신뢰감"],formality:'격식'},
+  '공신력있는':{mood:["신뢰감"],formality:'격식'},
+  '공신력':{mood:["신뢰감"],formality:'격식'},
+  '권위있는':{mood:["신뢰감"],formality:'격식'},
+  '전문적인느낌':{mood:["신뢰감"],formality:'격식'},
+  '프로페셔널한':{mood:["신뢰감"],formality:'격식'},
+  '공식적인':{mood:["신뢰감"],formality:'격식'},
+  '정확한느낌':{mood:["신뢰감"],formality:'격식'},
+  '탄탄한':{mood:["신뢰감"],formality:'격식'},
+  '귀엽고발랄한':{mood:["장난스러운"]},
+  '코믹한':{mood:["장난스러운"]},
+  '코믹':{mood:["장난스러운"]},
+  '익살스러운':{mood:["장난스러운"]},
+  '익살':{mood:["장난스러운"]},
+  '유쾌한느낌':{mood:["장난스러운"]},
+  '유머러스한':{mood:["장난스러운"]},
+  '유머':{mood:["장난스러운"]},
+  '천진난만한':{mood:["장난스러운"]},
+  '천진난만':{mood:["장난스러운"]},
+  '앙증맞은':{mood:["장난스러운"]},
+  '앙증':{mood:["장난스러운"]},
+  '방정맞은':{mood:["장난스러운"]},
+  '까불까불':{mood:["장난스러운"]},
+  '장난기있는':{mood:["장난스러운"]},
+  '장난기':{mood:["장난스러운"]},
+  '신중한':{mood:["진중한"],formality:'격식'},
+  '신중':{mood:["진중한"],formality:'격식'},
+  '묵묵한':{mood:["진중한"],formality:'격식'},
+  '묵묵':{mood:["진중한"],formality:'격식'},
+  '무게감있는':{mood:["진중한"],formality:'격식'},
+  '무게감':{mood:["진중한"],formality:'격식'},
+  '엄숙':{mood:["진중한"],formality:'격식'},
+  '경건한':{mood:["진중한"],formality:'격식'},
+  '경건':{mood:["진중한"],formality:'격식'},
+  '숙연한':{mood:["진중한"],formality:'격식'},
+  '숙연':{mood:["진중한"],formality:'격식'},
+  '초대장':{usage:["출판", "캐치프레이즈"]},
+  '명함':{usage:["로고", "제목"]},
+  '현수막':{usage:["포스터", "캐치프레이즈"]},
+  '블로그제목':{usage:["제목", "SNS카드"]},
+  '블로그 제목':{usage:["제목", "SNS카드"]},
+  '인스타피드':{usage:["SNS카드"]},
+  '상세페이지':{usage:["제목", "본문"]},
+  '상세 페이지':{usage:["제목", "본문"]},
+  '메뉴판':{usage:["출판", "제목"]},
+  '메뉴':{usage:["출판", "제목"]},
+  '가격표':{usage:["본문", "정보전달"]},
+  '네이밍':{usage:["로고", "제목"]},
+  '브랜드네임':{usage:["로고"]},
+  '유튜브자막':{usage:["영상자막"]},
+  '유튜브 자막':{usage:["영상자막"]},
+  '브이로그자막':{usage:["영상자막"]},
+  '숏폼':{usage:["영상자막", "SNS카드"]},
+  '썸네일제목':{usage:["썸네일", "제목"]},
+  '영상썸네일':{usage:["썸네일"]},
+  '표지':{usage:["출판", "제목"]},
+  '책표지':{usage:["출판", "제목"]},
+  '스티커':{usage:["패키지", "SNS카드"]},
+  '박스디자인':{usage:["패키지"]},
+  '제품패키지':{usage:["패키지"]},
+  '앱화면':{usage:["UI"]},
+  '웹디자인':{usage:["UI"]},
+  '버튼':{usage:["UI"]},
+  '설명서':{usage:["정보전달", "본문"]},
+  '매뉴얼':{usage:["정보전달", "본문"]},
+  '포스터문구':{usage:["포스터"]},
+  '행사포스터':{usage:["포스터"]},
+  '공연포스터':{usage:["포스터"]},
+  '브런치카페':{industry:["카페", "푸드"]},
+  '네일샵':{industry:["뷰티"]},
+  '피부관리':{industry:["뷰티", "헬스케어"]},
+  '의류브랜드':{industry:["패션"]},
+  '쇼핑몰패션':{industry:["패션"]},
+  '초등학교':{industry:["교육", "키즈"]},
+  '인강':{industry:["교육"]},
+  '테크기업':{industry:["IT"]},
+  '앱스타트업':{industry:["IT"]},
+  '게임회사':{industry:["IT"]},
+  '정부기관':{industry:["공공기관"]},
+  '동사무소':{industry:["공공기관"]},
+  '헬스장':{industry:["헬스케어"]},
+  '요가원':{industry:["헬스케어"]},
+  '웨딩':{industry:["이벤트"]},
+  '장난감':{industry:["키즈"]},
+  '아기용품':{industry:["키즈"]},
+  '유아용품':{industry:["키즈"]},
+  '키즈카페':{industry:["키즈"]},
+  '미니멀리즘':{personality:["현대적"]},
+  '세련됨':{personality:["현대적"]},
+  '빈티지스타일':{personality:["전통적", "복고적"]},
+  '레트로한':{personality:["전통적", "복고적"]},
+  '옛날느낌':{personality:["전통적", "복고적"]},
+  '향토적':{personality:["전통적", "복고적"]},
+  '전통있는':{personality:["전통적", "복고적"]},
+  '미래지향적':{personality:["미래적"]},
+  'futuristic':{personality:["미래적"]},
+  '공상과학':{personality:["미래적"]},
+  'SF느낌':{personality:["미래적"]},
+  '사이버틱':{personality:["미래적"]},
+  '테크느낌':{personality:["미래적"]},
+  '소년같은':{personality:["어린이"]},
+  '소녀같은':{personality:["어린이"]},
+  '아이같은':{personality:["어린이"]},
+  '동화같은':{personality:["어린이"]},
+  '성별무관':{personality:["중성적"]},
+  '보편적인':{personality:["중성적"]},
+  '누구나':{personality:["중성적"]},
+  '헤비한':{weight_feel:'굵음'},
+  '헤비웨이트':{weight_feel:'굵음'},
+  '묵직체':{weight_feel:'굵음'},
+  '블랙체':{weight_feel:'굵음'},
+  '씬한':{weight_feel:'얇음'},
+  '씬체':{weight_feel:'얇음'},
+  '라이트웨이트':{weight_feel:'얇음'},
+  '경량체':{weight_feel:'얇음'},
+  '캐주얼한':{formality:'캐주얼'},
+  '편안캐주얼':{formality:'캐주얼'},
+  '일상적인':{formality:'캐주얼'},
+  '데일리한':{formality:'캐주얼'},
+  '데일리':{formality:'캐주얼'},
+  '포멀한':{formality:'격식'},
+  '비즈니스용':{formality:'격식'},
+  '공식문서':{formality:'격식'},
+  '격식있는느낌':{formality:'격식'},
+  '짧은문구':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '짧은글귀':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '한줄문구':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '임팩트문구':{mood:["임팩트"],usage:["제목", "캐치프레이즈"]},
+  '줄글':{mood:["깔끔한"],usage:["본문"]},
+  '산뜻함':{mood:["시원한"]},
+  '청초한':{mood:["감성적"],personality:["여성적"]},
+  '청초':{mood:["감성적"],personality:["여성적"]},
+  '단아한':{mood:["고급스러운"]},
+  '단아':{mood:["고급스러운"]},
+  '정중한':{formality:'격식'},
+  '무난한':{mood:["깔끔한"]},
+  '평범한':{mood:["깔끔한"]},
+  '화려한':{mood:["임팩트", "고급스러운"]},
+  '화려':{mood:["임팩트", "고급스러운"]},
+  '심플하고깔끔한':{mood:["깔끔한"]},
+  '차가운':{mood:["시원한"],personality:["현대적"]},
+  '쿨시크':{mood:["시원한"],personality:["현대적"]},
+  '센스있는':{mood:["독특한"]},
+  '감각적인':{mood:["독특한", "고급스러운"]},
+  '감각적':{mood:["독특한", "고급스러운"]},
+  '특별한':{mood:["독특한"]},
+  '차별화된':{mood:["독특한"]},
+  '유니크한':{mood:["독특한"]},
+  '유니크':{mood:["독특한"]},
+  '생기있는':{mood:["장난스러운"]},
+  '생기':{mood:["장난스러운"]},
+  '리듬감있는':{mood:["장난스러운"]},
+  '펀한':{mood:["장난스러운"]},
+  '재치있는':{mood:["장난스러운"]},
+  '재치':{mood:["장난스러운"]},
+  '위트있는':{mood:["장난스러운"]},
+  '위트':{mood:["장난스러운"]},
+  '카페감성':{mood:["따뜻한"],industry:["카페"]},
+  '카페느낌':{industry:["카페"]},
+  '제과점':{industry:["푸드", "카페"]},
+  '홈베이킹':{industry:["푸드"]},
+  '홈카페':{industry:["카페"]},
+  '델리':{industry:["푸드"]},
+  '펍':{industry:["푸드"]},
+  '스몰비즈니스':{industry:["IT"]},
+  '1인샵':{industry:["뷰티"]},
+  '온라인쇼핑몰':{industry:["패션"]},
+  '빈티지샵':{industry:["패션"],personality:["복고적"]},
+  '필기체같은':{mood:["감성적"]},
+  '손글씨느낌':{mood:["감성적", "친근한"]},
+  '캘리그래피':{mood:["감성적", "고급스러운"]},
+  '편지지':{mood:["감성적"]},
+  '일기장':{mood:["감성적", "친근한"]},
+  '다이어리':{mood:["감성적", "친근한"]},
+  '플래너':{mood:["깔끔한"],usage:["정보전달"]},
+  '머그컵':{usage:["패키지"]},
+  '티셔츠':{usage:["패키지"]},
+  '에코백':{usage:["패키지"]},
+  '포스트잇':{usage:["패키지"]},
+  '달력':{usage:["출판"]},
+  '다이어리커버':{usage:["패키지"]},
+  '이력서':{usage:["본문", "정보전달"],formality:'격식'},
+  '자기소개서':{usage:["본문"],formality:'격식'},
+  '포트폴리오':{usage:["본문", "제목"]},
+  '발표자료':{usage:["제목", "본문"]},
+  'MZ세대':{personality:["현대적"]},
+  'Z세대':{personality:["현대적"]},
+  '밀레니얼':{personality:["현대적"]},
+  '어르신':{personality:["전통적"]},
+  '레트로감성':{mood:["감성적"],personality:["복고적"]},
+  'SF':{personality:["미래적"]},
+  '사이버펑크':{personality:["미래적"]},
+  '메타버스':{personality:["미래적"]},
+};
+
+/* 추천 결과 보유 변수 — UI 표시용 */
+let _lastRecommended = null;
+/* {폰트id: 순위}. 최근 7일 조회 기준 상위 10종 (app/font_views.py).
+   비어 있으면 갤러리가 예전과 똑같이 보인다 — 배포 직후가 그렇다. */
+let POPULAR = {};
+let _recommendShowCount = 5;
+
+/* 사용자 입력에서 추천 태그 추출 */
+function extractTagsFromQuery(query){
+  const q = String(query || '').toLowerCase();
+  const found = {
+    mood: new Set(), usage: new Set(), industry: new Set(),
+    personality: new Set(), formality: null, reading_length: null, weight_feel: null
+  };
+  // 사전의 키워드를 길이 내림차순으로 정렬 (긴 키워드 우선 매칭)
+  const keys = Object.keys(RECOMMEND_KEYWORDS).sort((a,b)=>b.length-a.length);
+  for(const key of keys){
+    if(q.includes(key.toLowerCase())){
+      const data = RECOMMEND_KEYWORDS[key];
+      if(data.mood) data.mood.forEach(v=>found.mood.add(v));
+      if(data.usage) data.usage.forEach(v=>found.usage.add(v));
+      if(data.industry) data.industry.forEach(v=>found.industry.add(v));
+      if(data.personality) data.personality.forEach(v=>found.personality.add(v));
+      if(data.formality && !found.formality) found.formality = data.formality;
+      if(data.reading_length && !found.reading_length) found.reading_length = data.reading_length;
+      if(data.weight_feel && !found.weight_feel) found.weight_feel = data.weight_feel;
+    }
+  }
+  return found;
+}
+
+/* 단일 폰트에 대한 매칭 점수 계산 */
+function scoreFont(font, extracted){
+  if(!font.meta) return { score: 0, matches: [], primaryMatch: false };
+  const m = font.meta;
+  let score = 0;
+  let matches = [];
+  let primaryMatch = false;  // usage 또는 mood가 하나라도 걸렸는지 — 이게 없으면 추천 후보에서 제외
+
+  // usage: 가중치 4 (가장 중요 — 용도가 안 맞으면 다른 조건이 맞아도 의미 없음)
+  for(const u of extracted.usage){
+    if(m.usage && m.usage.includes(u)){ score += 4; matches.push(u); primaryMatch = true; }
+  }
+  // industry: 가중치 2
+  for(const i of extracted.industry){
+    if(m.industry && m.industry.includes(i)){ score += 2; matches.push(i); }
+  }
+  // mood: 가중치 3
+  for(const mo of extracted.mood){
+    if(m.mood && m.mood.includes(mo)){ score += 3; matches.push(mo); primaryMatch = true; }
+  }
+  // personality: 가중치 1.5
+  for(const p of extracted.personality){
+    if(m.personality && m.personality.includes(p)){ score += 1.5; matches.push(p); }
+  }
+  // formality, weight_feel, reading_length: 가중치 0.3 — 단일값이라 걸리는 폰트가 너무 많아서
+  // 보조적인 동점 구분 신호로만 쓰고, usage/mood처럼 매칭 폭을 넓히는 용도로는 쓰지 않는다.
+  if(extracted.formality && m.formality === extracted.formality){ score += 0.3; matches.push(m.formality); }
+  if(extracted.weight_feel && m.weight_feel === extracted.weight_feel){ score += 0.3; matches.push(m.weight_feel); }
+  if(extracted.reading_length && m.reading_length === extracted.reading_length){ score += 0.3; matches.push(m.reading_length); }
+
+  return { score, matches, primaryMatch };
+}
+
+/* 추천 결과 생성 — 점수 상위 폰트들 반환 */
+function recommendFonts(query, candidates){
+  const extracted = extractTagsFromQuery(query);
+  // 추출된 태그가 하나도 없으면 추천 안함
+  const totalTags = extracted.mood.size + extracted.usage.size + extracted.industry.size +
+                    extracted.personality.size +
+                    (extracted.formality?1:0) + (extracted.weight_feel?1:0) + (extracted.reading_length?1:0);
+  if(totalTags === 0) return [];
+
+  // usage/mood 중 하나라도 지정됐다면, 그중 하나는 반드시 매칭돼야 후보로 인정 (약한 태그 단독 매칭 배제)
+  const requirePrimary = extracted.usage.size > 0 || extracted.mood.size > 0;
+
+  const scored = candidates.map(f => {
+    const r = scoreFont(f, extracted);
+    return { font: f, score: r.score, matches: r.matches, primaryMatch: r.primaryMatch };
+  }).filter(x => x.score > 0 && (!requirePrimary || x.primaryMatch));
+
+  // 점수 내림차순 정렬 (동률 시 id)
+  scored.sort((a,b) => {
+    if(b.score !== a.score) return b.score - a.score;
+    return a.font.id - b.font.id;
+  });
+
+  // 상위 항목들 반환 (UI에서 5/8/11... 더보기로 확장)
+  _lastRecommended = scored;
+  return scored.slice(0, _recommendShowCount).map(s => ({...s.font, _matches: s.matches, _isRecommend: true}));
+}
+
+function renderFonts(){
+  /* #homeSsr은 init() 첫 줄에서 이미 감췄다. 여기서 한 번 더 확인하는 이유는
+     초기화 실패로 되살아난 뒤 사용자가 필터를 눌러 다시 그리는 경우다. */
+  const ssr = document.getElementById('homeSsr');
+  if(ssr) ssr.style.display = 'none';
+
+  const list=getFilteredFonts();
+  const grid=document.getElementById('fontGrid');
+  const isRecommendMode = list.length > 0 && list[0]._isRecommend === true;
+  /* 목록을 통째로 다시 그리므로, 지켜보던 옛 광고 칸은 놓는다 (app/header.py ffpLazyAds). */
+  const lazyAds = (typeof window.ffpLazyAds === 'function') ? window.ffpLazyAds : null;
+  if(!list.length){
+    grid.innerHTML=`<div class="no-results" role="status"><i class="ti ti-mood-sad" aria-hidden="true"></i><p>검색 결과가 없어요</p><small>다른 키워드를 시도해보세요</small></div>`;
+    if(lazyAds) lazyAds(grid, true);
+    return;
+  }
+
+  /* 광고 칸 — 갤러리 첫 칸 하나 (2026-09-17 사용자가 정한 자리).
+     처음에는 이후 폰트 8개마다 한 칸씩 더 넣었는데, 같은 날 "너무 지저분하다"는
+     사용자 판단으로 첫 칸만 남겼다.
+     검색·추천 결과에는 넣지 않는다. 사람이 찾는 답이 첫 칸에서 밀려난다.
+     광고 단위 번호가 없으면(app/header.py AD_SLOTS) 칸 자체를 안 그린다. */
+  const searching = !!(document.getElementById('globalSearch').value || '').trim();
+  const withAds = !isRecommendMode && !searching &&
+                  typeof window.ffpHasAd === 'function' && window.ffpHasAd('gallery');
+  const adCell = withAds
+    ? '<div class="ffp-ad ad-cell" role="listitem" data-ad-key="gallery">'
+      + '<span class="ffp-ad-lbl">광고</span></div>'
+    : '';
+
+  const cards = list.map((f,idx)=>{
+    // [2026-08] 카드에서 태그 알약 제거 — 폰트 형태보다 알약이 먼저 눈에 들어왔다.
+    //           카테고리 필터는 상단 레일이, 태그 확인은 상세페이지가 담당한다.
+      // [2026-08] 조합추천 알약 제거 — 카드에는 견본과 이름만 남긴다.
+    const downloadUrl=f.url||('https://noonnu.cc/index?keyword='+encodeURIComponent(f.name));
+    /* 이제 어드민이 폰트마다 직접 쓴 문구가 여기로 들어온다 — 하드코딩 문구만
+       올라오던 때와 달리 HTML로 새는 문자가 섞일 수 있어 반드시 이스케이프한다. */
+    const previewTxt = escapeHtmlIdx(getPreviewTextFor(f));
+    // 추천 모드일 때 매칭 태그를 카드 상단에 작은 배지로 표시
+    // [2026-08] 추천매칭 배지 제거
+    const matchBadge = (false)
+      ? ''
+      : '';
+    return `
+    <article class="font-card" role="listitem" data-font-id="${f.id}" style="animation-delay:${Math.min(idx*20,300)}ms" onclick="cardNavigate(event, ${f.id})">
+      ${matchBadge}
+      <div class="font-preview">
+        <div class="font-preview-text" data-english="${f.isEnglish?'1':'0'}" style="font-family:${getEffectiveStack(f)};font-size:${previewSizeFor()}px">${previewTxt}</div>
+      </div>
+      <div class="font-bottom">
+      <div class="card-divider"></div>
+      <div class="font-meta">
+        <div>
+          <div class="font-line1">
+            ${POPULAR[f.id]
+              ? `<span class="font-tag rank" title="요즘 많이 보는 폰트 ${POPULAR[f.id]}위 — 최근 조회와 급상승을 함께 봅니다">인기 ${POPULAR[f.id]}</span>`
+              : ''}
+            <span class="font-name">${f.name}</span>
+            <span class="font-weights">${f.weights}</span>
+          </div>
+          <div class="font-line2">
+            <span class="font-maker">${f.maker}</span>
+            ${(f.tags || []).map(t =>
+              `<span class="font-tag">${escapeHtml(t)}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="font-actions">
+        <a class="btn-download" href="/font/${f.id}" onclick="event.stopPropagation()" aria-label="${f.name} 상세 페이지로 이동" title="자세히 보기">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/></svg>
+        </a>
+      </div>
+      </div>
+    </article>`;
+  });
+
+  grid.innerHTML = adCell + cards.join('');
+
+  // 추천 모드일 때 더보기 버튼 추가
+  if(isRecommendMode){
+    const total = (_lastRecommended || []).length;
+    if(_recommendShowCount < total){
+      grid.insertAdjacentHTML('beforeend', `
+        <div class="recommend-more-wrap" style="grid-column:1/-1;display:flex;justify-content:center;padding:8px 0">
+          <button class="recommend-more-btn" onclick="showMoreRecommendations()">
+            <i class="ti ti-plus" aria-hidden="true"></i>
+            <span>다른 추천 3개 더 보기</span>
+            <small>(${total - _recommendShowCount}개 더 있음)</small>
+          </button>
+        </div>`);
+    }
+  }
+
+  // 폰트 지연 로딩: 화면에 들어오는 카드만 폰트 등록
+  observeFontCards(document.getElementById('fontGrid'));
+  // 광고도 같은 식으로 — 화면에 가까워진 칸만 채운다
+  if(lazyAds) lazyAds(grid, true);
+}
+
+/* 추천 더보기: show count를 3씩 증가시키고 다시 렌더 */
+function showMoreRecommendations(){
+  _recommendShowCount += 3;
+  renderFonts();
+}
+
+/* ════════════════════════════════════════
+   폰트 지연 로딩 (Lazy Font Loading)
+   - 카드가 화면에 들어오면 해당 폰트의 @font-face를 동적 등록
+   - 한 번 등록된 폰트는 다시 등록하지 않음
+   - 폰트 파일은 fonts/ 폴더에 font-{id:03d}.woff2 형식으로 위치
+════════════════════════════════════════ */
+/* 구글·네이버·CDN 웹폰트 배포 폰트 → 디자이너에서 실제 굵기 선택 지원 */
+    const DS_W9 = [[100,'Thin'],[200,'ExtraLight'],[300,'Light'],[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold'],[900,'Black']];
+    const DS_WEIGHT_LABELS = {100:'Thin',200:'ExtraLight',300:'Light',400:'Regular',500:'Medium',600:'SemiBold',700:'Bold',800:'ExtraBold',900:'Black'};
+    const WEBFONT_MAP = {
+      'notosanscjkkr': {css:'', family:"'Noto Sans KR'", weights:DS_W9},
+      '노토산스':      {css:'', family:"'Noto Sans KR'", weights:DS_W9},
+      '나눔고딕': {css:'https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap', family:"'Nanum Gothic'", weights:[[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
+      '나눔명조': {css:'https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap', family:"'Nanum Myeongjo'", weights:[[400,'Regular'],[700,'Bold']]},
+      '프리텐다드': {css:'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css', family:"'Pretendard Variable'", weights:DS_W9},
+      '수트': {css:'https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css', family:"'SUIT Variable'", weights:DS_W9},
+      '마루부리': {css:'https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css', family:"'MaruBuri'", weights:[[300,'Light'],[400,'Regular'],[600,'SemiBold'],[700,'Bold']]},
+      '나눔스퀘어': {css:'https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@master/nanumsquare.css', family:"'NanumSquare'", weights:[[300,'Light'],[400,'Regular'],[700,'Bold'],[800,'ExtraBold']]},
+      'montserrat': {css:'https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap', family:"'Montserrat'", weights:DS_W9},
+      'opensans': {css:'https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap', family:"'Open Sans'", weights:[[300,'Light'],[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold']]},
+      'roboto': {css:'https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap', family:"'Roboto'", weights:[[100,'Thin'],[300,'Light'],[400,'Regular'],[500,'Medium'],[700,'Bold'],[900,'Black']]},
+      'raleway': {css:'https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap', family:"'Raleway'", weights:DS_W9},
+      'petrona': {css:'https://fonts.googleapis.com/css2?family=Petrona:wght@100..900&display=swap', family:"'Petrona'", weights:DS_W9},
+      'playfairdisplay': {css:'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&display=swap', family:"'Playfair Display'", weights:[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold'],[900,'Black']]},
+      'librebodoni': {css:'https://fonts.googleapis.com/css2?family=Libre+Bodoni:wght@400..700&display=swap', family:"'Libre Bodoni'", weights:[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold']]},
+      'dancingscript': {css:'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap', family:"'Dancing Script'", weights:[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold']]},
+      'cinzeldecorative': {css:'https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&display=swap', family:"'Cinzel Decorative'", weights:[[400,'Regular'],[700,'Bold'],[900,'Black']]},
+      'bonanova': {css:'https://fonts.googleapis.com/css2?family=Bona+Nova:wght@400;700&display=swap', family:"'Bona Nova'", weights:[[400,'Regular'],[700,'Bold']]},
+    };
+    const _dsWeightStyle = document.createElement('style');
+    document.head.appendChild(_dsWeightStyle);
+    const _dsWeightDone = {};
+    function dsRegisterWeightFaces(id, list, ver){
+      if (_dsWeightDone[id]) return;
+      _dsWeightDone[id] = true;
+      const fam = 'FFP-' + String(id).padStart(3,'0');
+      list.forEach(w=>{
+        try{
+          const sh = _dsWeightStyle.sheet;
+          sh.insertRule(`@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file/${w.weight}${ver?`.v${ver}`:''}.woff2') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`, sh.cssRules.length);
+        }catch(e){
+          _dsWeightStyle.appendChild(document.createTextNode(
+            `@font-face{font-family:'${fam}';src:url('/api/fonts/${id}/file/${w.weight}${ver?`.v${ver}`:''}.woff2') format('woff2');font-display:swap;font-weight:${w.weight};font-style:normal}`
+          ));
+        }
+      });
+    }
+    function webfontOf(name){
+      const key = (name||'').replace(/\s+/g,'').toLowerCase();
+      const wf = WEBFONT_MAP[key];
+      if (wf && wf.css && !wf._loaded){
+        wf._loaded = true;
+        const l = document.createElement('link');
+        l.rel = 'stylesheet'; l.href = wf.css;
+        document.head.appendChild(l);
+      }
+      return wf || null;
+    }
+    const _fontLoaded = new Set();          // 이미 @font-face 등록된 폰트 id
+const _fontStyleEl = (() => {           // 모든 @font-face 규칙을 담을 단일 <style>
+  const el = document.createElement('style');
+  el.id = 'ffp-dynamic-fonts';
+  document.head.appendChild(el);
+  return el;
+})();
+
+const _webfontLoaded = new Set();  // 로드된 웹폰트 CSS URL
+
+/* @font-face 규칙 한 줄을 끼워 넣는다.
+   ⚠ <style>에 텍스트 노드를 append하면 브라우저가 그 스타일시트를 통째로
+   다시 파싱한다. 스크롤하며 190종을 하나씩 붙이면 파싱이 190번 반복되고,
+   그때마다 문서 전체 스타일이 무효화돼 갤러리가 전부 다시 그려진다 —
+   "샘플 문구가 깜박인다"의 원인이 이것이었다(로딩 속도 문제가 아니다).
+   insertRule은 규칙 하나만 추가해 재파싱이 일어나지 않는다.
+   sheet 접근이 막히는 환경(구형/보안정책)만 예전 방식으로 떨어진다. */
+function addFontFaceRule(rule){
+  try{
+    const sheet = _fontStyleEl.sheet;
+    sheet.insertRule(rule, sheet.cssRules.length);
+  }catch(e){
+    _fontStyleEl.appendChild(document.createTextNode(rule));
+  }
+}
+
+function ensureFontLoaded(id){
+  if(_fontLoaded.has(id)) return;
+  _fontLoaded.add(id);
+  const f = FONTS.find(x => x.id === id);
+  // 어드민이 직접 올린 파일(fileSource==='user')은 웹폰트 설정보다 앞선다.
+  // 파일을 올렸다는 행위 자체가 "이 파일을 쓰겠다"는 뜻이다. 예전에는 웹폰트
+  // 필드에 값이 하나라도 있으면 여기서 return해버려서, 파일을 올려도 화면이
+  // 그대로였다 (웹폰트를 시험해 본 폰트에서 특히 자주 걸렸다).
+  if(f && f.webfontFamily && f.fileSource !== 'user'){
+    // 웹폰트 CDN 소스 (Google Fonts 등) — 로컬 파일 @font-face 불필요
+    if(f.webfontCssUrl && !_webfontLoaded.has(f.webfontCssUrl)){
+      _webfontLoaded.add(f.webfontCssUrl);
+      const l = document.createElement('link');
+      l.rel = 'stylesheet'; l.href = f.webfontCssUrl;
+      document.head.appendChild(l);
+    }
+    return;
+  }
+  const family = `FFP-${String(id).padStart(3,'0')}`;
+  // 어드민에서 지정한 '대표 굵기'에 해당하는 실제 파일을 요청한다.
+  //
+  // 예전에는 weight 파라미터 없이 /api/fonts/{id}/file 만 불러서, 여러 굵기를 등록한
+  // 폰트(네오현대·G마켓 산스 등)에서 대표 굵기를 바꿔도 메인 화면이 그대로였다.
+  // font-weight를 CSS로 올리는 방식은 브라우저가 가짜 볼드를 합성해 버리므로,
+  // 굵기 자체를 CSS로 흉내내지 않고 그 굵기의 woff2 파일을 직접 받아온다.
+  // 해당 굵기 파일이 없으면 서버가 대표 파일로 폴백하므로 안전하다.
+  const pw = (f && f.primaryWeight) || 0;
+  // ?v= 는 파일의 판(file_version). 붙으면 서버가 1년 immutable로 내린다.
+  // 없으면 매번 재검증이라 브라우저가 파일 전체를 다시 받는다 — 폰트 하나가
+  // 평균 476KB라 방문할 때마다 수 MB가 다시 흐른다.
+  const ver = (f && (f.fileVersion || f.file_version)) || 0;
+  // .p — 갤러리 카드는 폰트 이름과 짧은 견본만 그린다. 서버가 그만큼만
+  // 담은 서브셋을 내려준다(원본의 10~36%). 아직 없으면 원본이 오므로 안전하다.
+  const url = `/api/fonts/${id}/file/${pw || 0}` + (ver ? `.v${ver}` : '') + '.p.woff2';
+  // 받아온 파일을 'normal'로 선언해 둔다. 화면 요소는 기본 굵기로 그려지므로
+  // 합성 없이 이 파일이 그대로 쓰인다.
+  addFontFaceRule(
+    `@font-face{font-family:'${family}';src:url('${url}') format('woff2');font-display:swap;font-weight:normal;font-style:normal}`
+  );
+}
+
+/* 폰트의 stack을 사용 가능한 형태로 정규화.
+   has_file=true인데 stack에 FFP-{id} family가 빠져 있으면 자동으로 prepend.
+   백엔드는 이미 업로드 시점에 stack을 갱신하지만, 옛 데이터 호환을 위한 안전망. */
+/* ── 폰트 상세페이지 이동 ──
+   카드의 현재 미리보기 문구를 sessionStorage로 넘겨서
+   상세페이지 '미리 써보기'에 그대로 이어지게 한다. */
+function stashPreviewText(id){
+  try{
+    // 문구는 카드의 .font-preview-text에 그려진다 (상단 입력창에서 온 문구).
+    // [제거 2026-08] 큐레이터 픽(.pick-row > .pick-specimen) 폴백은 함께 지웠다.
+    const el = document.querySelector(`.font-card[data-font-id="${id}"] .font-preview-text`);
+    let txt = el ? el.textContent.trim() : '';
+    if(!txt){
+      // DOM에서 못 찾은 경우에도 기본 문구로 떨어지지 않도록 그 폰트의 고유 문구를 쓴다
+      const f = (typeof FONTS !== 'undefined' && Array.isArray(FONTS))
+        ? FONTS.find(x => x.id === id) : null;
+      txt = (f && typeof getPreviewTextFor === 'function') ? getPreviewTextFor(f) : '';
+    }
+    if(txt) sessionStorage.setItem('ffp_preview_text', txt);
+  }catch(e){}
+}
+function goFontDetail(id){
+  stashPreviewText(id);
+  location.href = '/font/' + id;
+}
+function cardNavigate(e, id){
+  // 우상단 '자세히 보기' 아이콘 등 링크·버튼 클릭은 카드 이동에서 제외
+  if(e.target.closest('button, a')) return;
+  goFontDetail(id);
+}
+function getEffectiveStack(f){
+  if(!f) return "sans-serif";
+  // ensureFontLoaded와 같은 우선순위를 써야 한다 — 한쪽만 바꾸면
+  // @font-face는 등록되는데 font-family가 웹폰트를 가리키는 어긋남이 생긴다.
+  if(f.webfontFamily && f.fileSource !== 'user') return `'${f.webfontFamily}',` + (f.stack || "sans-serif");
+  const baseStack = f.stack || "sans-serif";
+  if(!f.hasFile) return baseStack;
+  const family = `FFP-${String(f.id).padStart(3,'0')}`;
+  if(baseStack.includes(family)) return baseStack;
+  return `'${family}',${baseStack}`;
+}
+
+/* IntersectionObserver — 화면에 들어오는 카드의 폰트만 로드 */
+const _fontObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(!entry.isIntersecting) return;
+    const id = parseInt(entry.target.dataset.fontId, 10);
+    if(!isNaN(id)) ensureFontLoaded(id);
+    _fontObserver.unobserve(entry.target);
+  });
+}, { rootMargin: '1200px 0px' });
+/* 200px에서 1200px로 넓혔다. 카드 높이가 176~200px이라 200px은 겨우 한 줄 앞이고,
+   평균 308KB짜리 폰트를 받는 동안 카드가 이미 화면에 들어와 있다. 그래서
+   대체 폰트로 그려졌다가 교체되는 순간(FOUT)이 사용자 눈에 그대로 보였다.
+   6줄쯤 앞서 받기 시작하면 교체가 화면 밖에서 끝난다. */
+
+function observeFontCards(scope){
+  const root = scope || document;
+  root.querySelectorAll('[data-font-id]:not([data-font-observed])').forEach(el => {
+    el.dataset.fontObserved = '1';
+    _fontObserver.observe(el);
+  });
+}
+
+/* [제거 2026-08] 큐레이터 픽(인기 TOP 10) — 마크업·스타일과 함께
+   renderCuratorPicks()도 지웠다. 되살리려면 git 히스토리 참고. */
+
+window.addEventListener('scroll',()=>document.getElementById('scrollTopBtn').classList.toggle('visible',window.scrollY>400),{passive:true});
+
+
+/* ── 다운로드 — 새 창으로 바로 이동 ── */
+function openDownloadAd(url, fontName){
+  if(url){
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+}
+/* [제거 2026-08] closeDownloadAd() — 위 인터스티셜과 함께 지웠다.
+   openDownloadAd()가 새 창으로 바로 보내므로 이 함수는 호출되지 않았다. */
+
+/* ── 라이선스 모달 ── */
+/* ── 야간모드 토글 ── */
+function applyThemeIcons(){
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    || (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const mMoon = document.getElementById('mThemeIconMoon'), mSun = document.getElementById('mThemeIconSun'), mLabel = document.getElementById('mThemeLabel');
+  if(mMoon) mMoon.style.display = isDark ? 'none' : '';
+  if(mSun) mSun.style.display = isDark ? '' : 'none';
+  if(mLabel) mLabel.textContent = isDark ? '주간모드' : '야간모드';
+}
+function toggleTheme(){
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme')
+    || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  try{ localStorage.setItem('ffp-theme', next); }catch(e){}
+  applyThemeIcons();
+}
+applyThemeIcons();
+if(window.matchMedia){
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', ()=>{
+    if(!document.documentElement.hasAttribute('data-theme')) applyThemeIcons();
+  });
+}
+
+/* ── 모바일 햄버거 메뉴 (헤더는 서버가 주입, #mnav는 공유 헤더 구조) ── */
+function closeMobileNav(){
+  const n = document.getElementById('mnav');
+  if(n){ n.hidden = true; n.classList.remove('open'); }
+}
+
+function openLicense(){
+  document.getElementById('licenseOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLicense(){
+  document.getElementById('licenseOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+document.getElementById('licenseOverlay').addEventListener('click',function(e){
+  if(e.target===this) closeLicense();
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    if(document.getElementById('licenseOverlay').classList.contains('open')) closeLicense();
+    else if(document.getElementById('mnav') && !document.getElementById('mnav').hidden) closeMobileNav();
+  }
+});
+
+/* ── 카테고리 태그 동적 렌더링 ── */
+/* 태그 레일에는 '형태(shape)' 축 카테고리만 남긴다.
+   용도(use) 태그는 위 용도 그리드가, 느낌(mood) 태그는 추천 점수 계산이 담당한다.
+   같은 줄에 용도와 형태가 섞여 있으면 사용자는 두 축을 하나로 착각한다.
+   axis 값은 /api/tags 가 내려주므로 여기서 직접 받아온다
+   (TagStore.getAll()은 이름 배열만 주고 axis를 잃어버린다). */
+/* prefetched: init()이 미리 띄워둔 /api/tags 응답. 넘기면 다시 받지 않는다. */
+async function renderTagsBar(prefetched){
+  let tags;
+  try {
+    const rows = prefetched || await (await fetch('/api/tags')).json();
+    const shaped = rows.filter(t => t.axis === 'shape');
+    // axis가 아직 하나도 없는 DB(구버전)에서는 전체를 보여주는 쪽이 안전하다.
+    tags = (shaped.length ? shaped : rows).map(t => t.name);
+  } catch(e){
+    console.warn('태그 로딩 실패 — 전체 태그로 폴백', e);
+    tags = await TagStore.getAll();
+  }
+  // 칩은 안쪽 스크롤 영역에 넣는다. 바깥(.tags-bar)은 고정·배경·라벨을 맡으므로
+  // 여기에 innerHTML을 쓰면 라벨이 지워진다.
+  const bar = document.getElementById('tagsScroll');
+  // 현재 활성 태그가 목록에서 빠졌다면 'all'로 리셋
+  if(currentTag !== 'all' && !tags.includes(currentTag)){
+    currentTag = 'all';
+  }
+  bar.innerHTML = `<button class="tag${currentTag==='all'?' active':''}" onclick="setTag('all',this)">전체</button>` +
+    tags.map(t=>`<button class="tag${currentTag===t?' active':''}" onclick="setTag('${t.replace(/'/g,"\\'")}',this)">${t}</button>`).join('');
+  // 선택된 태그가 레일 밖에 있으면 '레일만' 가로로 굴린다.
+  // scrollIntoView는 세로로도 페이지를 움직여 스티키 헤더 아래로 파묻히므로 쓰지 않는다.
+  if(currentTag !== 'all'){
+    const act = bar.querySelector('.tag.active');
+    if(act){
+      const left = act.offsetLeft - bar.clientWidth / 2 + act.offsetWidth / 2;
+      bar.scrollLeft = Math.max(0, left);
+    }
+  }
+}
+
+/* ── 업로드된 폰트 등록 ──
+   백엔드 도입 후엔 모든 폰트가 /api/fonts/{id}/file로 통일되어 서빙되므로,
+   ensureFontLoaded만으로 충분. 이 함수는 호환을 위해 남겨두지만 no-op. */
+async function registerUploadedFonts(){
+  return;
+}
+
+document.getElementById('ffpLogoLink')?.addEventListener('click', function(e){
+  e.preventDefault();
+  goHome();
+});
+document.getElementById('globalSearch')?.addEventListener('input', filterFonts);
+document.getElementById('globalSearch')?.addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    // 미리보기 바부터 보이게 — 여기서 결과 목록이 시작된다
+    requestAnimationFrame(()=> scrollBelowFilter(document.getElementById('fontGrid')));
+  }
+});
+
+/* ── 용도 그리드 렌더 ──
+   /api/use-cases 에서 허브 목록을 받아 칸마다 대표 폰트로 이름을 렌더한다.
+   칸은 <a href="/use/{slug}"> 진짜 링크다 — 가운데 클릭·새 탭·크롤러 모두 동작해야 한다.
+   폰트 파일은 기존 IntersectionObserver가 화면에 들어올 때 로드한다. */
+/* 좌측 레일 — 상단 용도 그리드와 같은 데이터를 쓴다.
+   목록이 어긋나지 않도록 renderUseGrid()에서 받은 배열을 그대로 넘긴다. */
+function renderHubRail(list){
+  const nav = document.getElementById('hubRailNav');
+  const rail = document.getElementById('hubRail');
+  if(!nav || !rail || !Array.isArray(list) || !list.length) return;
+  nav.innerHTML = list.map(u => `<a class="rail-cell" href="/use/${encodeURIComponent(u.slug)}">
+      <span class="rail-nm">${escapeHtml(u.title)}</span>
+      <span class="rail-ct">${u.font_count}종</span>
+    </a>`).join('');
+
+  const anchor = document.getElementById('useSection');
+  if(!anchor || !('IntersectionObserver' in window)){ rail.classList.add('show'); return; }
+  /* 관찰자는 한 번만 건다. 용도 그리드는 첫 로드에서 두 번 그려지고
+     (도착 즉시 → FONTS 도착 후 글꼴 입혀서) 어드민 변경 시에도 다시 그려지는데,
+     그때마다 새 관찰자를 만들면 같은 요소에 여러 개가 쌓인다. */
+  if(rail.dataset.observed) return;
+  rail.dataset.observed = '1';
+  new IntersectionObserver(([e]) => {
+    rail.classList.toggle('show', !e.isIntersecting);
+  }, {rootMargin:'-40px 0px 0px 0px'}).observe(anchor);
+}
+
+/* prefetched: init()이 미리 띄워둔 /api/use-cases 응답. 넘기면 다시 받지 않는다. */
+/* 마지막 줄의 빈칸을 카드색 블록으로 메운다.
+   열 수는 화면 폭에 따라 6/4/3/2로 바뀌므로 현재 폭에서 실제 열 수를 읽어
+   부족분만큼 만든다. 허브가 12개면 어느 폭에서도 빈칸이 생기지 않지만,
+   어드민에서 허브를 늘리거나 숨겼을 때를 대비한 안전장치다. */
+function useGridCols(){
+  var w = window.innerWidth;
+  if(w <= 520) return 2;
+  if(w <= 820) return 3;
+  if(w <= 1080) return 4;
+  return 6;
+}
+function fillCells(n){
+  var cols = useGridCols();
+  var rest = n % cols;
+  if(rest === 0) return '';
+  var out = '';
+  for(var i = 0; i < cols - rest; i++) out += '<span class="use-fill" aria-hidden="true"></span>';
+  return out;
+}
+/* 폭이 바뀌면 열 수가 달라져 빈칸 개수도 달라진다 */
+var _useGridCols = useGridCols();
+window.addEventListener('resize', function(){
+  var c = useGridCols();
+  if(c !== _useGridCols){ _useGridCols = c; renderUseGrid(HUB_CACHE); }
+});
+
+async function renderUseGrid(prefetched){
+  const sec = document.getElementById('useSection');
+  const wrap = document.getElementById('useGrid');
+  if(!sec || !wrap) return;
+  let list = [];
+  try {
+    list = prefetched || await apiFetch('/use-cases');
+  } catch(e){
+    console.warn('용도 허브 로딩 실패 — 그리드를 숨깁니다', e);
+    sec.style.display = 'none';
+    return;
+  }
+  if(!Array.isArray(list) || !list.length){ sec.style.display = 'none'; return; }
+  // [제거 2026-09-22] renderHubRail — 이 페이지에는 좌측 레일이 없다.
+  wrap.innerHTML = list.map(u => {
+    const f = u.lead_font_id ? FONTS.find(x => x.id === u.lead_font_id) : null;
+    const faceStyle = f ? ` style="font-family:${getEffectiveStack(f)}"` : '';
+    const obs = f ? ` data-font-id="${f.id}"` : '';
+    // 개수는 여기서 보여주지 않는다 — 홈에서는 '무엇을 만드는가'만 고르게 하고,
+    // 몇 종인지는 들어간 허브 페이지에서 알려준다.
+    return `<a class="use-cell" href="/use/${encodeURIComponent(u.slug)}"${obs}>
+      <span class="use-nm"${faceStyle}>${escapeHtml(u.title)}</span>
+    </a>`;
+  }).join('') + fillCells(list.length);
+  sec.style.display = '';
+  observeFontCards(wrap);
+}
+
+async function init(){
+  /* 서버가 그려준 목록(#homeSsr)은 크롤러와 JS 차단 환경을 위한 것이다.
+     JS가 도는 브라우저에서는 잠시 뒤 진짜 갤러리가 그려지므로, 요청을 걸기 전에
+     미리 감춰서 '글자 목록이 번쩍 스쳤다가 바뀌는' 것을 없앤다.
+     불러오기에 실패하면 아래에서 되살린다 — 빈 화면이 되면 안 된다. */
+  const _homeSsr = document.getElementById('homeSsr');
+  if(_homeSsr) _homeSsr.style.display = 'none';
+
+  /* 세 요청은 서로 의존하지 않는다. 예전에는 직렬로 await해서
+     용도 그리드가 폰트 목록(207KB·약 270ms)과 태그(약 140ms)를 다 받은
+     뒤에야 자기 요청을 시작했다 — 자기 응답은 140ms인데 400ms를 기다린 셈이다.
+     세 개를 한 번에 띄우고, 도착하는 대로 그린다. */
+  const fontsP = FontStore.getAll();
+  const tagsP  = fetch('/api/tags').then(r => r.json()).catch(() => null);
+  const hubsP  = apiFetch('/use-cases').catch(() => []);
+  /* 상세페이지 조회 기준 인기 순위. 홀수 자리는 최근 7일 누적, 짝수 자리는
+     급상승이다(서버가 섞어서 준다 — app/font_views.py 의 mixed_top).
+     누적만 쓰면 순위가 굳어서, 7일과 30일 상위 10종이 9종 겹쳤다.
+     실패하거나 자료가 없으면 빈 채로 두고 갤러리는 예전대로 그린다. */
+  const popP = fetch('/api/fonts/popular?days=7&limit=10')
+    .then(r => r.json()).catch(() => []);
+
+  /* 용도 그리드를 폰트 목록보다 먼저 그린다. 대표 폰트로 칸 이름을 렌더하려면
+     FONTS가 필요하지만, 그건 도착한 뒤 다시 그려 얹는다(아래). 링크와 글자는
+     FONTS 없이도 나오므로 사용자는 훨씬 빨리 고를 수 있다. */
+  popP.then(list => {
+    POPULAR = {};
+    (list || []).forEach(x => { POPULAR[x.id] = x.rank; });
+    if(FONTS.length) renderFonts();     // 목록이 이미 그려졌으면 다시 얹는다
+  });
+
+  hubsP.then(list => { HUB_CACHE = list; renderUseGrid(list); });
+
+  FONTS = await fontsP;
+  const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
+  await renderTagsBar(await tagsP);
+  await registerUploadedFonts();
+  renderFonts();
+  applyGalleryView();
+  /* FONTS가 준비됐으니 대표 폰트 글꼴을 입혀 한 번 더 그린다.
+     이미 같은 목록이라 칸이 움직이지 않는다 — 글꼴만 바뀐다. */
+  if (HUB_CACHE) renderUseGrid(HUB_CACHE);
+  // loadPreviewPhrases();  // [비활성 2026-08] 문구 프리셋 추천 — 용도 그리드로 대체
+
+  // 라우팅 처리 (해시 기반)
+  await route();
+  /* 애드센스 전면 광고가 주소에 #google_vignette 만 붙인 경우에는 다시 그리지 않는다
+     (route 첫머리 주석 참고). */
+  const onNavigate = () => { if(location.hash !== '#google_vignette') route(); };
+  window.addEventListener('hashchange', onNavigate);
+  window.addEventListener('popstate', onNavigate);
+      /* 상세페이지의 [라이선스 보기] → /?license=1 로 진입하면 요약표 모달 자동 오픈 */
+      if(new URLSearchParams(location.search).has('license')){
+        try{ openLicense(); history.replaceState(null, '', '/fonts'); }catch(e){}
+      }
+
+  // 관리자 페이지에서 변경된 내용이 실시간으로 반영되도록 구독
+  onDataChanged(async () => {
+    FONTS = await FontStore.getAll();
+    const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
+    await renderTagsBar();
+    await registerUploadedFonts();
+    renderFonts();
+    renderUseGrid();
+  });
+}
+
+/* ════════════════════════════════════════════
+   라우팅
+   - 빈 해시 또는 #home → 홈(폰트 갤러리)
+   - #notice → 공지사항 목록
+   - #notice/123 → 공지사항 상세 (id=123)
+════════════════════════════════════════════ */
+/* 헤더 메뉴 활성 표시.
+   메뉴 구성은 app/header.py가 정하므로 여기 있는 링크가 없을 수도 있다
+   (예: '폰트 찾기'를 메뉴에서 뺐지만 /find-font 페이지는 그대로 살아 있다).
+   없는 엘리먼트에 classList를 부르면 라우팅 전체가 죽으므로 반드시 건너뛴다. */
+function setMenuActive(state){
+  const map = {
+    notice: ['noticeMenuLink', 'mNoticeMenuLink'],
+    submit: ['submitMenuLink', 'mSubmitMenuLink'],
+  };
+  for(const key in map){
+    for(const id of map[key]){
+      const el = document.getElementById(id);
+      if(el) el.classList.toggle('active', !!state[key]);
+    }
+  }
+}
+
+async function route(){
+  /* 애드센스 전면 광고(비네트)는 주소 끝에 #google_vignette 를 붙인다. 우리 화면
+     주소가 아니므로 없는 것으로 친다 — 모르는 해시로 읽으면 맨 아래 else 로 빠져
+     보던 검색·카테고리를 지운다. */
+  const hash = location.hash === '#google_vignette' ? '' : location.hash;
+
+  if(hash === '#notice' || hash.startsWith('#notice/')){
+    /* 공지사항 화면은 홈(index.html)에 있다. */
+    location.replace('/' + hash);
+    return;
+  } else if(hash === '#submit'){
+    /* 구 해시 URL 호환: 폰트 찾기는 별도 페이지다(static/find-font.html) */
+    location.replace('/find-font');
+    return;
+  } else if(hash.startsWith('#search/')){
+    showHomeView();
+    setMenuActive({notice:false, submit:false});
+    // hash로부터 검색어 복원
+    const query = decodeURIComponent(hash.slice('#search/'.length));
+    applySearch(query, /*pushHash*/ false);
+    requestAnimationFrame(()=> scrollBelowFilter(document.getElementById('fontGrid')));
+  } else if(hash.startsWith('#tag/')){
+    // 뒤로/앞으로가기로 카테고리 상태 복원
+    showHomeView();
+    setMenuActive({notice:false, submit:false});
+    const tagName = decodeURIComponent(hash.slice('#tag/'.length));
+    setTag(tagName, null, /*pushHash*/ false);
+  } else {
+    showHomeView();
+    setMenuActive({notice:false, submit:false});
+    // 홈으로 돌아온 경우: 검색·태그 초기화
+    clearSearchAndFilter();
+  }
+}
+
+/* 검색어를 적용하면서 hash 푸시(뒤로가기 작동을 위해) */
+/* 카테고리 선택을 '전체'로 되돌린다 (상태 + 칩 표시).
+   applySearch·clearSearchAndFilter·filterFonts 세 곳이 같은 일을 하고 있었다. */
+function resetTagToAll(){
+  currentTag = 'all';
+  const tagBtns = document.querySelectorAll('.tag');
+  tagBtns.forEach(t => t.classList.remove('active'));
+  if(tagBtns[0]) tagBtns[0].classList.add('active');
+}
+
+function applySearch(query, pushHash){
+  // 카테고리 '전체'로 리셋 + 검색창에 값 입력
+  resetTagToAll();
+  document.getElementById('globalSearch').value = query;
+  renderFonts();
+
+  if(pushHash){
+    const newHash = query ? '#search/' + encodeURIComponent(query) : '';
+    if(location.hash !== newHash){
+      // hashchange 무한 루프 방지를 위해 동일하지 않을 때만 변경
+      history.pushState(null, '', newHash || location.pathname + location.search);
+    }
+  }
+}
+
+/* 홈으로 돌아왔을 때 검색·필터 초기화 */
+function clearSearchAndFilter(){
+  resetTagToAll();
+  const input = document.getElementById('globalSearch');
+  if(input) input.value = '';
+  renderFonts();
+}
+
+function showHomeView(){
+  /* 이 페이지에는 갤러리 화면 하나뿐이다. 공지 화면은 홈으로 갔다. */
+  document.getElementById('homeView').style.display = '';
+}
+
+function goHome(){
+  if(location.pathname !== '/fonts'){
+    history.pushState(null, '', '/fonts');
+  }
+  location.hash = '';
+  route();
+}
+/* [제거 2026-09-17] navFindFont — 홈에서 '폰트 찾기'를 누르면 페이지를 다시 읽지 않고
+   화면만 바꾸던 함수. 메뉴가 평범한 링크로 /find-font 에 가도록 바꿨다. 페이지를
+   옮겨야 구글 전면 광고가 뜰 수 있다 (app/header.py VIGNETTE_PATHS 참고). */
+function goNoticeList(){ location.hash = '#notice'; }
+function goNoticeDetail(id){ location.hash = '#notice/' + id; }
+
+/* ════════════════════════════════════════════
+   공지사항 렌더링
+════════════════════════════════════════════ */
+function formatNoticeDate(ts){
+  if(ts == null || ts === '') return '';
+  const d = new Date(ts);
+  // 유효하지 않은 날짜면 원본 문자열이라도 반환하지 않고 빈 문자열
+  if(isNaN(d.getTime())) return '';
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}.${mm}.${dd}`;
+}
+/* 공지사항 객체에서 등록일/수정일 추출 (snake_case, camelCase 모두 지원) */
+function noticeCreatedAt(n){ return n.created_at || n.createdAt || null; }
+function noticeUpdatedAt(n){ return n.updated_at || n.updatedAt || null; }
+
+async function renderNoticeList(){
+  const notices = await NoticeStore.getAll();
+  const wrap = document.getElementById('noticeList');
+  if(!notices.length){
+    wrap.innerHTML = `<div class="notice-empty">
+      <i class="ti ti-speakerphone" aria-hidden="true"></i>
+      <p>등록된 공지사항이 없어요</p>
+    </div>`;
+    return;
+  }
+  // 핀 고정된 글이 위로 오도록 정렬
+  notices.sort((a,b)=>{
+    if(a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+    // 날짜 문자열을 timestamp로 변환해서 비교 (snake_case, camelCase 둘 다 대응)
+    const ta = new Date(noticeCreatedAt(a) || 0).getTime();
+    const tb = new Date(noticeCreatedAt(b) || 0).getTime();
+    return tb - ta;
+  });
+  wrap.innerHTML = notices.map(n => `
+    <a class="notice-row" href="#notice/${n.id}" aria-label="${escapeHtml(n.title)}">
+      <div class="notice-pin${n.pinned?'':' empty'}" aria-hidden="true"><i class="ti ti-pin-filled"></i></div>
+      <div class="notice-row-content">
+        <div class="notice-row-title">${n.pinned?'<span class="notice-row-badge">중요</span>':''}${escapeHtml(n.title)}</div>
+        <div class="notice-row-date">${formatNoticeDate(noticeCreatedAt(n))}</div>
+      </div>
+      <i class="ti ti-chevron-right chevron" aria-hidden="true"></i>
+    </a>
+  `).join('');
+}
+
+async function renderNoticeDetail(id){
+  const n = await NoticeStore.getById(id);
+  const titleEl = document.getElementById('noticeDetailTitle');
+  const metaEl = document.getElementById('noticeDetailMeta');
+  const bodyEl = document.getElementById('noticeDetailBody');
+  if(!n){
+    titleEl.textContent = '존재하지 않는 공지사항이에요';
+    metaEl.innerHTML = '';
+    bodyEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px">목록으로 돌아가서 다른 글을 확인해주세요.</p>';
+    return;
+  }
+  titleEl.textContent = n.title;
+  const updatedAt = noticeUpdatedAt(n);
+  const createdAt = noticeCreatedAt(n);
+  metaEl.innerHTML = (n.pinned?'<span class="pin"><i class="ti ti-pin-filled" style="font-size:13px"></i> 중요</span>':'') +
+    `<span>등록일 ${formatNoticeDate(createdAt)}</span>` +
+    (updatedAt && updatedAt !== createdAt ? `<span>수정일 ${formatNoticeDate(updatedAt)}</span>` : '');
+  // 본문은 관리자에서 sanitize된 HTML이 들어있음 (b, strong, br, p만 허용)
+  bodyEl.innerHTML = sanitizeNoticeHtml(n.content || '');
+}
+
+/* HTML 화이트리스트 (관리자가 저장한 서식만 허용) */
+function sanitizeNoticeHtml(html){
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const allowed = new Set(['B','STRONG','BR','P','DIV']);
+  const walk = (node) => {
+    [...node.children].forEach(child => {
+      walk(child);
+      if(!allowed.has(child.tagName)){
+        // 허용되지 않은 태그는 자식만 남기고 자기 자신 제거
+        const parent = child.parentNode;
+        while(child.firstChild) parent.insertBefore(child.firstChild, child);
+        parent.removeChild(child);
+      } else {
+        // 속성 모두 제거
+        [...child.attributes].forEach(attr => child.removeAttribute(attr.name));
+      }
+    });
+  };
+  walk(tmp);
+  return tmp.innerHTML;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ── 토스트 (전역) ── */
+function showToast(msg){
+  let el = document.getElementById('ffpToast');
+  if(!el){
+    el = document.createElement('div');
+    el.id='ffpToast';
+    /* bottom 은 하단 앵커 광고 높이만큼 올린다(--ffp-anchor-h, app/header.py). */
+    el.style.cssText='position:fixed;left:50%;bottom:calc(28px + var(--ffp-anchor-h, 0px));transform:translateX(-50%);background:var(--text-primary);color:var(--bg-card);font-size:13px;font-weight:700;padding:12px 18px;border-radius:12px;z-index:900;opacity:0;transition:opacity .25s ease;pointer-events:none;font-family:inherit';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  requestAnimationFrame(()=>{ el.style.opacity='1'; });
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>{ el.style.opacity='0'; }, 2400);
+}
+
+
+/* 초기화가 실패하면 서버가 그려둔 목록을 되살린다. 감춘 채로 두면
+   폰트 목록이 통째로 사라진 빈 화면이 남는다. */
+init().catch(function(err){
+  console.error('[init] 초기화 실패', err);
+  var ssr = document.getElementById('homeSsr');
+  if(ssr) ssr.style.display = '';
+});
+</script>
+
+</body>
+</html>

@@ -29,6 +29,9 @@ def sitemap(db: Session = Depends(get_db)):
     today = datetime.utcnow().strftime("%Y-%m-%d")
     pages = [
         {"loc": f"{SITE_URL}/", "priority": "1.0", "changefreq": "weekly"},
+        # 전체 무료폰트 보기 — 2026-09-22 홈에서 분리된 갤러리. 폰트 링크가 전부
+        # 여기 실리므로 홈 다음으로 중요하다.
+        {"loc": f"{SITE_URL}/fonts", "priority": "0.9", "changefreq": "weekly"},
         # /find-font 는 아래에서 답변 글이 얼마나 쌓였는지 보고 넣는다 —
         # 읽을 글이 없는 게시판을 검색엔진에 먼저 알릴 이유가 없다.
         # /#notice 는 뺐다. 조각(#)은 구글이 무시하므로 "/" 와 같은 URL 로 취급되고,
