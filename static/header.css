@@ -10,7 +10,7 @@
 
 .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:200}
 body{padding-top:60px}
-.header-inner{max-width:1240px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
+.header-inner{max-width:1400px;margin:0 auto;padding:0 32px;height:60px;display:flex;align-items:center;gap:16px}
 
 .logo{display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;font-family:'Noto Sans KR',-apple-system,sans-serif;font-weight:900;font-size:20px;letter-spacing:-.5px;color:var(--text-primary)}
 /* 로고 심볼 — 글자 앞에 붙는 체크 아이콘.
@@ -170,7 +170,7 @@ html.pairband-off .pair-band{display:none}
    포함한 border box 에 그려져서 1240px, 안쪽 구분선은 content box 라 1192px —
    길이가 48px 다른 선 두 개가 링크 줄을 사이에 두고 겹쳐 보였다.
    위쪽 여백을 늘려 본문과의 간격은 선 없이 만든다. */
-footer{padding:56px 24px 32px;max-width:1240px;margin:0 auto}
+footer{padding:56px 32px 32px;max-width:1400px;margin:0 auto}
 .footer-logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--text-primary);margin-bottom:10px}
 .footer-logo .logo-spark{width:22px;height:22px;font-size:11px;border-radius:6px}
 .footer-copy{font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:18px}
