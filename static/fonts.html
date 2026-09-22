@@ -136,6 +136,17 @@
     .preview-input{flex:1;border:none;outline:none;font-family:inherit;font-size:15px;
       background:transparent;color:var(--text-primary);min-width:0}
     .preview-input::placeholder{color:var(--text-muted)}
+    .try-wrap{flex:1;min-width:0;position:relative;display:flex}
+    .try-wrap .preview-input{width:100%}
+    .try-samples{position:absolute;top:calc(100% + 12px);left:-8px;right:-8px;z-index:40;display:none;
+      background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+      box-shadow:0 10px 28px rgba(0,0,0,.12);padding:6px;max-height:380px;overflow-y:auto}
+    .try-samples.open{display:block}
+    .try-samples-head{font-size:11.5px;color:var(--text-muted);font-weight:700;padding:6px 10px 4px}
+    .try-sample{display:block;width:100%;text-align:left;border:none;background:none;font-family:inherit;
+      font-size:14px;color:var(--text-primary);padding:9px 10px;border-radius:6px;cursor:pointer;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .try-sample:hover,.try-sample:focus{background:var(--accent-light);color:var(--accent);outline:none}
     .preview-roll{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
       width:28px;height:28px;padding:0;border:none;background:none;border-radius:4px;
       color:var(--text-muted);cursor:pointer;transition:color .15s,background .15s}
@@ -482,9 +493,7 @@
     }
     /* 레일이 본문 폭 안에 있는 동안(1700px 미만)은 격자를 3열로 — 4열이면 카드가
        260px 로 좁아져 견본이 잘린다. 1700px↑ 는 레일이 바깥으로 밀려 4열 그대로. */
-    @media(min-width:1001px) and (max-width:1699px){
-      .body-cols .font-grid[data-view="grid"]{grid-template-columns:repeat(3,1fr)}
-    }
+
 
     /* 보기 전환 */
     /* 모양으로 찾기 바 오른쪽 끝. 예전에는 갤러리 위 전용 줄이었다.
@@ -529,7 +538,8 @@
     .ad-cell{border-bottom:1px solid var(--border);padding:16px 0 18px;
       display:flex;flex-direction:column;justify-content:center;animation:fadeUp .25s ease both}
     .ad-cell ins.adsbygoogle{width:100%;height:250px}
-    .font-grid[data-view="grid"] .ad-cell{grid-row:span 2}
+    /* 격자 보기 광고는 카드 한 칸(2026-09-22). 카드 높이(240)에 맞춰 상자 안쪽을 200px 로. */
+    .font-grid[data-view="grid"] .ad-cell ins.adsbygoogle{height:200px}
     .font-grid[data-view="list"] .ad-cell ins.adsbygoogle{height:90px}
     @media(max-width:767px){
       .font-grid[data-view="list"] .ad-cell ins.adsbygoogle{height:100px}
@@ -725,10 +735,10 @@
          둘 다 갤러리를 다루는 도구라 같은 줄에 둔다 — 줄 하나(40px)가 사라진다. -->
     <span class="tags-sep" aria-hidden="true"></span>
     <div class="view-toolbar" role="group" aria-label="갤러리 보기 방식">
-      <button type="button" class="view-btn on" id="viewBtnList" onclick="setGalleryView('list')" aria-pressed="true" title="한 줄 보기" aria-label="한 줄 보기">
+      <button type="button" class="view-btn" id="viewBtnList" onclick="setGalleryView('list')" aria-pressed="false" title="한 줄 보기" aria-label="한 줄 보기">
         <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <button type="button" class="view-btn" id="viewBtnGrid" onclick="setGalleryView('grid')" aria-pressed="false" title="격자 보기" aria-label="격자 보기">
+      <button type="button" class="view-btn on" id="viewBtnGrid" onclick="setGalleryView('grid')" aria-pressed="true" title="격자 보기" aria-label="격자 보기">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       </button>
     </div>
@@ -740,9 +750,16 @@
        비우면 폰트마다 배정된 문구로 돌아간다. -->
   <div class="preview-bar" id="previewBar">
     <span class="preview-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> 미리 써보기</span>
-    <input class="preview-input" type="text" id="tryInput" maxlength="60"
-           placeholder="원하는 문구를 입력하면 모든 폰트에 바로 적용돼요" aria-label="미리보기 문구"
-           oninput="setCustomPreview(this.value)">
+    <div class="try-wrap">
+      <input class="preview-input" type="text" id="tryInput" maxlength="60" autocomplete="off"
+             placeholder="원하는 문구를 입력하면 모든 폰트에 바로 적용돼요" aria-label="미리보기 문구"
+             aria-controls="trySamples" aria-expanded="false"
+             oninput="setCustomPreview(this.value); closeTrySamples()"
+             onfocus="openTrySamples()" onclick="openTrySamples()">
+      <!-- 샘플 문장 10개. 입력창을 누르면 펼쳐진다. 브라우저의 입력 기록 목록은
+           autocomplete="off" 로 끈다 — 예전에 친 문구 4개만 뜨던 것이 그것이었다. -->
+      <div class="try-samples" id="trySamples" role="listbox" aria-label="샘플 문장"></div>
+    </div>
     <button type="button" class="preview-roll" id="previewRoll" onclick="rollPreviewPhrase()"
             title="다른 문구로 바꾸기" aria-label="다른 미리보기 문구 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"/><path d="M21 20v-5h-5"/></svg></button>
     <div class="preview-divider"></div>
@@ -763,13 +780,8 @@
        (getPreviewTextFor). 카드를 누르면 그 문구가 상세페이지 입력창으로
        이어진다(stashPreviewText → sessionStorage). -->
 
-  <div class="body-cols">
-    <aside class="hub-rail" id="hubRail" aria-label="용도별 바로가기">
-      <h2>용도별 무료폰트 추천</h2>
-      <div class="rail-boxes" id="hubRailNav"></div>
-    </aside>
-    <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
-  </div>
+  <!-- [제거 2026-09-22] 좌측 용도 레일 — 위 용도 12칸으로 충분하다(사용자 결정). -->
+  <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
 
 
 
@@ -922,12 +934,12 @@ let currentFontSize=26;
 
    2026-09-16 에 데스크톱도 격자로 바꿨다가 이튿날 되돌렸다(사용자 요청) —
    데스크톱에서는 한 줄 보기로 글자 모양을 크게 보는 쪽을 기본으로 둔다. */
-let currentView = 'list';
+let currentView = 'grid';   /* 2026-09-22 기본을 격자로 */
 try {
   if (window.matchMedia && window.matchMedia('(max-width:720px)').matches) currentView = 'grid';
 } catch(e){}
 /* 사람이 직접 고른 적이 있으면 그게 이긴다 — 화면 크기로 덮어쓰지 않는다. */
-try { const v = localStorage.getItem('ffp-gallery-view'); if(v==='list'||v==='grid') currentView = v; } catch(e){}
+try { const v = localStorage.getItem('ffp-gallery-view2'); if(v==='list'||v==='grid') currentView = v; } catch(e){}
 /* 한 줄 보기는 화면 폭과 무관하게 1줄이라, 글자가 크면 그만큼 덜 보인다.
    데스크톱은 폭이 넓어 42px에서도 23자가 들어가지만 모바일은 10자에서 끊긴다.
    좁은 화면에서만 배율을 낮춰 18자까지 보이게 한다 (26px 기준 24px). */
@@ -960,7 +972,7 @@ window.addEventListener('resize', () => {
 function setGalleryView(v){
   if(v!=='list' && v!=='grid') return;
   currentView = v;
-  try { localStorage.setItem('ffp-gallery-view', v); } catch(e){}
+  try { localStorage.setItem('ffp-gallery-view2', v); } catch(e){}
   applyGalleryView();
   renderFonts();   // 견본 글자 크기가 달라지므로 다시 그린다
 }
@@ -1036,6 +1048,45 @@ function rollPreviewPhrase(){
   if(btn){ btn.classList.remove('spin'); void btn.offsetWidth; btn.classList.add('spin'); }
   updatePreviews();
 }
+/* 샘플 문장 10개 — 공용 문구(ffp-phrases.js)에서 페이지를 열 때마다 새로 고른다.
+   너무 긴 문장은 한 줄 보기에서 잘리므로 24자 이하만. */
+const TRY_SAMPLES = (function(){
+  const pool = SAMPLE_PHRASES.map(p => p.ko).filter(s => s && s.length <= 24);
+  for(let i = pool.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    const x = pool[i]; pool[i] = pool[j]; pool[j] = x;
+  }
+  return pool.slice(0, 10);
+})();
+function openTrySamples(){
+  const box = document.getElementById('trySamples');
+  const input = document.getElementById('tryInput');
+  if(!box || !input || input.value.trim()) return;   // 이미 뭔가 쳤으면 방해하지 않는다
+  box.innerHTML = '<div class="try-samples-head">샘플 문장</div>' +
+    TRY_SAMPLES.map((s, i) => `<button type="button" class="try-sample" role="option" data-i="${i}">${escapeHtmlIdx(s)}</button>`).join('');
+  box.classList.add('open');
+  input.setAttribute('aria-expanded', 'true');
+}
+function closeTrySamples(){
+  const box = document.getElementById('trySamples');
+  const input = document.getElementById('tryInput');
+  if(box) box.classList.remove('open');
+  if(input) input.setAttribute('aria-expanded', 'false');
+}
+document.addEventListener('mousedown', function(e){
+  const opt = e.target.closest('.try-sample');
+  if(opt){
+    e.preventDefault();                                   // 입력창 초점을 빼앗지 않게
+    const s = TRY_SAMPLES[parseInt(opt.dataset.i, 10)];
+    const input = document.getElementById('tryInput');
+    if(input) input.value = s;
+    setCustomPreview(s);
+    closeTrySamples();
+    return;
+  }
+  if(!e.target.closest('.try-wrap')) closeTrySamples();
+});
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeTrySamples(); });
 function setPreviewSize(v){
   const n = parseInt(v, 10);
   if(!n) return;
@@ -2959,7 +3010,7 @@ async function renderUseGrid(prefetched){
     return;
   }
   if(!Array.isArray(list) || !list.length){ sec.style.display = 'none'; return; }
-  renderHubRail(list);
+  // [제거 2026-09-22] renderHubRail — 좌측 레일 없음
   wrap.innerHTML = list.map(u => {
     const f = u.lead_font_id ? FONTS.find(x => x.id === u.lead_font_id) : null;
     const faceStyle = f ? ` style="font-family:${getEffectiveStack(f)}"` : '';
