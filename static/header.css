@@ -8,6 +8,15 @@
    --text-muted, --accent, --accent-light
    ════════════════════════════════════════════════ */
 
+/* ── 헤더가 페이지마다 흔들리지 않게 (2026-09-22) ──
+   헤더는 모든 페이지가 공유하지만 상자 크기 계산(box-sizing)과 스크롤바 유무는
+   페이지마다 달랐다. 실측: 새 홈에 box-sizing 리셋이 빠져 헤더 안쪽이 64px 넓게
+   잡혀 로고·메뉴가 32px 밀렸고, 스크롤바 없는 짧은 페이지는 화면이 15px 넓어
+   가운데 정렬된 헤더가 7.5px 움직였다. 헤더 안은 여기서 직접 정해 둔다. */
+html{scrollbar-gutter:stable}
+.header,.header *,.header *::before,.header *::after,
+.mobile-nav,.mobile-nav *{box-sizing:border-box}
+.header nav a{line-height:20px;letter-spacing:normal}
 .header{background:var(--bg-card);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:200}
 body{padding-top:60px}
 .header-inner{max-width:1400px;margin:0 auto;padding:0 32px;height:60px;display:flex;align-items:center;gap:16px}
