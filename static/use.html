@@ -132,13 +132,31 @@ a{color:inherit}
 .pick-reason{font-size:13.5px;color:var(--text-secondary);line-height:1.7;
   border-top:1px solid var(--border);padding-top:12px}
 
-/* 더보기 목록 */
-.more-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.more-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);
-  padding:16px 18px;text-decoration:none;display:block;transition:all .15s}
-.more-card:hover{border-color:var(--border-hover);box-shadow:var(--shadow-card)}
-.more-name{font-size:13px;font-weight:800;margin-bottom:6px}
-.more-preview{font-size:22px;line-height:1.4;color:var(--text-secondary);word-break:keep-all}
+/* 더보기 목록 — 홈·전체 폰트 보기의 격자 카드와 같은 옷 (2026-09-22).
+   예전에는 이름과 작은 견본만 든 상자라 읽기 어려웠다. 한 줄에 3장. */
+.more-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:720px){.more-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
+@media(max-width:460px){.more-grid{grid-template-columns:1fr}}
+.more-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  padding:22px 34px 26px 22px;min-height:240px;position:relative;display:flex;flex-direction:column;
+  min-width:0;text-decoration:none;color:inherit;transition:border-color .15s}
+.more-card:hover{border-color:var(--accent)}
+.more-meta{margin-bottom:26px;min-width:0}
+.more-line1{display:flex;align-items:center;gap:6px;min-width:0;margin-bottom:3px}
+.more-line2{display:flex;align-items:center;gap:6px;row-gap:4px;min-width:0;flex-wrap:wrap}
+.more-name{font-size:13.5px;font-weight:700;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.more-weights{font-size:11px;color:var(--text-secondary);white-space:nowrap;flex-shrink:0}
+.more-maker{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.more-tag{font-size:10px;line-height:1;color:var(--text-muted);border:1px solid var(--border);border-radius:3px;
+  padding:3px 6px;white-space:nowrap;max-width:112px;overflow:hidden;text-overflow:ellipsis}
+.more-preview{flex:1 1 auto;display:flex;align-items:center;font-size:30px;line-height:1.32;color:var(--text-primary);
+  word-break:keep-all;overflow:hidden}
+.more-preview span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.more-go{position:absolute;right:10px;top:12px;width:32px;height:32px;display:inline-flex;align-items:center;
+  justify-content:center;color:var(--text-muted);border-radius:2px}
+.more-go svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.more-card:hover .more-go{color:var(--accent);background:var(--accent-light)}
+@media(max-width:720px){.more-card{padding:16px 30px 18px 16px;min-height:190px}.more-preview{font-size:24px}}
 .more-empty{font-size:13px;color:var(--text-muted);padding:20px 0}
 
 /* 다른 용도 */
@@ -299,9 +317,15 @@ a{color:inherit}
     document.getElementById('moreCount').textContent = moreData.length + '종';
     document.getElementById('moreGrid').innerHTML = moreData.map(function(f){
       var sample = sampleFor(f);
+      var tags = (f.tags || []).map(function(tg){ return '<span class="more-tag">' + esc(tg) + '</span>'; }).join('');
       return '<a class="more-card" href="/font/' + f.id + '">' +
-        '<div class="more-name">' + esc(f.name) + '</div>' +
-        '<div class="more-preview" style="font-family:' + stackOf(f) + '">' + esc(sample) + '</div>' +
+        '<div class="more-meta">' +
+          '<div class="more-line1"><span class="more-name">' + esc(f.name) + '</span>' +
+            '<span class="more-weights">' + esc(f.weights || '') + '</span></div>' +
+          '<div class="more-line2"><span class="more-maker">' + esc(f.maker || '') + '</span>' + tags + '</div>' +
+        '</div>' +
+        '<div class="more-preview"><span style="font-family:' + stackOf(f) + '">' + esc(sample) + '</span></div>' +
+        '<span class="more-go" aria-hidden="true"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/></svg></span>' +
       '</a>';
     }).join('');
     document.getElementById('moreSection').style.display = 'block';
