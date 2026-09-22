@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <script>
+    (function(){
+      try{
+        var t = localStorage.getItem('ffp-theme');
+        if(t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+        if(localStorage.getItem('ffp-hero-collapsed') === '1') document.documentElement.setAttribute('data-hero-collapsed', '1');
+      }catch(e){}
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>폰트 찾기 - 이미지로 폰트 이름 찾기 | 폰트픽</title>
+  <link rel="stylesheet" href="/header.css">
+  <!--
+    폰트 찾기 페이지. 2026-09-22 index.html 에서 떼어 냈다.
+    예전에는 홈과 같은 파일 안의 '뷰'라서 /find-font 를 열어도 홈 갤러리 전체
+    (폰트 목록·태그·인기 순위)를 받아 숨겨 두고 있었고, 홈을 고칠 때마다 이
+    화면도 같이 흔들렸다. 서버 쪽은 app/routers/design.py 의 find_font_page 다.
+    이미지로 비슷한 폰트를 찾는 새 기능은 이 페이지 위쪽에 붙인다.
+  -->
+  <meta name="description" content="찾고 싶은 폰트 이미지를 올리면 다른 사용자들이 폰트 이름을 답변해드려요. 로그인 없이 무료로 질문하고 답변할 수 있습니다.">
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow">
+  <meta name="yeti" content="index, follow">
+  <meta name="daumoa" content="index, follow">
+  <meta name="bingbot" content="index, follow">
+  <meta name="theme-color" content="#1E3A8A">
+  <link rel="canonical" href="{{FFP_ORIGIN}}/find-font">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="폰트픽">
+  <meta property="og:title" content="폰트 찾기 - 이미지로 폰트 이름 찾기 | 폰트픽">
+  <meta property="og:description" content="찾고 싶은 폰트 이미지를 올리면 다른 사용자들이 폰트 이름을 답변해드려요. 로그인 없이 무료로 질문하고 답변할 수 있습니다.">
+  <meta property="og:url" content="{{FFP_ORIGIN}}/find-font">
+  <meta property="og:image" content="{{FFP_ORIGIN}}/og-image-v3.png">
+  <meta property="og:locale" content="ko_KR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="폰트 찾기 - 이미지로 폰트 이름 찾기 | 폰트픽">
+  <meta name="twitter:image" content="{{FFP_ORIGIN}}/og-image-v3.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/ti-icons.css">
+  <style>
+    /* index.html 에서 이 화면이 쓰던 규칙만 옮겨 왔다(홈을 고쳐도 여기는 그대로다). */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
+        --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+        --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+        --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
+        --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+        --shadow-card:0 1px 4px rgba(0,0,0,.06);--shadow-hover:0 6px 20px rgba(0,0,0,.1);
+        --status-allow-bg:#E8F7EE;--status-allow-fg:#1A8A3A;
+        --status-deny-bg:#FDECEC;--status-deny-fg:#C8281F;
+        --status-reviewed-bg:#FFF4E0;--status-reviewed-fg:#B8790A;
+        --status-added-bg:#E8F7EE;--status-added-fg:#1A8A3A;
+        --ofl-grad-a:#F4F7FD;--ofl-border:#CBD8F2;
+        color-scheme:light;}
+    :root[data-theme="dark"]{--bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+        --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+        --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+        --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+        --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+        --status-allow-bg:#0F2A18;--status-allow-fg:#5FCB85;
+        --status-deny-bg:#2A0F0E;--status-deny-fg:#FF7873;
+        --status-reviewed-bg:#2E2410;--status-reviewed-fg:#E0AC4D;
+        --status-added-bg:#0F2A18;--status-added-fg:#5FCB85;
+        --ofl-grad-a:#151B2B;--ofl-border:#243357;
+        color-scheme:dark;}
+    @media(prefers-color-scheme:dark){
+      :root:not([data-theme="light"]):not([data-theme="dark"]){--bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+        --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+        --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+        --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+        --shadow-card:0 1px 4px rgba(0,0,0,.3);--shadow-hover:0 6px 24px rgba(0,0,0,.4);
+        --status-allow-bg:#0F2A18;--status-allow-fg:#5FCB85;
+        --status-deny-bg:#2A0F0E;--status-deny-fg:#FF7873;
+        --status-reviewed-bg:#2E2410;--status-reviewed-fg:#E0AC4D;
+        --status-added-bg:#0F2A18;--status-added-fg:#5FCB85;
+        --ofl-grad-a:#151B2B;--ofl-border:#243357;
+        color-scheme:dark;}
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;line-height:1.6}
+    .hero-title{font-size:clamp(21px,3.1vw,32px);font-weight:800;color:var(--text-primary);line-height:1.32;letter-spacing:-.8px;word-break:keep-all}
+    .hero-title em{font-style:normal;box-shadow:inset 0 -.3em 0 var(--accent-light)}
+    .license-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;backdrop-filter:blur(4px)}
+    .license-overlay.open{display:flex;animation:fadeIn .2s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .license-modal{background:var(--bg-card);border-radius:20px;max-width:680px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideUp .25s ease}
+    @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .license-head{padding:28px 28px 20px;background:linear-gradient(135deg,var(--accent-light) 0%,var(--bg-card) 100%);border-bottom:1px solid var(--border);position:relative}
+    .license-head-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--accent);background:var(--bg-card);padding:4px 10px;border-radius:20px;margin-bottom:10px;border:1px solid var(--accent-light);letter-spacing:.5px}
+    .license-head h2{font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-.5px;margin-bottom:4px}
+    .license-head p{font-size:13px;color:var(--text-secondary);line-height:1.5}
+    .license-close{position:absolute;top:20px;right:20px;width:34px;height:34px;border-radius:50%;border:none;background:var(--bg-card);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    .license-close:hover{background:var(--accent);color:#fff;transform:rotate(90deg)}
+    .license-foot{padding:16px 28px 24px;border-top:1px solid var(--border);background:var(--bg-secondary)}
+    .license-foot p{font-size:11px;color:var(--text-muted);line-height:1.6;margin:0}
+    .license-foot p+p{margin-top:4px}
+    .license-foot strong{color:var(--text-secondary);font-weight:700}
+    @media(max-width:600px){
+      .license-head{padding:24px 24px 18px}
+      .license-head h2{font-size:19px}
+    }
+    .main{max-width:1240px;margin:0 auto;padding:20px 24px 80px}
+    .notice-hero{max-width:1240px;margin:0 auto;padding:44px 24px 28px;text-align:center}
+    .notice-hero-sub{font-size:14px;color:var(--text-secondary)}
+    .notice-empty{padding:80px 20px;text-align:center;color:var(--text-muted)}
+    .notice-empty i{font-size:40px;display:block;margin-bottom:10px}
+    @media(max-width:640px){
+      .notice-hero{padding:28px 16px 20px}
+    }
+    .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:800;padding:10px 18px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:background-color .15s,transform .15s;font-family:inherit;white-space:nowrap}
+    .btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .submit-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px}
+    .submit-count{font-size:13px;color:var(--text-secondary)}
+    .submit-count strong{color:var(--accent);font-weight:800}
+    .submit-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px}
+    .submit-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;box-shadow:var(--shadow-card);display:flex;flex-direction:column}
+    .submit-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+    .submit-card-thumb{width:100%;aspect-ratio:16/10;background:var(--bg-secondary);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:28px}
+    .submit-card-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .submit-card-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+    .submit-card-status{align-self:flex-start;font-size:10px;font-weight:800;padding:3px 9px;border-radius:10px;letter-spacing:.3px}
+    .submit-card-status.pending{background:var(--bg-secondary);color:var(--text-muted)}
+    .submit-card-status.reviewed{background:var(--status-reviewed-bg);color:var(--status-reviewed-fg)}
+    .submit-card-status.added{background:var(--status-added-bg);color:var(--status-added-fg)}
+    .submit-card-name{font-size:14.5px;font-weight:800;color:var(--text-primary);letter-spacing:-.2px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+    .submit-card-desc{font-size:12.5px;color:var(--text-secondary);line-height:1.5;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:2.6em}
+    .submit-card-meta{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px}
+    .submit-form-modal{max-width:520px}
+    .submit-form-body{padding:20px 28px;display:flex;flex-direction:column;gap:16px;max-height:60vh;overflow-y:auto}
+    .form-row{display:flex;flex-direction:column;gap:6px}
+    .form-row label{font-size:12.5px;font-weight:700;color:var(--text-secondary)}
+    .form-row label .req{color:var(--accent)}
+    .form-row input[type=text],.form-row textarea{border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13.5px;
+font-family:inherit;color:var(--text-primary);background:var(--bg-card);resize:vertical;
+transition:border-color .15s;}
+    .form-row input[type=text]:focus,.form-row textarea:focus{outline:none;border-color:var(--accent)}
+    .sf-image-picker{border:1.5px dashed var(--border);border-radius:12px;padding:20px 14px;text-align:center;
+cursor:pointer;color:var(--text-muted);font-size:12.5px;display:flex;flex-direction:column;
+align-items:center;gap:8px;transition:border-color .15s,color .15s;}
+    .sf-image-picker:hover{border-color:var(--accent);color:var(--accent)}
+    .sf-image-picker i{font-size:24px}
+    .sf-image-preview{position:relative;border-radius:12px;overflow:hidden;max-width:220px}
+    .sf-image-preview img{width:100%;display:block;border-radius:12px}
+    .sf-image-remove{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .submit-form-foot{display:flex;justify-content:flex-end}
+    .submit-form-foot .btn-primary{width:100%;padding:12px;font-size:14px}
+    .submit-detail-modal{max-width:560px}
+    .submit-detail-body{padding:20px 28px 28px;display:flex;flex-direction:column;gap:16px}
+    .submit-detail-image{border-radius:14px;overflow:hidden;max-height:320px}
+    .submit-detail-image img{width:100%;display:block;object-fit:cover}
+    .submit-detail-content{font-size:13.5px;line-height:1.8;color:var(--text-primary);white-space:pre-wrap;word-break:break-word}
+    .submit-detail-link{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--accent);text-decoration:underline;word-break:break-all}
+    .submit-detail-reply{background:var(--accent-light);border-radius:12px;padding:14px 16px;font-size:12.5px;color:var(--text-primary);line-height:1.6}
+    .submit-detail-reply-label{font-size:11px;font-weight:800;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+    .submit-answers{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border);padding-top:16px}
+    .submit-answers-empty{font-size:12.5px;color:var(--text-muted);text-align:center;padding:14px 0}
+    .submit-answer-item{background:var(--bg-secondary);border-radius:12px;padding:12px 14px}
+    .submit-answer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+    .submit-answer-nickname{font-size:12.5px;font-weight:800;color:var(--text-primary)}
+    .submit-answer-date{font-size:11px;color:var(--text-muted)}
+    .submit-answer-content{font-size:13px;line-height:1.6;color:var(--text-primary);white-space:pre-wrap;word-break:break-word}
+    .submit-answer-form{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border);padding-top:16px}
+    .submit-answer-form-title{font-size:12.5px;font-weight:800;color:var(--text-secondary);display:flex;align-items:center;gap:5px}
+    .submit-answer-form input[type=text],.submit-answer-form textarea{border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;
+font-family:inherit;color:var(--text-primary);background:var(--bg-card);resize:vertical;
+transition:border-color .15s;}
+    .submit-answer-form input[type=text]:focus,.submit-answer-form textarea:focus{outline:none;border-color:var(--accent)}
+    .submit-answer-form .btn-primary{align-self:flex-end}
+    @media(max-width:640px){
+      .submit-toolbar{flex-direction:row;align-items:center}
+      .submit-form-body{padding:16px 18px;max-height:55vh}
+      .submit-detail-body{padding:16px 18px 22px}
+    }
+    @media(max-width:768px){
+      .hero-title{font-size:22px}
+      .main{padding:16px 16px 60px}
+    }
+    @media(prefers-reduced-motion:reduce){
+      *{transition:none!important}
+    }
+  </style>
+</head>
+<body>
+
+<!--FFP_HEADER-->
+
+<!-- ━━━━ SUBMIT VIEW (폰트 찾아주세요) ━━━━ -->
+<div id="submitView">
+  <section class="notice-hero">
+    <div class="hero-eyebrow"><i class="ti ti-search" aria-hidden="true"></i> FIND</div>
+    <h1 class="hero-title">폰트 찾기</h1>
+    <p class="notice-hero-sub">어디선가 본 폰트, 사진을 올려주시면 누구나 답변해드려요</p>
+  </section>
+
+  <main class="main">
+    <div class="submit-toolbar">
+      <div class="submit-count"><strong id="submitCount">0</strong>개의 질문</div>
+      <button class="btn-primary" onclick="openSubmitForm()">
+        <i class="ti ti-camera-plus" aria-hidden="true"></i> 이미지로 물어보기
+      </button>
+    </div>
+
+    <div class="submit-list" id="submitList"></div>
+
+    <!-- 서버가 채우는 질문·답변 글(크롤러·JS 차단 환경용). JS 가 목록을 그리면 감춘다. -->
+    {{FFP_FIND_SSR}}
+  </main>
+</div><!-- /submitView -->
+
+<!-- 폰트 찾기 요청 작성 모달 -->
+<div class="license-overlay" id="submitFormOverlay" role="dialog" aria-modal="true" aria-labelledby="submitFormTitle">
+  <div class="license-modal submit-form-modal">
+    <div class="license-head">
+      <div class="license-head-eyebrow"><i class="ti ti-search" aria-hidden="true"></i> FIND</div>
+      <h2 id="submitFormTitle">폰트 찾기 요청</h2>
+      <p>이미지와 설명을 남겨주시면 다른 사용자들이 답변해드려요</p>
+      <button class="license-close" onclick="closeSubmitForm()" aria-label="닫기">
+        <svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="submit-form-body">
+      <div class="form-row">
+        <label for="sfNickname">닉네임</label>
+        <input type="text" id="sfNickname" placeholder="익명" maxlength="50">
+      </div>
+      <div class="form-row">
+        <label>이미지 첨부</label>
+        <div class="sf-image-picker" id="sfImagePicker" onclick="document.getElementById('sfImageInput').click()">
+          <i class="ti ti-photo-plus" aria-hidden="true"></i>
+          <span>클릭해서 이미지 선택 (jpg, png, gif, webp / 최대 8MB)</span>
+        </div>
+        <input type="file" id="sfImageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" onchange="handleSfImageChange(this)">
+        <div class="sf-image-preview" id="sfImagePreview" style="display:none">
+          <img id="sfImagePreviewImg" alt="첨부 이미지 미리보기">
+          <button type="button" class="sf-image-remove" onclick="clearSfImage()" aria-label="이미지 제거">
+            <svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="sfContent">설명</label>
+        <textarea id="sfContent" rows="4" placeholder="어디서 보셨는지, 어떤 느낌인지 알려주시면 찾는 데 도움이 돼요" maxlength="2000"></textarea>
+      </div>
+    </div>
+    <div class="license-foot submit-form-foot">
+      <button class="btn-primary" id="sfSubmitBtn" onclick="submitFontTip()">
+        <i class="ti ti-send" aria-hidden="true"></i> 질문 등록하기
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 제보 상세 보기 모달 -->
+<div class="license-overlay" id="submitDetailOverlay" role="dialog" aria-modal="true" aria-labelledby="submitDetailTitle">
+  <div class="license-modal submit-detail-modal">
+    <div class="license-head">
+      <div class="license-head-eyebrow" id="submitDetailStatus">대기중</div>
+      <h2 id="submitDetailTitle"></h2>
+      <p id="submitDetailMeta"></p>
+      <button class="license-close" onclick="closeSubmitDetail()" aria-label="닫기">
+        <svg class="ti-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="submit-detail-body" id="submitDetailBody"></div>
+  </div>
+</div>
+
+
+<!--FFP_FOOTER-->
+
+<script src="/static/api-client.js"></script>
+<script>
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function formatNoticeDate(ts){
+  if(ts == null || ts === '') return '';
+  const d = new Date(ts);
+  // 유효하지 않은 날짜면 원본 문자열이라도 반환하지 않고 빈 문자열
+  if(isNaN(d.getTime())) return '';
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}.${mm}.${dd}`;
+}
+
+/* ══════════════════════════════════════════
+   폰트 찾아주세요 게시판
+══════════════════════════════════════════ */
+const SUBMIT_STATUS_LABEL = {pending:'대기중', reviewed:'검토중', added:'답변완료'};
+let sfPendingImageFile = null;
+
+async function renderSubmitList(){
+  const wrap = document.getElementById('submitList');
+  const countEl = document.getElementById('submitCount');
+  let items = [];
+  try {
+    items = await SubmissionStore.getAll();
+  } catch(e) {
+    console.error('목록 로딩 실패:', e);
+    const detail = `${e.name || 'Error'}: ${e.message || '알 수 없음'}${e.status ? ' (HTTP ' + e.status + ')' : ''}`;
+    var ssr = document.getElementById('findSsr');
+    if(ssr) ssr.style.display = '';
+    wrap.innerHTML = `<div class="notice-empty"><i class="ti ti-alert-circle" aria-hidden="true"></i><p>목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</p><p style="font-size:11px;color:var(--text-muted);margin-top:6px;word-break:break-all">${escapeHtml(detail)}</p></div>`;
+    return;
+  }
+  countEl.textContent = items.length;
+
+  if(!items.length){
+    wrap.innerHTML = '<div class="notice-empty" style="grid-column:1/-1"><i class="ti ti-search" aria-hidden="true"></i><p>아직 등록된 질문이 없어요. 첫 번째로 물어보세요!</p></div>';
+    return;
+  }
+
+  wrap.innerHTML = items.map(item => {
+    const thumb = item.image_path
+      ? `<img src="${SubmissionStore.imageUrl(item.id)}" alt="문의 첨부 이미지" loading="lazy">`
+      : `<i class="ti ti-message-question" aria-hidden="true"></i>`;
+    const answerCount = (item.answers || []).length;
+    const answerLabel = answerCount > 0
+      ? `<span class="submit-card-status added"><i class="ti ti-message-circle" aria-hidden="true"></i> 답변 ${answerCount}개</span>`
+      : `<span class="submit-card-status pending">답변 대기중</span>`;
+    const desc = item.content ? escapeHtml(item.content) : '이미지를 확인해주세요';
+    return `<article class="submit-card" onclick="openSubmitDetail(${item.id})" role="listitem">
+      <div class="submit-card-thumb">${thumb}</div>
+      <div class="submit-card-body">
+        ${answerLabel}
+        <div class="submit-card-desc">${desc}</div>
+        <div class="submit-card-meta">
+          <span>${escapeHtml(item.nickname)}</span>
+          <span>${formatNoticeDate(item.created_at)}</span>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+/* 폰트 찾기 요청 작성 모달 */
+function openSubmitForm(){
+  document.getElementById('sfNickname').value = '';
+  document.getElementById('sfContent').value = '';
+  clearSfImage();
+  document.getElementById('submitFormOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSubmitForm(){
+  document.getElementById('submitFormOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleSfImageChange(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  if(file.size > 8*1024*1024){
+    showToast && showToast('이미지는 최대 8MB까지 첨부할 수 있어요');
+    input.value = '';
+    return;
+  }
+  sfPendingImageFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('sfImagePreviewImg').src = e.target.result;
+    document.getElementById('sfImagePreview').style.display = 'block';
+    document.getElementById('sfImagePicker').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+function clearSfImage(){
+  sfPendingImageFile = null;
+  document.getElementById('sfImageInput').value = '';
+  document.getElementById('sfImagePreview').style.display = 'none';
+  document.getElementById('sfImagePicker').style.display = 'flex';
+}
+
+async function submitFontTip(){
+  const content = document.getElementById('sfContent').value.trim();
+  if(!content && !sfPendingImageFile){
+    alert('이미지 또는 설명 중 하나는 알려주세요');
+    return;
+  }
+  const btn = document.getElementById('sfSubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> 등록 중...';
+
+  try {
+    await SubmissionStore.add({
+      nickname: document.getElementById('sfNickname').value.trim() || '익명',
+      content: content,
+      imageFile: sfPendingImageFile,
+    });
+    closeSubmitForm();
+    await renderSubmitList();
+    if(typeof showToast === 'function') showToast('질문을 등록했어요! 확인 후 답변해드릴게요.');
+  } catch(e) {
+    console.error('등록 실패:', e);
+    if(e.status === 429){
+      alert(e.message || '너무 빠르게 작성하셨어요. 잠시 후 다시 시도해주세요.');
+    } else {
+      alert('등록에 실패했어요: ' + (e.message || '알 수 없는 오류'));
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-send" aria-hidden="true"></i> 질문 등록하기';
+  }
+}
+
+/* 상세 모달 */
+let currentDetailSubmissionId = null;
+
+async function openSubmitDetail(id){
+  const overlay = document.getElementById('submitDetailOverlay');
+  const titleEl = document.getElementById('submitDetailTitle');
+  const metaEl = document.getElementById('submitDetailMeta');
+  const statusEl = document.getElementById('submitDetailStatus');
+  const bodyEl = document.getElementById('submitDetailBody');
+
+  currentDetailSubmissionId = id;
+  titleEl.textContent = '불러오는 중...';
+  metaEl.textContent = '';
+  bodyEl.innerHTML = '';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  try {
+    const item = await SubmissionStore.getById(id);
+    titleEl.textContent = item.content ? item.content.slice(0, 40) : '이미지 질문';
+    metaEl.textContent = `${item.nickname} · ${formatNoticeDate(item.created_at)}`;
+    const answers = item.answers || [];
+    statusEl.innerHTML = answers.length
+      ? `<i class="ti ti-message-circle" aria-hidden="true"></i> 답변 ${answers.length}개`
+      : '답변 대기중';
+
+    let html = '';
+    if(item.image_path){
+      html += `<div class="submit-detail-image"><img src="${SubmissionStore.imageUrl(item.id)}" alt="첨부 이미지"></div>`;
+    }
+    if(item.content){
+      html += `<div class="submit-detail-content">${escapeHtml(item.content)}</div>`;
+    }
+
+    html += `<div class="submit-answers" id="submitAnswers">${renderAnswersList(answers)}</div>`;
+
+    html += `
+      <div class="submit-answer-form">
+        <div class="submit-answer-form-title"><i class="ti ti-message-plus" aria-hidden="true"></i> 답변 남기기</div>
+        <input type="text" id="saNickname" placeholder="닉네임 (선택)" maxlength="50">
+        <textarea id="saContent" rows="3" placeholder="이 폰트가 뭔지 알고 계신가요? 알려주세요!" maxlength="1000"></textarea>
+        <button class="btn-primary" id="saSubmitBtn" onclick="submitAnswer(${item.id})">
+          <i class="ti ti-send" aria-hidden="true"></i> 답변 등록
+        </button>
+      </div>`;
+
+    bodyEl.innerHTML = html;
+  } catch(e) {
+    console.error('제보 상세 로딩 실패:', e);
+    titleEl.textContent = '불러오지 못했어요';
+    bodyEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px">잠시 후 다시 시도해주세요.</p>';
+  }
+}
+
+function renderAnswersList(answers){
+  if(!answers || !answers.length){
+    return '<div class="submit-answers-empty">아직 답변이 없어요. 첫 번째로 답변해보세요!</div>';
+  }
+  return answers.map(a => `
+    <div class="submit-answer-item">
+      <div class="submit-answer-head">
+        <span class="submit-answer-nickname">${escapeHtml(a.nickname)}</span>
+        <span class="submit-answer-date">${formatNoticeDate(a.created_at)}</span>
+      </div>
+      <div class="submit-answer-content">${escapeHtml(a.content)}</div>
+    </div>
+  `).join('');
+}
+
+async function submitAnswer(submissionId){
+  const nickname = document.getElementById('saNickname').value.trim();
+  const content = document.getElementById('saContent').value.trim();
+  if(!content){
+    alert('답변 내용을 입력해주세요');
+    return;
+  }
+  const btn = document.getElementById('saSubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> 등록 중...';
+  try {
+    await SubmissionStore.addAnswer(submissionId, nickname, content);
+    document.getElementById('saContent').value = '';
+    if(typeof showToast === 'function') showToast('답변을 등록했어요. 감사합니다!');
+    await openSubmitDetail(submissionId);
+    await renderSubmitList();
+  } catch(e) {
+    console.error('답변 등록 실패:', e);
+    if(e.status === 429){
+      alert(e.message || '너무 빠르게 작성하셨어요. 잠시 후 다시 시도해주세요.');
+    } else {
+      alert('답변 등록에 실패했어요: ' + (e.message || '알 수 없는 오류'));
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-send" aria-hidden="true"></i> 답변 등록';
+  }
+}
+
+function closeSubmitDetail(){
+  document.getElementById('submitDetailOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  currentDetailSubmissionId = null;
+}
+document.getElementById('submitFormOverlay').addEventListener('click', function(e){
+  if(e.target===this) closeSubmitForm();
+});
+document.getElementById('submitDetailOverlay').addEventListener('click', function(e){
+  if(e.target===this) closeSubmitDetail();
+});
+
+
+/* ── 토스트 (전역) ── */
+function showToast(msg){
+  let el = document.getElementById('ffpToast');
+  if(!el){
+    el = document.createElement('div');
+    el.id='ffpToast';
+    /* bottom 은 하단 앵커 광고 높이만큼 올린다(--ffp-anchor-h, app/header.py). */
+    el.style.cssText='position:fixed;left:50%;bottom:calc(28px + var(--ffp-anchor-h, 0px));transform:translateX(-50%);background:var(--text-primary);color:var(--bg-card);font-size:13px;font-weight:700;padding:12px 18px;border-radius:12px;z-index:900;opacity:0;transition:opacity .25s ease;pointer-events:none;font-family:inherit';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  requestAnimationFrame(()=>{ el.style.opacity='1'; });
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>{ el.style.opacity='0'; }, 2400);
+}
+
+/* Esc — 열린 창부터 닫는다. 홈(index.html)에 있을 때와 같은 순서다.
+   closeMobileNav 는 index.html 에만 있어 모바일 메뉴는 여기서 직접 닫는다. */
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  if(document.getElementById('submitFormOverlay').classList.contains('open')) closeSubmitForm();
+  else if(document.getElementById('submitDetailOverlay').classList.contains('open')) closeSubmitDetail();
+  else {
+    var n = document.getElementById('mnav');
+    if(n && !n.hidden){ n.hidden = true; n.classList.remove('open'); }
+  }
+});
+
+/* 서버가 그려 둔 글(#findSsr)은 JS 가 목록을 그리면 감춘다. 못 불러오면
+   renderSubmitList 가 되살린다 — 빈 화면이 남지 않게. */
+(function(){
+  var ssr = document.getElementById('findSsr');
+  if(ssr) ssr.style.display = 'none';
+  renderSubmitList();
+})();
+</script>
+
+<script>
+(function(){
+  function applyThemeIcons(){
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+      || (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var mMoon = document.getElementById('mThemeIconMoon'), mSun = document.getElementById('mThemeIconSun'), mLabel = document.getElementById('mThemeLabel');
+    if(mMoon) mMoon.style.display = isDark ? 'none' : '';
+    if(mSun) mSun.style.display = isDark ? '' : 'none';
+    if(mLabel) mLabel.textContent = isDark ? '주간모드' : '야간모드';
+  }
+  window.toggleTheme = function(){
+    var root = document.documentElement;
+    var current = root.getAttribute('data-theme')
+      || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = current === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try{ localStorage.setItem('ffp-theme', next); }catch(e){}
+    applyThemeIcons();
+  };
+  // 헤더 검색창 Enter 처리는 app/header.py가 헤더와 함께 넣는다.
+  // 여기 두면 페이지마다 빠뜨리게 되고(실제로 /use·/gif가 그랬다),
+  // 상대경로 'index.html#search/'는 하위 경로 페이지에서 깨진다.
+  window.navFindFont = window.navFindFont || function(){};
+  applyThemeIcons();
+  if(window.matchMedia){
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    mq.addEventListener && mq.addEventListener('change', function(){
+      if(!document.documentElement.hasAttribute('data-theme')) applyThemeIcons();
+    });
+  }
+})();
+</script>
+</body>
+</html>

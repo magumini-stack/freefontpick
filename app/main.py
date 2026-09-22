@@ -543,6 +543,9 @@ if STATIC_DIR.exists():
 SSR_ONLY_TEMPLATES = {
     "font.html", "use.html", "wisefont.html", "font-pair.html",
     "gif-templates.html", "magazine.html", "about.html",
+    # 폰트 찾기는 /find-font 로만 연다 — 원본 파일을 그대로 주면 {{FFP_FIND_SSR}}
+    # 마커와 헤더 자리가 빈 채로 보인다(2026-09-22 index.html 에서 떼어 냄).
+    "find-font.html",
 }
 
 

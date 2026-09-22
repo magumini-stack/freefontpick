@@ -38,6 +38,7 @@ router = APIRouter(tags=["design"])
 STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
 INDEX_PATH = STATIC_DIR / "index.html"
 FONT_PAGE_PATH = STATIC_DIR / "font.html"
+FIND_FONT_PATH = STATIC_DIR / "find-font.html"
 
 # 사이트 주소는 app/site.py 한 곳에서만 정한다.
 from ..site import SITE_URL as BASE_URL
@@ -927,9 +928,9 @@ def _find_font_ssr(db: Session) -> str:
     사람이 보는 화면에도 그대로 나오는 것들이고, 없는 항목을 지어내지 않으려고
     글이 하나도 없는 질문(사진만 올라온 것)은 아예 건너뛴다.
 
-    id 를 homeSsr 로 두는 이유는 index.html 의 기존 JS 가 이 id 를 첫 줄에서
-    감추고, 초기화가 실패했을 때만 되살리기 때문이다. 새 id 를 만들면 그 처리를
-    양쪽에 또 적어야 한다.
+    id 는 findSsr 다. static/find-font.html 의 JS 가 목록을 그리기 전에 감추고,
+    목록을 못 불러오면 되살린다(2026-09-22 페이지를 떼어 내기 전에는 index.html 의
+    homeSsr 을 빌려 썼다).
     """
     try:
         subs = (db.query(FontSubmission)
@@ -957,46 +958,23 @@ def _find_font_ssr(db: Session) -> str:
 
     if not rows:
         return ""
-    return ('<div id="homeSsr"><section><h2>폰트 찾기 — 질문과 답변</h2>'
+    return ('<div id="findSsr"><section><h2>폰트 찾기 — 질문과 답변</h2>'
             '<ul>' + "".join(rows) + "</ul></section></div>")
 
 
 @router.get("/find-font", response_class=HTMLResponse)
 def find_font_page(db: Session = Depends(get_db)):
-    """폰트 찾기 게시판 고유 URL — SEO용 title/description 치환"""
-    html = _load_index()
-    html = inject_header(html, "findfont")
-    # 이 페이지도 index.html을 그대로 쓴다. 마커를 안 지우면 "{{FFP_HOME_SSR}}"
-    # 글자가 화면에 그대로 보인다. 홈의 폰트 목록은 여기 붙일 내용이 아니므로
-    # (같은 목록이 두 URL에 실리면 중복 콘텐츠가 된다) 대신 이 페이지의 내용인
-    # 게시판 질문·답변을 넣는다. 담을 글이 없으면 빈 문자열이 들어간다.
-    html = html.replace("{{FFP_HOME_SSR}}", _find_font_ssr(db), 1)
-    # index.html 을 그대로 쓰다 보니 홈의 h1("어디에 쓰실 건가요…")이 이 URL 에도
-    # 실린다. title 은 '폰트 찾기'인데 h1 은 홈 이야기를 하는 꼴이라, 검색엔진이
-    # 이 문서의 주제를 잘못 읽는다. 두 제목의 태그를 맞바꿔, 화면에 실제로 보이는
-    # 쪽을 h1 으로 만든다 (모양은 .hero-title 클래스가 맡으므로 그대로다).
-    html = html.replace(
-        '<h1 class="hero-title">어디에 쓰실 건가요? <em>딱 맞는 무료폰트</em> 추천해드릴게요!</h1>',
-        '<h2 class="hero-title">어디에 쓰실 건가요? <em>딱 맞는 무료폰트</em> 추천해드릴게요!</h2>', 1)
-    html = html.replace('<h2 class="hero-title">폰트 찾기</h2>',
-                        '<h1 class="hero-title">폰트 찾기</h1>', 1)
-    title = "폰트 찾기 - 이미지로 폰트 이름 찾기 | 폰트픽"
-    desc = ("찾고 싶은 폰트 이미지를 올리면 다른 사용자들이 폰트 이름을 답변해드려요. "
-            "로그인 없이 무료로 질문하고 답변할 수 있습니다.")
-    url = f"{BASE_URL}/find-font"
+    """폰트 찾기 페이지 — static/find-font.html (2026-09-22 index.html 에서 떼어 냄)
 
-    html = re.sub(r"<title>.*?</title>", f"<title>{title}</title>",
-                  html, count=1, flags=re.S)
-    html = re.sub(r'(<meta name="description" content=")[^"]*(")',
-                  rf"\g<1>{desc}\g<2>", html, count=1)
-    html = re.sub(r'(<link rel="canonical" href=")[^"]*(")',
-                  rf"\g<1>{url}\g<2>", html, count=1)
-    html = re.sub(r'(<meta property="og:title" content=")[^"]*(")',
-                  rf"\g<1>{title}\g<2>", html, count=1)
-    html = re.sub(r'(<meta property="og:description" content=")[^"]*(")',
-                  rf"\g<1>{desc}\g<2>", html, count=1)
-    html = re.sub(r'(<meta property="og:url" content=")[^"]*(")',
-                  rf"\g<1>{url}\g<2>", html, count=1)
+    예전에는 index.html 을 그대로 쓰면서 title·description·canonical·og 를 정규식으로
+    갈아 끼우고, 홈의 h1 과 이 화면의 h2 를 맞바꿔 주제를 맞췄다. 이제 페이지가 따로
+    있어 그 값들이 파일에 바로 적혀 있다. 여기서 하는 일은 헤더를 넣고 게시판 글을
+    서버에서 채우고, 답변이 모자라면 색인에서 빼는 것뿐이다.
+    """
+    html = FIND_FONT_PATH.read_text(encoding="utf-8")
+    html = inject_header(html, "findfont")
+    # 담을 글이 없으면 빈 문자열이 들어간다 — 마커를 남기면 글자 그대로 보인다.
+    html = html.replace("{{FFP_FIND_SSR}}", _find_font_ssr(db), 1)
 
     # 읽을 글이 거의 없으면 색인에서 뺀다.
     #

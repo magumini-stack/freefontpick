@@ -19,15 +19,15 @@ import json
 from .site import SITE_URL, ORIGIN_MARKER
 
 # (내부 key, 링크, 표시 텍스트, 데스크톱용 id, 모바일용 id) — 순서가 곧 메뉴 노출 순서
-# id는 index.html의 해시 라우팅(JS)이 #notice / find-font 뷰 전환 시
+# id는 index.html의 해시 라우팅(JS)이 #notice 뷰 전환 시
 # 활성(active) 표시를 동적으로 토글하기 위해 특정 id를 필요로 해서 부여함.
 # 다른 페이지(about/faq/font)에는 해당 JS가 없어 id가 있어도 그냥 무시됨 — 안전.
 NAV_ITEMS = [
     ("about", "/about", "소개", None, None),
     ("notice", "/#notice", "공지사항", "noticeMenuLink", "mNoticeMenuLink"),
     ("faq", "/faq.html", "자주 묻는 질문", None, None),
-    # '폰트 찾기'는 index.html 안의 뷰다. 홈에서는 해시 라우팅으로 화면만 바꾸고,
-    # 다른 페이지에서는 평범한 링크로 /find-font 를 연다 (_nav_links 참고).
+    # '폰트 찾기'는 별도 페이지다(static/find-font.html, 2026-09-22 index.html 에서
+    # 떼어 냄). 어느 페이지에서든 평범한 링크로 /find-font 를 연다.
     ("findfont", "/find-font", "폰트 찾기", "findFontMenuLink", "mFindFontMenuLink"),
     # 매거진은 '폰트 조합 찾기' 바로 왼쪽에 둔다.
     ("magazine", "/magazine", "매거진", None, None),
@@ -422,8 +422,8 @@ window.FFP_ADS = {cfg};
 def render_header(active: str = "") -> str:
     """active: 'about' | 'notice' | 'faq' | 'findfont' | 'gif' | '' (해당 없음)
 
-    '폰트 찾기'(/find-font)는 index.html 안의 뷰라 홈에서는 해시 라우팅으로
-    전환되고, 다른 페이지에서는 평범한 링크 이동으로 열린다."""
+    '폰트 찾기'(/find-font)는 별도 페이지(static/find-font.html)라 어디서든
+    평범한 링크 이동으로 열린다."""
     nav_desktop = _nav_links(active, "      ", mobile=False)
     nav_mobile = _nav_links(active, "    ", mobile=True)
 
