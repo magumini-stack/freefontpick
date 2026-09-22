@@ -130,7 +130,7 @@
     @media(max-width:768px){.page-title{padding:20px 16px 12px;font-size:18px}}
     /* ── 미리 써보기 바 (상세페이지 .preview-bar 와 같은 옷) ── */
     .preview-bar{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;
-      padding:13px 18px;display:flex;align-items:center;gap:12px;margin:0 0 14px}
+      padding:11px 18px;display:flex;align-items:center;gap:12px;margin:0}
     .preview-label{font-size:12px;color:var(--text-muted);white-space:nowrap;display:flex;align-items:center;gap:5px}
     .preview-label svg{width:14px;height:14px;display:block}
     .preview-input{flex:1;border:none;outline:none;font-family:inherit;font-size:15px;
@@ -349,12 +349,13 @@
        갤러리가 아무리 길어도 필터가 화면에서 사라지지 않아야 한다.
        z-index는 용도 레일(.hub-rail, 10)보다 크고 헤더(200)보다 작게 둔다.
        레일은 top:124px로 이 바 바로 아래에서 시작한다 — 겹치면 레일 제목이 가린다. */
-    .tags-bar{position:sticky;top:60px;z-index:20;
-      display:flex;align-items:center;gap:10px;
+    .gallery-sticky{position:sticky;top:60px;z-index:20;background:var(--bg);
+      padding-bottom:10px;margin-bottom:6px;border-bottom:1px solid var(--border)}
+    .tags-bar{display:flex;align-items:center;gap:10px;
       /* 고정된 채 뒤로 카드가 지나가므로 배경은 반드시 불투명해야 한다 */
-      background:var(--bg);border-bottom:1px solid var(--border);
+      background:var(--bg);
       /* 고정되면 margin은 시각적으로 의미가 없어 padding으로 옮겼다 */
-      padding:10px 0;margin-bottom:14px;scroll-margin-top:60px}
+      padding:10px 0 8px;margin-bottom:0;scroll-margin-top:60px}
     .tags-label{font-size:13px;font-weight:700;color:var(--text-secondary);
       letter-spacing:-.02em;flex:0 0 auto;white-space:nowrap}
     /* 태그와 보기 버튼 사이. 태그 스크롤 오른쪽 끝이 마스크로 흐려지므로
@@ -454,13 +455,12 @@
       .body-cols{margin-left:-230px}
     }
     .hub-rail{position:sticky;
-      /* 헤더(fixed 60px) + 모양 필터 바(.tags-bar, 고정, 약 56px)를 지나야
-         레일 제목과 첫 칸이 안 가린다. 60 + 56 + 여백 8 = 124px.
-         헤더 높이나 필터 바 높이를 바꾸면 이 값도 같이 바꿔야 한다. */
-      top:124px;z-index:10;opacity:0;transform:translateX(-10px);pointer-events:none;
+      /* 헤더(fixed 60px) + 고정 묶음(모양으로 찾기 + 미리 써보기, --gsticky-h 를
+         JS 가 실측)을 지나야 레일 제목이 안 가린다. */
+      top:calc(60px + var(--gsticky-h, 130px) + 8px);z-index:10;opacity:0;transform:translateX(-10px);pointer-events:none;
       /* 허브가 늘어나면 레일 세로가 화면을 넘길 수 있다.
          스티키 컬럼이 화면보다 길면 아래쪽 항목에 영영 닿지 못한다. */
-      max-height:calc(100vh - 140px);overflow-y:auto;scrollbar-width:thin;
+      max-height:calc(100vh - 84px - var(--gsticky-h, 130px));overflow-y:auto;scrollbar-width:thin;
       transition:opacity .25s ease,transform .25s ease}
     .hub-rail.show{opacity:1;transform:none;pointer-events:auto}
     /* 모노 스택에는 한글 글리프가 없어 '용도별 추천'이 OS 기본 고딕으로 떨어졌다.
@@ -480,7 +480,11 @@
       .body-cols{grid-template-columns:1fr;gap:0;margin-left:0}
       .hub-rail{display:none}
     }
-    /* [제거 2026-09-22] 1700px↑ 4열 예외 — 격자는 이제 항상 4열이다. */
+    /* 레일이 본문 폭 안에 있는 동안(1700px 미만)은 격자를 3열로 — 4열이면 카드가
+       260px 로 좁아져 견본이 잘린다. 1700px↑ 는 레일이 바깥으로 밀려 4열 그대로. */
+    @media(min-width:1001px) and (max-width:1699px){
+      .body-cols .font-grid[data-view="grid"]{grid-template-columns:repeat(3,1fr)}
+    }
 
     /* 보기 전환 */
     /* 모양으로 찾기 바 오른쪽 끝. 예전에는 갤러리 위 전용 줄이었다.
@@ -710,6 +714,10 @@
        바깥(.tags-bar)이 고정·배경·경계선을, 안쪽(.tags-scroll)이 가로 스크롤과
        끝단 페이드를 맡는다. 한 요소에 몰면 mask-image가 배경까지 갉아먹어
        고정된 바 오른쪽으로 폰트 카드가 비친다. -->
+  <!-- 고정 묶음 — 모양으로 찾기 바와 미리 써보기 바가 함께 헤더 아래 붙어 따라다닌다.
+       높이는 JS(syncStickyH)가 재서 --gsticky-h 에 넣고, 좌측 레일 top 과
+       스크롤 보정(scrollBelowFilter)이 그 값을 쓴다. -->
+  <div class="gallery-sticky" id="gallerySticky">
   <div class="tags-bar" id="tagsBar">
     <span class="tags-label">모양으로 찾기</span>
     <div class="tags-scroll" id="tagsScroll" role="group" aria-label="폰트 모양 카테고리 필터"></div>
@@ -744,6 +752,7 @@
       <span class="size-val" id="trySizeVal">26px</span>
     </div>
   </div>
+  </div><!-- /gallery-sticky -->
 
   <!-- [제거 2026-08] 정렬 드롭다운(추천순/최신순/이름순).
        기본값인 '추천순'(어드민이 정한 저장 순서)만 남긴다. -->
@@ -754,8 +763,13 @@
        (getPreviewTextFor). 카드를 누르면 그 문구가 상세페이지 입력창으로
        이어진다(stashPreviewText → sessionStorage). -->
 
-  <!-- [제거 2026-09-22] 좌측 용도 레일(.hub-rail) — 이 페이지는 위 용도 12칸만 둔다. -->
-  <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
+  <div class="body-cols">
+    <aside class="hub-rail" id="hubRail" aria-label="용도별 바로가기">
+      <h2>용도별 무료폰트 추천</h2>
+      <div class="rail-boxes" id="hubRailNav"></div>
+    </aside>
+    <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
+  </div>
 
 
 
@@ -933,6 +947,16 @@ window.addEventListener('resize', () => {
     if(currentView === 'list') renderFonts();
   }
 });
+/* 고정 묶음(모양으로 찾기 + 미리 써보기)의 높이를 --gsticky-h 로 알린다.
+   레일 top 이 이 값을 쓴다. 글꼴이 늦게 실려 줄 높이가 바뀌어도 따라간다. */
+(function(){
+  var box = document.getElementById('gallerySticky');
+  if(!box) return;
+  function sync(){ document.documentElement.style.setProperty('--gsticky-h', Math.round(box.getBoundingClientRect().height) + 'px'); }
+  sync();
+  if(window.ResizeObserver) new ResizeObserver(sync).observe(box);
+  else window.addEventListener('resize', sync);
+})();
 function setGalleryView(v){
   if(v!=='list' && v!=='grid') return;
   currentView = v;
@@ -1192,11 +1216,9 @@ function clearPresetActive(){
    숫자가 조용히 어긋나지 않게. */
 function scrollBelowFilter(el){
   if(!el) return;
-  const bar = document.getElementById('tagsBar');
-  const barH = bar ? bar.getBoundingClientRect().height : 56;
-  /* 조합 찾기 띠가 떠 있으면 그만큼 더 내려야 갤러리가 안 가린다.
-     닫혀 있으면 display:none 이라 높이가 0이다. */
-  const y = window.scrollY + el.getBoundingClientRect().top - (60 + bandHeight() + barH + 8);
+  const bar = document.getElementById('gallerySticky');
+  const barH = bar ? bar.getBoundingClientRect().height : 130;
+  const y = window.scrollY + el.getBoundingClientRect().top - (60 + barH + 8);
   window.scrollTo({top: Math.max(0, y), behavior:'smooth'});
 }
 
@@ -2859,10 +2881,8 @@ async function registerUploadedFonts(){
   return;
 }
 
-document.getElementById('ffpLogoLink')?.addEventListener('click', function(e){
-  e.preventDefault();
-  goHome();
-});
+/* [제거 2026-09-22] 로고 클릭 가로채기(goHome). 이 페이지는 홈이 아니므로
+   로고는 헤더가 준 대로 /(홈)으로 간다. */
 document.getElementById('globalSearch')?.addEventListener('input', filterFonts);
 document.getElementById('globalSearch')?.addEventListener('keydown', function(e){
   if(e.key === 'Enter'){
@@ -2939,7 +2959,7 @@ async function renderUseGrid(prefetched){
     return;
   }
   if(!Array.isArray(list) || !list.length){ sec.style.display = 'none'; return; }
-  // [제거 2026-09-22] renderHubRail — 이 페이지에는 좌측 레일이 없다.
+  renderHubRail(list);
   wrap.innerHTML = list.map(u => {
     const f = u.lead_font_id ? FONTS.find(x => x.id === u.lead_font_id) : null;
     const faceStyle = f ? ` style="font-family:${getEffectiveStack(f)}"` : '';
