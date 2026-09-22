@@ -456,7 +456,7 @@ def render_header(active: str = "") -> str:
     </button>
   </nav>
 </header>
-{_pair_band(active)}{_search_script()}'''
+{_search_script()}'''
 
 
 # ── 공유 푸터 ────────────────────────────────────────────────────
@@ -534,91 +534,9 @@ def inject_header(html: str, active: str = "", ads: bool = True,
     return html.replace("<!--FFP_FOOTER-->", render_footer())
 
 
-# ── 폰트 조합 찾기 띠 ────────────────────────────────────────────
-# 헤더 바로 아래에 붙어 따라다니다가, 닫으면 사라진다(브라우저가 기억한다).
-#
-# 예전에는 index.html 안에만 있었다. 용도 페이지에도 달면서 이리로 올렸다 —
-# 복사해 두면 페이지가 늘 때마다 또 복사해야 하고, 그러다 한쪽만 고쳐진다.
-# 검색창 Enter·야간모드가 이미 그렇게 어긋났었다(_search_script 주석 참고).
-#
-# 모양은 static/header.css 의 .pair-band* 가 맡는다.
-def _pair_band(active: str) -> str:
-    """헤더 바로 아래에 붙는 조합 찾기 띠.
-
-    첫 줄의 스크립트가 띠 마크업보다 **먼저** 지나가는 것이 중요하다.
-    닫아 둔 사람에게 그려 놓고 감추면 한 번 번쩍인다. CSS 가 이미
-    html.pairband-off 를 알고 있으므로, 클래스를 먼저 붙여 두면 아래 요소는
-    처음부터 감춰진 채로 만들어진다.
-    """
-    if active == "fontpair":
-        return ""          # 지금 보고 있는 페이지를 광고할 이유가 없다
-    return '''<script>
-(function(){try{if(localStorage.getItem('ffp-pairband')==='off')
-document.documentElement.classList.add('pairband-off');}catch(e){}})();
-</script>
-<!-- ── 폰트 조합 찾기 띠 ──
-     헤더 바로 아래에 붙어 따라다니다가, 닫으면 사라진다(브라우저가 기억).
-     화면을 덮는 팝업으로 두지 않은 이유: 홈은 폰트를 보러 오는 자리다.
-
-     세 뷰(갤러리·공지·폰트찾기) 바깥에 둔다 — 뷰를 옮겨도 계속 붙어 있어야
-     한다는 뜻이라, 어느 한 뷰 안에 넣으면 그 뷰를 벗어날 때 같이 사라진다. -->
-<div class="pair-band" id="pairBand" role="region" aria-label="폰트 조합 찾기 안내">
-  <div class="pair-band-in">
-    <a href="/font-pair" target="_blank" rel="noopener">
-      <span class="pair-band-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h3"/><path d="M14 20h7"/><path d="M6.9 15h6.9"/><path d="M10.2 6.3l5.8 13.7"/><path d="M5 20l6-16h2l7 16"/></svg></span>
-      <span class="pair-band-txt">
-        <span class="pair-band-t">폰트 조합 찾기</span>
-        <span class="pair-band-d">타이틀 · 서브타이틀 · 본문에 어울리는 무료 폰트 세 가지</span>
-      </span>
-      <span class="pair-band-go"><b>조합 보기</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg></span>
-    </a>
-    <button type="button" class="pair-band-x" onclick="closePairBand()"
-            title="닫기" aria-label="폰트 조합 찾기 안내 닫기">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
-    </button>
-  </div>
-</div>
-<script>
-/* 띠는 헤더 아래에 고정돼 따라다닌다. 그런데 홈의 .tags-bar 와 .hub-rail 도
-   같은 자리를 노리는 고정 요소라, 띠가 있는 동안에는 그 높이만큼 내려가야
-   한다. 그 두 규칙이 calc(60px + var(--band-h)) 로 이 값을 더해 쓴다.
-   띠가 없는 페이지에서는 아무도 안 읽으므로 값이 남아 있어도 무해하다. */
-function bandHeight(){
-  var b = document.getElementById('pairBand');
-  if(!b || document.documentElement.classList.contains('pairband-off')) return 0;
-  return Math.round(b.getBoundingClientRect().height);
-}
-
-function syncBandOffset(){
-  document.documentElement.style.setProperty('--band-h', bandHeight() + 'px');
-}
-
-function closePairBand(){
-  document.documentElement.classList.add('pairband-off');
-  try{ localStorage.setItem('ffp-pairband', 'off'); }catch(e){}
-  syncBandOffset();
-}
-
-syncBandOffset();
-
-/* 띠 높이는 화면 폭 말고도 여러 이유로 바뀐다. 실제로 어긋났던 경우:
-   Noto Sans KR 이 늦게 실리면서 글자 줄 높이가 커져 띠가 40px -> 45px 이 됐는데,
-   resize 이벤트는 그때 울리지 않아 --band-h 가 40 에 머물렀다. 스크롤하면
-   모양으로 찾기 바가 띠를 5px 파고들었다.
-
-   그래서 '언제 바뀔지'를 헤아리지 않고 요소 크기를 직접 지켜본다. */
-(function(){
-  var band = document.getElementById('pairBand');
-  if(band && window.ResizeObserver){
-    new ResizeObserver(syncBandOffset).observe(band);
-  } else {
-    window.addEventListener('resize', syncBandOffset);   // 아주 옛 브라우저용
-  }
-  window.addEventListener('load', syncBandOffset);
-  if(document.fonts && document.fonts.ready) document.fonts.ready.then(syncBandOffset);
-})();
-</script>
-'''
+# [제거 2026-09-22] 폰트 조합 찾기 띠(_pair_band). 메인 개편으로 기능 입구가
+# 홈 본문에 들어가면서 역할이 겹쳐 전 페이지에서 걷어냈다. 모양(header.css
+# .pair-band*)과 높이 동기화 스크립트(--band-h)도 함께 지웠다.
 
 
 # ── 404 페이지 ──────────────────────────────────────────────────

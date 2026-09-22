@@ -355,12 +355,12 @@
        갤러리가 아무리 길어도 필터가 화면에서 사라지지 않아야 한다.
        z-index는 용도 레일(.hub-rail, 10)보다 크고 헤더(200)보다 작게 둔다.
        레일은 top:124px로 이 바 바로 아래에서 시작한다 — 겹치면 레일 제목이 가린다. */
-    .tags-bar{position:sticky;top:calc(60px + var(--band-h));z-index:20;
+    .tags-bar{position:sticky;top:60px;z-index:20;
       display:flex;align-items:center;gap:10px;
       /* 고정된 채 뒤로 카드가 지나가므로 배경은 반드시 불투명해야 한다 */
       background:var(--bg);border-bottom:1px solid var(--border);
       /* 고정되면 margin은 시각적으로 의미가 없어 padding으로 옮겼다 */
-      padding:10px 0;margin-bottom:14px;scroll-margin-top:calc(60px + var(--band-h))}
+      padding:10px 0;margin-bottom:14px;scroll-margin-top:60px}
     .tags-label{font-size:13px;font-weight:700;color:var(--text-secondary);
       letter-spacing:-.02em;flex:0 0 auto;white-space:nowrap}
     /* 태그와 보기 버튼 사이. 태그 스크롤 오른쪽 끝이 마스크로 흐려지므로
@@ -463,10 +463,10 @@
       /* 헤더(fixed 60px) + 모양 필터 바(.tags-bar, 고정, 약 56px)를 지나야
          레일 제목과 첫 칸이 안 가린다. 60 + 56 + 여백 8 = 124px.
          헤더 높이나 필터 바 높이를 바꾸면 이 값도 같이 바꿔야 한다. */
-      top:calc(124px + var(--band-h));z-index:10;opacity:0;transform:translateX(-10px);pointer-events:none;
+      top:124px;z-index:10;opacity:0;transform:translateX(-10px);pointer-events:none;
       /* 허브가 늘어나면 레일 세로가 화면을 넘길 수 있다.
          스티키 컬럼이 화면보다 길면 아래쪽 항목에 영영 닿지 못한다. */
-      max-height:calc(100vh - 140px - var(--band-h));overflow-y:auto;scrollbar-width:thin;
+      max-height:calc(100vh - 140px);overflow-y:auto;scrollbar-width:thin;
       transition:opacity .25s ease,transform .25s ease}
     .hub-rail.show{opacity:1;transform:none;pointer-events:auto}
     /* 모노 스택에는 한글 글리프가 없어 '용도별 추천'이 OS 기본 고딕으로 떨어졌다.
