@@ -190,24 +190,34 @@ def fetch_tdtd(ffp):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stacks", type=int, default=0, help="미리 구울 한글 글자 수(자주 쓰는 순, 2350 이면 KS X 1001 전부)")
+    ap.add_argument("--stacks", type=int, default=0, help="미리 구울 한글 글자 수(자주 쓰는 순, 2350 이면 KS X 1001 전부) — 영문·숫자 62자는 늘 뒤에 붙는다")
+    # 묶음 캐시는 폰트 목록(파일·굵기)이 같을 때만 다시 쓴다 — 목록을 새로 받다가 폰트가 하나라도 바뀌면 태그가 바뀌어
+    # 2,350자를 처음부터(몇 시간) 다시 굽고 옛 캐시 9GB 도 디스크에 남는다. 빠진 글자만 채울 땐 이걸 켠다.
+    ap.add_argument("--keep-catalog", action="store_true", help="목록은 다시 받지 않고 지금 catalog.json 그대로 굽기만 한다")
     a = ap.parse_args()
     os.makedirs(DATA, exist_ok=True)
     t0 = time.time()
-    ffp = fetch_ffp()
-    td = fetch_tdtd(ffp)
-    cat = ffp + td
-    json.dump(cat, open(os.path.join(DATA, "catalog.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    print("목록 저장: %d종 %d굵기 (%.0fs)" % (len(cat), sum(len(x["faces"]) for x in cat), time.time() - t0))
+    if not a.keep_catalog:
+        ffp = fetch_ffp()
+        td = fetch_tdtd(ffp)
+        cat = ffp + td
+        json.dump(cat, open(os.path.join(DATA, "catalog.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        print("목록 저장: %d종 %d굵기 (%.0fs)" % (len(cat), sum(len(x["faces"]) for x in cat), time.time() - t0))
     if a.stacks > 0:
         import engine_v0 as E
         db = E.FontDB(os.path.join(DATA, "catalog.json"))
         db.MAX_STACKS = 4
-        chars = frequent_hangul(a.stacks)
+        # 영문·숫자도 찾기에 쓰인다(E.usable) — 한글만 구워 두면 처음 나온 영문·숫자마다 그 자리에서 굽느라
+        # 줄이 느려졌다(9/23 '모음.zip1탄8' 49초). 62자라 한글 뒤에 붙여도 몇 분이다.
+        chars = frequent_hangul(a.stacks) + list(ASCII_ALNUM)
         for k, ch in enumerate(chars):
             db.stack(ch)
             if (k + 1) % 50 == 0:
                 print("  묶음 %d/%d (%.0fs)" % (k + 1, len(chars), time.time() - t0), flush=True)
+        print("묶음 끝: %d자 (%.0fs)" % (len(chars), time.time() - t0), flush=True)
+
+
+ASCII_ALNUM = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
 def frequent_hangul(n):
