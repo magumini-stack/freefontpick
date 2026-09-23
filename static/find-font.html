@@ -50,7 +50,7 @@
   <style>
     /* index.html 에서 이 화면이 쓰던 규칙만 옮겨 왔다(홈을 고쳐도 여기는 그대로다). */
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{--bg:#FAFAF7;--bg-card:#fff;--bg-secondary:#F3F3EF;
+    :root{--bg:#FFFFFF;--bg-card:#fff;--bg-secondary:#F5F5F3;
         --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
         --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
         --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
@@ -124,6 +124,11 @@
     .submit-count{font-size:13px;color:var(--text-secondary)}
     .submit-count strong{color:var(--accent);font-weight:800}
     .submit-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px}
+    /* 처음엔 3줄만 그리고 나머지는 '더 보기'를 눌러야 그린다(2026-09-23 사용자님) — 첫 화면에서 사진 수십 장을 한꺼번에 받지 않게 */
+    .submit-more{display:flex;justify-content:center;margin-top:20px}
+    .submit-more-btn{font-family:inherit;font-size:14px;font-weight:700;color:var(--text-primary);background:var(--bg-card);border:1px solid var(--border-hover);border-radius:99px;padding:10px 24px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:border-color .15s,background-color .15s}
+    .submit-more-btn:hover{border-color:var(--accent);background:var(--accent-light)}
+    .submit-more-btn span{font-weight:500;color:var(--text-muted)}
     .submit-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;box-shadow:var(--shadow-card);display:flex;flex-direction:column}
     .submit-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:var(--shadow-hover)}
     .submit-card-thumb{width:100%;aspect-ratio:16/10;background:var(--bg-secondary);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:28px}
@@ -295,6 +300,7 @@ transition:border-color .15s;}
     </div>
 
     <div class="submit-list" id="submitList"></div>
+    <div class="submit-more" id="submitMore" hidden></div>
 
     <!-- 서버가 채우는 질문·답변 글(크롤러·JS 차단 환경용). JS 가 목록을 그리면 감춘다. -->
     {{FFP_FIND_SSR}}
@@ -406,7 +412,7 @@ async function renderSubmitList(){
     return;
   }
 
-  wrap.innerHTML = items.map(item => {
+  const cardHtml = item => {
     const thumb = item.image_path
       ? `<img src="${SubmissionStore.imageUrl(item.id)}" alt="문의 첨부 이미지" loading="lazy">`
       : `<i class="ti ti-message-question" aria-hidden="true"></i>`;
@@ -426,7 +432,27 @@ async function renderSubmitList(){
         </div>
       </div>
     </article>`;
-  }).join('');
+  };
+  // 처음엔 3줄(열 수 × 3)만 그리고, '더 보기'를 누르면 나머지를 그린다
+  const first = Math.max(3, gridCols(wrap) * 3);
+  wrap.innerHTML = items.slice(0, first).map(cardHtml).join('');
+  const more = document.getElementById('submitMore');
+  if(items.length > first){
+    more.innerHTML = `<button type="button" class="submit-more-btn"><i class="ti ti-chevron-down" aria-hidden="true"></i> 더 보기 <span>${items.length - first}개</span></button>`;
+    more.hidden = false;
+    more.querySelector('button').addEventListener('click', () => {
+      wrap.insertAdjacentHTML('beforeend', items.slice(first).map(cardHtml).join(''));
+      more.hidden = true;
+    });
+  } else {
+    more.hidden = true;
+  }
+}
+/* 격자의 열 수 — auto-fill 격자는 비어 있어도 계산된 트랙 목록이 나온다. 못 읽으면 폭으로 어림한다(칸 260px + 간격 13px). */
+function gridCols(grid){
+  const tpl = getComputedStyle(grid).gridTemplateColumns;
+  const n = (tpl && tpl !== 'none') ? tpl.split(' ').filter(Boolean).length : 0;
+  return n || Math.max(1, Math.floor((grid.clientWidth + 13) / 273));
 }
 
 /* 폰트 찾기 요청 작성 모달 */
