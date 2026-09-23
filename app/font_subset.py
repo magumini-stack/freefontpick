@@ -86,7 +86,10 @@ def preview_text() -> str:
 
         # 조합 샘플 문구 — 모듈 안의 문자열을 통째로 훑는다. 변수 이름까지
         # 섞여 들어오지만 영숫자라 서브셋이 커지지 않는다.
-        for mod in ("pair_specimens", "pairing_phrases", "pairing_data"):
+        # home_phrases 는 홈 카드가 그리는 문구다. 2026-09-23 이전에는 빠져 있어
+        # '버텼어'의 텼, '눌러'의 눌 처럼 조합 문구에 없던 글자가 카드에서만
+        # 두부로 나왔다(상세페이지는 원본을 쓰므로 멀쩡했다).
+        for mod in ("pair_specimens", "pairing_phrases", "pairing_data", "home_phrases"):
             try:
                 import importlib
                 m = importlib.import_module("." + mod, __package__)
@@ -95,15 +98,30 @@ def preview_text() -> str:
             except Exception:
                 pass
 
-        # 폰트 이름과 제작사 — 미리보기 카드에 그대로 찍힌다.
+        # 갤러리(/fonts) 카드 문구 — 파이썬이 아니라 static/ffp-phrases.js 에 산다.
+        # 파일을 글자 단위로 훑는다(자바스크립트 문법은 영숫자라 서브셋이 안 커진다).
+        try:
+            js = Path(__file__).resolve().parent.parent / "static" / "ffp-phrases.js"
+            chars.update(js.read_text(encoding="utf-8"))
+        except OSError:
+            pass
+
+        # 폰트 이름·제작사와 어드민이 넣은 문구 — 미리보기 카드에 그대로 찍힌다.
         try:
             from .database import SessionLocal
-            from .models import Font
+            from .models import Font, PreviewPhrase, UseCasePhrase
             db = SessionLocal()
             try:
                 for name, maker in db.query(Font.name, Font.maker).all():
                     chars.update(name or "")
                     chars.update(maker or "")
+                for (meta,) in db.query(Font.meta).all():
+                    if isinstance(meta, dict):
+                        chars.update(meta.get("preview_text") or "")
+                for (text,) in db.query(PreviewPhrase.text).all():
+                    chars.update(text or "")
+                for (text,) in db.query(UseCasePhrase.text).all():
+                    chars.update(text or "")
             finally:
                 db.close()
         except Exception:
