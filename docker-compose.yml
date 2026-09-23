@@ -25,11 +25,37 @@ services:
     # 비밀값이 들어 있어 저장소에 넣지 않는다. deploy/env.example 참고.
     env_file:
       - .env
+    environment:
+      # 이미지로 폰트 찾기 — 같은 compose 안의 finder 컨테이너로 넘긴다(app/routers/find.py)
+      FINDER_URL: http://finder:8010
 
     # 현재 실사용 약 500MB. 새는 곳이 생겨도 서버 전체를 끌고 가지
     # 않도록 울타리를 둔다. 2GB 서버에서 1GB 면 넉넉하다.
     mem_limit: 1g
 
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # 이미지로 폰트 찾기 엔진(OCR + 비교). 앱과 따로 두는 이유는 finder/Dockerfile 참고.
+  # 처음 한 번은 폰트 목록을 만들어야 한다(앱이 떠 있는 상태에서):
+  #   docker compose exec finder python build_catalog.py
+  # 타닥타닥 폰트는 /srv/freefontpick/finder_data/tdtd 에 tdtd-webfont 의 out/fonts.json 과 out/full 을 올려 두면 같이 들어간다.
+  finder:
+    build: ./finder
+    image: freefontpick-finder:latest
+    container_name: freefontpick-finder
+    restart: unless-stopped
+    volumes:
+      - /srv/freefontpick/finder_data:/data
+    environment:
+      FINDER_DATA: /data
+      FINDER_APP_URL: http://app:8000
+      FINDER_MAX_STACKS: "30"
+    # 실측 400~500MB(OCR 모델 + 폰트 목록 + 글자 묶음 30자). 2GB 서버에서 앱 1GB 와 같이 두려면 여기가 한계다.
+    mem_limit: 700m
     logging:
       driver: json-file
       options:

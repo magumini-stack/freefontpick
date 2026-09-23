@@ -27,7 +27,7 @@ from .database import SessionLocal as _SessionLocal
 from .header import inject_header, not_found_page
 from .seed import init_db
 from .site import SITE_URL
-from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, sample_image, db_migrate, gif_templates, gif, font_pair, stats
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, sample_image, db_migrate, gif_templates, gif, font_pair, stats, find
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -463,6 +463,7 @@ app.include_router(use_case_route.router)
 app.include_router(magazine.router)
 app.include_router(gif.router)
 app.include_router(design.router)
+app.include_router(find.router)      # 이미지로 폰트 찾기 — finder 서비스로 넘긴다(2026-09-22)
 
 
 # 헬스체크 — DB 종류와 경로/호스트도 함께 노출 (운영 데이터 보존 진단용)

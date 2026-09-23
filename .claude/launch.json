@@ -6,6 +6,18 @@
       "runtimeExecutable": ".venv\\Scripts\\python.exe",
       "runtimeArgs": ["-m", "uvicorn", "app.main:app", "--port", "8000", "--reload"],
       "port": 8000
+    },
+    {
+      "name": "freefontpick+finder",
+      "runtimeExecutable": ".venv\\Scripts\\python.exe",
+      "runtimeArgs": ["tools\\run_local_app.py"],
+      "port": 8000
+    },
+    {
+      "name": "finder",
+      "runtimeExecutable": "C:\\Users\\jypark\\Desktop\\projects\\fontfinder-lab\\.venv\\Scripts\\python.exe",
+      "runtimeArgs": ["finder\\run_local.py"],
+      "port": 8010
     }
   ]
 }

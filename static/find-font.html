@@ -189,6 +189,54 @@ transition:border-color .15s;}
     @media(prefers-reduced-motion:reduce){
       *{transition:none!important}
     }
+
+    /* ── 이미지로 비슷한 폰트 찾기 (2026-09-22, 엔진은 finder 컨테이너 — app/routers/find.py) ── */
+    .ff-wrap{max-width:1240px;margin:0 auto;padding:0 24px 8px}
+    .ff-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 22px 18px;box-shadow:var(--shadow-card)}
+    .ff-card h2{font-size:18px;font-weight:800;letter-spacing:-.4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .ff-beta{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-light);border-radius:99px;padding:2px 8px}
+    .ff-sub{font-size:13px;color:var(--text-secondary);margin:6px 0 14px;line-height:1.6;word-break:keep-all}
+    .ff-drop{border:2px dashed var(--border-hover);border-radius:var(--radius-md);padding:30px 16px;text-align:center;cursor:pointer;transition:border-color .15s,background-color .15s;color:var(--text-secondary);font-size:14px}
+    .ff-drop:hover,.ff-drop.is-over{border-color:var(--accent);background:var(--accent-light)}
+    .ff-drop i{font-size:30px;display:block;margin-bottom:6px;color:var(--accent)}
+    .ff-drop small{display:block;margin-top:6px;font-size:12px;color:var(--text-muted)}
+    .ff-stage{margin-top:14px}
+    .ff-imgwrap{position:relative;display:inline-block;max-width:100%;border-radius:var(--radius-sm);overflow:hidden;background:#111}
+    .ff-imgwrap img{display:block;max-width:100%;max-height:520px;width:auto;height:auto}
+    .ff-box{position:absolute;border:2px solid #4173fa;border-radius:4px;cursor:pointer;background:rgba(65,115,250,.08);transition:background-color .12s}
+    .ff-box:hover{background:rgba(65,115,250,.22)}
+    .ff-box.is-on{border-color:#ffd23f;background:rgba(255,210,63,.18)}
+    .ff-box b{position:absolute;left:-2px;top:-22px;background:#4173fa;color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px 4px 0 0}
+    .ff-box.is-on b{background:#e0a800}
+    .ff-hint{font-size:13px;color:var(--text-secondary);margin-top:8px}
+    .ff-status{font-size:13px;color:var(--text-secondary);margin-top:10px;min-height:18px}
+    .ff-status.is-err{color:var(--status-deny-fg)}
+    .ff-result{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+    .ff-query{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+    .ff-query canvas{max-width:100%;height:auto;border-radius:var(--radius-sm);border:1px solid var(--border);background:#fff}
+    .ff-text{display:flex;flex-direction:column;gap:6px;min-width:220px;flex:1}
+    .ff-text label{font-size:12px;color:var(--text-muted)}
+    .ff-text-row{display:flex;gap:6px}
+    .ff-text input{flex:1;font-size:15px;padding:8px 10px;border:1px solid var(--border-hover);border-radius:var(--radius-sm);background:var(--bg);color:var(--text-primary);font-family:inherit;min-width:0}
+    .ff-text .btn-primary{padding:8px 12px;font-size:12px}
+    .ff-list{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+    .ff-cand{border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;background:var(--bg-card)}
+    .ff-cand.is-best{border-color:var(--accent)}
+    .ff-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:700}
+    .ff-head small{color:var(--text-muted);font-weight:500}
+    .ff-badge{font-size:11px;font-weight:700;border-radius:99px;padding:2px 8px}
+    .ff-badge.ffp{background:var(--accent-light);color:var(--accent)}
+    .ff-badge.td{background:var(--status-reviewed-bg);color:var(--status-reviewed-fg)}
+    .ff-best{font-size:11px;font-weight:700;background:var(--text-primary);color:var(--bg-card);border-radius:99px;padding:2px 8px}
+    .ff-why{font-size:11px;color:var(--text-muted);margin:3px 0 4px}
+    .ff-cand img{display:block;max-width:100%;height:auto;background:#fff;border-radius:6px;padding:4px 6px}
+    .ff-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .ff-actions a{font-size:12px;font-weight:700;text-decoration:none;padding:6px 10px;border-radius:8px;border:1px solid var(--border-hover);color:var(--text-primary)}
+    .ff-actions a.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+    .ff-none{font-size:13px;color:var(--text-secondary);margin-top:12px;padding:12px;border:1px dashed var(--border-hover);border-radius:var(--radius-sm)}
+    .ff-board-title{font-size:16px;font-weight:800;margin:26px 0 4px;letter-spacing:-.3px}
+    .ff-board-sub{font-size:13px;color:var(--text-secondary);margin-bottom:12px}
+    @media(max-width:640px){.ff-wrap{padding:0 16px}.ff-card{padding:16px 14px 14px}.ff-imgwrap img{max-height:360px}}
   </style>
 </head>
 <body>
@@ -200,10 +248,45 @@ transition:border-color .15s;}
   <section class="notice-hero">
     <div class="hero-eyebrow"><i class="ti ti-search" aria-hidden="true"></i> FIND</div>
     <h1 class="hero-title">폰트 찾기</h1>
-    <p class="notice-hero-sub">어디선가 본 폰트, 사진을 올려주시면 누구나 답변해드려요</p>
+    <p class="notice-hero-sub">사진 속 글씨와 비슷한 폰트를 찾아 드리고, 못 찾으면 사람들이 답해 드려요</p>
+  </section>
+
+  <!-- ━━━━ 이미지로 비슷한 폰트 찾기 (2026-09-22) ━━━━
+       올린 이미지 → 서버(finder)가 글자 줄을 찾아 상자로 → 줄을 누르면 같은 문장을 입힌 후보를 나열.
+       유사도 %는 보여 주지 않는다(순서와 "가장 비슷해요"만). 후보 글자 그림은 서버가 그린다 —
+       타닥타닥 유료 폰트 파일이 브라우저로 나가지 않게. 못 찾으면 아래 게시판(질문)으로. -->
+  <section class="ff-wrap" id="ffFinder">
+    <div class="ff-card">
+      <h2>이미지로 비슷한 폰트 찾기 <span class="ff-beta">시험판</span></h2>
+      <p class="ff-sub">글자가 있는 이미지를 올리면 글자 줄을 찾아 드려요. 줄을 누르면 비슷한 무료 폰트와 타닥타닥 폰트를 같은 문장으로 나란히 보여 드립니다.</p>
+      <div class="ff-drop" id="ffDrop" role="button" tabindex="0" aria-label="이미지 올리기">
+        <i class="ti ti-photo-plus" aria-hidden="true"></i>
+        이미지를 끌어다 놓거나 눌러서 고르세요
+        <small>JPG·PNG·WEBP, 8MB 까지 · 올린 이미지는 저장하지 않아요</small>
+        <input type="file" id="ffFile" accept="image/jpeg,image/png,image/webp" style="display:none">
+      </div>
+      <div class="ff-stage" id="ffStage" hidden>
+        <div class="ff-imgwrap"><img id="ffImg" alt="올린 이미지"><div id="ffBoxes"></div></div>
+        <p class="ff-hint" id="ffHint">찾을 글자 줄을 누르세요</p>
+      </div>
+      <div class="ff-status" id="ffStatus" aria-live="polite"></div>
+      <div class="ff-result" id="ffResult" hidden>
+        <div class="ff-query">
+          <canvas id="ffCrop" width="10" height="10" aria-label="고른 글자 줄"></canvas>
+          <div class="ff-text">
+            <label for="ffText">읽은 글자 (틀렸으면 고쳐서 다시 찾기)</label>
+            <div class="ff-text-row"><input id="ffText" maxlength="40"><button class="btn-primary" id="ffRetry" type="button">다시 찾기</button></div>
+          </div>
+        </div>
+        <div class="ff-list" id="ffList"></div>
+        <p class="ff-none" id="ffNone" hidden>비슷한 폰트를 찾지 못했어요. 아래에서 질문을 남겨 보세요.</p>
+      </div>
+    </div>
   </section>
 
   <main class="main">
+    <h2 class="ff-board-title">그래도 못 찾았다면 질문하기</h2>
+    <p class="ff-board-sub">사진을 올려 물어보면 다른 사용자들이 폰트 이름을 답해 드려요.</p>
     <div class="submit-toolbar">
       <div class="submit-count"><strong id="submitCount">0</strong>개의 질문</div>
       <button class="btn-primary" onclick="openSubmitForm()">
@@ -591,6 +674,126 @@ document.addEventListener('keydown', function(e){
     mq.addEventListener && mq.addEventListener('change', function(){
       if(!document.documentElement.hasAttribute('data-theme')) applyThemeIcons();
     });
+  }
+})();
+</script>
+<script>
+/* ── 이미지로 비슷한 폰트 찾기 ─────────────────────────────────────
+   서버: POST /api/find/detect(이미지) → {image_id, width, height, lines[{i, quad, text}]}
+         POST /api/find/match {image_id, line, text?} → {text, read, verdict, results[{fid, w, name, maker, source, link, why}]}
+         GET  /api/find/render?fid&w&text → PNG
+   finder 가 꺼져 있으면(503) 안내만 하고 게시판은 그대로 쓴다. */
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var drop = $('ffDrop'), file = $('ffFile'), stage = $('ffStage'), imgEl = $('ffImg'), boxes = $('ffBoxes');
+  var status = $('ffStatus'), result = $('ffResult'), list = $('ffList'), none = $('ffNone'), textIn = $('ffText'), retry = $('ffRetry');
+  if(!drop) return;
+  var state = { imageId:null, lines:[], w:0, h:0, line:-1, busy:false, bitmap:null };
+
+  function say(msg, err){ status.textContent = msg || ''; status.classList.toggle('is-err', !!err); }
+  function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  drop.addEventListener('click', function(){ file.click(); });
+  drop.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); file.click(); } });
+  ['dragenter','dragover'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('is-over'); }); });
+  ['dragleave','drop'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('is-over'); }); });
+  drop.addEventListener('drop', function(e){ var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if(f) upload(f); });
+  file.addEventListener('change', function(){ if(file.files[0]) upload(file.files[0]); file.value = ''; });
+  window.addEventListener('resize', layoutBoxes);
+
+  async function upload(f){
+    if(state.busy) return;
+    if(!/^image\/(jpeg|png|webp)$/.test(f.type)){ say('JPG·PNG·WEBP 이미지만 올릴 수 있어요.', true); return; }
+    if(f.size > 8*1024*1024){ say('이미지는 8MB 까지만 올릴 수 있어요.', true); return; }
+    state.busy = true; result.hidden = true; list.innerHTML = ''; none.hidden = true; boxes.innerHTML = '';
+    say('글자 줄을 찾는 중… (몇 초 걸려요)');
+    var url = URL.createObjectURL(f);
+    imgEl.onload = function(){ URL.revokeObjectURL(url); layoutBoxes(); };
+    imgEl.src = url; stage.hidden = false;
+    try{
+      var fd = new FormData(); fd.append('image', f, f.name || 'image');
+      var r = await fetch('/api/find/detect', { method:'POST', body: fd });
+      if(r.status === 503){ say('지금은 자동 찾기를 쓸 수 없어요. 아래 게시판에 질문을 남겨 주세요.', true); state.busy = false; return; }
+      var j = await r.json();
+      if(!r.ok){ say(j.detail || '이미지를 읽지 못했어요.', true); state.busy = false; return; }
+      state.imageId = j.image_id; state.lines = j.lines || []; state.w = j.width; state.h = j.height; state.line = -1;
+      state.bitmap = await createImageBitmap(f).catch(function(){ return null; });
+      if(!state.lines.length){ say('글자 줄을 찾지 못했어요. 글자가 크고 또렷한 이미지로 다시 해 보거나, 아래에서 질문을 남겨 주세요.', true); }
+      else { say(''); $('ffHint').textContent = '찾을 글자 줄을 누르세요 (' + state.lines.length + '줄 찾음)'; }
+      layoutBoxes();
+      if(state.lines.length === 1) pick(0);
+    }catch(e){ say('연결에 문제가 있어요. 잠시 후 다시 해 주세요.', true); }
+    state.busy = false;
+  }
+
+  function layoutBoxes(){
+    if(!state.lines.length || !imgEl.clientWidth) { return; }
+    var sx = imgEl.clientWidth / state.w, sy = imgEl.clientHeight / state.h;
+    boxes.innerHTML = '';
+    state.lines.forEach(function(ln, k){
+      var xs = ln.quad.map(function(p){ return p[0]; }), ys = ln.quad.map(function(p){ return p[1]; });
+      var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+      var d = document.createElement('div');
+      d.className = 'ff-box' + (k === state.line ? ' is-on' : '');
+      d.style.left = (x0*sx) + 'px'; d.style.top = (y0*sy) + 'px'; d.style.width = ((x1-x0)*sx) + 'px'; d.style.height = ((y1-y0)*sy) + 'px';
+      d.title = ln.text; d.setAttribute('role','button'); d.tabIndex = 0;
+      d.innerHTML = '<b>' + (k+1) + '</b>';
+      d.addEventListener('click', function(){ pick(k); });
+      d.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ pick(k); } });
+      boxes.appendChild(d);
+    });
+  }
+
+  function drawCrop(ln){
+    var c = $('ffCrop'); if(!state.bitmap) { c.hidden = true; return; }
+    var xs = ln.quad.map(function(p){ return p[0]; }), ys = ln.quad.map(function(p){ return p[1]; });
+    var x0 = Math.max(0, Math.min.apply(null, xs)-6), x1 = Math.min(state.w, Math.max.apply(null, xs)+6);
+    var y0 = Math.max(0, Math.min.apply(null, ys)-6), y1 = Math.min(state.h, Math.max.apply(null, ys)+6);
+    var scale = state.bitmap.width / state.w;          // 서버가 줄여서 봤을 수 있다
+    var sw = (x1-x0)*scale, sh = (y1-y0)*scale, H = Math.min(120, sh), W = Math.round(sw * H / sh);
+    c.width = W; c.height = H; c.hidden = false;
+    c.getContext('2d').drawImage(state.bitmap, x0*scale, y0*scale, sw, sh, 0, 0, W, H);
+  }
+
+  async function pick(k, textOverride){
+    if(state.busy || !state.imageId) return;
+    var ln = state.lines[k]; if(!ln) return;
+    state.line = k; layoutBoxes(); drawCrop(ln);
+    result.hidden = false; list.innerHTML = ''; none.hidden = true;
+    if(textOverride === undefined) textIn.value = ln.text || '';
+    say('비슷한 폰트를 찾는 중… (몇 초 걸려요)');
+    state.busy = true; retry.disabled = true;
+    try{
+      var body = { image_id: state.imageId, line: k, top: 5 };
+      if(textOverride) body.text = textOverride;
+      var r = await fetch('/api/find/match', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      var j = await r.json();
+      if(r.status === 410){ say('시간이 지나 이미지가 지워졌어요. 다시 올려 주세요.', true); }
+      else if(!r.ok){ say(j.detail || '찾지 못했어요.', true); }
+      else { say(''); if(!textOverride) textIn.value = j.text || ln.text || ''; render(j); }
+    }catch(e){ say('연결에 문제가 있어요. 잠시 후 다시 해 주세요.', true); }
+    state.busy = false; retry.disabled = false;
+    result.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+
+  retry.addEventListener('click', function(){ var t = textIn.value.trim(); if(state.line >= 0 && t) pick(state.line, t); });
+  textIn.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); retry.click(); } });
+
+  function render(j){
+    var text = j.text || '';
+    if(!j.results || !j.results.length){ none.hidden = false; list.innerHTML = ''; return; }
+    list.innerHTML = j.results.map(function(r, i){
+      var badge = r.source === 'tdtd' ? '<span class="ff-badge td">타닥타닥 · ' + esc(r.maker) + '</span>' : '<span class="ff-badge ffp">폰트픽 무료</span>';
+      var best = i === 0 ? '<span class="ff-best">가장 비슷해요</span>' : '';
+      var img = '/api/find/render?fid=' + encodeURIComponent(r.fid) + '&w=' + r.w + '&text=' + encodeURIComponent(text) + '&h=56';
+      var actions = r.source === 'tdtd'
+        ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">타닥타닥에서 보기</a>'
+        : '<a href="' + esc(r.link) + '">폰트 보기</a><a class="primary" href="' + esc(r.link) + '/design">이 폰트로 디자인하기</a>';
+      return '<div class="ff-cand' + (i === 0 ? ' is-best' : '') + '"><div class="ff-head">' + esc(r.name) + ' <small>' + r.w + '</small>' + badge + best + '</div>'
+        + (r.why ? '<div class="ff-why">' + esc(r.why) + '</div>' : '')
+        + '<img src="' + img + '" alt="' + esc(r.name) + '로 쓴 ' + esc(text) + '" loading="lazy">'
+        + '<div class="ff-actions">' + actions + '</div></div>';
+    }).join('');
   }
 })();
 </script>
