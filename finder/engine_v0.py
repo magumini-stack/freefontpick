@@ -1450,6 +1450,13 @@ GATE_DEPTH = 30                                                             # �
 CAND_SLACK = 1.0                                                            # 후보는 NONE_ABOVE + 1.0 까지(느낌으로 올라온 5점대 후보)
 
 
+def _gate_group(cats):
+    """목록 거르기용 갈래 — 손글씨와 캘리는 한 갈래로 본다(2026-09-23 사용자님: "캘리랑 손글씨는 섞여도 돼").
+    9/22 에는 '손글씨 질의에 붓글씨체가 끼면 안 된다'고 나눴는데, 1위가 캘리로 분류된 둥근 손글씨(SANG개미똥구멍)일 때
+    손글씨 후보가 다 빠져 '파우치 털기는'에 후보가 2개만 남았다. 고딕·명조·디스플레이는 그대로 따로."""
+    return {"손글씨" if c == "캘리" else c for c in cats}
+
+
 def _gate(res, ratio=None, db=None):
     """res: [(절대 점수, fid, w, 이름)] → dict(shown=문턱 안의 후보, verdict='ok'|'none', best_score, ratio)"""
     if not res:
@@ -1457,14 +1464,14 @@ def _gate(res, ratio=None, db=None):
     # 느낌 점수(9/23)로 순서가 바뀌면 1위의 모양 점수가 가장 좋은 게 아닐 수 있다 — '없음'은 가장 좋은 모양 점수로 가른다.
     best = float(min(r[0] for r in res))
     none = best > NONE_ABOVE or (ratio is not None and ratio > NONE_RATIO)
-    cats0 = db.cats.get(res[0][1], set()) if db is not None else set()
+    cats0 = _gate_group(db.cats.get(res[0][1], set())) if db is not None else set()
     shown, fill = [], []
     for r in ([] if none else res):
         if r[0] > NONE_ABOVE + CAND_SLACK:
             continue                                   # 모양이 너무 먼 후보 — 느낌이 비슷해 올라왔어도 1점 넘게는 안 봐준다
-        c = db.cats.get(r[1], set()) if db is not None else set()
+        c = _gate_group(db.cats.get(r[1], set())) if db is not None else set()
         if cats0 and c and not (cats0 & c):
-            continue                                   # 1위와 갈래가 다르면 뺀다
+            continue                                   # 1위와 갈래가 다르면 뺀다(손글씨·캘리는 한 갈래)
         (shown if r[0] <= CAND_REL * best else fill).append(r)
     # 1위가 아주 잘 맞으면 1.5배 안에 드는 게 없다 — 그래도 대체 폰트를 고를 수 있게 같은 갈래에서 3개는 채운다
     shown = shown + fill[:max(0, MIN_SHOW - len(shown))]
