@@ -18,6 +18,7 @@ import secrets
 import threading
 import time
 
+import cv2
 import numpy as np
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse, Response
@@ -33,7 +34,7 @@ os.environ.setdefault("FINDER_MODELS", os.path.join(DATA, "models"))            
 MAX_UPLOAD = 8 * 1024 * 1024        # 8MB
 MAX_SIDE = 1600                     # 이보다 크면 줄여서 본다(OCR 은 어차피 줄여 본다)
 IMAGE_TTL = 15 * 60                 # 올린 이미지는 15분만 들고 있는다(줄을 고르는 동안)
-MAX_IMAGES = 40
+MAX_IMAGES = 20                     # JPEG 로 눌러 두므로 한 장 0.3~1MB — 40장 그대로 두면 RGB 배열로 300MB 였다
 RENDER_CACHE = 300
 TDTD_ABOUT = "https://tdtd.io/fonts/about"   # 타닥타닥 폰트정보(폰트보기) 페이지 — #f=<해시> 로 폰트 하나를 짚는다
 
@@ -118,7 +119,9 @@ async def detect(image: UploadFile = File(...)):
     lines = [ln for ln in lines if ln["conf"] >= 0.3 and len([c for c in ln["chars"] if E.usable(c[0])]) >= 2]
     image_id = secrets.token_urlsafe(12)
     _gc_images()
-    _images[image_id] = dict(img=img, lines=lines, t=time.time())
+    # RGB 배열(최대 1600² × 3 = 7.7MB)로 들고 있지 않고 JPEG 로 눌러 둔다 — 700MB 울타리에서 여러 사람이 올리면 위험했다
+    ok, jpg = cv2.imencode(".jpg", img[:, :, ::-1], [cv2.IMWRITE_JPEG_QUALITY, 95])
+    _images[image_id] = dict(jpg=jpg.tobytes(), lines=lines, t=time.time())
     return {
         "image_id": image_id, "width": int(img.shape[1]), "height": int(img.shape[0]),
         "lines": [dict(i=i, quad=[[float(x), float(y)] for x, y in ln["quad"]], text=ln["text"], conf=round(float(ln["conf"]), 3))
@@ -149,7 +152,8 @@ def match(req: MatchReq):
         chars = _chars_for_text(ln, text_override)
         base_conf = 1.0                                   # 사람이 고친 글자는 다시 읽은 것보다 믿는다
     with _lock:
-        r = E.rank_image_ex(db, rec["img"], ln["quad"], chars, top=max(3, min(12, req.top)),
+        img = cv2.imdecode(np.frombuffer(rec["jpg"], np.uint8), cv2.IMREAD_COLOR)[:, :, ::-1]
+        r = E.rank_image_ex(db, img, ln["quad"], chars, top=max(3, min(12, req.top)),
                             ocr=tf.recognize, base_conf=base_conf)
     text = text_override or r.get("text") or ln["text"]
     out = []
