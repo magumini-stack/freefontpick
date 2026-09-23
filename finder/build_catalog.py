@@ -7,7 +7,7 @@
   실험실(fetch_fonts.py)과 같은 길 — 관리자가 폰트를 올리면 다시 돌리면 된다. woff2 는 PIL 이 바로 못 열어
   TTF 로 풀어 둔다(폰트 하나 여는 데 100ms 가 아니라 5ms 가 되게).
 타닥타닥 폰트: /data/tdtd/fonts.json + /data/tdtd/full/f_<hash>.woff2 (tdtd-webfont 가 구운 2,350자판).
-  git 에는 넣지 않는다(유료 폰트) — 서버에 따로 올린다. 배리어블은 굵기별로 떠 둔다.
+  git 에는 넣지 않는다(유료 폰트) — 서버에 따로 올린다. 배리어블(RakFont 16종)은 뺀다(2026-09-23 사용자님).
   폰트픽과 겹치는 폰트(폰트픽의 와이즈폰트·상상토끼 제공분)는 폰트픽에서만 나오게 뺀다(글자 대조, 같은 집안끼리만).
 """
 import argparse
@@ -142,9 +142,7 @@ def fetch_tdtd(ffp):
         print("타닥타닥 없음(%s) — 폰트픽만 넣는다" % meta)
         return []
     td = json.load(open(meta, encoding="utf-8"))["fonts"]
-    vf_dir = os.path.join(TDTD, "vf")
     ttf_dir = os.path.join(TDTD, "ttf")
-    os.makedirs(vf_dir, exist_ok=True)
     os.makedirs(ttf_dir, exist_ok=True)
     # 겹침 대조: 폰트픽 와이즈폰트·상상토끼 ↔ 같은 집안 타닥타닥
     fm = []
@@ -167,9 +165,7 @@ def fetch_tdtd(ffp):
             if not os.path.exists(src):
                 continue
             if fc.get("style") == "Variable":
-                for w, fn in _vf_instances(src, os.path.join(vf_dir, "t%d_%s" % (t["id"], fc["h"])), ttf_dir):
-                    faces.append(dict(w=w, fn=fn, style="VF", h=fc["h"]))
-                continue
+                continue            # 배리어블은 뺀다 — 굵기별로 떠 두는 데 한 벌에 1~3초라 서버에서 몇 분을 잡아먹었고, 사용자님이 빼라고 함(9/23)
             dst = os.path.join(ttf_dir, "f_%s.ttf" % fc["h"])
             if to_ttf(src, dst):
                 faces.append(dict(w=int(fc["w"]), fn=dst, style=fc.get("style", ""), h=fc["h"]))
@@ -190,26 +186,6 @@ def fetch_tdtd(ffp):
     print("타닥타닥 %d종(폰트픽과 겹쳐 뺀 것 %d)" % (len(out), len(same)), flush=True)
     return out
 
-
-def _vf_instances(path, key, ttf_dir):
-    from fontTools.ttLib import TTFont
-    from fontTools.varLib.instancer import instantiateVariableFont
-    f = TTFont(path)
-    if "fvar" not in f:
-        return []
-    axes = {a.axisTag: (a.minValue, a.defaultValue, a.maxValue) for a in f["fvar"].axes}
-    if "wght" not in axes:
-        return []
-    lo, df, hi = axes["wght"]
-    out = []
-    for w in sorted({max(lo, min(hi, v)) for v in (lo, 300, 400, 500, 700, 900, hi)}):
-        fn = "%s_w%d.ttf" % (key, int(w))
-        if not os.path.exists(fn):
-            inst = instantiateVariableFont(TTFont(path), {t: (int(w) if t == "wght" else axes[t][1]) for t in axes})
-            inst.flavor = None
-            inst.save(fn)
-        out.append((int(w), fn))
-    return out
 
 
 def main():
