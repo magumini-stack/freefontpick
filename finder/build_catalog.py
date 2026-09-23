@@ -59,17 +59,19 @@ def fetch_ffp():
     for f in fonts:
         if not f.get("has_file"):
             continue
-        ver = f.get("file_version", 0)
-        weights = f.get("weights") or [f.get("primary_weight", 400)]
+        fid = int(f["id"])
+        ver = int(f.get("file_version") or 0)
+        # 굵기 목록은 available_weights — "weights" 는 화면용 글자("1종")다(실험실 fetch_fonts.py 와 같게)
+        weights = [int(w) for w in (f.get("available_weights") or [f.get("primary_weight") or 400])]
         faces = []
         for w in weights:
-            dst = os.path.join(FONTS, "%03d_%d.ttf" % (f["id"], w))
+            dst = os.path.join(FONTS, "%03d_%d.ttf" % (fid, w))
             if not os.path.exists(dst):
                 tmp = dst + ".src"
                 try:
-                    open(tmp, "wb").write(get(APP + "/api/fonts/%d/file/%d.v%d.woff2" % (f["id"], w, ver)))
+                    open(tmp, "wb").write(get(APP + "/api/fonts/%d/file/%d.v%d.woff2" % (fid, w, ver)))
                 except Exception as e:
-                    print("  ! 못 받음", f["id"], w, e)
+                    print("  ! 못 받음", fid, w, e)
                     continue
                 ok = to_ttf(tmp, dst)
                 os.remove(tmp)
@@ -77,8 +79,8 @@ def fetch_ffp():
                     continue
             faces.append(dict(w=int(w), fn=dst))
         if faces:
-            out.append(dict(id=f["id"], name=f["name"], maker=f.get("maker", ""), source="ffp",
-                            is_english=bool(f.get("is_english")), link="/font/%d" % f["id"],
+            out.append(dict(id=fid, name=f["name"], maker=f.get("maker", ""), source="ffp",
+                            is_english=bool(f.get("is_english")), link="/font/%d" % fid,
                             tags=f.get("tags", []), faces=faces))
     print("폰트픽 %d종 %d굵기" % (len(out), sum(len(x["faces"]) for x in out)))
     return out
