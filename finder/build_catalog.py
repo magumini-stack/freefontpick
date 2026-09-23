@@ -190,7 +190,7 @@ def fetch_tdtd(ffp):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stacks", type=int, default=0, help="미리 구울 한글 글자 수(자주 쓰는 순)")
+    ap.add_argument("--stacks", type=int, default=0, help="미리 구울 한글 글자 수(자주 쓰는 순, 2350 이면 KS X 1001 전부)")
     a = ap.parse_args()
     os.makedirs(DATA, exist_ok=True)
     t0 = time.time()
@@ -219,12 +219,20 @@ def frequent_hangul(n):
     for ch in common:
         if 0xAC00 <= ord(ch) <= 0xD7A3 and ch not in seen:
             seen.append(ch)
+    # 그다음은 KS X 1001 완성형 2,350자(실제로 쓰이는 글자) 순서 — 가·각·갂… 순으로 가면 안 쓰는 글자에 시간을 쓴다.
+    # 파이썬 cp949 는 11,172자를 다 인코딩하므로 바이트 범위(B0A1~C8FE)로 가려낸다.
     cp = 0xAC00
     while len(seen) < n and cp <= 0xD7A3:
         ch = chr(cp)
-        if ch not in seen:
-            seen.append(ch)
         cp += 1
+        if ch in seen:
+            continue
+        try:
+            b = ch.encode("cp949")
+        except UnicodeEncodeError:
+            continue
+        if 0xB0 <= b[0] <= 0xC8 and 0xA1 <= b[1] <= 0xFE:
+            seen.append(ch)
     return seen[:n]
 
 
