@@ -31,7 +31,8 @@ services:
 
     # 현재 실사용 약 500MB. 새는 곳이 생겨도 서버 전체를 끌고 가지
     # 않도록 울타리를 둔다. 2GB 서버에서 1GB 면 넉넉하다.
-    mem_limit: 700m     # 2026-09-23 실측 85MB(폰트 찾기는 finder 로 넘김) — finder 에 더 주려고 1g → 700m
+    # 2026-09-23 서버를 2vCPU·4GB 로 올려 700m → 1g. 실측 85MB 남짓이지만 OG 이미지·서브셋을 만들 때 잠깐 는다.
+    mem_limit: 1g
 
     logging:
       driver: json-file
@@ -53,11 +54,17 @@ services:
     environment:
       FINDER_DATA: /data
       FINDER_APP_URL: http://app:8000
-      FINDER_MAX_STACKS: "12"   # 메모리에 두는 글자 묶음 수 — 글자당 10MB 남짓, 한 줄이면 충분(디스크 캐시는 따로)
+      FINDER_MAX_STACKS: "40"   # 메모리에 두는 글자 묶음 수 — 글자당 5MB 남짓(디스크 캐시는 따로). 4GB 서버라 12 → 40
+      # 느낌 학습(2단계, 2026-09-23): 모양이 비슷한 대체 폰트를 '느낌 벡터'로 한 번 더 고른다. 기준 벡터는 뜰 때 뒤에서 만든다.
+      FEEL: "1"
+      FEEL_W: "4"
+      FEEL_REFS_BG: "1"
+      FEEL_THREADS: "1"
     # 실측 400~500MB(OCR 모델 + 폰트 목록 + 글자 묶음). 2GB 서버에서 앱 1GB 와 같이 두려면 여기가 한계다.
     # 2026-09-23 글자표를 set 으로 만들다 여기서 죽어 되풀이됐다 → 엔진이 비트 표(10MB)로 바꿈.
     # 2026-09-23 실측: 엔진 올린 뒤 370MB, 큰 이미지 OCR 때 순간 +300MB 쯤 → 700m 에서 한 번 죽었다(RestartCount 1). 1g 로.
-    mem_limit: 1g
+    # 같은 날 서버를 2vCPU·4GB 로 올려 2g 로 — 느낌 모델·글자 묶음 40자를 더 들고도 넉넉하게.
+    mem_limit: 2g
     logging:
       driver: json-file
       options:

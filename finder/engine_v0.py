@@ -1161,29 +1161,51 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
         # (실제 168장 1위 83% → 75%, 9/22 밤).
         pin = bool(best["ratio"] <= PIN_RATIO and best["res"] and best["res"][0][0] <= PIN_SCORE)
         pq = _style_probs(best["glyphs"])
-        sweep = __import__("os").environ.get("STYLE_SWEEP")      # 시험용: 무게 여러 개를 한 번에(eval_real 이 적어 둔다)
-        if sweep and pq is not None:
+        qv, sims, face_i = _feel_sims(db, best["glyphs"])
+
+        def extra_for(style_w, feel_w):
+            """후보(폰트, 굵기)에 더할 점수 — 판별기 갈래가 어긋난 만큼 + 느낌 벡터가 먼 만큼. 둘 다 없으면 None."""
+            if (pq is None or not style_w) and (sims is None or not feel_w):
+                return None
+
+            def f(fid, w):
+                x = 0.0
+                if pq is not None and style_w:
+                    x += _style_pen(db, pq, fid, style_w)
+                if sims is not None and feel_w:
+                    i = face_i.get((fid, w))
+                    x += feel_w * (1.0 - (float(sims[i]) if i is not None and sims[i] != 0 else 0.5))
+                return x
+            return f
+
+        def rerank_with(extra):
+            # '거의 같은 폰트'(모양 점수 PIN_ABS 이하)는 모양 순서 그대로 앞에 두고, 나머지만 덧점까지 더해 다시 세운다
+            # — 활자 재정렬(상위 TYPO_K)에 모양 점수로는 밀려 있던 후보가 들어올 수 있게 전체 순서부터.
+            res = best["res"]
+            if extra is not None:
+                near = [r for r in res if r[0] <= PIN_ABS]
+                far = sorted([r for r in res if r[0] > PIN_ABS], key=lambda r: (r[0] + extra(r[1], r[2]), str(r[1])))
+                res = near + far
+            return rerank_typo(db, best["glyphs"], res, outlined=outlined, pin_first=pin, pq=pq, extra=extra)
+
+        sweep = __import__("os").environ.get("FEEL_SWEEP") or __import__("os").environ.get("STYLE_SWEEP")
+        if sweep and (pq is not None or sims is not None):      # 시험용: 무게 여러 개를 한 번에(eval_real 이 적어 둔다)
             info["sweep"] = {}
             for w in [float(x) for x in sweep.split(",")]:
-                near = [r for r in best["res"] if r[0] <= PIN_ABS]
-                far = [r for r in best["res"] if r[0] > PIN_ABS]
-                if w > 0:
-                    far = sorted(far, key=lambda r: (r[0] + _style_pen(db, pq, r[1], w), str(r[1])))
-                rw, _ = rerank_typo(db, best["glyphs"], near + far, outlined=outlined, pin_first=pin,
-                                    pq=pq if w > 0 else None, style_w=w)
+                if __import__("os").environ.get("FEEL_SWEEP"):
+                    ex = extra_for(STYLE_W if pq is not None else 0, w)
+                else:
+                    ex = extra_for(w, FEEL_W if sims is not None else 0)
+                rw, _ = rerank_with(ex)
                 info["sweep"][w] = [(r[1], r[3], r[2]) for r in rw[:400]]
-        if pq is not None:
-            # 갈래가 어긋나는 후보를 뒤로 — 활자 재정렬(상위 TYPO_K)에 손글씨 후보가 들어올 수 있게 전체 순서부터 다시 세운다.
-            # '거의 같은 폰트'(모양 점수 PIN_ABS 이하)는 모양 순서 그대로 앞에 둔다 — 판별기가 틀려도 정답을 밀지 않게.
-            near = [r for r in best["res"] if r[0] <= PIN_ABS]
-            far = sorted([r for r in best["res"] if r[0] > PIN_ABS], key=lambda r: (r[0] + _style_pen(db, pq, r[1]), str(r[1])))
-            best["res"] = near + far
-        best["res"], info["explain"] = rerank_typo(db, best["glyphs"], best["res"], outlined=outlined, pin_first=pin, pq=pq)
+        best["res"], info["explain"] = rerank_with(extra_for(STYLE_W, FEEL_W))
         info["pinned"] = pin
         info["outlined"] = outlined
         info["style"] = None if pq is None else {k: round(float(v), 3) for k, v in zip(SHAPES, pq)}
     if pick not in ("fuse", "mix"):
-        return dict(res=best["res"][:top], **_gate(best["res"][:top], best["ratio"], db), **info)
+        # 목록 거르기(_gate)는 1위와 같은 갈래만 남긴다 — 상위 top(5)개 안에서만 찾으면 느낌 점수로 순서가 섞였을 때
+        # 같은 갈래가 하나밖에 안 남았다(9/23). 30위 안에서 채우고, 보여 줄 개수는 부르는 쪽이 자른다.
+        return dict(res=best["res"][:top], **_gate(best["res"][:max(top, GATE_DEPTH)], best["ratio"], db), **info)
     # 합치기: 폰트마다 여러 벌 중 가장 좋은 '두드러짐'(점수 ÷ 그 벌 상위 30위 중앙값)으로 줄 세운다.
     # 1위는 ratio 와 같고, 고른 벌이 틀렸어도 다른 벌에서 두드러진 폰트가 2~5위에 들어온다.
     # 단, 고른 벌보다 잣대가 1.5배 넘게 나쁜 벌은 섞지 않는다 — 고리·조각 벌의 장식 폰트가 4~5위로 새어 든다.
@@ -1265,6 +1287,40 @@ def _style_probs(glyphs):
         return None
 
 
+# ── 느낌 벡터 (2026-09-23 2단계, feel.py) ───────────────────────────────
+# 질의 글줄의 글자 마스크로 128차원 '느낌' 벡터를 내고, 굵기마다 미리 만든 기준 벡터와의 코사인이 작을수록
+# FEEL_W × (1 − 코사인)을 더한다. 글자 겹치기 점수가 반듯한 폰트를 고르던 손글씨 대체 후보를 바로잡으려는 것.
+FEEL_ON = __import__("os").environ.get("FEEL", "0") == "1"
+FEEL_W = float(__import__("os").environ.get("FEEL_W", "3"))
+
+
+def _feel_sims(db, glyphs):
+    """(질의 벡터, 굵기별 코사인 배열, {(fid, 굵기): 번호}) — 끄거나 못 재면 (None, None, None)."""
+    if not FEEL_ON:
+        return None, None, None
+    masks = [m for ch, m in glyphs if usable(ch)]
+    if len(masks) < 2:
+        return None, None, None
+    try:
+        import feel
+        if not feel.available():
+            return None, None, None
+        R = getattr(db, "_feel_refs", None)
+        if R is None:
+            if __import__("os").environ.get("FEEL_REFS_BG") == "1":
+                return None, None, None          # 서버: 기준 벡터는 뒤에서 만드는 중(service._warm) — 다 될 때까지 느낌 점수 없이
+            R = feel.refs(db)
+        qv = feel.embed(masks)
+        if qv is None:
+            return None, None, None
+        face_i = getattr(db, "_face_i", None)
+        if face_i is None:
+            face_i = db._face_i = {(it["fid"], it["weight"]): i for i, it in enumerate(db.items)}
+        return qv, R @ qv, face_i
+    except Exception:
+        return None, None, None
+
+
 def _style_pen(db, pq, fid, w=None):
     return (STYLE_W if w is None else w) * (1.0 - float(pq @ db.style_vec(fid)))
 
@@ -1273,7 +1329,7 @@ PIN_RATIO, PIN_SCORE = 0.65, 2.8    # (예전 규칙: 1위만 고정) 0.55·2.2 
 PIN_ABS = 2.2                        # 모양 점수 이 안이면 '거의 같은 폰트' 무리 — 1차 순서 유지, 그 뒤만 재정렬
 
 
-def rerank_typo(db, glyphs, res, k=None, outlined=False, pin_first=False, pq=None, style_w=None):
+def rerank_typo(db, glyphs, res, k=None, outlined=False, pin_first=False, pq=None, extra=None):
     """res(1차 순위, 절대 점수)의 상위 k 개를 활자 특징 차이를 더한 점수로 다시 세운다. (새 res, 설명 dict)
     outlined: 테두리 글씨(채움만 잡은 벌) — 테두리가 채움의 모서리·끝을 깎아 둥글고 밋밋하게 보이므로 그 둘은 안 잰다."""
     k = k or TYPO_K
@@ -1323,10 +1379,11 @@ def rerank_typo(db, glyphs, res, k=None, outlined=False, pin_first=False, pq=Non
         rf = (float(hs.std() / hs.mean()), float(ws.std() / ws.mean()), float(bs.std() / hs.mean())) if len(hs) >= 3 else (0.0, 0.0, 0.0)
         d = _typo_dist(q, rq, f, rf)
         cats = db.cats.get(fid, set())
+        if extra is not None:
+            # 갈래 판별기(style.py)·느낌 벡터(feel.py)의 덧점(2026-09-23) — _finish 가 만든 함수
+            d["extra"] = extra(fid, w)
+            d["total"] += d["extra"]
         if pq is not None:
-            # 갈래 판별기(style.py): 질의가 손글씨일 확률이 높은데 후보가 활자면 그만큼 더한다(2026-09-23)
-            d["style"] = _style_pen(db, pq, fid, style_w)
-            d["total"] += d["style"]
             d["hand"] = bool(pq[0] + pq[1] >= 0.6 and cats and not (cats & {"손글씨", "캘리"}))
         else:
             # (판별기가 없을 때의 옛 규칙) 이미지 글자가 손글씨처럼 들쭉날쭉(높이·폭·밑선 흔들림 합 0.3 이상)한데
@@ -1389,19 +1446,22 @@ NONE_ABOVE = float(__import__("os").environ.get("NONE_ABOVE", "5.0"))     # 1위
 NONE_RATIO = float(__import__("os").environ.get("NONE_RATIO", "9"))       # 두드러짐 문턱(9 = 안 씀)
 CAND_REL = float(__import__("os").environ.get("CAND_REL", "1.5"))         # 후보는 1위 점수의 1.5배 안까지만
 MIN_SHOW = 3                                                                # 그래도 같은 갈래에서 3개는 보여 준다
+GATE_DEPTH = 30                                                             # 같은 갈래 후보를 찾는 깊이
+CAND_SLACK = 1.0                                                            # 후보는 NONE_ABOVE + 1.0 까지(느낌으로 올라온 5점대 후보)
 
 
 def _gate(res, ratio=None, db=None):
     """res: [(절대 점수, fid, w, 이름)] → dict(shown=문턱 안의 후보, verdict='ok'|'none', best_score, ratio)"""
     if not res:
         return dict(shown=[], verdict="none", best_score=None, ratio=ratio)
-    best = float(res[0][0])
+    # 느낌 점수(9/23)로 순서가 바뀌면 1위의 모양 점수가 가장 좋은 게 아닐 수 있다 — '없음'은 가장 좋은 모양 점수로 가른다.
+    best = float(min(r[0] for r in res))
     none = best > NONE_ABOVE or (ratio is not None and ratio > NONE_RATIO)
     cats0 = db.cats.get(res[0][1], set()) if db is not None else set()
     shown, fill = [], []
     for r in ([] if none else res):
-        if r[0] > NONE_ABOVE:
-            continue
+        if r[0] > NONE_ABOVE + CAND_SLACK:
+            continue                                   # 모양이 너무 먼 후보 — 느낌이 비슷해 올라왔어도 1점 넘게는 안 봐준다
         c = db.cats.get(r[1], set()) if db is not None else set()
         if cats0 and c and not (cats0 & c):
             continue                                   # 1위와 갈래가 다르면 뺀다

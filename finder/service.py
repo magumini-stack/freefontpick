@@ -84,9 +84,21 @@ def _warm():
     목록이 아직 없으면(배포 직후) 조용히 넘어가고, 첫 요청 때 다시 해 본다."""
     def go():
         try:
-            _engine()
+            db, _ = _engine()
         except Exception as e:
             print("엔진 미리 올리기 건너뜀:", e, flush=True)
+            return
+        # 느낌 벡터(2단계, feel.py): 굵기마다 기준 벡터를 뒤에서 만든다(처음 한 번 몇 분, 다음부터는 /data 캐시에서 1초).
+        # 다 될 때까지 엔진은 느낌 점수 없이 돈다(FEEL_REFS_BG=1).
+        if E.FEEL_ON:
+            try:
+                import feel
+                if feel.available():
+                    t0 = time.time()
+                    feel.refs(db, log=lambda m: print(m, flush=True))
+                    print("느낌 기준 벡터 준비 끝: %d개 (%.0fs)" % (len(db.items), time.time() - t0), flush=True)
+            except Exception as e:
+                print("느낌 기준 벡터 못 만듦:", e, flush=True)
     threading.Thread(target=go, daemon=True).start()
 
 
@@ -94,7 +106,8 @@ def _warm():
 def health():
     try:
         db, _ = _engine()
-        return {"ok": True, "faces": len(db.items), "images": len(_images)}
+        return {"ok": True, "faces": len(db.items), "images": len(_images),
+                "feel": getattr(db, "_feel_refs", None) is not None}
     except Exception as e:                                        # 목록이 아직 없으면
         return JSONResponse({"ok": False, "error": str(e)}, status_code=503)
 
