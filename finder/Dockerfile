@@ -26,6 +26,10 @@ COPY requirements.txt ./
 # rapidocr 는 의존성 없이 — GUI 판 opencv-python 을 끌고 오지 않게(requirements.txt 의 설명 참고)
 RUN pip install --no-cache-dir -r requirements.txt     && pip install --no-cache-dir --no-deps rapidocr==3.9.2     && python -c "import cv2, onnxruntime, rapidocr, skimage, scipy; print('cv2', cv2.__version__, 'ort', onnxruntime.__version__)"
 
+# woff2 → TTF 는 구글 woff2_decompress(C++)로 푼다 — fontTools 는 큰 한글 폰트 한 벌에 5~26초가 걸려
+# 763벌이면 한 시간이 넘었다(2026-09-23 서버에서 겪음). pip 층 뒤에 두어 위 층의 캐시는 그대로 쓴다.
+RUN apt-get update && apt-get install -y --no-install-recommends woff2     && rm -rf /var/lib/apt/lists/*
+
 COPY --chown=app:app . .
 
 # /data/models 가 비어 있으면 rapidocr 가 처음 쓸 때 여기로 내려받으려 한다 — app 사용자가 쓸 수 있게만 해 둔다

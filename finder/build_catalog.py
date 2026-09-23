@@ -14,6 +14,8 @@ import argparse
 import io
 import json
 import os
+import shutil
+import subprocess
 import sys
 import time
 import urllib.request
@@ -30,6 +32,7 @@ TDTD_LINK = {
 }
 FAMILY = {"와이즈폰트": "타닥타닥", "상상토끼": "상상토끼"}     # 폰트픽 제작사 → 겹침을 대 볼 타닥타닥 제작사
 SAME_IOU = 0.85
+WOFF2_BIN = shutil.which("woff2_decompress")     # Debian 'woff2' 패키지(Dockerfile) — 없으면 fontTools 로 푼다(느림)
 
 
 def get(url):
@@ -38,9 +41,20 @@ def get(url):
 
 
 def to_ttf(src, dst):
-    """woff2/woff/ttf → PIL 이 바로 여는 TTF. 이미 있으면 건너뛴다."""
+    """woff2/woff/ttf → PIL 이 바로 여는 TTF. 이미 있으면 건너뛴다.
+
+    woff2 는 구글 woff2_decompress(C++)로 푼다 — 0.1초. fontTools 는 큰 한글 폰트의 glyf 복원이 순수 파이썬이라
+    한 벌에 5~26초(763벌이면 한 시간 넘게) 걸린다(2026-09-23 서버). 도구가 없거나 실패하면 fontTools 로."""
     if os.path.exists(dst):
         return True
+    if WOFF2_BIN and src.lower().endswith(".woff2"):
+        out = src[:-6] + ".ttf"                       # 도구는 입력 옆에 .ttf 로 쓴다
+        r = subprocess.run([WOFF2_BIN, src], capture_output=True)
+        if r.returncode == 0 and os.path.exists(out):
+            if os.path.abspath(out) != os.path.abspath(dst):
+                os.replace(out, dst)
+            return True
+        print("  ! woff2_decompress 실패 → fontTools:", src, r.stderr.decode(errors="replace")[:100], flush=True)
     from fontTools.ttLib import TTFont
     try:
         f = TTFont(src)
@@ -56,7 +70,10 @@ def fetch_ffp():
     os.makedirs(FONTS, exist_ok=True)
     fonts = json.loads(get(APP + "/api/fonts?weights=1"))
     out = []
-    for f in fonts:
+    t0 = time.time()
+    for k, f in enumerate(fonts):
+        if (k + 1) % 50 == 0:
+            print("  폰트픽 %d/%d (%.0fs)" % (k + 1, len(fonts), time.time() - t0), flush=True)
         if not f.get("has_file"):
             continue
         fid = int(f["id"])
@@ -67,7 +84,7 @@ def fetch_ffp():
         for w in weights:
             dst = os.path.join(FONTS, "%03d_%d.ttf" % (fid, w))
             if not os.path.exists(dst):
-                tmp = dst + ".src"
+                tmp = dst[:-4] + ".woff2"              # 받은 woff2 — 풀고 나면 지운다
                 try:
                     open(tmp, "wb").write(get(APP + "/api/fonts/%d/file/%d.v%d.woff2" % (fid, w, ver)))
                 except Exception as e:
@@ -82,7 +99,7 @@ def fetch_ffp():
             out.append(dict(id=fid, name=f["name"], maker=f.get("maker", ""), source="ffp",
                             is_english=bool(f.get("is_english")), link="/font/%d" % fid,
                             tags=f.get("tags", []), faces=faces))
-    print("폰트픽 %d종 %d굵기" % (len(out), sum(len(x["faces"]) for x in out)))
+    print("폰트픽 %d종 %d굵기" % (len(out), sum(len(x["faces"]) for x in out)), flush=True)
     return out
 
 
@@ -131,7 +148,10 @@ def fetch_tdtd(ffp):
                     fm.append((c["id"], fam, m))
     same = {}
     out = []
-    for t in td:
+    t0 = time.time()
+    for k, t in enumerate(td):
+        if (k + 1) % 100 == 0:
+            print("  타닥타닥 %d/%d (%.0fs)" % (k + 1, len(td), time.time() - t0), flush=True)
         faces = []
         for fc in t["faces"]:
             src = os.path.join(TDTD, "full", "f_%s.woff2" % fc["h"])
@@ -158,7 +178,7 @@ def fetch_tdtd(ffp):
             continue
         out.append(dict(id="t%d" % t["id"], name=t["ko"], maker=t["vendor"], source="tdtd", is_english=False,
                         link=TDTD_LINK.get(t["vendor"], TDTD_LINK["타닥타닥"]), tags=[t.get("cat", "")], faces=faces))
-    print("타닥타닥 %d종(폰트픽과 겹쳐 뺀 것 %d)" % (len(out), len(same)))
+    print("타닥타닥 %d종(폰트픽과 겹쳐 뺀 것 %d)" % (len(out), len(same)), flush=True)
     return out
 
 
