@@ -364,6 +364,31 @@ def popular_fonts(days: int = 7, limit: int = 10, mode: str = "mixed",
     return [{"id": fid, "rank": i + 1} for i, fid in enumerate(ids)]
 
 
+@router.get("/popular-order")
+def popular_order(days: int = 30, db: Session = Depends(get_db)):
+    """갤러리 '인기순' — 최근 N일 조회가 있는 폰트 id 를 많이 본 순서대로.
+
+    /popular 는 배지용 열 자리뿐이라, 그 뒤를 줄 세울 순서가 따로 필요하다.
+    숫자는 담지 않는다(/popular 와 같은 이유). 조회가 없는 폰트는 목록에
+    없고, 화면은 그 폰트들을 어드민 저장 순서대로 맨 뒤에 둔다.
+
+    조회수 표는 content_cache 가 지켜보는 표가 아니므로(매 조회마다 쓰인다)
+    10분 TTL 로만 캐시한다.
+
+    ⚠️ 이 경로는 "/{font_id}" 보다 위에 있어야 한다(위 popular 와 같은 이유).
+    """
+    days = max(7, min(int(days or 30), 90))
+
+    def build():
+        try:
+            from ..font_views import view_order
+            return view_order(db, days=days)
+        except Exception:
+            return []
+
+    return {"ids": content_cache.get(f"fonts:order:{days}", ttl=600, build=build)}
+
+
 @router.get("/metrics")
 def list_metrics(db: Session = Depends(get_db)):
     """폰트마다 조판 실측값(x·w·d). 값이 없는 폰트는 셋 다 null 이다.

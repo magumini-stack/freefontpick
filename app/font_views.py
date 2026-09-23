@@ -118,6 +118,22 @@ def top_fonts(db, days: int = 7, limit: int = 10) -> list:
     return [int(r[0]) for r in rows]
 
 
+def view_order(db, days: int = 30) -> list:
+    """최근 N일 조회가 한 번이라도 있는 폰트 전부를 많이 본 순서로 (font_id 목록).
+
+    갤러리(/fonts) '인기순' 정렬용이다. 맨 앞 열 자리는 여전히 mixed_top 이
+    배지와 함께 차지하고, 그 뒤를 이 순서로 채운다. 숫자는 내보내지 않는다.
+    """
+    since = date.today() - timedelta(days=days - 1)
+    rows = db.execute(
+        select(FontView.font_id)
+        .where(FontView.day >= since)
+        .group_by(FontView.font_id)
+        .order_by(func.sum(FontView.count).desc(), FontView.font_id)
+    ).all()
+    return [int(r[0]) for r in rows]
+
+
 # ── 폰트가 아닌 페이지 ──────────────────────────────────────────
 #
 # 용도 허브와 조합 페이지도 세고 싶은데, FontView 는 font_id 가 fonts 를

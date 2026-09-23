@@ -1413,13 +1413,15 @@ function getFilteredFonts(){
      매기면 '인기 1'이 화면마다 다른 폰트를 가리켜 거짓말이 된다.
 
      검색 중일 때는 건드리지 않는다 — 검색은 찾는 것을 위에 놓는 게 먼저다.
-     나머지는 어드민이 정한 저장 순서 그대로다. */
-  if(!q && Object.keys(POPULAR).length){
-    const top = list.filter(f => POPULAR[f.id]).sort((a, b) => POPULAR[a.id] - POPULAR[b.id]);
-    if(top.length){
-      const topIds = new Set(top.map(f => f.id));
-      list = top.concat(list.filter(f => !topIds.has(f.id)));
-    }
+
+     2026-09-23 인기순: 배지 열 자리 뒤도 최근 30일 조회 순서(VIEW_ORDER)로
+     줄 세운다. 조회가 없는 폰트는 맨 뒤에 어드민 저장 순서 그대로 둔다.
+     sort 는 안정 정렬이라 같은 자리끼리는 저장 순서가 유지된다. */
+  if(!q){
+    const rest = 1e9;
+    const key = f => POPULAR[f.id] ? POPULAR[f.id] - 100000
+                   : (VIEW_ORDER[f.id] !== undefined ? VIEW_ORDER[f.id] : rest);
+    list.sort((a, b) => key(a) - key(b));
   }
   return list;
 }
@@ -2440,6 +2442,9 @@ let _lastRecommended = null;
 /* {폰트id: 순위}. 최근 7일 조회 기준 상위 10종 (app/font_views.py).
    비어 있으면 갤러리가 예전과 똑같이 보인다 — 배포 직후가 그렇다. */
 let POPULAR = {};
+/* {폰트id: 자리}. 최근 30일 조회가 있는 폰트 전부의 순서(/api/fonts/popular-order).
+   배지 열 자리 뒤를 이 순서로 줄 세운다. 조회가 없는 폰트는 여기 없다. */
+let VIEW_ORDER = {};
 let _recommendShowCount = 5;
 
 /* 사용자 입력에서 추천 태그 추출 */
@@ -3046,6 +3051,15 @@ async function init(){
      실패하거나 자료가 없으면 빈 채로 두고 갤러리는 예전대로 그린다. */
   const popP = fetch('/api/fonts/popular?days=7&limit=10')
     .then(r => r.json()).catch(() => []);
+  /* 인기순 — 배지 열 자리 뒤를 줄 세울 30일 조회 순서. 늦게 오면 그때 다시 그린다. */
+  fetch('/api/fonts/popular-order?days=30')
+    .then(r => r.json())
+    .then(d => {
+      VIEW_ORDER = {};
+      ((d && d.ids) || []).forEach((id, i) => { VIEW_ORDER[id] = i; });
+      if(FONTS.length) renderFonts();
+    })
+    .catch(() => {});
 
   /* 용도 그리드를 폰트 목록보다 먼저 그린다. 대표 폰트로 칸 이름을 렌더하려면
      FONTS가 필요하지만, 그건 도착한 뒤 다시 그려 얹는다(아래). 링크와 글자는
