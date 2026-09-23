@@ -70,6 +70,22 @@ async def match(request: Request):
         return _off()
 
 
+@router.post("/feedback")
+async def feedback(request: Request):
+    """결과의 '비슷해요'·'비슷한 게 없어요' — finder 가 이미지·글자 없이 숫자만 남긴다(finder/service.py FEEDBACK)."""
+    if not FINDER_URL:
+        return _off()
+    body = await request.body()
+    if len(body) > 2048:
+        return JSONResponse({"detail": "too large"}, status_code=413)
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as c:
+            r = await c.post(FINDER_URL + "/find/feedback", content=body, headers={"content-type": "application/json"})
+        return Response(r.content, status_code=r.status_code, media_type="application/json")
+    except Exception:
+        return _off()
+
+
 @router.get("/render")
 async def render(fid: str, w: int, text: str, h: int = 56):
     if not FINDER_URL:

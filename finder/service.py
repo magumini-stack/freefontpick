@@ -6,6 +6,7 @@
     POST /find/detect   multipart image → {image_id, width, height, lines:[{i, quad, text, conf}]}
     POST /find/match    {image_id, line, text?} → {text, results:[{fid, w, name, maker, source, link, why}], verdict}
     GET  /find/render   ?fid=&w=&text=   → 그 폰트로 글자를 그린 PNG (타닥타닥 유료 폰트 파일은 안 나간다)
+    POST /find/feedback {image_id, line, kind, fid?, w?, on} → 사용자가 누른 '비슷해요'·'비슷한 게 없어요'를 남긴다
     GET  /find/health
 
 실험실(Desktop\\projects\\fontfinder-lab)의 engine_v0.py·typo.py·finder.py 를 그대로 옮겨 쓴다.
@@ -13,6 +14,7 @@
 메모리: 서버가 2GB 라 폰트는 지연 로드, 글자 묶음은 FINDER_MAX_STACKS(기본 30)개만 들고 있는다(≈ 400~500MB).
 """
 import io
+import json
 import os
 import secrets
 import threading
@@ -37,6 +39,9 @@ IMAGE_TTL = 15 * 60                 # 올린 이미지는 15분만 들고 있는
 MAX_IMAGES = 20                     # JPEG 로 눌러 두므로 한 장 0.3~1MB — 40장 그대로 두면 RGB 배열로 300MB 였다
 RENDER_CACHE = 300
 TDTD_ABOUT = "https://tdtd.io/fonts/about"   # 타닥타닥 폰트정보(폰트보기) 페이지 — #f=<해시> 로 폰트 하나를 짚는다
+# '비슷해요' 기록(2026-09-23 사용자님 4번) — 순위를 실제 질문으로 다시 가르칠 자료. 이미지·읽은 글자는 남기지 않고
+# 숫자만: 글자 모양의 느낌 수치 128개 + 후보 30개의 모양 점수·느낌 코사인 + 누른 폰트. 한 줄에 JSON 하나.
+FEEDBACK = os.environ.get("FINDER_FEEDBACK", os.path.join(DATA, "feedback", "feedback.jsonl"))
 
 app = FastAPI(title="freefontpick finder")
 _db = None
@@ -44,6 +49,7 @@ _tf = None
 _lock = threading.Lock()            # 무거운 일은 한 번에 하나(2코어 서버)
 _images = {}                        # image_id → dict(img, lines, t)
 _renders = {}                       # (fid, w, text) → png bytes
+_fb_lock = threading.Lock()
 
 
 def _engine():
@@ -168,6 +174,7 @@ def match(req: MatchReq):
         img = cv2.imdecode(np.frombuffer(rec["jpg"], np.uint8), cv2.IMREAD_COLOR)[:, :, ::-1]
         r = E.rank_image_ex(db, img, ln["quad"], chars, top=max(3, min(12, req.top)),
                             ocr=tf.recognize, base_conf=base_conf)
+        ctx = _fb_context(db, r)
     text = text_override or r.get("text") or ln["text"]
     out = []
     face_of = {(it["fid"], it["weight"]): it for it in db.items}
@@ -180,7 +187,60 @@ def match(req: MatchReq):
             link = TDTD_ABOUT + "#f=" + it["h"]
         out.append(dict(fid=str(fid), w=int(w), name=name, maker=info["maker"], source=info["source"],
                         link=link, why=E.explain_text(r.get("explain", {}).get(fid))))
+    ctx["shown"] = [[x["fid"], x["w"]] for x in out]
+    rec.setdefault("fb", {})[req.line] = ctx
     return {"text": text, "read": ln["text"], "verdict": r["verdict"], "results": out}
+
+
+def _fb_context(db, r):
+    """'비슷해요'를 누르면 남길 숫자들 — 질의 느낌 벡터와 후보 30개(폰트마다 가장 나은 굵기)의 모양 점수·느낌 코사인."""
+    try:
+        qv, sims, face_i = E._feel_sims(db, r.get("glyphs") or [])
+    except Exception:
+        qv = sims = face_i = None
+    seen, cands = set(), []
+    for sc, fid, w, _ in r.get("res_all") or r.get("res") or []:     # res 는 보여 줄 개수로 잘려 있다
+        if fid in seen:
+            continue
+        seen.add(fid)
+        i = face_i.get((fid, w)) if face_i else None
+        cands.append([str(fid), int(w), round(float(sc), 3),
+                      None if i is None or sims is None else round(float(sims[i]), 4)])
+        if len(cands) >= 30:
+            break
+    return dict(qid=secrets.token_hex(6), q=None if qv is None else [round(float(x), 4) for x in qv],
+                cands=cands, verdict=r.get("verdict"), n=len(r.get("glyphs") or []))
+
+
+class FeedbackReq(BaseModel):
+    image_id: str
+    line: int
+    kind: str                        # "similar"(이 후보가 비슷해요) · "none"(비슷한 게 없어요)
+    fid: str | None = None
+    w: int | None = None
+    on: bool = True                  # 다시 누르면 취소 — false 로 한 줄 더 남긴다
+
+
+@app.post("/find/feedback")
+def feedback(req: FeedbackReq):
+    rec = _images.get(req.image_id)
+    ctx = (rec or {}).get("fb", {}).get(req.line)
+    if ctx is None:
+        raise HTTPException(410, "시간이 지나 남길 수 없어요")
+    if req.kind not in ("similar", "none"):
+        raise HTTPException(400, "kind 는 similar 나 none")
+    pos = None
+    if req.kind == "similar":
+        pos = next((k for k, (f, w) in enumerate(ctx["shown"]) if f == req.fid and w == req.w), None)
+        if pos is None:
+            raise HTTPException(400, "보여 준 후보가 아닙니다")
+    row = dict(t=time.strftime("%Y-%m-%d"), kind=req.kind, on=bool(req.on), fid=req.fid, w=req.w, pos=pos, **ctx)
+    line = json.dumps(row, ensure_ascii=False, separators=(",", ":"))
+    with _fb_lock:
+        os.makedirs(os.path.dirname(FEEDBACK), exist_ok=True)
+        with open(FEEDBACK, "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    return {"ok": True}
 
 
 def _chars_for_text(ln, text):

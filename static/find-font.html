@@ -245,6 +245,12 @@ transition:border-color .15s;}
     .ff-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
     .ff-actions a{font-size:12px;font-weight:700;text-decoration:none;padding:6px 10px;border-radius:8px;border:1px solid var(--border-hover);color:var(--text-primary)}
     .ff-actions a.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+    .ff-like{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:6px 10px;border-radius:8px;border:1px solid var(--border-hover);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-family:inherit}
+    .ff-like:hover{border-color:var(--accent);color:var(--accent)}
+    .ff-like.is-on{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+    .ff-fb{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .ff-fb .ff-like{margin-left:0}
+    .ff-fb-note{font-size:12px;color:var(--text-muted)}
     .ff-none{font-size:13px;color:var(--text-secondary);margin-top:12px;padding:12px;border:1px dashed var(--border-hover);border-radius:var(--radius-sm)}
     .ff-board-title{font-size:16px;font-weight:800;margin:26px 0 4px;letter-spacing:-.3px}
     .ff-board-sub{font-size:13px;color:var(--text-secondary);margin-bottom:12px}
@@ -291,6 +297,10 @@ transition:border-color .15s;}
           </div>
         </div>
         <div class="ff-list" id="ffList"></div>
+        <div class="ff-fb" id="ffFb" hidden>
+          <button type="button" class="ff-like" id="ffNoLike" aria-pressed="false">비슷한 게 없어요</button>
+          <span class="ff-fb-note">'비슷해요'를 눌러 주시면 찾기가 더 좋아져요 · 이미지와 글자는 저장하지 않아요</span>
+        </div>
         <p class="ff-none" id="ffNone" hidden>비슷한 폰트를 찾지 못했어요. 아래에서 질문을 남겨 보세요.</p>
       </div>
     </div>
@@ -720,6 +730,7 @@ document.addEventListener('keydown', function(e){
   var $ = function(id){ return document.getElementById(id); };
   var drop = $('ffDrop'), file = $('ffFile'), stage = $('ffStage'), imgEl = $('ffImg'), boxes = $('ffBoxes');
   var status = $('ffStatus'), result = $('ffResult'), list = $('ffList'), none = $('ffNone'), textIn = $('ffText'), retry = $('ffRetry');
+  var fb = $('ffFb'), noLike = $('ffNoLike'), fbCtx = null;
   if(!drop) return;
   var state = { imageId:null, lines:[], w:0, h:0, line:-1, busy:false, bitmap:null };
 
@@ -798,7 +809,7 @@ document.addEventListener('keydown', function(e){
     if(state.busy || !state.imageId) return;
     var ln = state.lines[k]; if(!ln) return;
     state.line = k; layoutBoxes(); drawCrop(ln);
-    result.hidden = false; list.innerHTML = ''; none.hidden = true;
+    result.hidden = false; list.innerHTML = ''; none.hidden = true; fb.hidden = true; fbCtx = null;
     if(textOverride === undefined) textIn.value = ln.text || '';
     say('비슷한 폰트를 찾는 중', false, true);
     state.busy = true; retry.disabled = true;
@@ -842,9 +853,36 @@ document.addEventListener('keydown', function(e){
       return '<div class="ff-cand' + (i === 0 ? ' is-best' : '') + '"><div class="ff-head">' + esc(r.name) + ' <small>' + r.w + '</small>' + badge + best + '</div>'
         + (r.why ? '<div class="ff-why">' + esc(r.why) + '</div>' : '')
         + '<img src="' + img + '" alt="' + esc(r.name) + '로 쓴 ' + esc(text) + '" loading="lazy">'
-        + '<div class="ff-actions">' + actions + '</div></div>';
+        + '<div class="ff-actions">' + actions
+        + '<button type="button" class="ff-like" aria-pressed="false" data-fid="' + esc(r.fid) + '" data-w="' + r.w + '"><i class="ti ti-thumb-up" aria-hidden="true"></i>비슷해요</button>'
+        + '</div></div>';
     }).join('');
+    fbCtx = { imageId: state.imageId, line: state.line };
+    setOn(noLike, false); fb.hidden = false;
   }
+
+  /* '비슷해요'·'비슷한 게 없어요' (2026-09-23) — finder 가 이미지·글자 없이 느낌 수치와 누른 폰트만 남긴다.
+     다시 누르면 취소(on:false). 둘은 서로 반대라 하나를 켜면 다른 쪽은 끈다. */
+  function setOn(b, on){ b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  function sendFb(body){
+    if(!fbCtx) return;
+    body.image_id = fbCtx.imageId; body.line = fbCtx.line;
+    fetch('/api/find/feedback', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).catch(function(){});
+  }
+  list.addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('.ff-like') : null; if(!b || !fbCtx) return;
+    var on = !b.classList.contains('is-on'); setOn(b, on);
+    sendFb({ kind:'similar', fid: b.getAttribute('data-fid'), w: +b.getAttribute('data-w'), on: on });
+    if(on && noLike.classList.contains('is-on')){ setOn(noLike, false); sendFb({ kind:'none', on:false }); }
+  });
+  noLike.addEventListener('click', function(){
+    if(!fbCtx) return;
+    var on = !noLike.classList.contains('is-on'); setOn(noLike, on);
+    sendFb({ kind:'none', on: on });
+    if(on){ Array.prototype.forEach.call(list.querySelectorAll('.ff-like.is-on'), function(b){
+      setOn(b, false); sendFb({ kind:'similar', fid: b.getAttribute('data-fid'), w: +b.getAttribute('data-w'), on:false });
+    }); }
+  });
 })();
 </script>
 </body>
