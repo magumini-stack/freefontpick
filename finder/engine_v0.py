@@ -30,25 +30,40 @@ WMIX = tuple(float(x) for x in __import__("os").environ.get("WMIX", "1,2,1.5,2,0
 
 # ── 폰트 목록 ───────────────────────────────────────────────────
 
+# 갈래는 **모양 태그로만** 정한다(2026-09-23 사용자님: "모든 규칙에서 쓰임은 배제하고 모양으로만, 다른 모양도 모두").
+# 쓰임새 태그(시선을 끄는 제목용·유튜브 썸네일 추천·브이로그 자막용·카드뉴스용·UI/UX/Web·로고디자인)와 느낌 태그(귀여운)는
+# 갈래를 정하지 않는다. 예전엔 '자막'을 손글씨로, '썸네일'·'제목용'·'디자인'을 디스플레이로, 'UI'를 고딕으로 쳐서
+# 한 폰트에 갈래가 여럿 붙었다(684종 중 65종) — 손글씨 질의에 엉뚱한 갈래가 섞이고 목록 거르기도 헐거웠다.
+SHAPE_WORDS = [                     # (태그에 든 모양 낱말, 갈래) — 위에서부터 본다
+    ("산세리프", "고딕"),            # '세리프'보다 먼저(산세리프 = 고딕)
+    ("손글씨", "손글씨"),
+    ("캘리", "캘리"),
+    ("고딕", "고딕"), ("굴림", "고딕"), ("돋움", "고딕"),
+    ("명조", "명조"), ("세리프", "명조"), ("바탕", "명조"),
+    ("디스플레이", "디스플레이"), ("장식", "디스플레이"), ("펜시", "디스플레이"), ("팬시", "디스플레이"),
+]
+SHAPE_EXACT = {"디자인": "디스플레이"}        # 타닥타닥 cat '디자인'(디자인체). '로고디자인'(쓰임새)은 안 걸리게 정확히 같을 때만
+ENGLISH_TAGS = ("디자인 영어", "디자이너 필수 영문")   # 라틴 전용이라는 글자 체계 표시 — 쓰임새가 아니다
+SHAPES = ["손글씨", "캘리", "고딕", "명조", "디스플레이"]
+
+
 def coarse_cats(tags, is_english=False):
-    """사이트 태그(폰트픽)·cat(타닥타닥)를 굵은 갈래로. 결과 목록을 1위와 같은 갈래로 추리는 데 쓴다
-    (2026-09-22 사용자님: 손글씨 질의에 붓글씨체가, 고딕 질의에 장식체가 끼면 안 된다)."""
+    """사이트 태그(폰트픽)·cat(타닥타닥) → 모양 갈래 집합 {'손글씨','캘리','고딕','명조','디스플레이'} (+'영어').
+    결과 목록을 1위와 같은 갈래로 추리는 데 쓴다(2026-09-22 사용자님: 손글씨 질의에 붓글씨체가, 고딕 질의에 장식체가
+    끼면 안 된다). 모양 낱말이 없는 태그는 무시한다."""
     out = set()
     for t in tags or []:
-        t = str(t)
-        if "손글씨" in t or "자막" in t:
-            out.add("손글씨")
-        if "캘리" in t:
-            out.add("캘리")
-        if "고딕" in t or "굴림" in t or "UI" in t:
-            out.add("고딕")
-        if "명조" in t or "세리프" in t or "바탕" in t:
-            out.add("명조")
-        if "디스플레이" in t or "디자인" in t or "장식" in t or "펜시" in t or "제목용" in t or "썸네일" in t:
-            out.add("디스플레이")
-        if "영어" in t:
-            out.add("영어")
-    if is_english:
+        t = str(t).strip()
+        if t in SHAPE_EXACT:
+            out.add(SHAPE_EXACT[t])
+            continue
+        if t in ENGLISH_TAGS:
+            continue
+        for word, shape in SHAPE_WORDS:
+            if word in t:
+                out.add(shape)
+                break
+    if is_english or any(str(t).strip() in ENGLISH_TAGS for t in tags or []):
         out.add("영어")
     return out
 
@@ -143,6 +158,28 @@ class FontDB:
         self.stack_dir = os.path.join(os.path.dirname(os.path.abspath(catalog_path)) or ".", "stacks", tag)
         os.makedirs(self.stack_dir, exist_ok=True)
         self.typo_memo = {}      # (face i, ch) → typo 특징 dict
+        # 사람이 고른 갈래(style_labels.json: {"폰트 id": "갈래"}) — 모양 태그가 둘 이상인 폰트 등(2026-09-23 사용자님 확인)
+        for d in (os.path.dirname(os.path.abspath(__file__)), base):
+            p = os.path.join(d, "style_labels.json")
+            if os.path.exists(p):
+                lab = json.load(open(p, encoding="utf-8"))
+                for c in self.cat:
+                    v = lab.get(str(c["id"]))
+                    if v in SHAPES:
+                        self.cats[c["id"]] = {v} | (self.cats.get(c["id"], set()) & {"영어"})
+                break
+        self._svec = {}
+
+    def style_vec(self, fid):
+        """폰트의 모양 갈래 → 확률 벡터(SHAPES 순서). 하나면 0.92, 여럿이면 나눠 갖고, 모르면 고르게."""
+        v = self._svec.get(fid)
+        if v is None:
+            s = [k for k, x in enumerate(SHAPES) if x in self.cats.get(fid, set())]
+            v = np.full(len(SHAPES), 0.02 if s else 1.0 / len(SHAPES))
+            for k in s:
+                v[k] = (1 - 0.02 * (len(SHAPES) - len(s))) / len(s)
+            self._svec[fid] = v
+        return v
 
     @staticmethod
     def _load(fn):
@@ -1114,7 +1151,7 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
     # 글자가 절반도 안 잘린 벌은 믿지 않는다. 모든 벌이 그러면 가장 많이 잘린 벌 중에서 고른다
     pool = [t for t in tried if t["ok"]] or [t for t in tried if t["n"] == max(x["n"] for x in tried)]
     best = min(pool, key=lambda t: t["crit"])
-    info = dict(why=best["name"], text=best["text"], conf=best["conf"],
+    info = dict(why=best["name"], text=best["text"], conf=best["conf"], glyphs=best["glyphs"],
                 tried=[(t["name"], t["n"], round(t["top1"], 2), round(t["ratio"], 2), round(t["conf"], 2), t["res"][0][3][:8]) for t in tried])
     if TYPO_RERANK:
         # 고른 벌이 '전체'(배경에서 먼 것 전부)보다 훨씬 작으면 테두리 글씨 — 채움만 잡은 것
@@ -1123,9 +1160,28 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
         # 2위부터만 특징으로 다시 세운다. 안 그러면 사진 글자의 흐림·테두리로 잘못 잰 특징이 정답을 2~5위로 밀었다
         # (실제 168장 1위 83% → 75%, 9/22 밤).
         pin = bool(best["ratio"] <= PIN_RATIO and best["res"] and best["res"][0][0] <= PIN_SCORE)
-        best["res"], info["explain"] = rerank_typo(db, best["glyphs"], best["res"], outlined=outlined, pin_first=pin)
+        pq = _style_probs(best["glyphs"])
+        sweep = __import__("os").environ.get("STYLE_SWEEP")      # 시험용: 무게 여러 개를 한 번에(eval_real 이 적어 둔다)
+        if sweep and pq is not None:
+            info["sweep"] = {}
+            for w in [float(x) for x in sweep.split(",")]:
+                near = [r for r in best["res"] if r[0] <= PIN_ABS]
+                far = [r for r in best["res"] if r[0] > PIN_ABS]
+                if w > 0:
+                    far = sorted(far, key=lambda r: (r[0] + _style_pen(db, pq, r[1], w), str(r[1])))
+                rw, _ = rerank_typo(db, best["glyphs"], near + far, outlined=outlined, pin_first=pin,
+                                    pq=pq if w > 0 else None, style_w=w)
+                info["sweep"][w] = [(r[1], r[3], r[2]) for r in rw[:400]]
+        if pq is not None:
+            # 갈래가 어긋나는 후보를 뒤로 — 활자 재정렬(상위 TYPO_K)에 손글씨 후보가 들어올 수 있게 전체 순서부터 다시 세운다.
+            # '거의 같은 폰트'(모양 점수 PIN_ABS 이하)는 모양 순서 그대로 앞에 둔다 — 판별기가 틀려도 정답을 밀지 않게.
+            near = [r for r in best["res"] if r[0] <= PIN_ABS]
+            far = sorted([r for r in best["res"] if r[0] > PIN_ABS], key=lambda r: (r[0] + _style_pen(db, pq, r[1]), str(r[1])))
+            best["res"] = near + far
+        best["res"], info["explain"] = rerank_typo(db, best["glyphs"], best["res"], outlined=outlined, pin_first=pin, pq=pq)
         info["pinned"] = pin
         info["outlined"] = outlined
+        info["style"] = None if pq is None else {k: round(float(v), 3) for k, v in zip(SHAPES, pq)}
     if pick not in ("fuse", "mix"):
         return dict(res=best["res"][:top], **_gate(best["res"][:top], best["ratio"], db), **info)
     # 합치기: 폰트마다 여러 벌 중 가장 좋은 '두드러짐'(점수 ÷ 그 벌 상위 30위 중앙값)으로 줄 세운다.
@@ -1189,11 +1245,35 @@ def _typo_dist(q, rq, f, rf):
     return d
 
 
+# ── 갈래 판별기 (2026-09-23 사용자님: "손글씨류를 특히 잘 못 찾는다") ─────────────────
+# 질의 글줄이 어느 모양 갈래인지 확률(style.py)을 내고, 후보 폰트의 갈래(모양 태그·사람이 고른 것)와 어긋날수록
+# STYLE_W × (1 − 두 확률의 내적)을 더한다. 정답 폰트를 뺀 시험에서 손글씨 질의의 1위가 손글씨인 비율이 48% 였다.
+STYLE_ON = __import__("os").environ.get("STYLE", "0") == "1"     # 9/23 실제 사진에서 효과가 없어 기본은 끔(STYLE=1 로 켠다)
+STYLE_W = float(__import__("os").environ.get("STYLE_W", "1.5"))
+
+
+def _style_probs(glyphs):
+    if not STYLE_ON:
+        return None
+    masks = [m for ch, m in glyphs if is_hangul(ch)]
+    if len(masks) < 2:
+        return None                              # 한글 두 자 미만(영문 줄 등) — 판별기는 한글로 배웠다
+    try:
+        import style
+        return style.probs(masks, exclude_fid=EXCLUDE_FID)
+    except Exception:
+        return None
+
+
+def _style_pen(db, pq, fid, w=None):
+    return (STYLE_W if w is None else w) * (1.0 - float(pq @ db.style_vec(fid)))
+
+
 PIN_RATIO, PIN_SCORE = 0.65, 2.8    # (예전 규칙: 1위만 고정) 0.55·2.2 로 실제 168장 1위 79%, 0.65·2.8 로 81%
 PIN_ABS = 2.2                        # 모양 점수 이 안이면 '거의 같은 폰트' 무리 — 1차 순서 유지, 그 뒤만 재정렬
 
 
-def rerank_typo(db, glyphs, res, k=None, outlined=False, pin_first=False):
+def rerank_typo(db, glyphs, res, k=None, outlined=False, pin_first=False, pq=None, style_w=None):
     """res(1차 순위, 절대 점수)의 상위 k 개를 활자 특징 차이를 더한 점수로 다시 세운다. (새 res, 설명 dict)
     outlined: 테두리 글씨(채움만 잡은 벌) — 테두리가 채움의 모서리·끝을 깎아 둥글고 밋밋하게 보이므로 그 둘은 안 잰다."""
     k = k or TYPO_K
@@ -1242,13 +1322,19 @@ def rerank_typo(db, glyphs, res, k=None, outlined=False, pin_first=False):
         # 규칙성은 글자 3개부터(2개면 둘 다 0 으로 두어 항이 죽는다 — typo.line_regularity 와 같은 규칙)
         rf = (float(hs.std() / hs.mean()), float(ws.std() / ws.mean()), float(bs.std() / hs.mean())) if len(hs) >= 3 else (0.0, 0.0, 0.0)
         d = _typo_dist(q, rq, f, rf)
-        # 이미지 글자가 손글씨처럼 들쭉날쭉(높이·폭·밑선 흔들림 합 0.3 이상)한데 후보가 활자 갈래(고딕·명조·디스플레이)면
-        # 1.0 을 더한다 — 9/22 사용자님: "는여기서마무리는 손글씨인데 명조들이 나왔군"
-        hand_q = sum(rq) >= 0.3
         cats = db.cats.get(fid, set())
-        if hand_q and cats and not (cats & {"손글씨", "캘리"}):
-            d["total"] += 1.0
-            d["hand"] = True
+        if pq is not None:
+            # 갈래 판별기(style.py): 질의가 손글씨일 확률이 높은데 후보가 활자면 그만큼 더한다(2026-09-23)
+            d["style"] = _style_pen(db, pq, fid, style_w)
+            d["total"] += d["style"]
+            d["hand"] = bool(pq[0] + pq[1] >= 0.6 and cats and not (cats & {"손글씨", "캘리"}))
+        else:
+            # (판별기가 없을 때의 옛 규칙) 이미지 글자가 손글씨처럼 들쭉날쭉(높이·폭·밑선 흔들림 합 0.3 이상)한데
+            # 후보가 활자 갈래면 1.0 을 더한다 — 9/22 사용자님: "는여기서마무리는 손글씨인데 명조들이 나왔군"
+            hand_q = sum(rq) >= 0.3
+            if hand_q and cats and not (cats & {"손글씨", "캘리"}):
+                d["total"] += 1.0
+                d["hand"] = True
         head.append((sc + d["total"], fid, w, nm, sc))
         explain[fid] = dict(d=d, q=q, f=f, rq=rq, rf=rf, shape=sc)
     # 모양 점수가 PIN_ABS(2.2, 정답 1위의 9할이 이 안) 이하인 후보는 '거의 같은 폰트'로 보고 1차 순서 그대로 앞에 둔다.
