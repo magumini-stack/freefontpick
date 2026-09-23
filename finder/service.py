@@ -49,10 +49,23 @@ def _engine():
     if _db is None:
         with _lock:
             if _db is None:
+                if not os.path.exists(CATALOG):        # 배포 직후 build_catalog.py 를 아직 안 돌린 상태
+                    raise FileNotFoundError("폰트 목록이 없습니다: %s — build_catalog.py 를 돌리세요" % CATALOG)
                 os.environ.setdefault("FINDER_MAX_STACKS", "30")
+                db = E.FontDB(CATALOG)                 # 목록부터 — 실패하면 OCR 모델을 헛되이 올리지 않는다
                 _tf = F.TextFinder()
-                _db = E.FontDB(CATALOG)
+                _db = db
     return _db, _tf
+
+
+def _ready():
+    """엔진을 올린다. 목록이 없거나 못 열면 503 — 화면은 '지금은 자동 찾기를 쓸 수 없어요'로 보여 준다."""
+    try:
+        return _engine()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(503, "자동 찾기를 준비하는 중입니다: %s" % e)
 
 
 def _gc_images():
@@ -86,7 +99,7 @@ async def detect(image: UploadFile = File(...)):
         s = MAX_SIDE / max(im.size)
         im = im.resize((max(1, int(im.width * s)), max(1, int(im.height * s))), Image.LANCZOS)
     img = np.asarray(im)
-    db, tf = _engine()
+    db, tf = _ready()
     with _lock:
         lines = tf.find_lines(img)
     lines = [ln for ln in lines if ln["conf"] >= 0.3 and len([c for c in ln["chars"] if E.usable(c[0])]) >= 2]
@@ -115,7 +128,7 @@ def match(req: MatchReq):
     if not (0 <= req.line < len(rec["lines"])):
         raise HTTPException(400, "없는 줄입니다")
     ln = rec["lines"][req.line]
-    db, tf = _engine()
+    db, tf = _ready()
     chars = [(c[0], c[2]) for c in ln["chars"]]
     base_conf = float(ln["conf"])
     text_override = (req.text or "").strip()[:40] or None
@@ -161,7 +174,7 @@ def _chars_for_text(ln, text):
 
 @app.get("/find/render")
 def render(fid: str, w: int, text: str, h: int = 56):
-    db, _ = _engine()
+    db, _ = _ready()
     text = (text or "").strip()[:40] or "폰트"
     h = max(24, min(96, int(h)))
     key = (fid, int(w), text, h)

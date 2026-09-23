@@ -17,6 +17,9 @@ ENV PYTHONUNBUFFERED=1 \
 RUN useradd -m -u 1000 app
 WORKDIR /app
 
+# slim 이미지에는 opencv-python-headless(libgthread)·onnxruntime(libgomp)이 찾는 공유 라이브러리가 없다
+RUN apt-get update && apt-get install -y --no-install-recommends libglib2.0-0 libgomp1     && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
