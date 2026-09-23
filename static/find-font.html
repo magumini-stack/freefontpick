@@ -792,11 +792,22 @@ document.addEventListener('keydown', function(e){
     try{
       var body = { image_id: state.imageId, line: k, top: 5 };
       if(textOverride) body.text = textOverride;
-      var r = await fetch('/api/find/match', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-      var j = await r.json();
-      if(r.status === 410){ say('시간이 지나 이미지가 지워졌어요. 다시 올려 주세요.', true); }
-      else if(!r.ok){ say(j.detail || '찾지 못했어요.', true); }
-      else { say(''); if(!textOverride) textIn.value = j.text || ln.text || ''; render(j); }
+      // 처음 보는 글자는 서버가 폰트 1,300벌의 글자 묶음을 만드느라 1분을 넘길 수 있고, 그러면 앞단 nginx 가 504 를 준다.
+      // 서버는 그 사이에도 계속 만들어 캐시에 두므로, 몇 초 뒤 다시 물으면 바로 나온다 — 두 번까지 다시 묻는다.
+      var r = null;
+      for(var attempt = 0; attempt < 3; attempt++){
+        if(attempt) say('처음 보는 글자라 준비가 조금 더 걸려요… 다시 물어보는 중 (' + attempt + '/2)');
+        r = await fetch('/api/find/match', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        if(r.status !== 502 && r.status !== 504) break;
+        await new Promise(function(res){ setTimeout(res, 4000); });
+      }
+      if(r.status === 502 || r.status === 504){ say('서버가 글자를 준비하는 데 시간이 걸리고 있어요. 잠시 후 "다시 찾기"를 눌러 주세요.', true); }
+      else {
+        var j = await r.json();
+        if(r.status === 410){ say('시간이 지나 이미지가 지워졌어요. 다시 올려 주세요.', true); }
+        else if(!r.ok){ say(j.detail || '찾지 못했어요.', true); }
+        else { say(''); if(!textOverride) textIn.value = j.text || ln.text || ''; render(j); }
+      }
     }catch(e){ say('연결에 문제가 있어요. 잠시 후 다시 해 주세요.', true); }
     state.busy = false; retry.disabled = false;
     result.scrollIntoView({ behavior:'smooth', block:'nearest' });

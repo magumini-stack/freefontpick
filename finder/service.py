@@ -77,6 +77,18 @@ def _gc_images():
         _images.pop(next(iter(_images)), None)
 
 
+@app.on_event("startup")
+def _warm():
+    """컨테이너가 뜨면 바로 엔진(폰트 목록·글자표·OCR 모델)을 올려 둔다 — 첫 요청이 기다리지 않게.
+    목록이 아직 없으면(배포 직후) 조용히 넘어가고, 첫 요청 때 다시 해 본다."""
+    def go():
+        try:
+            _engine()
+        except Exception as e:
+            print("엔진 미리 올리기 건너뜀:", e, flush=True)
+    threading.Thread(target=go, daemon=True).start()
+
+
 @app.get("/find/health")
 def health():
     try:

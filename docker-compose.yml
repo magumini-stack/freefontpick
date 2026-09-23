@@ -53,8 +53,9 @@ services:
     environment:
       FINDER_DATA: /data
       FINDER_APP_URL: http://app:8000
-      FINDER_MAX_STACKS: "30"
-    # 실측 400~500MB(OCR 모델 + 폰트 목록 + 글자 묶음 30자). 2GB 서버에서 앱 1GB 와 같이 두려면 여기가 한계다.
+      FINDER_MAX_STACKS: "12"   # 메모리에 두는 글자 묶음 수 — 글자당 10MB 남짓, 한 줄이면 충분(디스크 캐시는 따로)
+    # 실측 400~500MB(OCR 모델 + 폰트 목록 + 글자 묶음). 2GB 서버에서 앱 1GB 와 같이 두려면 여기가 한계다.
+    # 2026-09-23 글자표를 set 으로 만들다 여기서 죽어 되풀이됐다 → 엔진이 비트 표(10MB)로 바꿈.
     mem_limit: 700m
     logging:
       driver: json-file

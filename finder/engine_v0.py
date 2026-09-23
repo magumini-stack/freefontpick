@@ -53,6 +53,15 @@ def coarse_cats(tags, is_english=False):
     return out
 
 
+def _cmap_bits(cps):
+    """코드포인트 모음 → 65536비트 표(uint8 8,192개). 같은 바이트에 여러 비트가 들어가므로 |= 가 아니라 bitwise_or.at."""
+    b = np.zeros(65536 // 8, np.uint8)
+    a = np.fromiter((cp for cp in cps if 0 <= cp < 65536), dtype=np.int64)
+    if len(a):
+        np.bitwise_or.at(b, a >> 3, (0x80 >> (a & 7)).astype(np.uint8))
+    return b
+
+
 class _CmapView:
     """it["cmap"] 호환용 — `ord(ch) in it["cmap"]` 만 된다(비트 표를 본다)."""
     __slots__ = ("db", "i")
@@ -76,18 +85,27 @@ class FontDB:
     # 새로 굽는 쪽은 크게(FINDER_MAX_FONTS=2000) — 묶음 하나에 1,279벌을 다 열어야 해서 64면 파일을 계속 다시 연다.
     MAX_FONTS = int(os.environ.get("FINDER_MAX_FONTS", "64"))
 
-    def __init__(self, catalog_path="catalog.json", cmap_cache="cmaps.json"):
+    def __init__(self, catalog_path="catalog.json", cmap_cache="cmaps.npz"):
         self.cat = json.load(open(catalog_path, encoding="utf-8"))
-        cmap_path = os.path.join(os.path.dirname(os.path.abspath(catalog_path)) or ".", cmap_cache)
-        try:
-            cmaps = {k: set(v) for k, v in json.load(open(cmap_path)).items()}
-        except FileNotFoundError:
-            cmaps = {}
+        base = os.path.dirname(os.path.abspath(catalog_path)) or "."
+        cmap_path = os.path.join(base, cmap_cache)
+        # 글자표 캐시: 면(fn 문자열) → 65536비트 표(8KB). 파이썬 set 으로 들고 있으면 1,279벌에 618MB 라
+        # 700MB 서버에서 finder 가 뜨다 죽었다(2026-09-23). 예전 cmaps.json(코드포인트 목록)이 있으면 한 번 읽어 옮긴다.
+        cache = {}
+        dirty = False
+        if os.path.exists(cmap_path):
+            z = np.load(cmap_path, allow_pickle=False)
+            cache = dict(zip(z["keys"].tolist(), z["bits"]))
+        elif os.path.exists(os.path.join(base, "cmaps.json")):
+            old = json.load(open(os.path.join(base, "cmaps.json")))
+            for k, v in old.items():
+                cache[k] = _cmap_bits(v)
+            del old
+            dirty = True
         self.items = []          # dict(fid, weight, name, is_english, fn) — 폰트 자체는 font(i) 로 지연 로드
         self.info = {}           # fid → dict(name, maker, source, link)
         self.cats = {}           # fid → 굵은 갈래 집합 {'손글씨','고딕','명조','디스플레이','캘리','영어'} (비면 모름)
         self._fonts = collections.OrderedDict()
-        dirty = False
         rows = []
         for c in self.cat:
             if "faces" in c:
@@ -98,32 +116,23 @@ class FontDB:
                                       source=c.get("source", "ffp"),
                                       link=c.get("link", "/font/%s" % c["id"]))
             self.cats[c["id"]] = coarse_cats(c.get("tags", []), c["is_english"])
-            base = os.path.dirname(os.path.abspath(catalog_path))
             for w, fn, h in faces:
                 # 상대 경로는 목록 파일이 있는 폴더 기준 — 서비스(finder/)가 실험실 목록을 쓸 때 다른 폴더에서 돌아도 열리게.
-                # cmap 캐시의 키는 목록에 적힌 문자열 그대로 둔다(절대 경로로 바꾸면 캐시를 다시 만든다).
+                # 캐시의 키는 목록에 적힌 문자열 그대로 둔다(절대 경로로 바꾸면 캐시를 다시 만든다).
                 path = fn if os.path.isabs(fn) else os.path.join(base, fn)
-                if fn not in cmaps:
-                    cm = self._cmap(path)
-                    if not cm:
-                        continue                          # 못 여는 파일
-                    cmaps[fn] = cm
+                if fn not in cache:
+                    cm = self._cmap(path)                 # 한 벌씩 읽고 바로 비트로 — set 은 오래 안 든다
+                    cache[fn] = _cmap_bits(cm) if cm else np.zeros(65536 // 8, np.uint8)
                     dirty = True
-                elif not cmaps[fn]:
-                    continue
+                if not cache[fn].any():
+                    continue                              # 못 여는 파일
                 self.items.append(dict(fid=c["id"], weight=int(w), name=c["name"],
                                        is_english=c["is_english"], fn=path, fn_key=fn, h=h))
-                rows.append(cmaps[fn])
+                rows.append(cache[fn])
         if dirty:
-            json.dump({k: sorted(v) for k, v in cmaps.items()}, open(cmap_path, "w"))
-        # cmap 은 비트 표(굵기 × 65536비트 = 8KB) — 파이썬 set 으로 들고 있으면 1,279벌에 270MB 였다
-        bits = np.zeros((len(self.items), 65536 // 8), np.uint8)
-        for i, cm in enumerate(rows):
-            cps = np.fromiter((cp for cp in cm if 0 <= cp < 65536), dtype=np.int64)
-            if len(cps):
-                # 같은 바이트에 여러 비트가 들어가므로 |= 가 아니라 bitwise_or.at (겹치는 자리는 한 번만 반영된다)
-                np.bitwise_or.at(bits[i], cps >> 3, (0x80 >> (cps & 7)).astype(np.uint8))
-        self.cmap_bits = bits
+            keys = list(cache.keys())
+            np.savez_compressed(cmap_path, keys=np.array(keys), bits=np.stack([cache[k] for k in keys]))
+        self.cmap_bits = np.stack(rows) if rows else np.zeros((0, 65536 // 8), np.uint8)
         for i, it in enumerate(self.items):
             it["cmap"] = _CmapView(self, i)
         self.is_eng = np.array([it["is_english"] for it in self.items], bool)
