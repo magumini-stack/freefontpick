@@ -11,6 +11,7 @@ RapidOCR 의 글자 영역 찾기(det)는 그대로 쓰면 큰 제목 글씨를 
 """
 import numpy as np
 import cv2
+import os
 
 import engine_v0 as E
 
@@ -33,9 +34,13 @@ def _area(a):
 
 
 class TextFinder:
-    def __init__(self, log_level="error"):
+    # rapidocr 3.9.2 가 내려받는 모델 파일 이름 — FINDER_MODELS 폴더에 이 셋이 있으면 그것을 쓴다
+    MODEL_FILES = {"Det": "ch_PP-OCRv5_det_mobile.onnx", "Rec": "korean_PP-OCRv5_rec_mobile.onnx",
+                   "Cls": "ch_ppocr_mobile_v2.0_cls_mobile.onnx"}
+
+    def __init__(self, log_level="error", model_dir=None):
         from rapidocr import RapidOCR, LangRec, OCRVersion, ModelType
-        self.eng = RapidOCR(params={
+        params = {
             "Global.log_level": log_level,
             "Det.ocr_version": OCRVersion.PPOCRV5, "Det.model_type": ModelType.MOBILE,
             "Det.limit_type": "max", "Det.limit_side_len": 1600,
@@ -43,7 +48,16 @@ class TextFinder:
             "Rec.lang_type": LangRec.KOREAN,
             "Global.return_word_box": True, "Global.return_single_char_box": True,
             "Global.text_score": 0.0,        # 못 읽은 줄도 상자는 남긴다 — 글자는 사용자가 고칠 수 있다
-        })
+        }
+        # 모델 파일을 직접 준다(서버는 /data/models — rapidocr 의 내려받기 서버 modelscope.cn 을 안 탄다).
+        # 폴더가 없거나 파일이 빠지면 예전처럼 rapidocr 가 처음 쓸 때 내려받는다(실험실).
+        model_dir = model_dir or os.environ.get("FINDER_MODELS")
+        if model_dir:
+            paths = {k: os.path.join(model_dir, v) for k, v in self.MODEL_FILES.items()}
+            if all(os.path.exists(x) for x in paths.values()):
+                for k, x in paths.items():
+                    params[k + ".model_path"] = x
+        self.eng = RapidOCR(params=params)
 
     # ── 줄 찾기 ──────────────────────────────────────────────────
     def detect(self, img, scales=SCALES, box_thresh=0.4, unclip_ratio=1.8):

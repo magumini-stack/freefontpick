@@ -29,6 +29,7 @@ import finder as F
 
 DATA = os.environ.get("FINDER_DATA", "/data")
 CATALOG = os.environ.get("FINDER_CATALOG", os.path.join(DATA, "catalog.json"))   # 로컬 시험은 실험실 목록을 가리킬 수 있다
+os.environ.setdefault("FINDER_MODELS", os.path.join(DATA, "models"))              # OCR 모델 파일 3개(finder.py) — 데이터와 같이 올린다
 MAX_UPLOAD = 8 * 1024 * 1024        # 8MB
 MAX_SIDE = 1600                     # 이보다 크면 줄여서 본다(OCR 은 어차피 줄여 본다)
 IMAGE_TTL = 15 * 60                 # 올린 이미지는 15분만 들고 있는다(줄을 고르는 동안)
