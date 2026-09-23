@@ -1162,6 +1162,16 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
         pin = bool(best["ratio"] <= PIN_RATIO and best["res"] and best["res"][0][0] <= PIN_SCORE)
         pq = _style_probs(best["glyphs"])
         qv, sims, face_i = _feel_sims(db, best["glyphs"])
+        if sims is not None and FEEL_SLACK > 0:
+            ok = {(r[1], r[2]) for r in best["res"]}          # 질의 글자를 다 가진 굵기(모양 점수가 있는 것)
+            fav = []
+            for i in np.argsort(-sims):
+                it = db.items[int(i)]
+                if (it["fid"], it["weight"]) in ok and it["fid"] not in fav:
+                    fav.append(it["fid"])
+                if len(fav) >= FEEL_TOPK:
+                    break
+            info["feel_top"] = set(fav)
 
         def extra_for(style_w, feel_w):
             """후보(폰트, 굵기)에 더할 점수 — 판별기 갈래가 어긋난 만큼 + 느낌 벡터가 먼 만큼. 둘 다 없으면 None."""
@@ -1198,14 +1208,25 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
                     ex = extra_for(w, FEEL_W if sims is not None else 0)
                 rw, _ = rerank_with(ex)
                 info["sweep"][w] = [(r[1], r[3], r[2]) for r in rw[:400]]
-        best["res"], info["explain"] = rerank_with(extra_for(STYLE_W, FEEL_W))
+                g = _gate(rw[:GATE_DEPTH], best["ratio"], db, favored=info.get("feel_top") if w > 0 else None)
+                info.setdefault("sweep_shown", {})[w] = [(r[1], r[3], r[2]) for r in g["shown"][:5]]
+        fw = FEEL_FIRST_K if (FEEL_MODE == "first" and sims is not None) else FEEL_W
+        best["res"], info["explain"] = rerank_with(extra_for(STYLE_W, fw))
+        if FEEL_MODE == "first" and sims is not None:
+            info["feel_first"] = True
         info["pinned"] = pin
         info["outlined"] = outlined
+        info["res_all"] = best["res"]                  # 시험용(judge_eval): 모든 굵기의 모양 점수
         info["style"] = None if pq is None else {k: round(float(v), 3) for k, v in zip(SHAPES, pq)}
     if pick not in ("fuse", "mix"):
         # 목록 거르기(_gate)는 1위와 같은 갈래만 남긴다 — 상위 top(5)개 안에서만 찾으면 느낌 점수로 순서가 섞였을 때
         # 같은 갈래가 하나밖에 안 남았다(9/23). 30위 안에서 채우고, 보여 줄 개수는 부르는 쪽이 자른다.
-        return dict(res=best["res"][:top], **_gate(best["res"][:max(top, GATE_DEPTH)], best["ratio"], db), **info)
+        if info.get("feel_first"):
+            g = _gate(best["res"][:max(top, GATE_DEPTH)], best["ratio"], db, favored="all",
+                      best_shape=min(r[0] for r in best["res"]))
+        else:
+            g = _gate(best["res"][:max(top, GATE_DEPTH)], best["ratio"], db, favored=info.get("feel_top"))
+        return dict(res=best["res"][:top], **g, **info)
     # 합치기: 폰트마다 여러 벌 중 가장 좋은 '두드러짐'(점수 ÷ 그 벌 상위 30위 중앙값)으로 줄 세운다.
     # 1위는 ratio 와 같고, 고른 벌이 틀렸어도 다른 벌에서 두드러진 폰트가 2~5위에 들어온다.
     # 단, 고른 벌보다 잣대가 1.5배 넘게 나쁜 벌은 섞지 않는다 — 고리·조각 벌의 장식 폰트가 4~5위로 새어 든다.
@@ -1292,6 +1313,16 @@ def _style_probs(glyphs):
 # FEEL_W × (1 − 코사인)을 더한다. 글자 겹치기 점수가 반듯한 폰트를 고르던 손글씨 대체 후보를 바로잡으려는 것.
 FEEL_ON = __import__("os").environ.get("FEEL", "0") == "1"
 FEEL_W = float(__import__("os").environ.get("FEEL_W", "3"))
+FEEL_WW = float(__import__("os").environ.get("FEEL_WW", "1"))        # 느낌이 켜졌을 때 굵기 차이 항의 배수
+FEEL_SLACK = float(__import__("os").environ.get("FEEL_SLACK", "0"))  # 느낌 상위 폰트에 모양 점수 문턱을 더 봐주는 폭
+FEEL_TOPK = int(__import__("os").environ.get("FEEL_TOPK", "8"))      # 그 '느낌 상위'의 개수(폰트 단위)
+# 느낌 먼저(2026-09-23 사용자님 판단 41줄): 모양 점수에 느낌을 더하는 것(add)보다 '거의 같은 폰트'(모양 PIN_ABS 이하)만
+# 모양 순서로 앞에 두고 나머지는 느낌 코사인 순으로 세우는 것(first)이 비슷함 판단이 훨씬 많았다
+# (1위 비슷함 54 → 61%, 상위 3개 38 → 48%, nDCG@5 0.42 → 0.51). first 에서는 느낌 무게를 FEEL_FIRST_K 로 크게 줘서
+# 모양·활자 점수는 동점 가르기만 하고, 목록 거르기의 모양 문턱도 FEEL_SLACK_FIRST 만큼 더 봐준다.
+FEEL_MODE = __import__("os").environ.get("FEEL_MODE", "add")
+FEEL_FIRST_K = float(__import__("os").environ.get("FEEL_FIRST_K", "50"))
+FEEL_SLACK_FIRST = float(__import__("os").environ.get("FEEL_SLACK_FIRST", "4"))
 
 
 def _feel_sims(db, glyphs):
@@ -1383,6 +1414,8 @@ def rerank_typo(db, glyphs, res, k=None, outlined=False, pin_first=False, pq=Non
             # 갈래 판별기(style.py)·느낌 벡터(feel.py)의 덧점(2026-09-23) — _finish 가 만든 함수
             d["extra"] = extra(fid, w)
             d["total"] += d["extra"]
+            # 느낌 벡터는 굵기를 덜 본다('추석선물'에 가는 명조) — 굵기 차이 항을 FEEL_WW 배로(기본 1 = 그대로)
+            d["total"] += (FEEL_WW - 1.0) * TYPO_W[0] * d["w"]
         if pq is not None:
             d["hand"] = bool(pq[0] + pq[1] >= 0.6 and cats and not (cats & {"손글씨", "캘리"}))
         else:
@@ -1457,22 +1490,24 @@ def _gate_group(cats):
     return {"손글씨" if c == "캘리" else c for c in cats}
 
 
-def _gate(res, ratio=None, db=None):
+def _gate(res, ratio=None, db=None, favored=None, best_shape=None):
     """res: [(절대 점수, fid, w, 이름)] → dict(shown=문턱 안의 후보, verdict='ok'|'none', best_score, ratio)"""
     if not res:
         return dict(shown=[], verdict="none", best_score=None, ratio=ratio)
     # 느낌 점수(9/23)로 순서가 바뀌면 1위의 모양 점수가 가장 좋은 게 아닐 수 있다 — '없음'은 가장 좋은 모양 점수로 가른다.
-    best = float(min(r[0] for r in res))
+    best = float(min(r[0] for r in res)) if best_shape is None else float(best_shape)
     none = best > NONE_ABOVE or (ratio is not None and ratio > NONE_RATIO)
     cats0 = _gate_group(db.cats.get(res[0][1], set())) if db is not None else set()
     shown, fill = [], []
     for r in ([] if none else res):
-        if r[0] > NONE_ABOVE + CAND_SLACK:
-            continue                                   # 모양이 너무 먼 후보 — 느낌이 비슷해 올라왔어도 1점 넘게는 안 봐준다
+        slack = CAND_SLACK + (FEEL_SLACK_FIRST if favored == "all" else
+                              FEEL_SLACK if favored and r[1] in favored else 0.0)
+        if r[0] > NONE_ABOVE + slack:
+            continue                                   # 모양이 너무 먼 후보 — 느낌이 아주 가까운 것(favored)만 FEEL_SLACK 더 봐준다
         c = _gate_group(db.cats.get(r[1], set())) if db is not None else set()
         if cats0 and c and not (cats0 & c):
             continue                                   # 1위와 갈래가 다르면 뺀다(손글씨·캘리는 한 갈래)
-        (shown if r[0] <= CAND_REL * best else fill).append(r)
+        (shown if (favored == "all" or r[0] <= CAND_REL * best) else fill).append(r)
     # 1위가 아주 잘 맞으면 1.5배 안에 드는 게 없다 — 그래도 대체 폰트를 고를 수 있게 같은 갈래에서 3개는 채운다
     shown = shown + fill[:max(0, MIN_SHOW - len(shown))]
     return dict(shown=shown, verdict="ok" if shown else "none", best_score=best, ratio=ratio)
