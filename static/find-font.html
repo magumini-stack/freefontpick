@@ -216,6 +216,12 @@ transition:border-color .15s;}
     .ff-hint{font-size:13px;color:var(--text-secondary);margin-top:8px}
     .ff-status{font-size:13px;color:var(--text-secondary);margin-top:10px;min-height:18px}
     .ff-status.is-err{color:var(--status-deny-fg)}
+    /* 일하는 중 — 도는 고리 + 강조색 글씨 (2026-09-23 사용자님: "(몇 초 걸려요)" 대신 뭔가 움직이는 게 있으면) */
+    .ff-status.is-busy{display:flex;align-items:center;gap:8px;color:var(--accent);font-weight:600}
+    .ff-spin{width:16px;height:16px;flex:none;border-radius:50%;border:2px solid var(--accent-light);border-top-color:var(--accent);animation:ffSpin .8s linear infinite}
+    @keyframes ffSpin{to{transform:rotate(360deg)}}
+    .ff-status.is-busy::after{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;animation:ffDots 1.2s steps(3,end) infinite;box-shadow:6px 0 0 transparent,12px 0 0 transparent;opacity:.85}
+    @keyframes ffDots{33%{box-shadow:6px 0 0 transparent,12px 0 0 transparent}66%{box-shadow:6px 0 0 currentColor,12px 0 0 transparent}100%{box-shadow:6px 0 0 currentColor,12px 0 0 currentColor}}
     .ff-result{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
     .ff-query{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
     .ff-query canvas{max-width:100%;height:auto;border-radius:var(--radius-sm);border:1px solid var(--border);background:#fff}
@@ -716,7 +722,13 @@ document.addEventListener('keydown', function(e){
   if(!drop) return;
   var state = { imageId:null, lines:[], w:0, h:0, line:-1, busy:false, bitmap:null };
 
-  function say(msg, err){ status.textContent = msg || ''; status.classList.toggle('is-err', !!err); }
+  function say(msg, err, busy){
+    if(busy){ status.innerHTML = '<span class="ff-spin" aria-hidden="true"></span><span>' + esc(msg) + '</span>'; }
+    else { status.textContent = msg || ''; }
+    status.classList.toggle('is-err', !!err);
+    status.classList.toggle('is-busy', !!busy);
+    status.setAttribute('aria-busy', busy ? 'true' : 'false');
+  }
   function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
   drop.addEventListener('click', function(){ file.click(); });
@@ -732,7 +744,7 @@ document.addEventListener('keydown', function(e){
     if(!/^image\/(jpeg|png|webp)$/.test(f.type)){ say('JPG·PNG·WEBP 이미지만 올릴 수 있어요.', true); return; }
     if(f.size > 8*1024*1024){ say('이미지는 8MB 까지만 올릴 수 있어요.', true); return; }
     state.busy = true; result.hidden = true; list.innerHTML = ''; none.hidden = true; boxes.innerHTML = '';
-    say('글자 줄을 찾는 중… (몇 초 걸려요)');
+    say('글자 줄을 찾는 중', false, true);
     var url = URL.createObjectURL(f);
     imgEl.onload = function(){ URL.revokeObjectURL(url); layoutBoxes(); };
     imgEl.src = url; stage.hidden = false;
@@ -787,7 +799,7 @@ document.addEventListener('keydown', function(e){
     state.line = k; layoutBoxes(); drawCrop(ln);
     result.hidden = false; list.innerHTML = ''; none.hidden = true;
     if(textOverride === undefined) textIn.value = ln.text || '';
-    say('비슷한 폰트를 찾는 중… (몇 초 걸려요)');
+    say('비슷한 폰트를 찾는 중', false, true);
     state.busy = true; retry.disabled = true;
     try{
       var body = { image_id: state.imageId, line: k, top: 5 };
@@ -796,7 +808,7 @@ document.addEventListener('keydown', function(e){
       // 서버는 그 사이에도 계속 만들어 캐시에 두므로, 몇 초 뒤 다시 물으면 바로 나온다 — 두 번까지 다시 묻는다.
       var r = null;
       for(var attempt = 0; attempt < 3; attempt++){
-        if(attempt) say('처음 보는 글자라 준비가 조금 더 걸려요… 다시 물어보는 중 (' + attempt + '/2)');
+        if(attempt) say('처음 보는 글자라 조금 더 걸려요. 다시 물어보는 중 (' + attempt + '/2)', false, true);
         r = await fetch('/api/find/match', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
         if(r.status !== 502 && r.status !== 504) break;
         await new Promise(function(res){ setTimeout(res, 4000); });
