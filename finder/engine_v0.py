@@ -1230,8 +1230,8 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
         # 목록 거르기(_gate)는 1위와 같은 갈래만 남긴다 — 상위 top(5)개 안에서만 찾으면 느낌 점수로 순서가 섞였을 때
         # 같은 갈래가 하나밖에 안 남았다(9/23). 30위 안에서 채우고, 보여 줄 개수는 부르는 쪽이 자른다.
         if info.get("feel_first"):
-            g = _gate(best["res"][:max(top, GATE_DEPTH)], best["ratio"], db, favored="all",
-                      best_shape=min(r[0] for r in best["res"]))
+            g = _list_first(best["res"][:max(top, GATE_DEPTH)], best["ratio"],
+                            best_shape=min(r[0] for r in best["res"]) if best["res"] else None)
         else:
             g = _gate(best["res"][:max(top, GATE_DEPTH)], best["ratio"], db, favored=info.get("feel_top"))
         return dict(res=best["res"][:top], **g, **info)
@@ -1496,6 +1496,24 @@ def _gate_group(cats):
     9/22 에는 '손글씨 질의에 붓글씨체가 끼면 안 된다'고 나눴는데, 1위가 캘리로 분류된 둥근 손글씨(SANG개미똥구멍)일 때
     손글씨 후보가 다 빠져 '파우치 털기는'에 후보가 2개만 남았다. 고딕·명조·디스플레이는 그대로 따로."""
     return {"손글씨" if c == "캘리" else c for c in cats}
+
+
+def _list_first(res, ratio=None, best_shape=None):
+    """느낌 먼저(FEEL_MODE=first)일 때 보여 줄 목록 — 갈래로 거르지 않고 순서 그대로, 폰트마다 한 번.
+
+    2026-09-23 사용자님 판단(RakFont 뺀 41줄): 갈래 거르기를 빼면 같은 37줄에서 상위 3개 중 비슷함 43 → 47%(1위 그대로).
+    모양이 멀어 예전에 '없음'이던 줄(손글씨 견본 4줄)도 3줄은 1위가 비슷함이었다 — 그래서 '없음' 대신 verdict='loose'
+    (똑같은 폰트는 없지만 느낌이 비슷한 것)로 보여 준다. 화면 문구: "어떤 폰트든 비슷한 무료폰트를 우선 추천해드립니다".
+    """
+    if not res:
+        return dict(shown=[], verdict="none", best_score=None, ratio=ratio)
+    best = float(min(r[0] for r in res)) if best_shape is None else float(best_shape)
+    loose = best > NONE_ABOVE or (ratio is not None and ratio > NONE_RATIO)
+    seen, shown = set(), []
+    for r in res:
+        if r[1] not in seen:
+            seen.add(r[1]); shown.append(r)
+    return dict(shown=shown, verdict="loose" if loose else "ok", best_score=best, ratio=ratio)
 
 
 def _gate(res, ratio=None, db=None, favored=None, best_shape=None):

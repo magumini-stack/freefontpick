@@ -251,6 +251,7 @@ transition:border-color .15s;}
     .ff-fb{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
     .ff-fb .ff-like{margin-left:0}
     .ff-fb-note{font-size:12px;color:var(--text-muted)}
+    .ff-loose{font-size:13px;color:var(--text-secondary);margin-top:12px}
     .ff-none{font-size:13px;color:var(--text-secondary);margin-top:12px;padding:12px;border:1px dashed var(--border-hover);border-radius:var(--radius-sm)}
     .ff-board-title{font-size:16px;font-weight:800;margin:26px 0 4px;letter-spacing:-.3px}
     .ff-board-sub{font-size:13px;color:var(--text-secondary);margin-bottom:12px}
@@ -296,6 +297,7 @@ transition:border-color .15s;}
             <div class="ff-text-row"><input id="ffText" maxlength="40"><button class="btn-primary" id="ffRetry" type="button">다시 찾기</button></div>
           </div>
         </div>
+        <p class="ff-loose" id="ffLoose" hidden>똑같은 폰트는 찾지 못해서, 느낌이 비슷한 폰트를 골랐어요.</p>
         <div class="ff-list" id="ffList"></div>
         <div class="ff-fb" id="ffFb" hidden>
           <button type="button" class="ff-like" id="ffNoLike" aria-pressed="false">비슷한 게 없어요</button>
@@ -730,7 +732,7 @@ document.addEventListener('keydown', function(e){
   var $ = function(id){ return document.getElementById(id); };
   var drop = $('ffDrop'), file = $('ffFile'), stage = $('ffStage'), imgEl = $('ffImg'), boxes = $('ffBoxes');
   var status = $('ffStatus'), result = $('ffResult'), list = $('ffList'), none = $('ffNone'), textIn = $('ffText'), retry = $('ffRetry');
-  var fb = $('ffFb'), noLike = $('ffNoLike'), fbCtx = null;
+  var fb = $('ffFb'), noLike = $('ffNoLike'), fbCtx = null, loose = $('ffLoose');
   if(!drop) return;
   var state = { imageId:null, lines:[], w:0, h:0, line:-1, busy:false, bitmap:null };
 
@@ -809,7 +811,7 @@ document.addEventListener('keydown', function(e){
     if(state.busy || !state.imageId) return;
     var ln = state.lines[k]; if(!ln) return;
     state.line = k; layoutBoxes(); drawCrop(ln);
-    result.hidden = false; list.innerHTML = ''; none.hidden = true; fb.hidden = true; fbCtx = null;
+    result.hidden = false; list.innerHTML = ''; none.hidden = true; fb.hidden = true; fbCtx = null; loose.hidden = true;
     if(textOverride === undefined) textIn.value = ln.text || '';
     say('비슷한 폰트를 찾는 중', false, true);
     state.busy = true; retry.disabled = true;
@@ -843,6 +845,7 @@ document.addEventListener('keydown', function(e){
   function render(j){
     var text = j.text || '';
     if(!j.results || !j.results.length){ none.hidden = false; list.innerHTML = ''; return; }
+    loose.hidden = j.verdict !== 'loose';        // 모양이 똑같은 폰트는 없고 느낌이 비슷한 것들(엔진 _list_first)
     list.innerHTML = j.results.map(function(r, i){
       var badge = r.source === 'tdtd' ? '<span class="ff-badge td">타닥타닥 · ' + esc(r.maker) + '</span>' : '<span class="ff-badge ffp">폰트픽 무료</span>';
       var best = i === 0 ? '<span class="ff-best">가장 비슷해요</span>' : '';
