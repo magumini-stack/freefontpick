@@ -255,9 +255,9 @@
     @media(max-width:768px){
       .wrap{padding:0 16px}
       .main{padding:14px 16px 60px}
-      .tools{gap:8px}
-      .tool{padding:12px;min-height:0;flex-direction:column;align-items:flex-start;gap:8px}
-      .tool-d{white-space:normal}
+      /* 좁은 화면에서는 한 줄에 하나씩 — 2칸으로 두면 제목이 접히며 칸 높이가 달라진다 */
+      .tools{grid-template-columns:1fr;gap:8px}
+      .tool{padding:11px 14px;min-height:58px}
       .use-head{flex-direction:column;align-items:flex-start;gap:8px}
       .font-grid{grid-template-columns:repeat(2,1fr);gap:10px}
       .font-card{padding:16px 30px 18px 16px;min-height:190px}
