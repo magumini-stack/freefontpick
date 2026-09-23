@@ -8,5 +8,15 @@ scikit-image==0.26.0
 Pillow==12.3.0
 fonttools==4.55.0
 brotli==1.1.0
-rapidocr==3.9.2
 onnxruntime==1.30.0
+# rapidocr 3.9.2 는 GUI 판 opencv-python 을 끌고 온다 — slim 이미지엔 libGL 이 없어 import cv2 가 죽고
+# finder 컨테이너가 되살아나기를 반복했다(2026-09-23). 그래서 Dockerfile 이 rapidocr 를 --no-deps 로 깔고,
+# rapidocr 가 필요로 하는 나머지는 여기 직접 적는다(실험실 판). cv2 는 headless 하나만 남는다.
+colorlog==6.12.0
+omegaconf==2.3.1
+pyclipper==1.4.0
+shapely==2.1.2
+PyYAML==6.0.3
+requests==2.34.2
+six==1.17.0
+tqdm==4.70.1

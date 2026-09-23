@@ -18,11 +18,13 @@ ENV PYTHONUNBUFFERED=1 \
 RUN useradd -m -u 1000 app
 WORKDIR /app
 
-# slim 이미지에는 opencv-python-headless(libgthread)·onnxruntime(libgomp)이 찾는 공유 라이브러리가 없다
-RUN apt-get update && apt-get install -y --no-install-recommends libglib2.0-0 libgomp1     && rm -rf /var/lib/apt/lists/*
+# slim 이미지에는 opencv(libgthread·libGL)·onnxruntime(libgomp)이 찾는 공유 라이브러리가 없다.
+# libgl1 은 headless 만 쓰면 필요 없지만, GUI 판 cv2 가 섞여 들어와도 죽지 않게 넣어 둔다(30MB).
+RUN apt-get update && apt-get install -y --no-install-recommends libglib2.0-0 libgomp1 libgl1     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# rapidocr 는 의존성 없이 — GUI 판 opencv-python 을 끌고 오지 않게(requirements.txt 의 설명 참고)
+RUN pip install --no-cache-dir -r requirements.txt     && pip install --no-cache-dir --no-deps rapidocr==3.9.2     && python -c "import cv2, onnxruntime, rapidocr, skimage, scipy; print('cv2', cv2.__version__, 'ort', onnxruntime.__version__)"
 
 COPY --chown=app:app . .
 
