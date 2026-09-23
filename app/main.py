@@ -430,6 +430,35 @@ async def no_store_for_api(request: Request, call_next):
 # 그러면 CSS·JS 가 /s/{hash}/ 없는 주소로 나가 CDN·브라우저가 옛 파일을 잡는다.
 app.add_middleware(SelectiveGZipMiddleware)
 
+
+class HeadAsGetMiddleware:
+    """HEAD 요청을 GET 으로 처리하고 본문만 버린다 — 가장 바깥에 둔다(압축보다도 바깥).
+
+    FastAPI 는 GET 경로에 HEAD 를 붙이지 않아 모든 페이지가 HEAD 에 405 를 줬다. 에그호스팅 감시가
+    'HEAD /' 로 살아 있는지 묻다가 405 를 받아 대시보드에 앱이 '다운'으로 떴다(2026-09-23, 사이트는 정상).
+    링크 검사기·일부 검색 로봇도 HEAD 를 쓴다. 머리글(Content-Length 포함)은 GET 과 똑같이 보내고
+    본문은 보내지 않는다(HTTP 규약). 안쪽 앱은 GET 으로 보고 평소처럼 응답을 만든다.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http" or scope.get("method") != "HEAD":
+            await self.app(scope, receive, send)
+            return
+        scope = dict(scope, method="GET")      # 서버(uvicorn)가 쥔 원래 scope 는 그대로 HEAD — 본문을 안 보낸다
+
+        async def send_no_body(message):
+            if message["type"] == "http.response.body":
+                message = {"type": "http.response.body", "body": b"", "more_body": message.get("more_body", False)}
+            await send(message)
+
+        await self.app(scope, receive, send_no_body)
+
+
+app.add_middleware(HeadAsGetMiddleware)
+
 # API 라우터 등록
 app.include_router(auth.router)
 app.include_router(fonts.router)
