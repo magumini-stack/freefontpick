@@ -151,6 +151,9 @@ class FontDB:
         for i, it in enumerate(self.items):
             it["cmap"] = _CmapView(self, i)
         self.is_eng = np.array([it["is_english"] for it in self.items], bool)
+        # 찾기 결과에서 빼는 제작사(EXCLUDE_MAKERS) — 목록·글자 묶음 캐시는 그대로 두고 순위에서만 뺀다.
+        # 목록에서 빼면 캐시 태그가 바뀌어 2,412자를 3시간 넘게 다시 구워야 해서 여기서 거른다.
+        self.excluded = np.array([self.info[it["fid"]]["maker"] in EXCLUDE_MAKERS for it in self.items], bool)
         self.stacks = collections.OrderedDict()
         # 디스크 캐시: 폰트 목록(파일 경로·굵기 순서)이 같을 때만 재사용 — 목록이 바뀌면 태그가 바뀐다
         import hashlib
@@ -684,6 +687,9 @@ def usable(ch):
 
 STROKE_NORM = True     # 획 굵기를 맞춘 뒤 윤곽을 견준다(stroke_variants). 끄면 예전(9/22 아침) 방식
 EXCLUDE_FID = None     # 시험용(eval_real LOO=1): 이 폰트는 후보에서 뺀다
+# 찾기에서 아예 권하지 않는 제작사(쉼표로). RakFont 는 비싼 유료 폰트라 무료 폰트를 찾으러 온 사람에게 맞지 않는다
+# (2026-09-23 사용자님 — 서비스 컨셉). build_catalog.py 도 다음 목록부터 뺀다.
+EXCLUDE_MAKERS = {m.strip() for m in os.environ.get("FINDER_EXCLUDE_MAKERS", "RakFont").split(",") if m.strip()}
 
 
 def stroke_variants(m, height=96):
@@ -812,6 +818,8 @@ def rank(db, glyphs, top=10, wmix=None):
     ok = (n_have > 0) & (nq - n_have <= nq * 0.3)
     if any(is_hangul(ch) for ch, _, _ in q):
         ok &= ~db.is_eng
+    if getattr(db, "excluded", None) is not None and db.excluded.any():
+        ok &= ~db.excluded                    # 권하지 않는 제작사(EXCLUDE_MAKERS)
     if EXCLUDE_FID is not None:              # 시험용: 정답 폰트를 빼고 돌려 '비슷한 게 없을 때'의 점수 분포를 잰다
         ok &= np.array([it["fid"] != EXCLUDE_FID for it in db.items])
     # 가장 안 맞는 글자 4분의 1은 뺀다 — OCR 이 잘못 읽었거나 잘못 잘린 글자가

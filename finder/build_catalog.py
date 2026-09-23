@@ -7,7 +7,9 @@
   실험실(fetch_fonts.py)과 같은 길 — 관리자가 폰트를 올리면 다시 돌리면 된다. woff2 는 PIL 이 바로 못 열어
   TTF 로 풀어 둔다(폰트 하나 여는 데 100ms 가 아니라 5ms 가 되게).
 타닥타닥 폰트: /data/tdtd/fonts.json + /data/tdtd/full/f_<hash>.woff2 (tdtd-webfont 가 구운 2,350자판).
-  git 에는 넣지 않는다(유료 폰트) — 서버에 따로 올린다. 배리어블(RakFont 16종)은 뺀다(2026-09-23 사용자님).
+  git 에는 넣지 않는다(유료 폰트) — 서버에 따로 올린다. 배리어블은 뺀다(2026-09-23 사용자님).
+  RakFont 는 전부 뺀다 — 비싼 유료 폰트라 무료 폰트를 찾으러 온 사람에게 맞지 않는다(9/23 사용자님, 서비스 컨셉).
+  지금 서버 목록에 남아 있는 것은 엔진이 순위에서 거른다(EXCLUDE_MAKERS) — 목록을 다시 만들 때 여기서 빠진다.
   폰트픽과 겹치는 폰트(폰트픽의 와이즈폰트·상상토끼 제공분)는 폰트픽에서만 나오게 뺀다(글자 대조, 같은 집안끼리만).
 """
 import argparse
@@ -30,6 +32,7 @@ TDTD_LINK = {
     "상상토끼": "https://tdtd.io/_subpage/kor/buy/list.php?viewMode=view&ca_id=&sel_search=&txt_search=&page=1&idx=11",
     "RakFont": "https://tdtd.io/_subpage/kor/buy/list.php?viewMode=view&ca_id=&sel_search=&txt_search=&page=1&idx=23",
 }
+EXCLUDE_VENDORS = {"RakFont"}            # 찾기에 넣지 않는 제작사(비싼 유료 폰트) — engine_v0.EXCLUDE_MAKERS 와 같게
 FAMILY = {"와이즈폰트": "타닥타닥", "상상토끼": "상상토끼"}     # 폰트픽 제작사 → 겹침을 대 볼 타닥타닥 제작사
 SAME_IOU = 0.85
 WOFF2_BIN = shutil.which("woff2_decompress")     # Debian 'woff2' 패키지(Dockerfile) — 없으면 fontTools 로 푼다(느림)
@@ -159,6 +162,8 @@ def fetch_tdtd(ffp):
     for k, t in enumerate(td):
         if (k + 1) % 100 == 0:
             print("  타닥타닥 %d/%d (%.0fs)" % (k + 1, len(td), time.time() - t0), flush=True)
+        if t["vendor"] in EXCLUDE_VENDORS:
+            continue
         faces = []
         for fc in t["faces"]:
             src = os.path.join(TDTD, "full", "f_%s.woff2" % fc["h"])
