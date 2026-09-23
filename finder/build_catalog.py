@@ -35,9 +35,18 @@ SAME_IOU = 0.85
 WOFF2_BIN = shutil.which("woff2_decompress")     # Debian 'woff2' 패키지(Dockerfile) — 없으면 fontTools 로 푼다(느림)
 
 
-def get(url):
+def get(url, wait=120):
+    """앱 API 에서 받는다. 배포 직후엔 앱이 아직 뜨는 중이라 접속이 거부된다(두 번 겪음) — wait 초까지 5초마다 다시 해 본다."""
     req = urllib.request.Request(url, headers={"User-Agent": "freefontpick-finder"})
-    return urllib.request.urlopen(req, timeout=120).read()
+    t0 = time.time()
+    while True:
+        try:
+            return urllib.request.urlopen(req, timeout=120).read()
+        except urllib.error.URLError as e:
+            if not isinstance(e.reason, (ConnectionRefusedError, ConnectionResetError, OSError)) or time.time() - t0 > wait:
+                raise
+            print("  앱(%s)이 아직 안 떠서 기다리는 중… (%.0fs)" % (APP, time.time() - t0), flush=True)
+            time.sleep(5)
 
 
 def to_ttf(src, dst):
