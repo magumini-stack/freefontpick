@@ -3,6 +3,8 @@
 글자 마스크(줄 높이 그대로 자른 것) → feel_glyph 64×64 → models/feel.onnx → 128차원 단위벡터 → 줄 평균.
 굵기마다 기준 벡터 = 깨끗하게 그린 REF_CHARS 글자들의 벡터 평균. 두 벡터의 코사인이 클수록 '느낌'이 가깝다.
 기준 벡터는 목록 폴더의 feel_refs.npz 에 굵기(파일 키·굵기)별로 저장해 두고, 없는 것만 새로 만든다.
+2026-09-26 영문 기준(REF_LAT)도 따로 둔다 — 영문만 있는 줄은 영문 기준과 견준다(한글 기준과 견주면 코사인이 0.25 아래로
+뭉개지고, 한글이 없는 영어 폰트는 기준이 0 이라 늘 뒤로 밀렸다). 캐시는 feel_refs_<모델>_lat.npz.
 """
 import hashlib
 import os
@@ -14,6 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 MODEL = os.environ.get("FEEL_MODEL") or os.path.join(HERE, "models", "feel.onnx")
 S, BOX = 64, 56
 REF_CHARS = "가나다라마바사아자차카타파하글씨폰트한국사랑오늘우리행복"
+REF_LAT = "ABDEGHKMNRSabdeghkmnprst258"          # feel_train·feel_attrs(영문)와 같게
 _sess = None
 
 
@@ -67,12 +70,12 @@ def _model_tag():
     return hashlib.md5(("%d:%d" % (st.st_size, int(st.st_mtime))).encode()).hexdigest()[:8]
 
 
-def ref_glyphs(font, has):
+def ref_glyphs(font, has, chars=REF_CHARS):
     """굵기의 기준 글자 마스크들(깨끗하게 그린 것)."""
     from PIL import Image, ImageDraw
     f = font.font_variant(size=96)
     out = []
-    for ch in REF_CHARS:
+    for ch in chars:
         if not has(ch):
             continue
         img = Image.new("L", (192, 192), 0)
@@ -83,14 +86,17 @@ def ref_glyphs(font, has):
     return out
 
 
-def refs(db, log=None):
-    """db.items 순서의 기준 벡터 (n, 128) — 목록 폴더 feel_refs.npz 에 모델별로 캐시. 못 만든 굵기는 0 벡터."""
-    cache = getattr(db, "_feel_refs", None)
+def refs(db, log=None, script="ko"):
+    """db.items 순서의 기준 벡터 (n, 128) — 목록 폴더 feel_refs_<모델>[_lat].npz 에 캐시. 못 만든 굵기는 0 벡터.
+    script: "ko"(한글 기준 REF_CHARS) · "lat"(영문 기준 REF_LAT)."""
+    attr = "_feel_refs" if script == "ko" else "_feel_refs_lat"
+    cache = getattr(db, attr, None)
     if cache is not None:
         return cache
+    chars = REF_CHARS if script == "ko" else REF_LAT
     tag = _model_tag()
     path = os.path.join(os.path.dirname(os.path.dirname(db.stack_dir)),
-                        "feel_refs_%s.npz" % os.path.splitext(os.path.basename(MODEL))[0])
+                        "feel_refs_%s%s.npz" % (os.path.splitext(os.path.basename(MODEL))[0], "" if script == "ko" else "_lat"))
     have = {}
     if os.path.exists(path):
         z = np.load(path, allow_pickle=False)
@@ -98,21 +104,24 @@ def refs(db, log=None):
             have = dict(zip(z["keys"].tolist(), z["vecs"]))
     out = np.zeros((len(db.items), 128), np.float32)
     dirty = 0
+    excluded = getattr(db, "excluded", None)
     for i, it in enumerate(db.items):
+        if excluded is not None and excluded[i]:
+            continue                                  # 찾기에서 빼는 굵기(RakFont) — 0 벡터로 둔다
         key = "%s|%d" % (it["fn_key"], it["weight"])
         v = have.get(key)
         if v is None:
             # db.font() 의 폰트 목록(LRU)은 요청 처리와 같이 쓰면 안 된다 — 서버는 이걸 뒤 스레드에서 돌린다. 따로 연다.
             font = db._load(it["fn"])
-            v = embed_glyphs(ref_glyphs(font, lambda ch, i=i: db.has(i, ch))) if font is not None else None
+            v = embed_glyphs(ref_glyphs(font, lambda ch, i=i: db.has(i, ch), chars)) if font is not None else None
             v = np.zeros(128, np.float32) if v is None else v
             have[key] = v
             dirty += 1
             if log and dirty % 100 == 0:
-                log("  느낌 기준 %d개 새로 만듦" % dirty)
+                log("  느낌 기준(%s) %d개 새로 만듦" % (script, dirty))
         out[i] = v
     if dirty:
         keys = list(have.keys())
         np.savez(path, tag=np.array(tag), keys=np.array(keys), vecs=np.stack([have[k] for k in keys]))
-    db._feel_refs = out
+    setattr(db, attr, out)
     return out

@@ -203,6 +203,16 @@ def main():
     os.makedirs(DATA, exist_ok=True)
     t0 = time.time()
     if not a.keep_catalog:
+        # 글자 묶음을 새 목록으로 옮겨 쓰게(2026-09-26 굵기 키 방식) — 목록을 바꾸기 전에 예전 묶음 폴더에 굵기 키를 적어 둔다.
+        # 그러면 새 목록은 있던 굵기를 다시 안 굽고 새 굵기만 계산한다(서버 4시간 → 1시간 안쪽).
+        old_cat = os.path.join(DATA, "catalog.json")
+        if os.path.exists(old_cat):
+            try:
+                import engine_v0 as E
+                if E.FontDB(old_cat).write_legacy_keys():
+                    print("예전 글자 묶음에 굵기 키를 적음 — 새 목록이 옮겨 쓴다 (%.0fs)" % (time.time() - t0), flush=True)
+            except Exception as e:
+                print("예전 묶음 키를 못 적음(새로 굽게 됨):", e, flush=True)
         ffp = fetch_ffp()
         td = fetch_tdtd(ffp)
         cat = ffp + td
@@ -212,14 +222,38 @@ def main():
         import engine_v0 as E
         db = E.FontDB(os.path.join(DATA, "catalog.json"))
         db.MAX_STACKS = 4
+        db.MAX_FONTS = int(os.environ.get("BAKE_MAX_FONTS", "400"))   # 글자마다 새 굵기를 다 여니 64 면 파일을 계속 다시 연다
         # 영문·숫자도 찾기에 쓰인다(E.usable) — 한글만 구워 두면 처음 나온 영문·숫자마다 그 자리에서 굽느라
         # 줄이 느려졌다(9/23 '모음.zip1탄8' 49초). 62자라 한글 뒤에 붙여도 몇 분이다.
         chars = frequent_hangul(a.stacks) + list(ASCII_ALNUM)
+        # 예전 태그 폴더에만 있는 글자(처음 물어볼 때 그 자리에서 구운 드문 글자)도 함께 옮긴다
+        legacy = db._legacy_sources()
+        have = set(chars)
+        for d, _ in legacy:
+            for f in sorted(os.listdir(d)):
+                if f.endswith(".npz") and not f.endswith(".tmp.npz"):
+                    ch = chr(int(f[:-4], 16))
+                    if ch not in have:
+                        chars.append(ch); have.add(ch)
+        moved = 0
         for k, ch in enumerate(chars):
             db.stack(ch)
+            db.stacks.clear()
+            # 새 방식(k1) 파일이 생긴 글자는 예전 파일을 지운다 — 디스크를 두 벌(9GB × 2) 쓰지 않게.
+            # 옛 목록으로 떠 있는 서비스도 k1 을 읽으니(굵기 키) 지워도 된다. 중간에 멈추면 남은 예전 파일에서 이어서 옮긴다.
+            code = "%05x.npz" % ord(ch)
+            if os.path.exists(os.path.join(db.kdir, code)):
+                for d, _ in legacy:
+                    old_f = os.path.join(d, code)
+                    if os.path.exists(old_f):
+                        os.remove(old_f); moved += 1
             if (k + 1) % 50 == 0:
                 print("  묶음 %d/%d (%.0fs)" % (k + 1, len(chars), time.time() - t0), flush=True)
-        print("묶음 끝: %d자 (%.0fs)" % (len(chars), time.time() - t0), flush=True)
+        for d, _ in legacy:
+            if not any(f.endswith(".npz") for f in os.listdir(d)):
+                shutil.rmtree(d, ignore_errors=True)
+                print("예전 묶음 폴더 비워서 지움: %s" % d, flush=True)
+        print("묶음 끝: %d자, 예전 파일 %d개 옮김 (%.0fs)" % (len(chars), moved, time.time() - t0), flush=True)
 
 
 ASCII_ALNUM = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

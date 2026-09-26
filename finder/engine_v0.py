@@ -128,7 +128,7 @@ class FontDB:
             else:
                 faces = [(int(w), fn, None) for w, fn in c["files"].items()]
             self.info[c["id"]] = dict(name=c["name"], maker=c.get("maker", ""),
-                                      source=c.get("source", "ffp"),
+                                      source=c.get("source", "ffp"), is_english=bool(c.get("is_english")),
                                       link=c.get("link", "/font/%s" % c["id"]))
             self.cats[c["id"]] = coarse_cats(c.get("tags", []), c["is_english"])
             for w, fn, h in faces:
@@ -155,11 +155,18 @@ class FontDB:
         # 목록에서 빼면 캐시 태그가 바뀌어 2,412자를 3시간 넘게 다시 구워야 해서 여기서 거른다.
         self.excluded = np.array([self.info[it["fid"]]["maker"] in EXCLUDE_MAKERS for it in self.items], bool)
         self.stacks = collections.OrderedDict()
-        # 디스크 캐시: 폰트 목록(파일 경로·굵기 순서)이 같을 때만 재사용 — 목록이 바뀌면 태그가 바뀐다
+        # 디스크 캐시(글자 묶음). 2026-09-26 부터 stacks/k1/<글자>.npz — 줄마다 굵기 키("파일|굵기")를 붙여 두고
+        # 지금 목록의 굵기를 키로 골라 쓴다. 목록이 바뀌어도 있던 굵기는 다시 안 굽고 새 굵기만 계산해 덧붙인다
+        # (예전엔 목록 해시 태그 폴더라 폰트 하나만 늘어도 2,412자를 처음부터 — 서버 4시간·옛 캐시 9GB 가 남았다).
+        # 예전 태그 폴더(stack_dir)는 목록이 그대로면 그대로 읽고, _keys.txt 가 있으면 새 방식으로 옮겨 쓴다.
         import hashlib
         tag = hashlib.md5("|".join("%s:%s" % (it["fn_key"], it["weight"]) for it in self.items).encode("utf-8")).hexdigest()[:10]
-        self.stack_dir = os.path.join(os.path.dirname(os.path.abspath(catalog_path)) or ".", "stacks", tag)
-        os.makedirs(self.stack_dir, exist_ok=True)
+        self.stack_root = os.path.join(os.path.dirname(os.path.abspath(catalog_path)) or ".", "stacks")
+        self.stack_dir = os.path.join(self.stack_root, tag)
+        self.kdir = os.path.join(self.stack_root, "k1")
+        os.makedirs(self.kdir, exist_ok=True)
+        self.face_keys = ["%s|%d" % (it["fn_key"], it["weight"]) for it in self.items]
+        self._legacy = None
         self.typo_memo = {}      # (face i, ch) → typo 특징 dict
         # 사람이 고른 갈래(style_labels.json: {"폰트 id": "갈래"}) — 모양 태그가 둘 이상인 폰트 등(2026-09-23 사용자님 확인)
         for d in (os.path.dirname(os.path.abspath(__file__)), base):
@@ -237,6 +244,64 @@ class FontDB:
 
     MAX_STACKS = int(os.environ.get("FINDER_MAX_STACKS", "200"))   # 글자당 ≈ 3.5MB(dt 3MB + 비트 마스크 0.4MB). 서버(2GB)는 30~40
 
+    ROW_FIELDS = ("dt", "n_packed", "nsum", "scv", "oh", "stroke", "aspect", "h")
+
+    def write_legacy_keys(self):
+        """예전 태그 폴더에 그 목록의 굵기 키를 적어 둔다 — 목록을 새로 받기 전에 부르면 새 목록이 그 묶음을 옮겨 쓴다."""
+        if os.path.isdir(self.stack_dir) and any(f.endswith(".npz") for f in os.listdir(self.stack_dir)):
+            with open(os.path.join(self.stack_dir, "_keys.txt"), "w", encoding="utf-8") as f:
+                f.write(chr(10).join(self.face_keys))
+            return True
+        return False
+
+    def _legacy_sources(self):
+        """옮겨 쓸 예전 태그 폴더들 [(폴더, 굵기 키 목록)] — _keys.txt 가 있는 것만."""
+        if self._legacy is None:
+            self._legacy = []
+            if os.path.isdir(self.stack_root):
+                for d in sorted(os.listdir(self.stack_root)):
+                    kp = os.path.join(self.stack_root, d, "_keys.txt")
+                    if d != "k1" and os.path.exists(kp):
+                        self._legacy.append((os.path.join(self.stack_root, d), open(kp, encoding="utf-8").read().split(chr(10))))
+        return self._legacy
+
+    def _glyph_row(self, g):
+        n_ = g["n"].ravel().astype(np.uint8)
+        return dict(dt=np.minimum(np.rint(np.minimum(g["dt"], DT_CAP) * DT_Q), 255).astype(np.uint8).ravel(),
+                    n_packed=np.packbits(n_), nsum=np.float32(n_.sum()),
+                    eidx=np.flatnonzero(g["edge"]).astype(np.uint16), scv=np.float32(g["scv"]), oh=g["oh"],
+                    stroke=g["stroke"], aspect=g["aspect"], h=float(g["h"]))
+
+    @staticmethod
+    def _row(z, r):
+        row = {k: z[k][r] for k in FontDB.ROW_FIELDS}
+        row["eidx"] = z["eidx"][z["eoff"][r]:z["eoff"][r + 1]]
+        return row
+
+    @staticmethod
+    def _pack(rows):
+        """[줄 dict] → 묶음 배열 dict(eidx·eoff·dens 포함)"""
+        eoff = np.zeros(len(rows) + 1, np.int64)
+        eoff[1:] = np.cumsum([len(r["eidx"]) for r in rows])
+        nsum = np.array([r["nsum"] for r in rows], np.float32)
+        return dict(dt=np.stack([r["dt"] for r in rows]), n_packed=np.stack([r["n_packed"] for r in rows]), nsum=nsum,
+                    eidx=np.concatenate([r["eidx"] for r in rows]).astype(np.uint16), eoff=eoff,
+                    dens=np.diff(eoff) / np.maximum(1.0, nsum),      # 윤곽 픽셀 / 잉크 픽셀 — 속 빈·줄무늬 폰트는 크다
+                    scv=np.array([r["scv"] for r in rows], np.float32), oh=np.stack([r["oh"] for r in rows]),
+                    stroke=np.array([r["stroke"] for r in rows]), aspect=np.array([r["aspect"] for r in rows]),
+                    h=np.array([r["h"] for r in rows], float))
+
+    def _save_k1(self, fn, keys, rows, miss):
+        try:
+            save = self._pack(rows)
+            save.pop("dens")
+            save.update(keys=np.array(keys), miss=np.array(sorted(miss), dtype=str))
+            tmp = fn + ".tmp.npz"
+            np.savez(tmp, **save)
+            os.replace(tmp, fn)
+        except Exception as e:
+            print("글자 묶음 저장 못 함:", fn, e, flush=True)
+
     def stack(self, ch):
         """이 글자가 있는 모든 굵기의 특징을 배열 한 벌로 묶는다 — rank 가 한 번에 견준다.
 
@@ -244,57 +309,90 @@ class FontDB:
         eidx/eoff: 굵기마다 윤곽 픽셀 번호를 이어 붙인 것과 그 시작 위치
         글자 하나에 1,279벌이면 약 3.4MB. 전에는 (굵기, 글자)마다 float64 배열을 따로 들고 있어
         실제 샘플 173장을 돌리다 메모리가 10GB 를 넘었다(2026-09-22).
+        찾기에서 빼는 굵기(excluded)는 계산하지 않는다 — rank 가 어차피 거른다.
         """
         s = self.stacks.get(ch)
         if s is not None:
             self.stacks.move_to_end(ch)
             return s
-        fn = os.path.join(self.stack_dir, "%05x.npz" % ord(ch))
-        if os.path.exists(fn):
+        code = "%05x.npz" % ord(ch)
+        kfn = os.path.join(self.kdir, code)
+        have, miss, dirty = {}, set(), False
+        if os.path.exists(kfn):
             try:
-                z = np.load(fn)
-                s = {k: z[k] for k in z.files}
-                if "n_packed" in s:
-                    s["np"] = s.pop("n_packed")
-                self.stacks[ch] = s
-                while len(self.stacks) > self.MAX_STACKS:
-                    self.stacks.popitem(last=False)
-                return s
+                z = dict(np.load(kfn))
+                have = {k: (z, r) for r, k in enumerate(z["keys"].tolist())}
+                miss = set(z["miss"].tolist()) if "miss" in z else set()
             except Exception:
-                pass
-        idx, dts, ns, eidx, eoff, st, asp, hs, scv, oh = [], [], [], [], [0], [], [], [], [], []
-        for i in range(len(self.items)):
+                have, miss = {}, set()
+        if not have:
+            old = os.path.join(self.stack_dir, code)
+            if os.path.exists(old):
+                # 목록이 그대로인 예전 묶음은 그대로 쓴다 — 서버가 새 목록으로 굽는 동안 옛 목록 서비스가 여기서 읽는다
+                try:
+                    z = np.load(old)
+                    s = {k: z[k] for k in z.files}
+                    if "n_packed" in s:
+                        s["np"] = s.pop("n_packed")
+                    self.stacks[ch] = s
+                    while len(self.stacks) > self.MAX_STACKS:
+                        self.stacks.popitem(last=False)
+                    return s
+                except Exception:
+                    pass
+            cur = set(self.face_keys)
+            for d, lkeys in self._legacy_sources():
+                lf = os.path.join(d, code)
+                if not os.path.exists(lf):
+                    continue
+                try:
+                    z = dict(np.load(lf))
+                    rows_k = [lkeys[i] for i in z["idx"].tolist()]
+                    have = {k: (z, r) for r, k in enumerate(rows_k) if k in cur}     # 옮길 땐 지금 목록 것만
+                    miss = (set(lkeys) - set(rows_k)) & cur                         # 예전에 대 봤는데 글자가 없던 굵기
+                    dirty = True
+                    break
+                except Exception:
+                    have, miss = {}, set()
+        # 모자란 굵기만 계산
+        new_rows = {}
+        for i, k in enumerate(self.face_keys):
+            if k in have or k in miss or self.excluded[i]:
+                continue
             g = self.glyph(i, ch)
             if g is None:
+                miss.add(k)
+            else:
+                new_rows[k] = self._glyph_row(g)
+            dirty = True
+        # 지금 목록 순서로 모은다
+        idx, rows = [], []
+        for i, k in enumerate(self.face_keys):
+            if self.excluded[i]:
                 continue
-            idx.append(i)
-            dts.append(np.minimum(np.rint(np.minimum(g["dt"], DT_CAP) * DT_Q), 255).astype(np.uint8).ravel())
-            ns.append(g["n"].ravel().astype(np.uint8))
-            e = np.flatnonzero(g["edge"]).astype(np.uint16)
-            eidx.append(e)
-            eoff.append(eoff[-1] + len(e))
-            st.append(g["stroke"]); asp.append(g["aspect"]); hs.append(g["h"]); scv.append(g["scv"]); oh.append(g["oh"])
+            if k in new_rows:
+                idx.append(i); rows.append(new_rows[k])
+            elif k in have:
+                z, r = have[k]
+                idx.append(i); rows.append(self._row(z, r))
         s = dict(idx=np.array(idx, int))
-        if idx:
-            n_ = np.stack(ns)
-            nsum = n_.sum(axis=1).astype(np.float32)
-            s.update(dt=np.stack(dts), np=np.packbits(n_, axis=1), nsum=nsum,
-                     eidx=np.concatenate(eidx), eoff=np.array(eoff),
-                     dens=np.diff(eoff) / np.maximum(1.0, nsum),      # 윤곽 픽셀 / 잉크 픽셀 — 속 빈·줄무늬 폰트는 크다
-                     scv=np.array(scv, np.float32), oh=np.stack(oh),
-                     stroke=np.array(st), aspect=np.array(asp), h=np.array(hs, float))
+        if rows:
+            p = self._pack(rows)
+            p["np"] = p.pop("n_packed")
+            s.update(p)
         self.stacks[ch] = s
         while len(self.stacks) > self.MAX_STACKS:
             self.stacks.popitem(last=False)
-        if idx:
-            try:
-                save = {k: v for k, v in s.items() if k != "np"}
-                save["n_packed"] = s["np"]
-                tmp = fn + ".tmp.npz"
-                np.savez(tmp, **save)
-                os.replace(tmp, fn)
-            except Exception:
-                pass
+        if dirty:
+            # 파일에는 지금 목록에 없는 굵기 줄도 남긴다 — 옛 목록 서비스와 새 목록 굽기가 같은 파일을 번갈아 써도 서로 안 지운다
+            keep_keys, keep_rows = [], []
+            for k, (z, r) in have.items():
+                if k not in new_rows:
+                    keep_keys.append(k); keep_rows.append(self._row(z, r))
+            for k, row in new_rows.items():
+                keep_keys.append(k); keep_rows.append(row)
+            if keep_rows:
+                self._save_k1(kfn, keep_keys, keep_rows, miss)
         return s
 
 
@@ -1230,7 +1328,17 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
         # 목록 거르기(_gate)는 1위와 같은 갈래만 남긴다 — 상위 top(5)개 안에서만 찾으면 느낌 점수로 순서가 섞였을 때
         # 같은 갈래가 하나밖에 안 남았다(9/23). 30위 안에서 채우고, 보여 줄 개수는 부르는 쪽이 자른다.
         if info.get("feel_first"):
-            g = _list_first(best["res"][:max(top, GATE_DEPTH)], best["ratio"],
+            res_all, depth = best["res"], max(top, GATE_DEPTH)
+            # 줄 글자: 다시 읽은 글자가 없으면(OCR 없이 글자 위치만 받은 경우) 떼어 낸 글자들로 가른다
+            if is_latin_text(best.get("text") or "".join(ch for ch, _ in best.get("glyphs") or [])):
+                # 영문 줄(2026-09-26 사용자님): 영어 폰트 중에서 먼저, 그다음 한글 폰트에 든 영문 — 각자 느낌 먼저 순서 그대로
+                en = [r for r in res_all if db.info[r[1]]["is_english"]]
+                ko = [r for r in res_all if not db.info[r[1]]["is_english"]]
+                res_all = en[:depth] + ko[:depth]
+                info["latin"] = True
+            else:
+                res_all = res_all[:depth]
+            g = _list_first(res_all, best["ratio"],
                             best_shape=min(r[0] for r in best["res"]) if best["res"] else None)
         else:
             g = _gate(best["res"][:max(top, GATE_DEPTH)], best["ratio"], db, favored=info.get("feel_top"))
@@ -1334,21 +1442,29 @@ FEEL_SLACK_FIRST = float(__import__("os").environ.get("FEEL_SLACK_FIRST", "4"))
 
 
 def _feel_sims(db, glyphs):
-    """(질의 벡터, 굵기별 코사인 배열, {(fid, 굵기): 번호}) — 끄거나 못 재면 (None, None, None)."""
+    """(질의 벡터, 굵기별 코사인 배열, {(fid, 굵기): 번호}) — 끄거나 못 재면 (None, None, None).
+
+    한글이 2자 이상이면 한글 글자로만 한글 기준(REF_CHARS)과, 한글 없이 영문·숫자만 2자 이상이면 영문 기준(REF_LAT)과
+    견준다(2026-09-26). 예전엔 줄의 글자를 다 섞어 한글 기준과 견줘 영문 줄은 코사인이 0.25 아래로 뭉개졌다."""
     if not FEEL_ON:
         return None, None, None
-    masks = [m for ch, m in glyphs if usable(ch)]
-    if len(masks) < 2:
+    ko = [m for ch, m in glyphs if is_hangul(ch)]
+    lat = [m for ch, m in glyphs if usable(ch) and ch.isascii()]
+    if len(ko) >= 2:
+        masks, script = ko, "ko"
+    elif not ko and len(lat) >= 2:
+        masks, script = lat, "lat"
+    else:
         return None, None, None
     try:
         import feel
         if not feel.available():
             return None, None, None
-        R = getattr(db, "_feel_refs", None)
+        R = getattr(db, "_feel_refs" if script == "ko" else "_feel_refs_lat", None)
         if R is None:
             if __import__("os").environ.get("FEEL_REFS_BG") == "1":
                 return None, None, None          # 서버: 기준 벡터는 뒤에서 만드는 중(service._warm) — 다 될 때까지 느낌 점수 없이
-            R = feel.refs(db)
+            R = feel.refs(db, script=script)
         qv = feel.embed(masks)
         if qv is None:
             return None, None, None
@@ -1496,6 +1612,11 @@ def _gate_group(cats):
     9/22 에는 '손글씨 질의에 붓글씨체가 끼면 안 된다'고 나눴는데, 1위가 캘리로 분류된 둥근 손글씨(SANG개미똥구멍)일 때
     손글씨 후보가 다 빠져 '파우치 털기는'에 후보가 2개만 남았다. 고딕·명조·디스플레이는 그대로 따로."""
     return {"손글씨" if c == "캘리" else c for c in cats}
+
+
+def is_latin_text(text):
+    """한글이 없고 영문·숫자가 있는 줄 — 영어 폰트 먼저 보여 준다."""
+    return not any(is_hangul(c) for c in text) and any(usable(c) and c.isascii() for c in text)
 
 
 def _list_first(res, ratio=None, best_shape=None):

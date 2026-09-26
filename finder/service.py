@@ -38,6 +38,7 @@ MAX_SIDE = 1600                     # 이보다 크면 줄여서 본다(OCR 은 
 IMAGE_TTL = 15 * 60                 # 올린 이미지는 15분만 들고 있는다(줄을 고르는 동안)
 MAX_IMAGES = 20                     # JPEG 로 눌러 두므로 한 장 0.3~1MB — 40장 그대로 두면 RGB 배열로 300MB 였다
 RENDER_CACHE = 300
+LATIN_KO = 3                        # 영문 줄에서 영어 폰트 뒤에 보여 줄 '영문이 비슷한 한글 폰트' 수
 TDTD_ABOUT = "https://tdtd.io/fonts/about"   # 타닥타닥 폰트정보(폰트보기) 페이지 — #f=<해시> 로 폰트 하나를 짚는다
 # '비슷해요' 기록(2026-09-23 사용자님 4번) — 순위를 실제 질문으로 다시 가르칠 자료. 이미지·읽은 글자는 남기지 않고
 # 숫자만: 글자 모양의 느낌 수치 128개 + 후보 30개의 모양 점수·느낌 코사인 + 누른 폰트. 한 줄에 JSON 하나.
@@ -100,9 +101,10 @@ def _warm():
             try:
                 import feel
                 if feel.available():
-                    t0 = time.time()
-                    feel.refs(db, log=lambda m: print(m, flush=True))
-                    print("느낌 기준 벡터 준비 끝: %d개 (%.0fs)" % (len(db.items), time.time() - t0), flush=True)
+                    for script in ("ko", "lat"):              # 한글 기준 → 영문 기준(영문만 있는 줄에 쓴다)
+                        t0 = time.time()
+                        feel.refs(db, log=lambda m: print(m, flush=True), script=script)
+                        print("느낌 기준 벡터(%s) 준비 끝: %d개 (%.0fs)" % (script, len(db.items), time.time() - t0), flush=True)
             except Exception as e:
                 print("느낌 기준 벡터 못 만듦:", e, flush=True)
     threading.Thread(target=go, daemon=True).start()
@@ -113,7 +115,8 @@ def health():
     try:
         db, _ = _engine()
         return {"ok": True, "faces": len(db.items), "images": len(_images),
-                "feel": getattr(db, "_feel_refs", None) is not None}
+                "feel": getattr(db, "_feel_refs", None) is not None,
+                "feel_lat": getattr(db, "_feel_refs_lat", None) is not None}
     except Exception as e:                                        # 목록이 아직 없으면
         return JSONResponse({"ok": False, "error": str(e)}, status_code=503)
 
@@ -178,7 +181,14 @@ def match(req: MatchReq):
     text = text_override or r.get("text") or ln["text"]
     out = []
     face_of = {(it["fid"], it["weight"]): it for it in db.items}
-    for score, fid, w, name in r["shown"][:req.top]:
+    if r.get("latin"):
+        # 영문 줄(2026-09-26 사용자님): 영어 폰트 중에서 먼저, 그다음 한글 폰트에 든 영문 — 화면은 두 묶음으로
+        en = [x for x in r["shown"] if db.info[x[1]]["is_english"]][:req.top]
+        ko = [x for x in r["shown"] if not db.info[x[1]]["is_english"]][:LATIN_KO]
+        picked = [(x, "en") for x in en] + [(x, "ko") for x in ko]
+    else:
+        picked = [(x, None) for x in r["shown"][:req.top]]
+    for (score, fid, w, name), group in picked:
         info = db.info[fid]
         link = info["link"]
         it = face_of.get((fid, int(w)))
@@ -186,7 +196,7 @@ def match(req: MatchReq):
             # 타닥타닥 폰트정보 페이지(tdtd.io/fonts/about)의 그 폰트 카드로 바로 스크롤 — fontview.js 가 #f= 을 읽는다
             link = TDTD_ABOUT + "#f=" + it["h"]
         out.append(dict(fid=str(fid), w=int(w), name=name, maker=info["maker"], source=info["source"],
-                        link=link, why=E.explain_text(r.get("explain", {}).get(fid))))
+                        link=link, why=E.explain_text(r.get("explain", {}).get(fid)), group=group))
     ctx["shown"] = [[x["fid"], x["w"]] for x in out]
     rec.setdefault("fb", {})[req.line] = ctx
     return {"text": text, "read": ln["text"], "verdict": r["verdict"], "results": out}
