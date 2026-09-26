@@ -1037,7 +1037,44 @@ function poolPhraseFor(font){
 let customPreview = '';
 function setCustomPreview(v){
   customPreview = (v || '').trim();
+  if(!_fullFonts && customPreview && needsFullFonts(customPreview)) useFullFonts();
   updatePreviews();
+}
+
+/* 카드는 가벼운 미리보기 서브셋(.p, 약 960자)을 받는다(app/font_subset.py).
+   서브셋에 없는 글자를 미리 써보기에 치면 그 글자만 다른 글꼴로 떨어져
+   '깨져' 보인다(2026-09-26). 그럴 때만 카드 폰트를 원본 파일로 바꿔 끼운다.
+   샘플 문장·폰트 이름처럼 서브셋이 이미 담은 글자면 그대로 둔다 — 원본은
+   폰트마다 수백 KB 라 괜히 바꾸면 화면 하나에 수십 MB 가 흐른다.
+
+   서브셋 글자 목록을 여기서 똑같이 만들 수는 없으니, 확실히 들어 있는 것만
+   '안다'고 친다: 공용 문구(ffp-phrases.js), 폰트 이름·제작사, 영숫자·기호. */
+let _fullFonts = false;
+let _knownChars = null;
+function needsFullFonts(text){
+  if(!_knownChars){
+    const s = new Set(" 가나다라마바사아자차카타파하.,!?·…—-~/:;'\"()[]{}%&*+=<>@#₩$€£¥");
+    for(let c = 48; c <= 122; c++) s.add(String.fromCharCode(c));
+    const add = t => { for(const ch of (t || '')) s.add(ch); };
+    (SAMPLE_PHRASES || []).forEach(p => { add(p.ko); add(p.en); });
+    (FONTS || []).forEach(f => { add(f.name); add(f.maker); });
+    _knownChars = s;
+  }
+  for(const ch of text){ if(!_knownChars.has(ch)) return true; }
+  return false;
+}
+function useFullFonts(){
+  _fullFonts = true;
+  /* 이미 등록한 폰트는 같은 이름으로 원본 @font-face 를 하나 더 붙인다.
+     같은 설명자(family·weight·style)의 @font-face 는 뒤에 온 것이 이긴다. */
+  _fontLoaded.forEach(id => {
+    const f = FONTS.find(x => x.id === id);
+    if(!f || (f.webfontFamily && f.fileSource !== 'user')) return;
+    const pw = f.primaryWeight || 0;
+    const ver = f.fileVersion || f.file_version || 0;
+    const url = `/api/fonts/${id}/file/${pw}` + (ver ? `.v${ver}` : '') + '.woff2';
+    addFontFaceRule(`@font-face{font-family:'FFP-${String(id).padStart(3,'0')}';src:url('${url}') format('woff2');font-display:swap;font-weight:normal;font-style:normal}`);
+  });
 }
 function rollPreviewPhrase(){
   _sampleIdx = (_sampleIdx + 1 + Math.floor(Math.random() * (SAMPLE_PHRASES.length - 1))) % SAMPLE_PHRASES.length;
@@ -2754,7 +2791,7 @@ function ensureFontLoaded(id){
   const ver = (f && (f.fileVersion || f.file_version)) || 0;
   // .p — 갤러리 카드는 폰트 이름과 짧은 견본만 그린다. 서버가 그만큼만
   // 담은 서브셋을 내려준다(원본의 10~36%). 아직 없으면 원본이 오므로 안전하다.
-  const url = `/api/fonts/${id}/file/${pw || 0}` + (ver ? `.v${ver}` : '') + '.p.woff2';
+  const url = `/api/fonts/${id}/file/${pw || 0}` + (ver ? `.v${ver}` : '') + (_fullFonts ? '' : '.p') + '.woff2';
   // 받아온 파일을 'normal'로 선언해 둔다. 화면 요소는 기본 굵기로 그려지므로
   // 합성 없이 이 파일이 그대로 쓰인다.
   addFontFaceRule(

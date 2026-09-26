@@ -109,12 +109,16 @@ def preview_text() -> str:
         # 폰트 이름·제작사와 어드민이 넣은 문구 — 미리보기 카드에 그대로 찍힌다.
         try:
             from .database import SessionLocal
-            from .models import Font, PreviewPhrase, UseCasePhrase
+            from .models import Font, PreviewPhrase, UseCase, UseCasePhrase
             db = SessionLocal()
             try:
                 for name, maker in db.query(Font.name, Font.maker).all():
                     chars.update(name or "")
                     chars.update(maker or "")
+                # 용도 이름 — /fonts 용도 칸이 "굿즈 · 스티커" 같은 이름을 그 용도의
+                # 대표 폰트로 그린다. 빠져 있어 '굿'이 다른 글꼴로 떨어졌다(2026-09-26).
+                for (title,) in db.query(UseCase.title).all():
+                    chars.update(title or "")
                 for (meta,) in db.query(Font.meta).all():
                     if isinstance(meta, dict):
                         chars.update(meta.get("preview_text") or "")
