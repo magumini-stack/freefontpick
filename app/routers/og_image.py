@@ -25,6 +25,7 @@
 import gc
 import io
 import os
+import queue
 import shutil
 import threading
 import zipfile
@@ -574,69 +575,134 @@ def _ensure_cached(font: Font) -> tuple[Path, bytes | None]:
     return cache_path, None
 
 
+# ── 없으면 기본 이미지부터, 만드는 건 뒤에서 ─────────────────────────
+#
+# 2026-09-27 새로 등록한 폰트 100여 종의 카드가 비어 있을 때, 구글봇이 그 주소를
+# 부르자 요청마다 생성이 돌았다. 한 장에 20초, 무거운 폰트(#399·#403)는 1분이
+# 넘었다. 앱이 프로세스 하나라 그동안 다른 요청까지 같이 느려져서 폰트 목록
+# (/api/fonts)이 60초 시간초과를 내고 폰트 조합 페이지가 안 열렸다.
+#
+# 그래서 요청은 기다리지 않는다(app/font_subset.py 와 같은 방식).
+#
+#     캐시에 있으면  ->  폰트 카드를 준다
+#     캐시에 없으면  ->  사이트 기본 카드를 곧바로 주고, 일꾼이 뒤에서 하나씩 만든다
+#
+# 기본 카드는 no-cache 로 내보낸다 — 크롤러가 다음에 다시 물으면 그때는 폰트
+# 카드가 나가야 한다. 일꾼은 스레드 하나라 락이 하던 '한 번에 하나' 도 그대로다.
+# 못 만든 것은 프로세스가 살아 있는 동안 다시 시도하지 않는다.
+_DEFAULT_OG = Path(__file__).resolve().parent.parent.parent / "static" / "og-image-v3.png"
+
+_bg_jobs: "queue.Queue[tuple]" = queue.Queue()
+_bg_queued: set = set()
+_bg_failed: set = set()
+_bg_state = threading.Lock()
+_bg_worker = None
+
+
+def _queue_build(key: str, job: tuple) -> None:
+    """생성 일감을 건다. 이미 걸렸거나 실패한 것은 다시 걸지 않는다."""
+    global _bg_worker
+    with _bg_state:
+        if key in _bg_queued or key in _bg_failed:
+            return
+        _bg_queued.add(key)
+        if _bg_worker is None or not _bg_worker.is_alive():
+            _bg_worker = threading.Thread(target=_bg_run, name="og-image", daemon=True)
+            _bg_worker.start()
+    _bg_jobs.put((key,) + job)
+
+
+def _bg_run():
+    from ..database import SessionLocal
+    while True:
+        key, kind, arg = _bg_jobs.get()
+        db = SessionLocal()
+        try:
+            if kind == "font":
+                font = db.query(Font).filter(Font.id == arg).first()
+                if font is not None:
+                    _ensure_cached(font)
+            else:
+                _build_hub(db, arg)
+            print("[og] 만듦 %s" % key, flush=True)
+        except Exception as e:
+            with _bg_state:
+                _bg_failed.add(key)
+            print("[og] 실패 %s: %s: %s" % (key, type(e).__name__, e), flush=True)
+        finally:
+            db.close()
+            with _bg_state:
+                _bg_queued.discard(key)
+            _bg_jobs.task_done()
+
+
+def _default_card():
+    """폰트 카드가 아직 없을 때 내보내는 사이트 기본 카드."""
+    return FileResponse(_DEFAULT_OG, media_type="image/png",
+                        headers={"Cache-Control": "no-cache"})
+
+
 @router.get("/{font_id}/og-image.png")
 def get_og_image(font_id: int, db: Session = Depends(get_db)):
-    from fastapi.responses import Response
-
     font = db.query(Font).filter(Font.id == font_id).first()
     if not font:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
 
-    headers = {"Cache-Control": "public, max-age=86400"}
-    try:
-        cache_path, fallback = _ensure_cached(font)
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"이미지 생성 실패: {e}")
-
+    key = _cache_key(font)
+    cache_path = CACHE_DIR / key
     if cache_path.exists():
-        return FileResponse(cache_path, media_type="image/png", headers=headers)
-    return Response(content=fallback or b"", media_type="image/png", headers=headers)
+        return FileResponse(cache_path, media_type="image/png",
+                            headers={"Cache-Control": "public, max-age=86400"})
+    _queue_build(key, ("font", font.id))
+    return _default_card()
 
 
-@hub_router.get("/{slug}/og-image.png")
-def get_hub_og_image(slug: str, db: Session = Depends(get_db)):
-    """용도 허브 og:image — /use/{slug}를 공유했을 때 뜨는 카드."""
-    from fastapi.responses import Response
+def _hub_target(db: Session, slug: str):
+    """허브 카드에 들어갈 값과 캐시 경로. 허브가 없거나 꺼져 있으면 None."""
     from ..models import UseCase
     from .use_case_route import PICK_CARD_LIMIT, hub_font_total
 
     uc = db.query(UseCase).filter(UseCase.slug == slug).first()
     if uc is None or not uc.is_active:
-        raise HTTPException(status_code=404, detail="허브를 찾을 수 없습니다")
-
+        return None
     picks = [f for f in uc.fonts if f.font is not None][:PICK_CARD_LIMIT]
     lead_font_id = picks[0].font_id if picks else None
     total = hub_font_total(db, uc)
+    key = _hub_cache_key(slug, uc.title, uc.subtitle or "", total, lead_font_id)
+    return key, (uc.title, uc.subtitle or "", total, lead_font_id)
 
-    cache_path = CACHE_DIR / _hub_cache_key(
-        slug, uc.title, uc.subtitle or "", total, lead_font_id
-    )
-    headers = {"Cache-Control": "public, max-age=86400"}
+
+def _build_hub(db: Session, slug: str) -> None:
+    """일꾼 스레드에서 허브 카드를 만든다."""
+    target = _hub_target(db, slug)
+    if target is None:
+        return
+    key, args = target
+    cache_path = CACHE_DIR / key
     if cache_path.exists():
-        return FileResponse(cache_path, media_type="image/png", headers=headers)
-
-    # 폰트 카드와 같은 락을 공유한다 — 메모리 스파이크를 막는 게 목적이라
-    # 종류별로 락을 나누면 동시에 두 건이 돌아 의미가 없어진다.
+        return
     try:
-        with _GEN_LOCK:
-            if cache_path.exists():
-                return FileResponse(cache_path, media_type="image/png", headers=headers)
-            try:
-                data = _generate_hub(uc.title, uc.subtitle or "", total, lead_font_id)
-                try:
-                    cache_path.write_bytes(data)
-                except Exception:
-                    return Response(content=data, media_type="image/png", headers=headers)
-            finally:
-                gc.collect()
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"이미지 생성 실패: {e}")
+        cache_path.write_bytes(_generate_hub(*args))
+    finally:
+        gc.collect()
 
-    return FileResponse(cache_path, media_type="image/png", headers=headers)
+
+@hub_router.get("/{slug}/og-image.png")
+def get_hub_og_image(slug: str, db: Session = Depends(get_db)):
+    """용도 허브 og:image — /use/{slug}를 공유했을 때 뜨는 카드.
+
+    폰트 카드처럼 없으면 기본 카드를 주고 뒤에서 만든다(위 주석 참고).
+    """
+    target = _hub_target(db, slug)
+    if target is None:
+        raise HTTPException(status_code=404, detail="허브를 찾을 수 없습니다")
+    key, _ = target
+    cache_path = CACHE_DIR / key
+    if cache_path.exists():
+        return FileResponse(cache_path, media_type="image/png",
+                            headers={"Cache-Control": "public, max-age=86400"})
+    _queue_build(key, ("hub", slug))
+    return _default_card()
 
 
 @router.post("/og-warm")
