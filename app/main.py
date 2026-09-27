@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
                                RedirectResponse, Response)
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from .compress import SelectiveGZipMiddleware
@@ -209,11 +210,13 @@ def _stamp_assets(html: str) -> str:
 # 주의: TLS 는 앞단에서 끊기므로 앱이 보는 request.url.scheme 은 늘 http 다.
 # 그걸로 판단하면 https 로 들어온 요청까지 https 로 다시 보내 무한 루프가
 # 된다. 방문자가 무슨 프로토콜을 썼는지는 _visitor_scheme 으로만 판단한다.
-CANONICAL_HOST = urlsplit(SITE_URL).hostname or "freefontpick.co.kr"
+CANONICAL_HOST = (urlsplit(SITE_URL).hostname or "").lower()
 
 # 옛 도메인 → 새 도메인 301. 쉼표로 여러 개 적는다.
 #
 #     LEGACY_HOSTS=freefontpick.co.kr,www.freefontpick.co.kr
+#
+# (지금 운영값이 바로 이것이다 — 정본은 SITE_URL=https://freefontpick.tdtd.io)
 #
 # 도메인을 옮길 때 **경로를 그대로 물고 가는 것**이 핵심이다. 등록기관의
 # 도메인 포워딩 기능은 대개 모든 요청을 루트로 보내 버려서, 색인된
@@ -569,9 +572,31 @@ def health(request: Request):
 # 공유 미리보기는 형식을 보고 거른다.
 mimetypes.add_type("image/webp", ".webp")
 
+# 자산 경로(/static/*, /s/{판}/*)로는 **페이지를 내주지 않는다.**
+#
+# static/ 에는 페이지 원본(index.html·font.html …)도 같이 들어 있다. 그걸
+# 자산 경로로 그대로 주면 마커가 안 채워진 채 나간다 — canonical 이
+# "{{FFP_ORIGIN}}/" 같은 깨진 값인데 robots 는 index, follow 라서, 정본과
+# 같은 내용의 중복 주소가 색인될 수 있다(2026-09-27 운영 실측:
+# /static/index.html·/s/아무거나/index.html 이 200). 페이지는 루트 주소로만
+# 연다.
+_PAGE_SUFFIXES = (".html", ".htm")
+
+
+def _is_page_file(path: str) -> bool:
+    return path.lower().rstrip("/").endswith(_PAGE_SUFFIXES)
+
+
+class _AssetFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        if _is_page_file(path):
+            raise StarletteHTTPException(status_code=404)
+        return await super().get_response(path, scope)
+
+
 # /static/* 명시적 경로 (이미지, JS, CSS 등 직접 참조)
 if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    app.mount("/static", _AssetFiles(directory=str(STATIC_DIR)), name="static")
 
 
 # 서버가 마커를 채워야 완성되는 템플릿. 직접 주소로 열면 {{FFP_TITLE}} 같은
@@ -615,7 +640,7 @@ async def serve_stamped_asset(ver: str, full_path: str, request: Request):
     옛 주소(/static/x.js, /header.css)도 그대로 살려 둔다 — 이미 나간
     HTML 을 물고 있는 브라우저가 있고, 외부에서 걸어 둔 것도 있다.
     """
-    if not full_path:
+    if not full_path or _is_page_file(full_path):
         return _static_not_found(request)
     target = STATIC_DIR / (full_path[len("static/"):]
                            if full_path.startswith("static/") else full_path)

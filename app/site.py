@@ -23,9 +23,15 @@ static/*.html 은 파이썬이 아니라 환경변수를 못 읽는다. 그래�
 """
 import os
 
-# 예: SITE_URL=https://freefontpick.co.kr
+# 예: SITE_URL=https://freefontpick.tdtd.io
 # 끝의 / 는 떼어 둔다 — 붙이는 쪽에서 늘 "/경로" 형태로 이어 쓴다.
-SITE_URL = os.getenv("SITE_URL", "https://freefontpick.co.kr").rstrip("/")
+#
+# 기본값은 **지금의 정본**이어야 한다. 환경변수를 빠뜨린 서버·도구가
+# 옛 주소(co.kr)로 canonical·사이트맵을 찍어 내면, 그 옛 주소는 다시
+# 정본으로 301 하므로 신호가 정면으로 부딪힌다(2026-09-27 점검 때 기본값이
+# 아직 co.kr 로 남아 있던 것을 고침). 도구 스크립트(tools/*.py)도 이 값을
+# 가져다 쓴다.
+SITE_URL = os.getenv("SITE_URL", "https://freefontpick.tdtd.io").rstrip("/")
 
 # 정적 HTML 이 쓰는 마커. 값이 아니라 이름을 한 곳에 둔다 —
 # 마커 문자열을 여기저기 적으면 오타가 나도 조용히 안 채워진다.

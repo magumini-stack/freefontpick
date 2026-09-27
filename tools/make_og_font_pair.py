@@ -31,7 +31,9 @@ FONT_DIR = os.path.join(ROOT, 'tools', '_ogfonts')
 OUT = os.path.join(ROOT, 'static', 'og-font-pair.png')
 # 사이트 주소 — app/site.py 와 같은 환경변수를 본다.
 # 도메인을 옮기면 SITE_URL 을 주고 돌린다.
-BASE = os.getenv("SITE_URL", "https://freefontpick.co.kr").rstrip("/")
+# 정본 주소는 app/site.py 한 곳에서만 정한다(환경변수 SITE_URL 이 있으면 그 값).
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from app.site import SITE_URL as BASE  # noqa: E402
 HOST = BASE.split("://", 1)[-1]   # 이미지에 글자로 찍을 때 쓴다
 
 W, H = 1200, 630
