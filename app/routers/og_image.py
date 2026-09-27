@@ -589,6 +589,7 @@ def _ensure_cached(font: Font) -> tuple[Path, bytes | None]:
 #
 # 기본 카드는 no-cache 로 내보낸다 — 크롤러가 다음에 다시 물으면 그때는 폰트
 # 카드가 나가야 한다. 일꾼은 스레드 하나라 락이 하던 '한 번에 하나' 도 그대로다.
+# 실제 생성은 별도 프로세스에서 한다(app/og_build.py — 스레드로는 앱이 여전히 멈췄다).
 # 못 만든 것은 프로세스가 살아 있는 동안 다시 시도하지 않는다.
 _DEFAULT_OG = Path(__file__).resolve().parent.parent.parent / "static" / "og-image-v3.png"
 
@@ -612,25 +613,35 @@ def _queue_build(key: str, job: tuple) -> None:
     _bg_jobs.put((key,) + job)
 
 
+_ROOT = Path(__file__).resolve().parent.parent.parent
+# 무거운 폰트는 1분을 넘긴다(#399·#403). 이보다 오래 걸리면 걸린 것으로 보고 끊는다.
+_BUILD_TIMEOUT = 300
+
+
 def _bg_run():
-    from ..database import SessionLocal
+    """일감을 하나씩 꺼내 별도 프로세스(app/og_build.py)로 만든다.
+
+    같은 프로세스의 스레드로 만들면 GIL 을 두고 다투어 앱 전체가 멈춘다 —
+    자세한 이유는 app/og_build.py 주석. 끝나기를 기다렸다가 다음 것을 띄우므로
+    동시에 하나만 돈다(메모리 스파이크를 막던 _GEN_LOCK 과 같은 효과).
+    """
+    import subprocess
+    import sys
     while True:
         key, kind, arg = _bg_jobs.get()
-        db = SessionLocal()
         try:
-            if kind == "font":
-                font = db.query(Font).filter(Font.id == arg).first()
-                if font is not None:
-                    _ensure_cached(font)
-            else:
-                _build_hub(db, arg)
+            r = subprocess.run(
+                [sys.executable, "-m", "app.og_build", kind, str(arg)],
+                cwd=str(_ROOT), capture_output=True, text=True,
+                timeout=_BUILD_TIMEOUT)
+            if r.returncode != 0:
+                raise RuntimeError((r.stderr or "").strip()[-300:] or "exit %d" % r.returncode)
             print("[og] 만듦 %s" % key, flush=True)
         except Exception as e:
             with _bg_state:
                 _bg_failed.add(key)
             print("[og] 실패 %s: %s: %s" % (key, type(e).__name__, e), flush=True)
         finally:
-            db.close()
             with _bg_state:
                 _bg_queued.discard(key)
             _bg_jobs.task_done()
