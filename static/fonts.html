@@ -584,6 +584,10 @@
     .font-preview-text{color:var(--text-primary);line-height:1.32;word-break:keep-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;-webkit-user-select:none;user-select:none}
     .card-divider{height:1px;background:var(--border);margin-bottom:12px}
     .font-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;min-width:0}
+    /* 이름·제작사 두 줄을 싸는 칸. min-width:0 이 없으면 제작사 이름이 긴 폰트
+       (Rubik — 제작자 다섯 명)가 말줄임 대신 칸을 밀어 넓혀, 폰에서 페이지 전체가
+       옆으로 밀렸다. 고정 헤더까지 그 폭으로 늘어나 검색창이 커진 것처럼 보였다(2026-09-27). */
+    .font-meta > div{min-width:0}
     /* 두 줄로 읽는다 — 윗줄은 폰트 자체(이름·종수), 아랫줄은 그 폰트에 붙는 것
        (배포처·태그·순위). 순위는 늘 맨 오른쪽이다. */
     .font-line1{display:flex;align-items:center;gap:6px;min-width:0;margin-bottom:3px}
