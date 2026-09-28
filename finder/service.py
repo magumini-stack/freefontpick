@@ -7,6 +7,7 @@
     POST /find/match    {image_id, line, text?} → {text, results:[{fid, w, name, maker, source, link, why}], verdict}
     GET  /find/render   ?fid=&w=&text=   → 그 폰트로 글자를 그린 PNG (타닥타닥 유료 폰트 파일은 안 나간다)
     POST /find/feedback {image_id, line, kind, fid?, w?, on} → 사용자가 누른 '비슷해요'·'비슷한 게 없어요'를 남긴다
+날짜별 사용 수는 /data/usage.json(한국 시각 날짜 → 항목별 수) — 숫자만, 이미지·글자·접속 주소는 남기지 않는다.
     GET  /find/health
 
 실험실(Desktop\\projects\\fontfinder-lab)의 engine_v0.py·typo.py·finder.py 를 그대로 옮겨 쓴다.
@@ -19,6 +20,7 @@ import os
 import secrets
 import threading
 import time
+from datetime import datetime, timedelta, timezone
 
 import cv2
 import numpy as np
@@ -43,6 +45,12 @@ TDTD_ABOUT = "https://tdtd.io/fonts/about"   # 타닥타닥 폰트정보(폰트�
 # '비슷해요' 기록(2026-09-23 사용자님 4번) — 순위를 실제 질문으로 다시 가르칠 자료. 이미지·읽은 글자는 남기지 않고
 # 숫자만: 글자 모양의 느낌 수치 128개 + 후보 30개의 모양 점수·느낌 코사인 + 누른 폰트. 한 줄에 JSON 하나.
 FEEDBACK = os.environ.get("FINDER_FEEDBACK", os.path.join(DATA, "feedback", "feedback.jsonl"))
+# 날짜별 사용 수(2026-09-28 사용자님) — 에그호스팅 연결로 이 파일을 읽어 본다. 날짜는 한국 시각(서머타임 없어 +9 고정).
+#   detect 이미지 올림 · detect_nolines 그중 글자 줄을 못 찾음 · detect_sec 올림 처리 초 합
+#   match 줄 찾기 · match_sec 줄 찾기 초 합(앞 요청 기다린 시간 포함) · match_latin 영문 줄 · match_loose 똑같은 폰트 없이
+#   느낌이 비슷한 것만 · match_edit 읽은 글자를 고쳐서 다시 찾음 · similar/none '비슷해요'/'비슷한 게 없어요'(…_off 는 취소)
+USAGE = os.environ.get("FINDER_USAGE", os.path.join(DATA, "usage.json"))
+KST = timezone(timedelta(hours=9))
 
 app = FastAPI(title="freefontpick finder")
 _db = None
@@ -51,6 +59,30 @@ _lock = threading.Lock()            # 무거운 일은 한 번에 하나(2코어
 _images = {}                        # image_id → dict(img, lines, t)
 _renders = {}                       # (fid, w, text) → png bytes
 _fb_lock = threading.Lock()
+_usage_lock = threading.Lock()
+_usage = None                       # 날짜 → {항목: 수} (usage.json 을 처음 셀 때 읽어 온다)
+
+
+def _count(**inc):
+    """오늘(한국 시각) 항목별 수를 더하고 usage.json 에 바로 쓴다. 세다가 실패해도 찾기는 그대로 돈다."""
+    global _usage
+    try:
+        day = datetime.now(KST).strftime("%Y-%m-%d")
+        with _usage_lock:
+            if _usage is None:
+                try:
+                    _usage = json.load(open(USAGE, encoding="utf-8"))
+                except Exception:
+                    _usage = {}
+            d = _usage.setdefault(day, {})
+            for k, v in inc.items():
+                d[k] = round(d.get(k, 0) + v, 1) if isinstance(v, float) else d.get(k, 0) + v
+            tmp = USAGE + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(_usage, f, ensure_ascii=False, indent=1, sort_keys=True)
+            os.replace(tmp, USAGE)
+    except Exception as e:
+        print("사용 수 못 셈:", e, flush=True)
 
 
 def _engine():
@@ -123,6 +155,7 @@ def health():
 
 @app.post("/find/detect")
 async def detect(image: UploadFile = File(...)):
+    t0 = time.time()
     raw = await image.read()
     if not raw or len(raw) > MAX_UPLOAD:
         raise HTTPException(413, "이미지는 8MB 까지만 받습니다")
@@ -144,6 +177,7 @@ async def detect(image: UploadFile = File(...)):
     # RGB 배열(최대 1600² × 3 = 7.7MB)로 들고 있지 않고 JPEG 로 눌러 둔다 — 700MB 울타리에서 여러 사람이 올리면 위험했다
     ok, jpg = cv2.imencode(".jpg", img[:, :, ::-1], [cv2.IMWRITE_JPEG_QUALITY, 95])
     _images[image_id] = dict(jpg=jpg.tobytes(), lines=lines, t=time.time())
+    _count(detect=1, detect_sec=round(time.time() - t0, 1), **({} if lines else {"detect_nolines": 1}))
     return {
         "image_id": image_id, "width": int(img.shape[1]), "height": int(img.shape[0]),
         "lines": [dict(i=i, quad=[[float(x), float(y)] for x, y in ln["quad"]], text=ln["text"], conf=round(float(ln["conf"]), 3))
@@ -160,6 +194,7 @@ class MatchReq(BaseModel):
 
 @app.post("/find/match")
 def match(req: MatchReq):
+    t0 = time.time()
     rec = _images.get(req.image_id)
     if rec is None:
         raise HTTPException(410, "이미지가 지워졌습니다. 다시 올려 주세요")
@@ -199,6 +234,14 @@ def match(req: MatchReq):
                         link=link, why=E.explain_text(r.get("explain", {}).get(fid)), group=group))
     ctx["shown"] = [[x["fid"], x["w"]] for x in out]
     rec.setdefault("fb", {})[req.line] = ctx
+    inc = dict(match=1, match_sec=round(time.time() - t0, 1))
+    if r.get("latin"):
+        inc["match_latin"] = 1
+    if r.get("verdict") == "loose":
+        inc["match_loose"] = 1
+    if text_override:
+        inc["match_edit"] = 1
+    _count(**inc)
     return {"text": text, "read": ln["text"], "verdict": r["verdict"], "results": out}
 
 
@@ -250,6 +293,7 @@ def feedback(req: FeedbackReq):
         os.makedirs(os.path.dirname(FEEDBACK), exist_ok=True)
         with open(FEEDBACK, "a", encoding="utf-8") as f:
             f.write(line + "\n")
+    _count(**{req.kind + ("" if req.on else "_off"): 1})
     return {"ok": True}
 
 
