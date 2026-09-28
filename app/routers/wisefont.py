@@ -202,6 +202,17 @@ WISEFONTS = [
         "tags": ["명조", "감성"],
         "font_id": 154,
     },
+    {
+        "slug": "wildaction",
+        "ko_full": "TDTD와일드액션",
+        "name": "와일드액션",
+        "full_name": "TDTDWildAction",
+        "formats": "TTF, OTF",
+        "weights": "1종 Bold",
+        "glyphs": "완성형 11,172자",
+        "tags": ["제목용", "역동적"],
+        "font_id": 501,
+    },
 ]
 
 _BY_SLUG = {f["slug"]: f for f in WISEFONTS}
