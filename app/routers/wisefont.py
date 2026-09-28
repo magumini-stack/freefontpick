@@ -209,7 +209,8 @@ WISEFONTS = [
         "full_name": "TDTDWildAction",
         "formats": "TTF, OTF",
         "weights": "1종 Bold",
-        "glyphs": "완성형 11,172자",
+        # 코드표에는 11,172자가 다 있지만 모양이 있는 것은 2,780자다(나머지는 빈 글리프).
+        "glyphs": "완성형 2,780자 (KS 2,350자 + 430자)",
         "tags": ["제목용", "역동적"],
         "font_id": 501,
     },
