@@ -49,6 +49,7 @@ def init_db():
         _migrate_newfont_hub(db)
         _migrate_luxury_hub(db)
         _patch_luxury_hub_title(db)
+        _migrate_impact_curated_only(db)
         _migrate_fancy_intros(db)
         _migrate_curator_intros(db)
         _migrate_summaries(db)
@@ -682,6 +683,35 @@ def _migrate_luxury_hub(db: Session):
         done.value = "1"
     db.commit()
     print(f"[migrate] '브랜딩' 허브 생성 완료 (폰트 {rank}종)")
+
+
+IMPACT_CURATED_ONLY_KEY = "impact_hub_curated_only_v1"
+
+
+def _migrate_impact_curated_only(db: Session):
+    """임팩트 허브에서 태그 자동 목록을 떼고, 고른 폰트만 보이게 한다.
+
+    이 허브는 '시선을 끄는 제목용' 태그가 붙은 폰트를 전부 뒤에 이어 붙였다.
+    9월에 폰트를 200종 가까이 들이면서 그 태그가 50종을 넘어, 허브가 67종이
+    됐다(2026-09-28 사용자님: "너무 많다, 30종 이내로"). 큐레이션 30종만 남긴다.
+
+    태그 자체는 그대로 둔다 — 전체 폰트 보기의 필터로 계속 쓰인다.
+    허브의 폰트 목록은 어드민에서 30종으로 채운다(이 함수는 목록을 건드리지 않는다).
+    """
+    from .models import UseCase
+
+    done = db.query(AppMeta).filter(AppMeta.key == IMPACT_CURATED_ONLY_KEY).first()
+    if done and done.value == "1":
+        return
+    uc = db.query(UseCase).filter(UseCase.slug == "impact").first()
+    if uc is not None and uc.tag_id is not None:
+        uc.tag_id = None
+        print("[migrate] 임팩트 허브: 태그 자동 목록을 뗐습니다 (큐레이션만 노출)")
+    if done is None:
+        db.add(AppMeta(key=IMPACT_CURATED_ONLY_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
 
 
 def _patch_luxury_hub_title(db: Session):
