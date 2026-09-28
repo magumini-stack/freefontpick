@@ -56,6 +56,11 @@ def hub_font_total(db: Session, uc: UseCase) -> int:
 
 @router.get("/use/{slug}", response_class=HTMLResponse)
 def use_case_page(request: Request, slug: str, db: Session = Depends(get_db)):
+    # 합쳐져 꺼진 허브는 남은 허브로 보낸다(app/use_case_reshape.py). 404 로 두면
+    # 색인된 주소와 외부 링크가 끊긴다.
+    from ..use_case_reshape import HUB_REDIRECTS
+    if slug in HUB_REDIRECTS:
+        return RedirectResponse(f"/use/{HUB_REDIRECTS[slug]}", status_code=301)
     uc = db.query(UseCase).filter(UseCase.slug == slug).first()
     if uc is None or not uc.is_active:
         return not_found_page()

@@ -50,6 +50,7 @@ def init_db():
         _migrate_luxury_hub(db)
         _patch_luxury_hub_title(db)
         _migrate_impact_curated_only(db)
+        _migrate_hub_reshape_2026_09(db)
         _migrate_fancy_intros(db)
         _migrate_curator_intros(db)
         _migrate_summaries(db)
@@ -712,6 +713,102 @@ def _migrate_impact_curated_only(db: Session):
     else:
         done.value = "1"
     db.commit()
+
+
+HUB_RESHAPE_KEY = "hub_reshape_2026_09_v1"
+
+
+def _migrate_hub_reshape_2026_09(db: Session):
+    """용도 허브 개편을 한 번만 적용한다. 무엇을 왜 바꾸는지는 app/use_case_reshape.py.
+
+    어드민에서 고친 뒤라 시드(_seed_use_cases)는 손대지 않으므로 여기서 직접 고친다.
+    한 번 돈 뒤에는 어드민에서 다시 고쳐도 되돌리지 않는다.
+    """
+    from .models import UseCase, UseCaseFont, UseCasePhrase
+    from . import use_case_reshape as R
+
+    done = db.query(AppMeta).filter(AppMeta.key == HUB_RESHAPE_KEY).first()
+    if done and done.value == "1":
+        return
+
+    by_slug = {u.slug: u for u in db.query(UseCase).all()}
+    fonts = {f.id: f for f in db.query(Font).all()}
+
+    def set_picks(uc, picks):
+        db.query(UseCaseFont).filter(UseCaseFont.use_case_id == uc.id).delete()
+        rank = 0
+        for font_id, name, reason in picks:
+            f = fonts.get(font_id)
+            if f is None:
+                print(f"[migrate] 허브 개편: {uc.slug} 폰트 없음 id={font_id}({name})")
+                continue
+            if f.name != name:
+                print(f"[migrate] 허브 개편: 이름 불일치 id={font_id} DB='{f.name}' 기대='{name}'")
+            rank += 1
+            db.add(UseCaseFont(use_case_id=uc.id, font_id=font_id, rank=rank, reason=reason))
+
+    def set_phrases(uc, texts):
+        db.query(UseCasePhrase).filter(UseCasePhrase.use_case_id == uc.id).delete()
+        for i, t in enumerate(texts):
+            db.add(UseCasePhrase(use_case_id=uc.id, text=t, sort_order=(i + 1) * 10))
+
+    # ① UI 를 보고서에 합친다 — report 가 남고 ui 는 끈다(주소는 301).
+    rep, ui = by_slug.get("report"), by_slug.get("ui")
+    if rep is not None:
+        h = R.BODY_HUB
+        rep.title, rep.subtitle = h["title"], h["subtitle"]
+        rep.criteria, rep.howto, rep.tips = h["criteria"], h["howto"], h["tips"]
+        rep.tag_id = None
+        db.flush()
+        set_picks(rep, R.BODY_PICKS)
+        set_phrases(rep, h["phrases"])
+    if ui is not None:
+        ui.is_active = False
+
+    # ② 상세페이지 — 이름·기준을 바꾸고 커머스 헤드카피 중심으로 다시 고른다.
+    prod = by_slug.get("product")
+    if prod is not None:
+        h = R.PRODUCT_HUB
+        prod.title, prod.subtitle, prod.criteria = h["title"], h["subtitle"], h["criteria"]
+        db.flush()
+        set_picks(prod, R.PRODUCT_PICKS)
+
+    # ③ 새 칸 '영문 폰트'
+    h = R.ENGLISH_HUB
+    eng = by_slug.get(h["slug"])
+    if eng is None:
+        eng = UseCase(slug=h["slug"], sort_order=0)
+        db.add(eng)
+        by_slug[h["slug"]] = eng
+    eng.title, eng.subtitle = h["title"], h["subtitle"]
+    eng.criteria, eng.howto, eng.tips = h["criteria"], h["howto"], h["tips"]
+    eng.tag_id = None
+    eng.is_active = True
+    db.flush()
+    set_picks(eng, R.ENGLISH_PICKS)
+    set_phrases(eng, h["phrases"])
+
+    # ④ 이름
+    for slug, title in R.RENAMES.items():
+        if slug in by_slug:
+            by_slug[slug].title = title
+
+    # ⑤ 순서 — 목록에 없는 허브는 맨 뒤로
+    for i, slug in enumerate(R.ORDER):
+        if slug in by_slug:
+            by_slug[slug].sort_order = (i + 1) * 10
+    tail = (len(R.ORDER) + 1) * 10
+    for slug, uc in by_slug.items():
+        if slug not in R.ORDER:
+            uc.sort_order = tail
+            tail += 10
+
+    if done is None:
+        db.add(AppMeta(key=HUB_RESHAPE_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+    print("[migrate] 용도 허브 개편 완료 (ui→report 합침, english 추가, 이름·순서)")
 
 
 def _patch_luxury_hub_title(db: Session):
