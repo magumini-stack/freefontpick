@@ -4372,8 +4372,7 @@ async function refreshMagazineLink(id){
 }
 async function deleteMagazineLink(id){
   const r = MZ_LINKS.find(x => x.id === id);
-  if(!confirm('매거진에서 이 글을 뺄까요?
-' + (r ? r.title : ''))) return;
+  if(!confirm('매거진에서 이 글을 뺄까요?\n' + (r ? r.title : ''))) return;
   try { await apiFetch('/admin/magazine-links/' + id, {method:'DELETE'}); showToast('뺐어요'); }
   catch(e){ showToast(e.message); }
   await refreshMagazine();
