@@ -448,6 +448,7 @@
     <button class="tab-btn" onclick="switchTab('pairings',this)">페어링 관리</button>
     <button class="tab-btn" onclick="switchTab('phrases',this)">문구 관리</button>
     <button class="tab-btn" onclick="switchTab('usecases',this)">용도 관리</button>
+    <button class="tab-btn" onclick="switchTab('magazine',this)">매거진</button>
     <button class="tab-btn" onclick="switchTab('stats',this)">통계</button>
   </div>
 
@@ -612,6 +613,30 @@
       </table>
       <div id="useCaseEmpty" class="empty" style="display:none">
         <i class="ti ti-layout-grid" aria-hidden="true"></i>등록된 용도 허브가 없어요
+      </div>
+    </div>
+  </div>
+
+  <!-- MAGAZINE TAB (티스토리 글 걸기, 2026-09-29) -->
+  <div class="tab-panel" id="tab-magazine">
+    <p style="font-size:12px;color:var(--text-muted);margin:2px 0 14px;line-height:1.7">
+      <code>/magazine</code> 맨 위 격자에 거는 <b>티스토리 글</b>이에요. 글 주소만 넣으면 대표 사진과 제목을 글에서 읽어 옵니다.<br>
+      새 글은 맨 앞에 붙어요. 글 제목이나 대표 사진을 바꿨다면 <b>다시 읽기</b>를 누르세요. 대표 사진은 폰트픽 서버에 받아 둡니다(티스토리 사진 주소는 하루쯤 지나면 만료돼요).
+    </p>
+    <div class="toolbar">
+      <input type="text" id="mzUrl" placeholder="https://블로그.tistory.com/123" style="flex:1;min-width:260px" onkeydown="if(event.key==='Enter')addMagazineLink()">
+      <button class="btn-primary" id="mzAddBtn" onclick="addMagazineLink()"><i class="ti ti-plus" aria-hidden="true"></i> 글 추가</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:110px">대표 사진</th><th>제목</th><th style="width:100px">발행일</th>
+          <th style="text-align:right;width:190px">관리</th>
+        </tr></thead>
+        <tbody id="mzTableBody"></tbody>
+      </table>
+      <div id="mzEmpty" class="empty" style="display:none">
+        <i class="ti ti-article" aria-hidden="true"></i>아직 건 글이 없어요 — 지금은 매거진에 폰트픽 가이드 글만 보입니다
       </div>
     </div>
   </div>
@@ -1755,6 +1780,7 @@ function switchTab(tab, btn){
   if(tab === 'phrases') refreshPhrases();
   if(tab === 'usecases') refreshUseCases();
   if(tab === 'stats') refreshStats();
+  if(tab === 'magazine') refreshMagazine();
 }
 
 /* ════════════════════════════════════════
@@ -4288,6 +4314,69 @@ function askDeleteSubmission(id){
 function deleteSubmissionFromModal(){
   if(!currentSubmissionId) return;
   askDeleteSubmission(currentSubmissionId);
+}
+
+/* ════════════════════════════════════════
+   매거진 — 티스토리 글 걸기 (2026-09-29)
+════════════════════════════════════════ */
+let MZ_LINKS = [];
+async function refreshMagazine(){
+  try { MZ_LINKS = await apiFetch('/magazine-links'); }
+  catch(e){ showToast('매거진 글을 불러오지 못했어요: ' + e.message); return; }
+  const body = document.getElementById('mzTableBody');
+  document.getElementById('mzEmpty').style.display = MZ_LINKS.length ? 'none' : 'block';
+  body.innerHTML = MZ_LINKS.map((r, i) => `
+    <tr>
+      <td>${r.thumb ? `<img src="${escapeHtml(r.thumb)}" alt="" style="width:96px;aspect-ratio:16/10;object-fit:cover;border-radius:6px;display:block">` : '<span style="color:var(--text-muted);font-size:12px">사진 없음</span>'}</td>
+      <td><a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" style="color:inherit;font-weight:600">${escapeHtml(r.title)}</a>
+        <div style="font-size:11.5px;color:var(--text-muted);margin-top:3px">${escapeHtml(r.url)}</div></td>
+      <td style="font-size:12.5px">${escapeHtml(r.published || '')}</td>
+      <td><div style="display:flex;gap:4px;justify-content:flex-end">
+        <button class="btn-icon" title="앞으로" onclick="moveMagazineLink(${i},-1)" ${i===0?'disabled':''}><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
+        <button class="btn-icon" title="뒤로" onclick="moveMagazineLink(${i},1)" ${i===MZ_LINKS.length-1?'disabled':''}><i class="ti ti-arrow-down" aria-hidden="true"></i></button>
+        <button class="btn-icon" title="다시 읽기" onclick="refreshMagazineLink(${r.id})"><i class="ti ti-refresh" aria-hidden="true"></i></button>
+        <button class="btn-icon" title="빼기" onclick="deleteMagazineLink(${r.id})"><i class="ti ti-trash" aria-hidden="true"></i></button>
+      </div></td>
+    </tr>`).join('');
+}
+async function addMagazineLink(){
+  const inp = document.getElementById('mzUrl');
+  const url = inp.value.trim();
+  if(!url) return;
+  const btn = document.getElementById('mzAddBtn');
+  btn.disabled = true;
+  try {
+    const r = await apiFetch('/admin/magazine-links', {method:'POST', body:{url}});
+    inp.value = '';
+    showToast('추가했어요: ' + r.title);
+    await refreshMagazine();
+  } catch(e){ showToast(e.message); }
+  finally { btn.disabled = false; }
+}
+async function moveMagazineLink(i, dir){
+  const j = i + dir;
+  if(j < 0 || j >= MZ_LINKS.length) return;
+  const order = MZ_LINKS.slice();
+  [order[i], order[j]] = [order[j], order[i]];
+  // 순서를 10 간격으로 다시 매긴다 — 둘만 맞바꾸면 같은 값끼리 순서가 흔들린다.
+  for(let k = 0; k < order.length; k++){
+    if(order[k].sort_order !== k * 10)
+      await apiFetch('/admin/magazine-links/' + order[k].id, {method:'PATCH', body:{sort_order:k*10}});
+  }
+  await refreshMagazine();
+}
+async function refreshMagazineLink(id){
+  try { const r = await apiFetch('/admin/magazine-links/' + id + '/refresh', {method:'POST'}); showToast('다시 읽었어요: ' + r.title); }
+  catch(e){ showToast(e.message); }
+  await refreshMagazine();
+}
+async function deleteMagazineLink(id){
+  const r = MZ_LINKS.find(x => x.id === id);
+  if(!confirm('매거진에서 이 글을 뺄까요?
+' + (r ? r.title : ''))) return;
+  try { await apiFetch('/admin/magazine-links/' + id, {method:'DELETE'}); showToast('뺐어요'); }
+  catch(e){ showToast(e.message); }
+  await refreshMagazine();
 }
 
 /* ════════════════════════════════════════

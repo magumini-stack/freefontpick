@@ -287,6 +287,29 @@ class PageView(Base):
     )
 
 
+class MagazineLink(Base):
+    """매거진 목록에 거는 티스토리 글 (2026-09-29).
+
+    매거진에 우리 글을 따로 쓰지 않고, 티스토리에 쓴 글을 대표 사진·제목 카드로
+    모아 보여준다. 어드민이 주소만 넣으면 서버가 글의 og 태그를 읽어 채운다
+    (app/routers/magazine_links.py).
+
+    대표 사진은 파일로 받아 둔다(image_file). 티스토리 og:image 주소에는 하루
+    남짓이면 만료되는 서명이 붙어 있어서, 주소를 그대로 걸면 다음 날 깨진다.
+    """
+    __tablename__ = "magazine_links"
+
+    id = Column(Integer, primary_key=True, index=True)
+    url = Column(String(500), nullable=False, unique=True)
+    title = Column(String(300), nullable=False, default="")
+    description = Column(String(500), nullable=False, default="")
+    image_file = Column(String(100), nullable=False, default="")
+    published = Column(String(40), nullable=False, default="")   # 글 발행일 (YYYY-MM-DD)
+    sort_order = Column(Integer, nullable=False, default=0)       # 작을수록 앞
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
 class AppMeta(Base):
     """앱 내부 메타 (시드 버전 등 키-값 저장)"""
     __tablename__ = "app_meta"

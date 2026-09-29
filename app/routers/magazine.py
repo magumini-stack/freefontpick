@@ -217,13 +217,45 @@ POST_CTA = (
 )
 
 
+def _link_card(r) -> str:
+    """티스토리 글 카드 — 대표 사진 위, 제목 아래. 새 창으로 블로그를 연다."""
+    from .magazine_links import _out
+    o = _out(r)
+    img = (f'<img src="{_esc(o.thumb)}" alt="" loading="lazy" decoding="async">'
+           if o.thumb else '<i class="ti ti-article" aria-hidden="true"></i>')
+    date = f'<span class="mz-bdate">{_esc(o.published)}</span>' if o.published else ""
+    return (
+        f'<a class="mz-bcard" href="{_esc(o.url)}" target="_blank" rel="noopener">'
+        f'<div class="mz-bthumb">{img}</div>'
+        f'<h2>{_esc(o.title)}</h2>{date}</a>'
+    )
+
+
 @router.get("/magazine", response_class=HTMLResponse)
 def magazine_list(db: Session = Depends(get_db)):
     posts = _sorted_posts()
-    body = MZ_INTRO + ('<div class="mz-list">'
-            + "".join(_card(p, i == 0) for i, p in enumerate(posts))
-            + "</div>")
+    # 2026-09-29 부터 매거진은 티스토리 글을 모아 거는 곳이다(app/routers/magazine_links.py).
+    # 전에 쓴 가이드 글은 주소가 색인돼 있어 지우지 않고 아래에 남긴다.
+    from .magazine_links import ordered
+    try:
+        links = ordered(db)
+    except Exception:
+        links = []
+    guide = ('<div class="mz-list">'
+             + "".join(_card(p, i == 0 and not links) for i, p in enumerate(posts))
+             + "</div>")
+    if links:
+        body = ('<div class="mz-grid">' + "".join(_link_card(r) for r in links) + "</div>"
+                + '<h2 class="mz-sec">폰트픽 가이드</h2>' + MZ_INTRO + guide)
+        lead = ("블로그에 올린 글을 모았습니다. 글을 누르면 블로그에서 전체 글을 읽을 수 "
+                "있고, 아래에는 폰트를 고르고 쓰는 법을 정리한 가이드가 있습니다.")
+    else:
+        body = MZ_INTRO + guide
+        lead = ("무료 폰트를 고르고 쓰는 데 필요한 것을 정리했습니다. "
+                "폰트픽이 폰트를 하나씩 열어 재어 보면서 알게 된 것들입니다.")
 
+    items = ([(r.title, r.url) for r in links]
+             + [(p["title"], f'{BASE_URL}/magazine/{p["slug"]}') for p in posts])
     json_ld = _json.dumps([{
         "@context": "https://schema.org",
         "@type": "CollectionPage",
@@ -235,9 +267,8 @@ def magazine_list(db: Session = Depends(get_db)):
         "mainEntity": {
             "@type": "ItemList",
             "itemListElement": [
-                {"@type": "ListItem", "position": i + 1, "name": p["title"],
-                 "url": f'{BASE_URL}/magazine/{p["slug"]}'}
-                for i, p in enumerate(posts)
+                {"@type": "ListItem", "position": i + 1, "name": n, "url": u}
+                for i, (n, u) in enumerate(items)
             ],
         },
     }, _crumbs(("폰트픽", "/"), ("매거진", "/magazine"))], ensure_ascii=False)
@@ -245,8 +276,7 @@ def magazine_list(db: Session = Depends(get_db)):
     return _render(
         title=LIST_TITLE, desc=LIST_DESC, canonical=f"{BASE_URL}/magazine",
         h1="폰트 매거진",
-        lead="무료 폰트를 고르고 쓰는 데 필요한 것을 정리했습니다. "
-             "폰트픽이 폰트를 하나씩 열어 재어 보면서 알게 된 것들입니다.",
+        lead=lead,
         body=body, json_ld=json_ld,
     )
 
