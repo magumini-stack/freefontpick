@@ -1,13 +1,16 @@
-"""매거진 — /magazine (목록) + /magazine/{slug} (글)
+"""매거진 — /magazine
 
-use_case_route.py 와 같은 방식이다. static/magazine.html 의 {{MZ_*}} 마커를
-서버가 채워 완성된 HTML 로 내보낸다. 목록과 글이 템플릿 하나를 함께 쓰는데,
-머리말과 본문만 다르고 나머지(헤더·메타·스타일)가 같아서다. 파일을 둘로
-나누면 스타일을 두 곳에서 고쳐야 하고, 그러다 한쪽만 고쳐진다.
+2026-09-29 부터 매거진은 티스토리 블로그 글을 대표 사진·제목 격자로 모아 거는
+곳이다. 글 목록은 어드민 '매거진' 탭에서 관리한다(app/routers/magazine_links.py).
+
+전에 코드로 써 두었던 가이드 글 8편(/magazine/{slug})은 사용자님 지시로 지웠다.
+주소가 색인돼 있고 다른 사이트에서 걸었을 수 있어서, 404 대신 /magazine 으로 301.
+
+/about(소개)도 이 라우터에 있다 — 옛 /about.html 이 매거진 첫 글로 옮겨 갔던 인연.
+static/magazine.html 의 {{MZ_*}} 마커를 서버가 채워 내보낸다.
 """
 import html as _html
 import json as _json
-import re
 from pathlib import Path
 
 from fastapi import APIRouter, Depends
@@ -16,8 +19,6 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..header import inject_header, not_found_page
-from ..magazine import POSTS, BY_SLUG, file_src, image_src
-from ..models import Font, UseCase
 
 router = APIRouter(tags=["magazine"])
 
@@ -26,19 +27,15 @@ TEMPLATE_PATH = STATIC_DIR / "magazine.html"
 # 사이트 주소는 app/site.py 한 곳에서만 정한다.
 from ..site import SITE_URL as BASE_URL
 
-# 발행처 — Article 구조화 데이터에 로고까지 넣어 준다 (구글 권장).
-PUBLISHER = {
-    "@type": "Organization",
-    "name": "폰트픽",
-    "url": BASE_URL,
-    "logo": {"@type": "ImageObject", "url": f"{BASE_URL}/logo.png",
-             "width": 306, "height": 64},
+# 지운 가이드 글 주소 → /magazine 으로 301
+RETIRED_SLUGS = {
+    "font-guide", "by-purpose", "pairing", "license", "glyph-count",
+    "webfont", "text-on-photo", "weight-numbers",
 }
 
 
 def _crumbs(*steps) -> dict:
-    """빵부스러기 구조화 데이터. 화면에는 경로가 있는데 마크업이 없어서
-    검색결과에 경로가 안 나오고 있었다. (이름, 주소) 를 순서대로 받는다."""
+    """빵부스러기 구조화 데이터. (이름, 주소) 를 순서대로 받는다."""
     return {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -49,105 +46,16 @@ def _crumbs(*steps) -> dict:
     }
 
 
-LIST_TITLE = "폰트 매거진 — 무료폰트 고르는 법과 라이선스 읽는 법 | 폰트픽"
+LIST_TITLE = "폰트 매거진 — 무료폰트 소식과 폰트 이야기 | 폰트픽"
 LIST_DESC = (
-    "무료 한글 폰트를 고르고 쓰는 데 필요한 것을 정리했습니다. 용도별로 고르는 법, "
-    "제목과 본문 조합 만드는 법, 라이선스에서 걸리기 쉬운 조항, 글자 수 때문에 "
-    "글자가 깨지는 이유까지 실제 폰트를 재어 본 결과로 씁니다."
+    "폰트픽 블로그에 올린 글을 모았습니다. 무료폰트 소식, 폰트를 고르고 쓰는 방법, "
+    "폰트픽 기능 이야기를 대표 사진과 함께 한눈에 봅니다."
 )
+DEFAULT_OG = f"{BASE_URL}/og-image-v3.png"
 
 
 def _esc(s) -> str:
     return _html.escape(str(s or ""))
-
-
-def _sorted_posts():
-    """최신 글이 위로. 같은 날짜면 목록에 적은 순서를 지킨다."""
-    return sorted(POSTS, key=lambda p: p["date"], reverse=True)
-
-
-def _font_count(db: Session) -> int:
-    try:
-        return db.query(Font).count()
-    except Exception:
-        return 0
-
-
-def _hub_links(db: Session) -> str:
-    """본문 {{HUB_LINKS}} 자리에 들어갈 용도 허브 알약.
-
-    허브는 어드민에서 켜고 끄므로 본문에 slug 를 박아 두지 않는다. 박아 두면
-    허브를 끈 날 매거진에서 404 로 가는 링크가 남는다.
-    """
-    try:
-        hubs = (
-            db.query(UseCase)
-            .filter(UseCase.is_active.is_(True))
-            .order_by(UseCase.sort_order, UseCase.id)
-            .all()
-        )
-    except Exception:
-        hubs = []
-    if not hubs:
-        return ""
-    return '<div class="mz-hubs">' + "".join(
-        f'<a href="/use/{_esc(u.slug)}">{_esc(u.title)}</a>' for u in hubs
-    ) + "</div>"
-
-
-def _fig_html(im: dict, src: str) -> str:
-    """그림 한 장. 크롤러가 읽는 것은 alt 와 설명글이므로 둘 다 채운다.
-    width/height 를 적는 것은 그림이 늦게 와도 읽던 줄이 밀리지 않게 하려는
-    것이다 — 비율이 장마다 달라서 기본값(1200×630)을 덮어쓸 수 있게 둔다."""
-    if not im:
-        return ""
-    return (
-        '<figure class="mz-fig">'
-        f'<img src="{src}" alt="{_esc(im["alt"])}"'
-        f' width="{int(im.get("w", 1200))}" height="{int(im.get("h", 630))}"'
-        ' loading="lazy" decoding="async">'
-        f'<figcaption>{_esc(im["cap"])}</figcaption>'
-        "</figure>"
-    )
-
-
-def _figure(p) -> str:
-    """대표 그림 — 본문의 {{FIGURE}} 자리에 들어간다."""
-    return _fig_html(p.get("image"), image_src(p))
-
-
-_FIG_MARK = re.compile(r"\{\{FIG:([\w-]+)\}\}")
-
-
-def _fill_figures(body: str, p) -> str:
-    """본문 중간의 {{FIG:키}} 를 그림으로 바꾼다.
-
-    키가 figures 에 없으면 마커만 지운다. 그림 파일을 아직 안 만들었을 때
-    글에 {{FIG:...}} 가 그대로 찍히는 것보다는 그림 없이 나가는 편이 낫다.
-    """
-    figs = p.get("figures") or {}
-    def one(m):
-        im = figs.get(m.group(1))
-        return _fig_html(im, file_src(im["file"])) if im else ""
-    return _FIG_MARK.sub(one, body)
-
-
-def _fill(body: str, db: Session) -> str:
-    """본문의 런타임 자리표시자를 채운다.
-
-    폰트 종수처럼 바뀌는 값을 글에 박아 두면 폰트를 하나 추가한 날 글이
-    틀린 말이 된다. 마커로 두고 여기서 채운다.
-    """
-    body = body.replace("{{COUNT}}", str(_font_count(db)))
-    # 그림 마커는 글마다 다르므로 여기서는 지우기만 한다. 목록·검색용으로
-    # 본문을 훑을 때는 그림이 필요 없다.
-    body = body.replace("{{FIGURE}}", "")
-    body = _FIG_MARK.sub("", body)
-    body = body.replace("{{HUB_LINKS}}", _hub_links(db))
-    return body
-
-
-DEFAULT_OG = f"{BASE_URL}/og-image-v3.png"
 
 
 def _render(*, title, desc, canonical, h1, lead, body, json_ld, crumb="",
@@ -171,52 +79,6 @@ def _render(*, title, desc, canonical, h1, lead, body, json_ld, crumb="",
     return HTMLResponse(html)
 
 
-# 목록 페이지의 머리글. 카드 요약만 있던 자리라 이 URL 만의 글이 거의 없었다.
-# 크롤러에게만 보여주는 글이 아니라 화면에도 그대로 나오는, 읽을 값이 있는 글이어야
-# 한다 — 감춰 두면 그 자체가 위반이다.
-MZ_INTRO = (
-    '<div class="mz-intro">'
-    "<p>폰트픽 매거진은 무료 폰트를 <strong>고르고 쓰는 과정에서 실제로 막히는 "
-    "자리</strong>를 다룹니다. 어떤 폰트가 예쁜지가 아니라, 고를 때 무엇을 보아야 "
-    "하는지에 관한 글입니다.</p>"
-    "<p>글에 적힌 수치는 어디서 옮겨 온 것이 아니라 <strong>폰트픽이 서비스하는 "
-    "파일을 직접 열어 잰 값</strong>입니다. 수록 글자 수, 파일 용량, 폰트에 없는 "
-    "글자가 화면에서 어떻게 되는지까지 확인한 뒤에 씁니다. 확인하지 못한 것은 "
-    "적지 않고, 확인해 보니 틀렸던 것은 고쳐서 다시 적습니다.</p>"
-    "<p>폰트를 처음 고르신다면 맨 위 글부터, 쓸 자리가 이미 정해져 있다면 용도 "
-    "글부터 보시면 됩니다.</p>"
-    "</div>"
-)
-
-
-def _card(p, feat: bool = False) -> str:
-    """목록 카드 하나. feat 는 맨 위 글 — 넓은 화면에서 한 줄을 다 쓴다."""
-    tags = "".join(f'<span class="mz-tag">{_esc(t)}</span>' for t in p.get("tags", []))
-    ico = _esc(p.get("icon") or "ti-article")
-    return (
-        f'<a class="mz-card{" feat" if feat else ""}" href="/magazine/{p["slug"]}">'
-        f'<div class="mz-card-ico"><i class="ti {ico}" aria-hidden="true"></i></div>'
-        f'<div class="mz-card-body">'
-        f'<h2>{_esc(p["title"])}</h2>'
-        f'<p>{_esc(p["lead"])}</p>'
-        f'<div class="mz-meta">{tags}<span class="mz-date">{_esc(p["date"])}</span></div>'
-        f"</div></a>"
-    )
-
-
-# 글 끝에 붙이는 안내. 글만 읽고 나가는 대신 폰트를 보러 갈 길을 만든다.
-POST_CTA = (
-    '<div class="mz-cta">'
-    "<b>읽었으니, 골라 볼 차례입니다</b>"
-    "<span>상업적으로 쓸 수 있는 무료 한글 폰트를 용도별로 모아 두었습니다.</span>"
-    '<div class="mz-cta-btns">'
-    '<a href="/"><i class="ti ti-typography" aria-hidden="true"></i> 무료폰트 둘러보기</a>'
-    '<a class="ghost" href="/font-pair">'
-    '<i class="ti ti-arrows-join" aria-hidden="true"></i> 폰트 조합 찾기</a>'
-    "</div></div>"
-)
-
-
 def _link_card(r) -> str:
     """티스토리 글 카드 — 대표 사진 위, 제목 아래. 새 창으로 블로그를 연다."""
     from .magazine_links import _out
@@ -233,29 +95,16 @@ def _link_card(r) -> str:
 
 @router.get("/magazine", response_class=HTMLResponse)
 def magazine_list(db: Session = Depends(get_db)):
-    posts = _sorted_posts()
-    # 2026-09-29 부터 매거진은 티스토리 글을 모아 거는 곳이다(app/routers/magazine_links.py).
-    # 전에 쓴 가이드 글은 주소가 색인돼 있어 지우지 않고 아래에 남긴다.
     from .magazine_links import ordered
     try:
         links = ordered(db)
     except Exception:
         links = []
-    guide = ('<div class="mz-list">'
-             + "".join(_card(p, i == 0 and not links) for i, p in enumerate(posts))
-             + "</div>")
     if links:
-        body = ('<div class="mz-grid">' + "".join(_link_card(r) for r in links) + "</div>"
-                + '<h2 class="mz-sec">폰트픽 가이드</h2>' + MZ_INTRO + guide)
-        lead = ("블로그에 올린 글을 모았습니다. 글을 누르면 블로그에서 전체 글을 읽을 수 "
-                "있고, 아래에는 폰트를 고르고 쓰는 법을 정리한 가이드가 있습니다.")
+        body = '<div class="mz-grid">' + "".join(_link_card(r) for r in links) + "</div>"
     else:
-        body = MZ_INTRO + guide
-        lead = ("무료 폰트를 고르고 쓰는 데 필요한 것을 정리했습니다. "
-                "폰트픽이 폰트를 하나씩 열어 재어 보면서 알게 된 것들입니다.")
+        body = '<p class="mz-empty">곧 새 글로 찾아오겠습니다.</p>'
 
-    items = ([(r.title, r.url) for r in links]
-             + [(p["title"], f'{BASE_URL}/magazine/{p["slug"]}') for p in posts])
     json_ld = _json.dumps([{
         "@context": "https://schema.org",
         "@type": "CollectionPage",
@@ -267,8 +116,8 @@ def magazine_list(db: Session = Depends(get_db)):
         "mainEntity": {
             "@type": "ItemList",
             "itemListElement": [
-                {"@type": "ListItem", "position": i + 1, "name": n, "url": u}
-                for i, (n, u) in enumerate(items)
+                {"@type": "ListItem", "position": i + 1, "name": r.title, "url": r.url}
+                for i, r in enumerate(links)
             ],
         },
     }, _crumbs(("폰트픽", "/"), ("매거진", "/magazine"))], ensure_ascii=False)
@@ -276,62 +125,16 @@ def magazine_list(db: Session = Depends(get_db)):
     return _render(
         title=LIST_TITLE, desc=LIST_DESC, canonical=f"{BASE_URL}/magazine",
         h1="폰트 매거진",
-        lead=lead,
+        lead="블로그에 올린 글을 모았습니다. 글을 누르면 블로그에서 전체 글을 읽을 수 있습니다.",
         body=body, json_ld=json_ld,
     )
 
 
-@router.get("/magazine/{slug}", response_class=HTMLResponse)
-def magazine_post(slug: str, db: Session = Depends(get_db)):
-    p = BY_SLUG.get(slug)
-    if p is None:
-        return not_found_page()
-
-    url = f"{BASE_URL}/magazine/{slug}"
-    body = '<article class="mz-post">' + _fill(
-        _fill_figures(p["body"].replace("{{FIGURE}}", _figure(p)), p), db)
-
-    # 글 아래 다른 글 — 매거진 안에서 돌아다닐 길을 만든다.
-    others = [x for x in _sorted_posts() if x["slug"] != slug][:4]
-    body += POST_CTA
-    if others:
-        body += (
-            '<nav class="mz-more"><h2>다른 글</h2><ul>'
-            + "".join(f'<li><a href="/magazine/{o["slug"]}">{_esc(o["title"])}</a></li>'
-                      for o in others)
-            + "</ul></nav>"
-        )
-    body += "</article>"
-
-    src = image_src(p)
-    og_image = (BASE_URL + src) if src else DEFAULT_OG
-
-    json_ld = _json.dumps([{
-        "@context": "https://schema.org",
-        "@type": "Article",
-        "headline": p["title"],
-        "description": p["lead"],
-        "url": url,
-        "inLanguage": "ko",
-        "datePublished": p["date"],
-        "dateModified": p["date"],
-        "author": {"@type": "Organization", "name": "폰트픽"},
-        "publisher": PUBLISHER,
-        "isPartOf": {"@type": "WebSite", "name": "폰트픽", "url": BASE_URL},
-        "mainEntityOfPage": {"@type": "WebPage", "@id": url},
-        "image": og_image,
-    }, _crumbs(("폰트픽", "/"), ("매거진", "/magazine"),
-               (p["title"], "/magazine/" + slug))], ensure_ascii=False)
-
-    crumb = ('<p class="mz-crumb"><a href="/">폰트픽</a> › '
-             '<a href="/magazine">매거진</a></p>')
-
-    return _render(
-        title=f'{p["title"]} | 폰트픽 매거진',
-        desc=p["lead"], canonical=url, h1=p["title"], lead=p["lead"],
-        body=body, json_ld=json_ld, crumb=crumb, og_type="article",
-        og_image=og_image,
-    )
+@router.get("/magazine/{slug}", include_in_schema=False)
+def magazine_post(slug: str):
+    if slug in RETIRED_SLUGS:
+        return RedirectResponse(f"{BASE_URL}/magazine", status_code=301)
+    return not_found_page()
 
 
 @router.get("/about", response_class=HTMLResponse)

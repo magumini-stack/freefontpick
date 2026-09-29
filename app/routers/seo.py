@@ -61,25 +61,7 @@ def sitemap(db: Session = Depends(get_db)):
                           "priority": "0.7", "changefreq": "weekly"})
     except Exception:
         pass
-    # 매거진 글. 목록에서 코드로 읽어 온다 — 글을 추가할 때 sitemap 을 따로
-    # 고쳐야 하면 반드시 한쪽이 빠진다.
-    try:
-        from ..magazine import POSTS, image_src
-        for post in POSTS:
-            page = {
-                "loc": f"{SITE_URL}/magazine/{post['slug']}",
-                "priority": "0.7",
-                "changefreq": "monthly",
-            }
-            src = image_src(post)
-            if src:
-                page["image"] = {
-                    "loc": SITE_URL + src,
-                    "title": post["title"],
-                }
-            pages.append(page)
-    except Exception:
-        pass
+    # 매거진 글(/magazine/{slug})은 2026-09-29 에 지웠다 — 이제 티스토리 글을 건다.
 
     # 폰트별 상세페이지 (핵심 SEO 자산)
     # 2026-07: /design/{id}는 /font/{id}의 canonical 페이지이므로 sitemap에서 제외.

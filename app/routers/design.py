@@ -1265,8 +1265,7 @@ def _pair_ssr_block(db: Session) -> str:
         # 안에 넣으면 이 줄이 제일 먼저 잘려 나간다 — 실제로 그랬다.
         # 소개 글을 복사해 오면 같은 글이 두 주소에 앉아 중복 콘텐츠가 되므로
         # 링크만 걸어 크롤러에게 나가는 길을 주고, 사람에게는 다음 읽을거리를 준다.
-        '<p class="fp-more">폰트 고르는 법 → '
-        '<a href="/magazine/pairing">조합 만드는 법</a> · '
+        '<p class="fp-more">더 읽을거리 → '
         '<a href="/magazine">매거진</a></p>'
 
     )
