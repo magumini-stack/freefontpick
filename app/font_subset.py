@@ -228,12 +228,39 @@ def _ensure_worker():
     _worker.start()
 
 
+# 서브셋은 따로 띄운 파이썬 프로세스(nice 10)에서 만든다 (2026-10-01 장애).
+# fontTools 는 순수 파이썬이라 같은 프로세스 스레드에서 돌리면 GIL 을 놓고 요청들과
+# CPU 한 개를 다툰다. 새 폰트가 들어와 글자 지문이 바뀌면 527종을 통째로 다시 만들어
+# 몇 분씩 이어지고, 그동안 요청이 느려져 DB 연결이 바닥났다. 별도 프로세스면 서버의
+# 남는 코어를 쓰고, nice 로 웹 요청보다 뒤에 선다.
+_SKIP_RC = 3     # 줄어들지 않아 만들지 않음
+
+
+def _make_in_child(src: Path, dst: Path):
+    import subprocess
+    import sys
+    root = Path(__file__).resolve().parent.parent
+    pre = (lambda: os.nice(10)) if os.name == "posix" else None
+    r = subprocess.run([sys.executable, "-m", "app.font_subset", str(src), str(dst)],
+                       cwd=str(root), preexec_fn=pre, capture_output=True, text=True,
+                       timeout=600)
+    if r.stdout.strip():
+        print(r.stdout.strip(), flush=True)
+    if r.returncode == _SKIP_RC:
+        with _state_lock:
+            _failed.add(str(dst))
+        return
+    if r.returncode != 0:
+        tail = (r.stderr or "").strip().splitlines()
+        raise RuntimeError(tail[-1] if tail else "exit %d" % r.returncode)
+
+
 def _run():
     while True:
         src = _jobs.get()
         dst = cache_path(src)
         try:
-            _make(src, dst)
+            _make_in_child(src, dst)
         except Exception as e:
             # 실패는 표시해 두고 다시 시도하지 않는다. 원본이 그대로 나가므로
             # 화면은 멀쩡하다. 원인을 봐야 하면 이 줄이 컨테이너 로그에 남는다.
@@ -299,7 +326,7 @@ def _make(src: Path, dst: Path):
             _failed.add(str(dst))
         print("[subset] 건너뜀 %s (%d -> %d, 이득 없음)"
               % (src.name, src_size, len(data)), flush=True)
-        return
+        return False
 
     # 같은 이름으로 곧장 쓰면 다 못 쓴 파일을 남이 읽어 갈 수 있다.
     tmp = dst.with_suffix(".tmp")
@@ -308,3 +335,10 @@ def _make(src: Path, dst: Path):
     print("[subset] %s  %d -> %d (%.0f%%)"
           % (src.name, src_size, len(data), 100.0 * len(data) / src_size),
           flush=True)
+    return True
+
+
+if __name__ == "__main__":
+    # _make_in_child 가 부른다: python -m app.font_subset <원본> <결과>
+    import sys
+    sys.exit(0 if _make(Path(sys.argv[1]), Path(sys.argv[2])) else _SKIP_RC)

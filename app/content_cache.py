@@ -44,21 +44,46 @@ def bump() -> None:
         _store.clear()
 
 
+_key_locks: dict = {}
+
+
 def get(key: str, ttl: float, build):
     """key 의 값을 돌려준다. 없거나 낡았으면 build() 로 만들어 넣는다.
 
     build 는 DB 세션을 닫힌 뒤에도 쓸 수 있는 순수 값(dict·list·str·bytes)을
     돌려줘야 한다 — ORM 객체를 넣으면 세션이 끝난 뒤 지연 로딩에서 죽는다.
+
+    한 키는 한 번에 한 요청만 만든다 (2026-10-01 장애). 예전에는 TTL 이 끝나는
+    순간 들어온 요청이 저마다 build() 를 돌렸다. 폰트 527종 목록은 한 번에 몇 초가
+    걸려서, 그 사이 들어온 요청 수만큼 DB 연결을 하나씩 쥔 채 서로 CPU 를 나눠 먹었고
+    연결 15개(QueuePool 5+10)가 바닥나 /api/fonts·tags·use-cases 가 30초 뒤 500 이
+    됐다. 이제 TTL 만 지난 값은 누가 새로 만드는 동안 옛 값을 그대로 주고, 값이 아예
+    없을 때(첫 요청·내용 판이 오른 뒤)만 만드는 요청 하나를 기다린다. 기다리는 요청은
+    아직 쿼리를 안 했으므로 DB 연결을 쥐지 않는다.
     """
     now = time.monotonic()
     full = (_version, key)
     hit = _store.get(full)
     if hit and hit[0] > now:
         return hit[1]
-    value = build()
     with _lock:
-        _store[full] = (now + ttl, value)
-    return value
+        kl = _key_locks.setdefault(key, threading.Lock())
+    if hit is not None:
+        if not kl.acquire(blocking=False):
+            return hit[1]          # 다른 요청이 새로 만드는 중 — 조금 낡은 값으로 답한다
+    else:
+        kl.acquire()
+    try:
+        full = (_version, key)
+        hit = _store.get(full)
+        if hit and hit[0] > time.monotonic():
+            return hit[1]          # 기다리는 동안 앞 요청이 만들어 두었다
+        value = build()
+        with _lock:
+            _store[full] = (time.monotonic() + ttl, value)
+        return value
+    finally:
+        kl.release()
 
 
 def _mark_if_content(session, *_):

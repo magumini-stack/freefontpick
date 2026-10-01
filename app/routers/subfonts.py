@@ -51,7 +51,11 @@ _ALLOWED_HOSTS = {urlsplit(SITE_URL).hostname, "freefontpick.tdtd.io", "freefont
 WINDOW, LIMIT = 600, 150
 _hits: dict = {}
 _hits_lock = threading.Lock()
-_fetch_lock = threading.Lock()
+# tdtd.io 에서 받는 일은 동시에 둘까지. 넘치면 기다리지 않고 견본 판을 준다 —
+# 요청 스레드가 tdtd.io 응답을 줄줄이 기다리면 사이트 전체가 느려진다(10/1 장애 교훈).
+_fetch_slots = threading.BoundedSemaphore(2)
+_inflight: set = set()
+_inflight_lock = threading.Lock()
 _known: set = set()
 _known_mtime = 0.0
 
@@ -101,24 +105,36 @@ def _light(h: str) -> Response:
 def _fetch(h: str) -> bool:
     """tdtd.io 에서 2,350자 판을 받아 FULL_DIR 에 둔다. 제대로 된 full 이 아니면 False."""
     dst = FULL_DIR / f"{h}.woff2"
-    with _fetch_lock:
-        if dst.is_file():
-            return True
-        req = urllib.request.Request(SOURCE.format(h=h), headers={"User-Agent": _UA})
-        try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = resp.read(_MAX + 1)
-        except Exception:
+    with _inflight_lock:
+        if h in _inflight:
             return False
-        light = LIGHT_DIR / f"{h}.woff2"
-        if (len(data) > _MAX or not data.startswith(b"wOF2")
-                or (light.is_file() and len(data) <= light.stat().st_size)):
-            return False   # 제한에 걸려 견본 판이 왔거나 깨진 응답
-        FULL_DIR.mkdir(parents=True, exist_ok=True)
-        tmp = dst.with_suffix(".part")
-        tmp.write_bytes(data)
-        os.replace(tmp, dst)
-        return True
+        _inflight.add(h)
+    try:
+        if not _fetch_slots.acquire(blocking=False):
+            return False
+        try:
+            if dst.is_file():
+                return True
+            req = urllib.request.Request(SOURCE.format(h=h), headers={"User-Agent": _UA})
+            try:
+                with urllib.request.urlopen(req, timeout=8) as resp:
+                    data = resp.read(_MAX + 1)
+            except Exception:
+                return False
+            light = LIGHT_DIR / f"{h}.woff2"
+            if (len(data) > _MAX or not data.startswith(b"wOF2")
+                    or (light.is_file() and len(data) <= light.stat().st_size)):
+                return False   # 제한에 걸려 견본 판이 왔거나 깨진 응답
+            FULL_DIR.mkdir(parents=True, exist_ok=True)
+            tmp = dst.with_suffix(".part")
+            tmp.write_bytes(data)
+            os.replace(tmp, dst)
+            return True
+        finally:
+            _fetch_slots.release()
+    finally:
+        with _inflight_lock:
+            _inflight.discard(h)
 
 
 @router.get("/api/subfonts/file/{name}")
