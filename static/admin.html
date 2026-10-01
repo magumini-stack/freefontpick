@@ -362,6 +362,19 @@
       .table-wrap{overflow-x:auto}
       table{min-width:700px}
     }
+    /* 구독 폰트 탭 (2026-10-01) */
+    .sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+    .sp-card{display:flex;flex-direction:column;gap:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);padding:12px 12px 10px;min-width:0}
+    .sp-top{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .sp-top b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sp-top span{font-size:11.5px;color:var(--text-muted)}
+    .sp-pv{font-size:21px;line-height:1.35;min-height:2.7em;word-break:keep-all;overflow-wrap:anywhere;color:var(--text-primary)}
+    .sp-act{display:flex;align-items:center;gap:4px;margin-top:auto}
+    .sp-act .btn-primary,.sp-act .btn-secondary{height:32px;font-size:12.5px}
+    .sp-act button:disabled{opacity:.4;cursor:not-allowed}
+    .sp-no{font-size:12px;font-weight:800;color:var(--accent);margin-right:auto}
+    .sp-empty{grid-column:1/-1;border:1px dashed var(--border);border-radius:var(--radius-sm);padding:22px;text-align:center;color:var(--text-muted);font-size:13px}
+    #spSaveBtn:disabled{opacity:.45;cursor:not-allowed}
   </style>
 </head>
 <body>
@@ -449,6 +462,7 @@
     <button class="tab-btn" onclick="switchTab('phrases',this)">문구 관리</button>
     <button class="tab-btn" onclick="switchTab('usecases',this)">용도 관리</button>
     <button class="tab-btn" onclick="switchTab('magazine',this)">매거진</button>
+    <button class="tab-btn" onclick="switchTab('subpicks',this)">구독 폰트</button>
     <button class="tab-btn" onclick="switchTab('stats',this)">통계</button>
   </div>
 
@@ -639,6 +653,31 @@
         <i class="ti ti-article" aria-hidden="true"></i>아직 건 글이 없어요 — 지금은 매거진에 폰트픽 가이드 글만 보입니다
       </div>
     </div>
+  </div>
+
+  <!-- SUBSCRIBE PICKS TAB (전체 폰트 보기 첫 줄 구독 폰트, 2026-10-01) -->
+  <div class="tab-panel" id="tab-subpicks">
+    <p style="font-size:12px;color:var(--text-muted);margin:2px 0 14px;line-height:1.7">
+      <code>/fonts</code>(전체 무료폰트 보기) 무료 목록 첫 줄에 고정되는 <b>타닥타닥 구독 폰트 4장</b>을 고릅니다.
+      '구독 폰트' 화면에서도 고른 폰트가 맨 앞에 옵니다.<br>
+      4장보다 적게 고르면 남는 칸은 제작사(타닥타닥 → 상상토끼 → RakFont)를 돌아가며 채웁니다. 고른 뒤 <b>저장</b>을 눌러야 사이트에 반영돼요.
+    </p>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <b style="font-size:14px">고른 폰트 <span id="spCount" style="color:var(--text-muted);font-weight:500"></span></b>
+      <button class="btn-primary" id="spSaveBtn" onclick="saveSubPicks()" style="margin-left:auto"><i class="ti ti-device-floppy" aria-hidden="true"></i> 저장</button>
+    </div>
+    <div id="spPicked" class="sp-grid" style="margin-bottom:22px"></div>
+    <div class="toolbar">
+      <input type="text" id="spQ" placeholder="폰트 이름으로 찾기" style="flex:1;min-width:200px" oninput="renderSubPool()">
+      <select id="spVendor" onchange="renderSubPool()">
+        <option value="">제작사 전체</option><option>타닥타닥</option><option>상상토끼</option><option>RakFont</option>
+      </select>
+      <select id="spCat" onchange="renderSubPool()">
+        <option value="">갈래 전체</option><option>고딕</option><option>명조</option><option>손글씨</option><option>캘리</option><option>디자인</option>
+      </select>
+    </div>
+    <div id="spPool" class="sp-grid"></div>
+    <div id="spMore" style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:10px"></div>
   </div>
 
   <div class="tab-panel" id="tab-stats">
@@ -1781,6 +1820,7 @@ function switchTab(tab, btn){
   if(tab === 'usecases') refreshUseCases();
   if(tab === 'stats') refreshStats();
   if(tab === 'magazine') refreshMagazine();
+  if(tab === 'subpicks') refreshSubPicks();
 }
 
 /* ════════════════════════════════════════
@@ -4376,6 +4416,92 @@ async function deleteMagazineLink(id){
   try { await apiFetch('/admin/magazine-links/' + id, {method:'DELETE'}); showToast('뺐어요'); }
   catch(e){ showToast(e.message); }
   await refreshMagazine();
+}
+
+/* ════════════════════════════════════════
+   구독 폰트 — /fonts 첫 줄 고정 4장 고르기 (2026-10-01)
+   자료는 /static/subfonts/fonts.json (tools/build_subfonts.py), 저장은 AppMeta 한 줄.
+════════════════════════════════════════ */
+const SP_MAX = 4;
+let SP_FONTS = null, SP_SAMPLE = '', SP_PICKS = [], SP_DIRTY = false;
+const SP_FACES = {};
+function spFace(h){
+  if(SP_FACES[h] || !window.FontFace) return;
+  SP_FACES[h] = 1;
+  new FontFace('sp-' + h, 'url(/static/subfonts/' + h + '.woff2) format("woff2")')
+    .load().then(f => document.fonts.add(f)).catch(() => {});
+}
+async function refreshSubPicks(){
+  try {
+    if(!SP_FONTS){
+      const d = await fetch('/static/subfonts/fonts.json').then(r => r.json());
+      SP_FONTS = d.fonts; SP_SAMPLE = d.sample || '';
+    }
+    const r = await apiFetch('/subscribe-picks');
+    SP_PICKS = (r.picks || []).filter(h => SP_FONTS.some(f => f.h === h));
+    SP_DIRTY = false;
+  } catch(e){ showToast('구독 폰트를 불러오지 못했어요: ' + e.message); return; }
+  renderSubPicked(); renderSubPool();
+}
+function spCard(f, actions){
+  spFace(f.h);
+  return `<div class="sp-card">
+    <div class="sp-top"><b>${escapeHtml(f.n)}</b><span>${escapeHtml(f.v)} · ${escapeHtml(f.c)} · ${escapeHtml(f.p)}</span></div>
+    <div class="sp-pv" style="font-family:'sp-${f.h}',sans-serif;font-weight:${f.w || 400}">${escapeHtml(SP_SAMPLE)}</div>
+    <div class="sp-act">${actions}</div>
+  </div>`;
+}
+function renderSubPicked(){
+  const byH = Object.fromEntries(SP_FONTS.map(f => [f.h, f]));
+  document.getElementById('spCount').textContent = SP_PICKS.length + ' / ' + SP_MAX + (SP_DIRTY ? ' · 저장 안 됨' : '');
+  document.getElementById('spSaveBtn').disabled = !SP_DIRTY;
+  const el = document.getElementById('spPicked');
+  if(!SP_PICKS.length){
+    el.innerHTML = '<div class="sp-empty">아직 고른 폰트가 없어요 — 지금은 제작사를 돌아가며 4장을 보여 줍니다. 아래에서 고르세요.</div>';
+    return;
+  }
+  el.innerHTML = SP_PICKS.map((h, i) => spCard(byH[h], `
+    <span class="sp-no">${i + 1}</span>
+    <button class="btn-icon" title="앞으로" onclick="moveSubPick(${i},-1)" ${i === 0 ? 'disabled' : ''}><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <button class="btn-icon" title="뒤로" onclick="moveSubPick(${i},1)" ${i === SP_PICKS.length - 1 ? 'disabled' : ''}><i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    <button class="btn-icon" title="빼기" onclick="toggleSubPick('${h}')"><i class="ti ti-x" aria-hidden="true"></i></button>`)).join('');
+}
+function renderSubPool(){
+  if(!SP_FONTS) return;
+  const q = document.getElementById('spQ').value.trim().toLowerCase();
+  const v = document.getElementById('spVendor').value, c = document.getElementById('spCat').value;
+  const rows = SP_FONTS.filter(f => (!q || f.n.toLowerCase().includes(q)) && (!v || f.v === v) && (!c || f.c === c));
+  const LIMIT = 60, full = SP_PICKS.length >= SP_MAX;
+  document.getElementById('spPool').innerHTML = rows.slice(0, LIMIT).map(f => {
+    const on = SP_PICKS.includes(f.h);
+    return spCard(f, on
+      ? `<button class="btn-secondary" onclick="toggleSubPick('${f.h}')">골랐음 · 빼기</button>`
+      : `<button class="btn-primary" onclick="toggleSubPick('${f.h}')" ${full ? 'disabled title="4장을 다 골랐어요 — 위에서 하나 빼세요"' : ''}><i class="ti ti-plus" aria-hidden="true"></i> 고르기</button>`);
+  }).join('') || '<div class="sp-empty">맞는 폰트가 없어요</div>';
+  document.getElementById('spMore').textContent = rows.length > LIMIT ? `${rows.length - LIMIT}개 더 있어요 — 이름이나 제작사로 좁혀 보세요` : '';
+}
+function toggleSubPick(h){
+  const i = SP_PICKS.indexOf(h);
+  if(i >= 0) SP_PICKS.splice(i, 1);
+  else if(SP_PICKS.length < SP_MAX) SP_PICKS.push(h);
+  else { showToast('4장까지 고를 수 있어요'); return; }
+  SP_DIRTY = true; renderSubPicked(); renderSubPool();
+}
+function moveSubPick(i, dir){
+  const j = i + dir;
+  if(j < 0 || j >= SP_PICKS.length) return;
+  [SP_PICKS[i], SP_PICKS[j]] = [SP_PICKS[j], SP_PICKS[i]];
+  SP_DIRTY = true; renderSubPicked();
+}
+async function saveSubPicks(){
+  const btn = document.getElementById('spSaveBtn');
+  btn.disabled = true;
+  try {
+    const r = await apiFetch('/admin/subscribe-picks', {method:'PUT', body:{picks:SP_PICKS}});
+    SP_PICKS = r.picks; SP_DIRTY = false;
+    showToast('저장했어요 — /fonts 첫 줄에 바로 반영됩니다');
+  } catch(e){ showToast(e.message); }
+  renderSubPicked(); renderSubPool();
 }
 
 /* ════════════════════════════════════════

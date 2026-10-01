@@ -1,7 +1,7 @@
 /* 타닥타닥 구독 폰트 칸 (2026-10-01)
  *
  * 폰트픽에서 타닥타닥(유료 구독)으로 사람을 보내는 장치다. 사용자님이 고른 자리:
- *   메인          히어로 바로 아래 빨간 띠 — 카드 8장 가로 스크롤 (#subBand)
+ *   메인          히어로 바로 아래 빨간 띠 — 카드 8장 가로 스크롤 (#subBand) — 10/1 메인에서 뺐다, mountBand 만 남김
  *   전체 폰트 보기  '모양으로 찾기' 맨 앞 빨간 칩(#subChip) + 무료 목록 첫 줄 4장(#subPin)
  *                 칩을 누르면(#subscribe) 구독 폰트만 모아 보는 화면(#subView)
  *
@@ -9,7 +9,8 @@
  *   - 무료 목록에 섞지 않는다. 카드마다 '구독' 배지와 플랜 이름을 붙이고,
  *     버튼은 '타닥타닥에서 보기 ↗' 로 새 창. 어디로 가는지 누르기 전에 알 수 있게.
  *   - 폰트별 상품 페이지는 없어서 그 폰트가 든 묶음 플랜 페이지로 보낸다.
- *   - New 폰트를 먼저 보여 준다(사용자님 지시).
+ *   - 첫 줄 고정 4장은 관리자가 '구독 폰트' 탭에서 고른다(/api/subscribe-picks, 10/1 사용자님 지시).
+ *     고른 폰트가 모자라면 제작사를 돌아가며 채운다. New 배지·New 먼저는 뺐다.
  *   - 폰트 총수는 화면에 쓰지 않는다(폰트픽 규칙).
  *
  * 자료는 tools/build_subfonts.py 가 만든 /static/subfonts/fonts.json 과 견본 문구
@@ -19,6 +20,7 @@
 (function () {
   'use strict';
   var DATA_URL = '/static/subfonts/fonts.json';
+  var PICKS_URL = '/api/subscribe-picks';
   var PLAN_BASE = 'https://tdtd.io/_subpage/kor/buy/list.php?viewMode=view&idx=';
   var PLANS = [['Basic Plan', 6], ['Premium Plan', 11], ['Calli Font Plan', 26], ['Basic Plus Plan', 23]];
   var VENDORS = ['전체', '타닥타닥', '상상토끼', 'RakFont'];
@@ -51,7 +53,6 @@
     '.ffs-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}',
     '.ffs-badge{font-size:11px;font-weight:800;color:var(--ffs-red)}',
     '.ffs-plan{font-size:11px;font-weight:700;color:var(--text-secondary);border:1px solid var(--border);border-radius:2px;padding:0 6px}',
-    '.ffs-new{font-size:11px;font-weight:800;color:var(--ffs-red)}',
     '.ffs-nm{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}',
     '.ffs-meta{font-size:11.5px;color:var(--text-muted);margin-top:-8px}',
     '.ffs-pv{font-size:23px;line-height:1.35;min-height:2.7em;overflow-wrap:anywhere;word-break:keep-all;color:var(--text-primary)}',
@@ -80,7 +81,7 @@
     '@media (prefers-reduced-motion:reduce){.ffs-card{transition:none}}'
   ].join('\n');
 
-  var data = null, loading = null, sample = '';
+  var data = null, loading = null, sample = '', picked = [];
   var loadedFaces = {};
   var io = null;
 
@@ -102,12 +103,17 @@
   function load() {
     if (data) return Promise.resolve(data);
     if (!loading) {
-      loading = fetch(DATA_URL).then(function (r) { return r.json(); }).then(function (d) {
+      // 관리자가 고른 폰트는 못 불러와도 칸은 그린다 — 그때는 제작사를 돌아가며 채운다.
+      var picksReq = fetch(PICKS_URL).then(function (r) { return r.ok ? r.json() : { picks: [] }; })
+        .catch(function () { return { picks: [] }; });
+      loading = Promise.all([fetch(DATA_URL).then(function (r) { return r.json(); }), picksReq]).then(function (res) {
+        var d = res[0], hs = (res[1] && res[1].picks) || [];
         sample = d.sample || '';
-        // New 를 먼저, 그 안과 밖에서는 자료 순서(제작사 → 이름)를 지킨다.
-        var fonts = d.fonts.slice();
-        fonts.sort(function (a, b) { return (b.new ? 1 : 0) - (a.new ? 1 : 0); });
-        data = fonts;
+        var byH = {};
+        d.fonts.forEach(function (f) { byH[f.h] = f; });
+        // 고른 폰트를 고른 순서대로 앞에, 나머지는 자료 순서(제작사 → 이름) 그대로.
+        picked = hs.map(function (h) { return byH[h]; }).filter(Boolean);
+        data = picked.concat(d.fonts.filter(function (f) { return picked.indexOf(f) < 0; }));
         return data;
       });
     }
@@ -141,8 +147,7 @@
   function card(f, medium) {
     return '<a class="ffs-card" href="' + esc(planUrl(f.i, medium)) + '" target="_blank" rel="noopener"' +
       ' aria-label="' + esc(f.n) + ' — 타닥타닥 ' + esc(f.p) + ' 페이지 새 창으로 열기">' +
-      '<div class="ffs-top"><span class="ffs-badge">구독</span><span class="ffs-plan">' + esc(f.p) + '</span>' +
-      (f.new ? '<span class="ffs-new">New</span>' : '') + '</div>' +
+      '<div class="ffs-top"><span class="ffs-badge">구독</span><span class="ffs-plan">' + esc(f.p) + '</span></div>' +
       '<div class="ffs-nm">' + esc(f.n) + '</div>' +
       '<div class="ffs-meta">' + esc(f.v) + ' · ' + esc(f.c) + (f.s > 1 ? ' · 굵기 ' + f.s + '종' : '') + '</div>' +
       '<div class="ffs-pv" data-ffs-h="' + esc(f.h) + '" style="font-family:\'ffs-' + esc(f.h) + '\',\'Noto Sans KR\',sans-serif;font-weight:' + (f.w || 400) + '">' + esc(sample) + '</div>' +
@@ -153,12 +158,12 @@
       return '<a href="' + esc(planUrl(p[1], medium)) + '" target="_blank" rel="noopener">' + esc(p[0]) + ' ↗</a>';
     }).join('');
   }
-  /* New 를 먼저 채우고, 모자라면 제작사를 돌아가며 섞는다. */
+  /* 관리자가 고른 폰트를 먼저 채우고, 모자라면 제작사를 돌아가며 섞는다. */
   function pick(n) {
-    var out = data.filter(function (f) { return f.new; }).slice(0, n);
+    var out = picked.slice(0, n);
     if (out.length >= n) return out;
     var by = {}, k = 0;
-    data.forEach(function (f) { if (!f.new) (by[f.v] = by[f.v] || []).push(f); });
+    data.forEach(function (f) { if (picked.indexOf(f) < 0) (by[f.v] = by[f.v] || []).push(f); });
     var vs = ['타닥타닥', '상상토끼', 'RakFont'];
     while (out.length < n) {
       var added = false;

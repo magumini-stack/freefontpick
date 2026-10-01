@@ -28,7 +28,7 @@ from .database import SessionLocal as _SessionLocal
 from .header import inject_header, not_found_page
 from .seed import init_db
 from .site import SITE_URL
-from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, magazine_links, sample_image, db_migrate, gif_templates, gif, font_pair, stats, find
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, magazine_links, sample_image, db_migrate, gif_templates, gif, font_pair, stats, find, subscribe_picks
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -494,6 +494,7 @@ app.include_router(use_case_route.router)
 # 매거진 — /about.html 301 이 여기 들어 있어 정적 catch-all 보다 먼저 등록해야 한다.
 app.include_router(magazine.router)
 app.include_router(magazine_links.router)   # 매거진에 거는 티스토리 글 (2026-09-29)
+app.include_router(subscribe_picks.router)   # 전체 폰트 보기 첫 줄 구독 폰트 — 관리자가 고름 (2026-10-01)
 app.include_router(gif.router)
 app.include_router(design.router)
 app.include_router(find.router)      # 이미지로 폰트 찾기 — finder 서비스로 넘긴다(2026-09-22)
