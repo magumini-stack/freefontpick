@@ -227,6 +227,13 @@
       document.querySelectorAll('#tagsScroll .tag.active').forEach(function (t) { t.classList.remove('active'); });
     }
   }
+  /* 구독 화면에 있으면 무료 목록으로 — 주소의 #subscribe 는 hashchange 없이 지운다
+     (route() 가 다시 돌면 보던 카테고리·검색을 지운다). */
+  function leave() {
+    if (!F || F.chip.getAttribute('aria-pressed') !== 'true') return;
+    if (location.hash === '#subscribe') history.replaceState(history.state, '', location.pathname + location.search);
+    setMode(false);
+  }
   /* 첫 줄 고정은 무료 목록을 그대로 훑을 때만 보인다 — 검색 중이거나 구독 화면이면 감춘다. */
   function syncPin() {
     if (!F || !F.pin) return;
@@ -250,7 +257,12 @@
     var onHash = function () { setMode(location.hash === '#subscribe'); };
     window.addEventListener('hashchange', onHash);
     var q = document.getElementById('globalSearch');
-    if (q) q.addEventListener('input', syncPin);
+    if (q) q.addEventListener('input', function () { if (q.value.trim()) leave(); syncPin(); });
+    /* 구독 화면에서 '무료전체'·모양 칩을 누르면 무료 목록으로 돌아간다.
+       칩(setTag)은 history.pushState 로 주소를 바꿔 hashchange 가 오지 않으므로 직접 나간다.
+       주소는 setTag 가 '#tag/…' 또는 맨 주소로 바꾼다. */
+    var bar = document.getElementById('tagsScroll');
+    if (bar) bar.addEventListener('click', function (e) { if (e.target.closest('.tag')) leave(); });
     load().then(function () {
       if (F.pin) {
         F.pin.className = 'ffs-box ffs-pin';
