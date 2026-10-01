@@ -14,8 +14,9 @@
  *   - 폰트 총수는 화면에 쓰지 않는다(폰트픽 규칙).
  *
  * 자료는 tools/build_subfonts.py 가 만든 /static/subfonts/fonts.json 과 견본 문구
- * 글자만 담은 웹폰트다. 그래서 '미리 써보기'에 친 문구는 구독 카드에 적용하지 않는다
- * (없는 글자가 빈칸으로 나온다) — 늘 견본 문구로 그린다.
+ * 글자만 담은 웹폰트다. '미리 써보기'에 문구를 치면(10/1 사용자님 결정 2안) 그때만,
+ * 화면에 보이는 카드만 한글 2,350자 판(/api/subfonts/file/<h>.woff2, app/routers/subfonts.py)을
+ * 받아 그 문구로 그린다. 문구를 지우면 견본 문구·견본 판으로 돌아간다.
  */
 (function () {
   'use strict';
@@ -72,7 +73,7 @@
     '@media (prefers-reduced-motion:reduce){.ffs-card{transition:none}}'
   ].join('\n');
 
-  var data = null, loading = null, sample = '', picked = [];
+  var data = null, loading = null, sample = '', picked = [], custom = '';
   var loadedFaces = {};
   var io = null;
 
@@ -113,26 +114,53 @@
 
   /* 웹폰트는 카드가 화면에 들어올 때 하나씩 부른다 — 구독 칸 전체를 펼쳐도
      보이는 카드만 받는다. */
-  function loadFace(h) {
-    if (loadedFaces[h] || !window.FontFace) return;
-    loadedFaces[h] = 1;
-    var face = new FontFace('ffs-' + h, 'url(/static/subfonts/' + h + '.woff2) format("woff2")', { display: 'swap' });
+  /* full=true 는 미리 써보기용 2,350자 판(ffsf-<h>), 아니면 견본 문구 판(ffs-<h>). */
+  function loadFace(h, full) {
+    var key = (full ? 'f' : 'l') + h;
+    if (loadedFaces[key] || !window.FontFace) return;
+    loadedFaces[key] = 1;
+    var url = full ? '/api/subfonts/file/' + h + '.woff2' : '/static/subfonts/' + h + '.woff2';
+    var face = new FontFace((full ? 'ffsf-' : 'ffs-') + h, 'url(' + url + ') format("woff2")', { display: 'swap' });
     face.load().then(function (f) { document.fonts.add(f); }).catch(function () {});
   }
+  function loadFor(el) {
+    var h = el.getAttribute('data-ffs-h');
+    loadFace(h, false);
+    if (el.hasAttribute('data-ffs-full')) loadFace(h, true);
+  }
   function observe(root) {
+    if (!root) return;
     var els = root.querySelectorAll('[data-ffs-h]');
     if (!('IntersectionObserver' in window)) {
-      els.forEach(function (el) { loadFace(el.getAttribute('data-ffs-h')); });
+      els.forEach(loadFor);
       return;
     }
     if (!io) {
       io = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
-          if (e.isIntersecting) { loadFace(e.target.getAttribute('data-ffs-h')); io.unobserve(e.target); }
+          if (e.isIntersecting) { loadFor(e.target); io.unobserve(e.target); }
         });
       }, { rootMargin: '300px' });
     }
     els.forEach(function (el) { io.observe(el); });
+  }
+  /* 미리보기 글꼴 — 친 문구가 있으면 2,350자 판을 앞에, 받는 동안은 견본 판·기본 글꼴로. */
+  function pvFamily(h) {
+    return (custom ? "'ffsf-" + h + "'," : '') + "'ffs-" + h + "','Noto Sans KR',sans-serif";
+  }
+  function setPreview(v) {
+    custom = (v || '').trim();
+    if (!F) return;
+    [F.pin, F.view].forEach(function (root) {
+      if (!root) return;
+      root.querySelectorAll('.ffs-pv[data-ffs-h]').forEach(function (el) {
+        el.textContent = custom || sample;
+        el.style.fontFamily = pvFamily(el.getAttribute('data-ffs-h'));
+        if (custom) el.setAttribute('data-ffs-full', '');
+        else el.removeAttribute('data-ffs-full');
+      });
+      observe(root);
+    });
   }
 
   function card(f, medium) {
@@ -141,7 +169,8 @@
       '<div class="ffs-top"><span class="ffs-badge">구독</span><span class="ffs-plan">' + esc(f.p) + '</span></div>' +
       '<div class="ffs-nm">' + esc(f.n) + '</div>' +
       '<div class="ffs-meta">' + esc(f.v) + ' · ' + esc(f.c) + (f.s > 1 ? ' · 굵기 ' + f.s + '종' : '') + '</div>' +
-      '<div class="ffs-pv" data-ffs-h="' + esc(f.h) + '" style="font-family:\'ffs-' + esc(f.h) + '\',\'Noto Sans KR\',sans-serif;font-weight:' + (f.w || 400) + '">' + esc(sample) + '</div>' +
+      '<div class="ffs-pv" data-ffs-h="' + esc(f.h) + '"' + (custom ? ' data-ffs-full' : '') +
+      ' style="font-family:' + esc(pvFamily(f.h)) + ';font-weight:' + (f.w || 400) + '">' + esc(custom || sample) + '</div>' +
       '<div class="ffs-go"><span>타닥타닥에서 보기 ↗</span><span>tdtd.io</span></div></a>';
   }
   function planLinks(medium) {
@@ -254,6 +283,15 @@
     /* 구독 화면에서 '무료전체'·모양 칩을 누르면 무료 목록으로 돌아간다.
        칩(setTag)은 history.pushState 로 주소를 바꿔 hashchange 가 오지 않으므로 직접 나간다.
        주소는 setTag 가 '#tag/…' 또는 맨 주소로 바꾼다. */
+    /* 미리 써보기 — fonts.html 의 setCustomPreview 를 감싸 구독 카드에도 같은 문구를 건다.
+       샘플 문장 고르기·입력·지우기가 모두 이 함수를 지난다. */
+    if (typeof window.setCustomPreview === 'function' && !window.setCustomPreview.ffs) {
+      var orig = window.setCustomPreview;
+      window.setCustomPreview = function (v) { var r = orig.apply(this, arguments); setPreview(v); return r; };
+      window.setCustomPreview.ffs = 1;
+    }
+    var tryIn = document.getElementById('tryInput');
+    if (tryIn && tryIn.value.trim()) custom = tryIn.value.trim();
     var bar = document.getElementById('tagsScroll');
     if (bar) bar.addEventListener('click', function (e) { if (e.target.closest('.tag')) leave(); });
     load().then(function () {
