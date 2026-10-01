@@ -30,7 +30,7 @@
     ':root{--ffs-red:#e60012;--ffs-red-ink:#c4000f}',
     '@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ffs-red:#ff4d55;--ffs-red-ink:#ff7178}}',
     ':root[data-theme="dark"]{--ffs-red:#ff4d55;--ffs-red-ink:#ff7178}',
-    '.ffs-box{border:1px solid var(--border);border-radius:4px;background:var(--bg-card);padding:20px 20px 18px}',
+    '.ffs-box{border:1px solid var(--ffs-red);border-radius:4px;background:var(--bg-card);padding:20px 20px 18px}',
     '.ffs-band{margin:0 0 26px}',
     '.ffs-head{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}',
     '.ffs-kick{display:inline-block;font-size:13px;font-weight:800;color:var(--ffs-red);margin-bottom:6px}',
