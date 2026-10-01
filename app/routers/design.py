@@ -965,10 +965,10 @@ def font_detail_page(font_id: int, request: Request, db: Session = Depends(get_d
     except Exception:
         pass
     html = _load_font_page()
-    # 상세페이지는 nav 항목 중 활성 표시할 게 없음. 하단 앵커 광고는 켠다(홈과 여기만).
-    # /font/{id}/design 은 같은 파일이지만 켜지 않는다 — 텍스트 디자인 창이 곧바로
-    # 열리는 주소라, 들어오자마자 광고가 그 창 밑을 차지해 작업 자리를 줄인다.
-    html = inject_header(html, "", anchor=True)
+    # 상세페이지는 nav 항목 중 활성 표시할 게 없음.
+    # 하단 앵커 광고는 2026-10-01 사용자님 지시로 껐다(홈·전체 폰트·상세 모두).
+    # 다시 켜려면 anchor=True — /font/{id}/design 은 켜지 말 것(디자인 창 밑을 차지한다).
+    html = inject_header(html, "")
     html = _replace_meta_for_font_detail(html, font)
     # 본문 서버 렌더링 — 옛 <noscript> 두 줄을 대신한다. 자세한 이유는
     # _font_ssr_block 주석 참조.
@@ -1024,7 +1024,7 @@ def home_page(request: Request, db: Session = Depends(get_db)):
         return response
 
     html = _load_index()
-    html = inject_header(html, "home", anchor=True)   # 하단 앵커 광고 — 홈·전체 폰트·상세
+    html = inject_header(html, "home")   # 하단 앵커 광고는 10/1 껐다 (켜려면 anchor=True)
     # 2026-09-22 메인 개편: 본문은 용도별 추천 4종 섹션(서버 렌더). 옛 갤러리와
     # 숨긴 목록(_home_ssr_block)은 /fonts 로 갔다.
     # 섹션 자료는 순수 dict 라 캐시해도 세션과 무관하다. 폰트·용도를 고치면
@@ -1044,10 +1044,10 @@ def fonts_page(db: Session = Depends(get_db)):
     옮겨 왔고, 홈은 용도별 추천으로 바뀌었다. 서버가 채우는 목록(용도 링크 +
     전체 폰트)도 이 페이지의 본문이다 — 같은 목록이 홈에도 실리면 중복 콘텐츠다.
 
-    하단 앵커 광고는 갤러리를 따라온다(홈·상세와 같은 anchor=True).
+    하단 앵커 광고는 2026-10-01 껐다(홈·상세와 같이). 켜려면 anchor=True.
     """
     html = FONTS_PAGE_PATH.read_text(encoding="utf-8")
-    html = inject_header(html, "fonts", anchor=True)
+    html = inject_header(html, "fonts")
     ssr = content_cache.get("fonts:ssr", ttl=300, build=lambda: _home_ssr_block(db))
     html = html.replace("{{FFP_HOME_SSR}}", ssr, 1)
     return HTMLResponse(html)
