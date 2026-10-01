@@ -1,7 +1,7 @@
 /* 타닥타닥 구독 폰트 칸 (2026-10-01)
  *
  * 폰트픽에서 타닥타닥(유료 구독)으로 사람을 보내는 장치다. 사용자님이 고른 자리:
- *   메인          히어로 바로 아래 빨간 띠 — 카드 8장 가로 스크롤 (#subBand) — 10/1 쓰는 자리 바 아래(옛 광고 띠 자리)로 옮김
+ *   메인          쓰는 자리 바 아래(옛 광고 띠 자리) — 전체 폰트 보기 첫 줄과 같은 4장 상자 (#subBand)
  *   전체 폰트 보기  '모양으로 찾기' 맨 앞 빨간 칩(#subChip) + 무료 목록 첫 줄 4장(#subPin)
  *                 칩을 누르면(#subscribe) 구독 폰트만 모아 보는 화면(#subView)
  *
@@ -31,25 +31,16 @@
     '@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ffs-red:#ff4d55;--ffs-red-ink:#ff7178}}',
     ':root[data-theme="dark"]{--ffs-red:#ff4d55;--ffs-red-ink:#ff7178}',
     '.ffs-box{border:1px solid var(--ffs-red);border-radius:4px;background:var(--bg-card);padding:20px 20px 18px}',
-    '.ffs-band{margin:0 0 26px}',
-    '.ffs-head{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}',
-    '.ffs-kick{display:inline-block;font-size:13px;font-weight:800;color:var(--ffs-red);margin-bottom:6px}',
-    '.ffs-head h2{margin:0;font-size:24px;font-weight:800;letter-spacing:-.6px;line-height:1.3;color:var(--text-primary);text-wrap:balance}',
-    '.ffs-head p{margin:4px 0 0;color:var(--text-secondary);font-size:13.5px;max-width:62ch}',
-    '.ffs-cta{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:14px;color:var(--ffs-red-ink);background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:9px 16px;text-decoration:none;white-space:nowrap;transition:border-color .15s}',
-    '.ffs-cta:hover{border-color:var(--text-primary)}',
-    '.ffs-row{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(240px,1fr);gap:12px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}',
-    '.ffs-row .ffs-card{scroll-snap-align:start}',
     '.ffs-plans{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}',
     '.ffs-plans a{font-size:12px;font-weight:700;color:var(--ffs-red-ink);text-decoration:none;border:1px solid var(--border);background:var(--bg-card);border-radius:14px;padding:4px 9px;white-space:nowrap}',
     '.ffs-plans a:hover{border-color:var(--text-primary)}',
     '.ffs-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}',
     '@media(max-width:1100px){.ffs-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}',
-    '@media(max-width:820px){.ffs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ffs-head h2{font-size:20px}.ffs-box{padding:16px 14px 14px}}',
-    '@media(max-width:520px){.ffs-grid{grid-template-columns:minmax(0,1fr)}.ffs-row{grid-auto-columns:minmax(78%,1fr)}}',
+    '@media(max-width:820px){.ffs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ffs-box{padding:16px 14px 14px}}',
+    '@media(max-width:520px){.ffs-grid{grid-template-columns:minmax(0,1fr)}}',
     '.ffs-card{display:flex;flex-direction:column;gap:12px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:16px 16px 14px;text-decoration:none;color:var(--text-primary);transition:border-color .15s,box-shadow .15s;min-width:0}',
     '.ffs-card:hover{border-color:var(--border-hover)}',
-    '.ffs-card:focus-visible,.ffs-cta:focus-visible,.ffs-chip:focus-visible,.ffs-fchip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}',
+    '.ffs-card:focus-visible,.ffs-chip:focus-visible,.ffs-fchip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}',
     '.ffs-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}',
     '.ffs-badge{font-size:11px;font-weight:800;color:var(--ffs-red)}',
     '.ffs-plan{font-size:11px;font-weight:700;color:var(--text-secondary);border:1px solid var(--border);border-radius:2px;padding:0 6px}',
@@ -174,20 +165,22 @@
     return out;
   }
 
-  /* ── 메인: 히어로 아래 띠 ── */
+  /* 첫 줄 고정 상자 — 전체 폰트 보기(#subPin)와 메인(#subBand)이 같은 모양을 쓴다
+     (10/1 사용자님: 메인도 전체 무료폰트와 똑같이). */
+  function pinHtml(medium, allHref) {
+    return '<div class="ffs-pin-h"><b><span>구독 폰트</span> · 이런 폰트는 어떠세요</b>' +
+      '<a href="' + allHref + '">구독 폰트 모두 보기 →</a></div>' +
+      '<div class="ffs-grid">' + pick(4).map(function (f) { return card(f, medium); }).join('') + '</div>';
+  }
+
+  /* ── 메인: 쓰는 자리 바 아래 ── */
   function mountBand(el) {
     if (!el) return;
     injectCss();
     load().then(function () {
-      el.className = 'ffs-box ffs-band';
+      el.className = 'ffs-box ffs-pin';
       el.setAttribute('aria-label', '타닥타닥 구독 폰트');
-      el.innerHTML =
-        '<div class="ffs-head"><div><span class="ffs-kick">타닥타닥 구독</span>' +
-        '<h2>무료로 부족할 땐, 타닥타닥 구독 폰트</h2>' +
-        '<p>폰트 구독 서비스 타닥타닥의 유료 폰트입니다. 구독 플랜으로 손글씨·캘리·디자인 폰트를 마음껏 쓸 수 있습니다.</p></div>' +
-        '<a class="ffs-cta" href="/fonts#subscribe">구독 폰트 모두 보기 →</a></div>' +
-        '<div class="ffs-row">' + pick(8).map(function (f) { return card(f, 'home_band'); }).join('') + '</div>' +
-        '<div class="ffs-plans">' + planLinks('home_band') + '</div>';
+      el.innerHTML = pinHtml('home_band', '/fonts#subscribe');
       el.hidden = false;
       observe(el);
     }).catch(function () { el.hidden = true; });
@@ -266,10 +259,7 @@
     load().then(function () {
       if (F.pin) {
         F.pin.className = 'ffs-box ffs-pin';
-        F.pin.innerHTML =
-          '<div class="ffs-pin-h"><b><span>구독 폰트</span> · 이런 폰트는 어떠세요</b>' +
-          '<a href="#subscribe">구독 폰트 모두 보기 →</a></div>' +
-          '<div class="ffs-grid">' + pick(4).map(function (f) { return card(f, 'fonts_pin'); }).join('') + '</div>';
+        F.pin.innerHTML = pinHtml('fonts_pin', '#subscribe');
         F.pinReady = true;
         observe(F.pin);
       }
