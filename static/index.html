@@ -351,6 +351,10 @@
     </nav>
   </section>
 
+  <!-- 타닥타닥 구독 폰트 띠 (2026-10-01, static/ffp-subscribe.js) — 히어로 바로 아래.
+       자료가 오기 전에는 숨겨 둔다(빈 테두리가 깜빡이지 않게). -->
+  <section id="subBand" hidden></section>
+
   <!-- 쓰는 자리 점프 바 + 광고 띠 + 용도별 추천 섹션 (서버가 그린다) -->
   <main id="homeMain">
     {{FFP_HOME_SECTIONS}}
@@ -402,6 +406,7 @@
 
 <!-- 카드 글꼴 자료 — 서버가 섹션과 함께 내린다(design.py home_fonts_json) -->
 <script type="application/json" id="homeFonts">{{FFP_HOME_FONTS}}</script>
+<script src="/static/ffp-subscribe.js"></script>
 <script src="/static/api-client.js"></script>
 <script src="/static/ffp-fontface.js"></script>
 <script>
@@ -634,5 +639,6 @@ function showToast(msg){
 
 </script>
 
+<script>if (window.FFPSub) FFPSub.mountBand(document.getElementById('subBand'));</script>
 </body>
 </html>

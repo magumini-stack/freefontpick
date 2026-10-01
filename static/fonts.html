@@ -734,6 +734,9 @@
   <div class="gallery-sticky" id="gallerySticky">
   <div class="tags-bar" id="tagsBar">
     <span class="tags-label">모양으로 찾기</span>
+    <!-- 타닥타닥 구독 폰트 칸(2026-10-01, static/ffp-subscribe.js). 무료 갈래보다 앞에 둔다.
+         .tag 를 쓰지 않는다 — resetTagToAll 이 첫 .tag 를 '전체'로 여긴다. -->
+    <button type="button" class="ffs-chip" id="subChip" aria-pressed="false" aria-controls="subView">구독 폰트</button>
     <div class="tags-scroll" id="tagsScroll" role="group" aria-label="폰트 모양 카테고리 필터"></div>
     <!-- [이동 2026-08] 보기 방식은 아이콘 두 개짜리 전용 줄을 따로 쓰고 있었다.
          둘 다 갤러리를 다루는 도구라 같은 줄에 둔다 — 줄 하나(40px)가 사라진다. -->
@@ -785,6 +788,9 @@
        이어진다(stashPreviewText → sessionStorage). -->
 
   <!-- [제거 2026-09-22] 좌측 용도 레일 — 위 용도 12칸으로 충분하다(사용자 결정). -->
+  <!-- 구독 폰트 — 무료 목록 첫 줄 고정 4장, 칩을 누르면 구독 폰트만 (static/ffp-subscribe.js) -->
+  <section id="subPin" hidden aria-label="타닥타닥 구독 폰트 추천"></section>
+  <section id="subView" class="ffs-view" hidden aria-label="타닥타닥 구독 폰트"></section>
   <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
 
 
@@ -918,6 +924,7 @@
 <!-- 공유 데이터 레이어 (관리자 페이지와 동일 파일을 사용) -->
 
 <script src="/static/ffp-phrases.js"></script>
+<script src="/static/ffp-subscribe.js"></script>
 <script src="/static/api-client.js"></script>
 <script>
 let FONTS=[];
@@ -3184,6 +3191,10 @@ async function route(){
     /* 구 해시 URL 호환: 폰트 찾기는 별도 페이지다(static/find-font.html) */
     location.replace('/find-font');
     return;
+  } else if(hash === '#subscribe'){
+    /* 구독 폰트 칸 — 화면 전환은 static/ffp-subscribe.js 가 맡는다. 보던 검색·카테고리는 둔다. */
+    showHomeView();
+    setMenuActive({notice:false, submit:false});
   } else if(hash.startsWith('#search/')){
     showHomeView();
     setMenuActive({notice:false, submit:false});
@@ -3377,5 +3388,12 @@ init().catch(function(err){
 });
 </script>
 
+<script>
+  /* 구독 폰트 칸 (2026-10-01) */
+  if (window.FFPSub) FFPSub.mountFonts({
+    chip: document.getElementById('subChip'), pin: document.getElementById('subPin'),
+    view: document.getElementById('subView'), grid: document.getElementById('fontGrid')
+  });
+</script>
 </body>
 </html>
