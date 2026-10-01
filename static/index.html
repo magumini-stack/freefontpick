@@ -155,7 +155,7 @@
     body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;line-height:1.6}
 
     /* ════════ 홈 (2026-09-22 메인 개편) ════════
-       구성: 히어로(키커·h1 + 기능 입구 4칸) → 쓰는 자리 점프 바 → 광고 띠 →
+       구성: 히어로(키커·h1 + 기능 입구 4칸) → 쓰는 자리 점프 바 → 구독 폰트 띠 →
        용도별 추천 4종 섹션 × N → "원하는 폰트가 없나요?" → 공지(해시 #notice).
        본문 섹션은 서버가 그린다(app/routers/design.py render_home_sections).
        카드 이름(.font-card 등)은 /fonts 격자 보기와 같다 — 한쪽을 고치면 다른 쪽도
@@ -200,9 +200,8 @@
       color:var(--text-secondary);white-space:nowrap;text-decoration:none;transition:all .15s}
     .use-chip:hover{background:var(--text-primary);color:var(--bg-card);border-color:var(--text-primary)}
 
-    /* 광고 띠 — 쓰는 자리 바 바로 아래. 높이는 반응형 가로 광고(구글이 정함).
-       안 채워지면 header.css 가 칸째 접는다. */
-    .home-ad{margin:18px 0 0;background:var(--bg-secondary);border-radius:10px;padding:10px 12px 12px;min-height:110px}
+    /* 구독 폰트 띠 — 쓰는 자리 바 바로 아래(10/1, 광고 띠 자리). 모양은 ffp-subscribe.js 가 입힌다. */
+    #subBand{margin-top:18px}
 
     /* 용도별 섹션 */
     .use-sec{padding:26px 0 18px;border-bottom:1px solid var(--border);scroll-margin-top:110px}
@@ -351,7 +350,7 @@
     </nav>
   </section>
 
-  <!-- 쓰는 자리 점프 바 + 광고 띠 + 용도별 추천 섹션 (서버가 그린다) -->
+  <!-- 쓰는 자리 점프 바 + 구독 폰트 띠 + 용도별 추천 섹션 (서버가 그린다) -->
   <main id="homeMain">
     {{FFP_HOME_SECTIONS}}
   </main>
@@ -402,6 +401,7 @@
 
 <!-- 카드 글꼴 자료 — 서버가 섹션과 함께 내린다(design.py home_fonts_json) -->
 <script type="application/json" id="homeFonts">{{FFP_HOME_FONTS}}</script>
+<script src="/static/ffp-subscribe.js"></script>
 <script src="/static/api-client.js"></script>
 <script src="/static/ffp-fontface.js"></script>
 <script>
@@ -443,8 +443,6 @@
     sec.scrollIntoView({behavior:'smooth', block:'start'});
   });
 
-  /* 광고 띠 채우기 (app/header.py ffpLazyAds) */
-  if(typeof window.ffpLazyAds === 'function') window.ffpLazyAds(document.getElementById('homeMain'), false);
 })();
 
 /* ── 모바일 햄버거 메뉴 (헤더는 서버가 주입) ── */
@@ -634,5 +632,6 @@ function showToast(msg){
 
 </script>
 
+<script>if (window.FFPSub) FFPSub.mountBand(document.getElementById('subBand'));</script>
 </body>
 </html>

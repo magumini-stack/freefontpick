@@ -217,10 +217,10 @@ def render_home_sections(sections: list) -> str:
         '<div class="use-bar" id="useBar" role="navigation" aria-label="쓰는 자리로 이동">'
         '<span class="use-bar-label">쓰는 자리</span>'
         f'<div class="use-bar-scroll">{chips}</div></div>',
-        # 광고 — 쓰는 자리 바 바로 아래 가로 띠(2026-09-22 사용자가 정한 자리).
-        # 슬롯은 갤러리용 번호를 그대로 쓴다. 광고가 안 오면 header.css 가 칸째 접는다.
-        '<div class="ffp-ad home-ad" data-ad-key="gallery" data-ad-format="horizontal">'
-        '<span class="ffp-ad-lbl">광고</span></div>',
+        # 타닥타닥 구독 폰트 띠 — 쓰는 자리 바 바로 아래. 2026-10-01 사용자님 지시로
+        # 이 자리의 광고 띠(갤러리용 슬롯, 9/22)를 빼고 넣었다. 카드는 static/ffp-subscribe.js
+        # (FFPSub.mountBand)가 채운다. 자료가 오기 전에는 숨겨 둔다.
+        '<section id="subBand" hidden></section>',
     ]
     for s in sections:
         cards = []
