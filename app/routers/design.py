@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import (Font, FontPairing, FontSubmission, SubmissionAnswer,
-                      UseCase, UseCaseFont, FontTag, Tag)
+                      UseCase, UseCaseFont, FontTag)
 from ..header import inject_header, not_found_page
 from .. import content_cache
 
@@ -665,7 +665,8 @@ def _fill_font_markers(html: str, font: Font, db: Session) -> str:
             .replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
             .replace("{{FFP_USAGE}}", _usage_examples(font), 1)
             .replace("{{FFP_LIC_PENDING}}", _lic_pending_block(font), 1)
-            .replace("{{FFP_HUBS}}", _font_hub_block(font, db) + _similar_fonts_block(font, db), 1)
+            .replace("{{FFP_HUBS}}", _font_hub_block(font, db), 1)
+            .replace("{{FFP_RELATED}}", _related_block(font, db), 1)
             .replace("{{FFP_TRY_KO}}", _esc(ko), 1)
             .replace("{{FFP_TRY_EN}}", _esc(en), 1)
     )
@@ -878,40 +879,44 @@ def _commercial_status(font: Font):
     return "yes" if all(v == "y" for v in vals) else "partial"
 
 
-def _similar_fonts_block(font: Font, db: Session) -> str:
-    """비슷한 모양의 무료폰트 — 폰트 페이지끼리 잇는 내부 링크 (2026-10-04).
+def _related_block(font: Font, db: Session) -> str:
+    """같은 계열 폰트 — 상세페이지 오른쪽 칸. 서버가 먼저 그린다 (2026-10-04).
 
-    용도 허브에 든 폰트는 527종 중 175종뿐이라, 나머지 페이지에는 다른 페이지로 가는
-    길이 조합 몇 개밖에 없었다. 모양 태그(axis='shape')를 가장 많이 겹치는 폰트 6종을
-    잇는다. 화면에도 보이는 섹션이다(크롤러만 읽는 글이 되지 않게).
+    예전에는 JS(font.html fetchRelated)만 그렸다. 그러면 처음 받은 HTML 에는 링크가 없어서,
+    스크립트를 돌리지 않는 크롤러는 폰트 페이지 사이의 길을 못 봤다(용도 허브에 든 폰트가
+    527종 중 175종뿐이라 나머지 페이지는 갈 곳이 거의 없었다). 같은 목록을 여기서 미리 그리고,
+    JS 는 뜨면 같은 목록을 그 폰트 모양으로 다시 그린다.
+
+    규칙은 JS 와 같아야 한다: 태그가 하나라도 겹치는 폰트를 겹친 수 → 좋아요 수 → 갤러리
+    순서로 8개. 둘이 다르면 화면이 뜨는 순간 목록이 바뀌어 보인다.
+
+    (같은 날 처음에는 아래쪽에 '비슷한 모양의 무료폰트' 섹션을 따로 붙였다가, 오른쪽의 이
+    칸과 겹친다는 지적(사용자님)을 받고 이 칸을 서버가 그리는 쪽으로 바꿨다.)
     """
-    shape_ids = [t.id for t in (font.tags or []) if (t.axis or "") == "shape"]
-    if not shape_ids:
-        return ""
+    empty = ('<section class="blk side-card hidden" id="relatedSec">'
+             '<div class="lbl">같은 계열 폰트</div><div class="rel-grid" id="relatedGrid"></div></section>')
+    tag_ids = [t.id for t in (font.tags or [])]
+    if not tag_ids:
+        return empty
     from sqlalchemy import func as _f
     rows = (
-        db.query(Font, _f.count(FontTag.tag_id).label("n"))
+        db.query(Font)
         .join(FontTag, FontTag.font_id == Font.id)
-        .filter(FontTag.tag_id.in_(shape_ids), Font.id != font.id)
+        .filter(FontTag.tag_id.in_(tag_ids), Font.id != font.id)
         .group_by(Font.id)
-        .order_by(_f.count(FontTag.tag_id).desc(), Font.sort_order, Font.id)
-        .limit(6)
+        .order_by(_f.count(FontTag.tag_id).desc(), Font.like_count.desc(), Font.sort_order, Font.id)
+        .limit(8)
         .all()
     )
     if not rows:
-        return ""
-    shape = next((t.name for t in font.tags if t.id in shape_ids), "")
-    items = "".join(
-        f'<li><a href="/font/{f.id}"><b>{_esc(f.name)}</b></a> <span class="sim-maker">{_esc(f.maker or "")}</span></li>'
-        for f, _n in rows
+        return empty
+    cards = "".join(
+        f'<a class="rel-card" href="/font/{f.id}"><div class="rel-spec">{_esc(f.name)}</div></a>'
+        for f in rows
     )
-    sub = f'<p class="sec-sub">{_esc(font.name)}처럼 &lsquo;{_esc(shape)}&rsquo; 모양인 무료폰트입니다.</p>' if shape else ""
-    return (
-        '<section class="blk" id="similarSec">'
-        f'<div class="sec-head"><h2>비슷한 모양의 무료폰트</h2></div>{sub}'
-        f'<ul class="hub-list">{items}</ul>'
-        '<p class="sec-sub"><a href="/fonts">전체 무료폰트 보기 →</a></p></section>'
-    )
+    return ('<section class="blk side-card" id="relatedSec">'
+            '<div class="lbl">같은 계열 폰트</div>'
+            f'<div class="rel-grid" id="relatedGrid">{cards}</div></section>')
 
 
 def _font_detail_meta(font: Font) -> dict:
