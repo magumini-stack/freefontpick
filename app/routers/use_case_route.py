@@ -26,7 +26,7 @@ router = APIRouter(tags=["use-case-page"])
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 TEMPLATE_PATH = BASE_DIR / "static" / "use.html"
 # 사이트 주소는 app/site.py 한 곳에서만 정한다.
-from ..site import SITE_URL as BASE_URL
+from ..site import SITE_URL as BASE_URL, breadcrumb_jsonld
 
 
 def _esc(s) -> str:
@@ -186,7 +186,8 @@ def use_case_page(request: Request, slug: str, db: Session = Depends(get_db)):
         "{{UC_DESC}}": _esc(desc),
         "{{UC_CANONICAL}}": url,
         "{{UC_OG_IMAGE}}": og_image,
-        "{{UC_JSONLD}}": f'<script type="application/ld+json">{json_ld}</script>',
+        "{{UC_JSONLD}}": f'<script type="application/ld+json">{json_ld}</script>'
+                         + breadcrumb_jsonld([("폰트픽", "/"), (uc.title, f"/use/{slug}")]),
         "{{UC_H1}}": _esc(f"{uc.title} 무료폰트 추천"),
         "{{UC_H1_SHORT}}": _esc(uc.title),
         "{{UC_SUBTITLE}}": _esc(uc.subtitle),

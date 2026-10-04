@@ -43,7 +43,7 @@ FONT_PAGE_PATH = STATIC_DIR / "font.html"
 FIND_FONT_PATH = STATIC_DIR / "find-font.html"
 
 # 사이트 주소는 app/site.py 한 곳에서만 정한다.
-from ..site import SITE_URL as BASE_URL
+from ..site import SITE_URL as BASE_URL, breadcrumb_jsonld
 
 
 def _load_index() -> str:
@@ -657,8 +657,12 @@ def _fill_font_markers(html: str, font: Font, db: Session) -> str:
     그 페이지에 "{{FFP_...}}" 글자가 그대로 보였다. 한 곳에 모은다.
     """
     ko, en = _preview_phrase(font)
+    # 빵부스러기 — 화면(.crumb)과 구조화 데이터를 같은 이름·순서로 (app/site.py breadcrumb_jsonld)
+    crumbs = breadcrumb_jsonld([("폰트픽", "/"), ("무료폰트", "/fonts"), (font.name, f"/font/{font.id}")])
     return (
-        html.replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
+        html.replace("{{FFP_CRUMB_NAME}}", _esc(font.name), 1)
+            .replace("{{FFP_CRUMB_LD}}", crumbs, 1)
+            .replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
             .replace("{{FFP_USAGE}}", _usage_examples(font), 1)
             .replace("{{FFP_LIC_PENDING}}", _lic_pending_block(font), 1)
             .replace("{{FFP_HUBS}}", _font_hub_block(font, db) + _similar_fonts_block(font, db), 1)

@@ -179,8 +179,10 @@ a{color:inherit}
 
 <div class="wrap">
 
-  <nav class="crumb">
-    <a href="/">폰트픽</a><span>›</span><span>{{UC_H1}}</span>
+  <!-- 빵부스러기 — 같은 경로를 구조화 데이터로도 낸다(app/site.py breadcrumb_jsonld, 이름·순서 같게).
+       마지막 칸은 바로 아래 h1 과 겹치지 않게 짧은 허브 이름만 쓴다(2026-10-04). -->
+  <nav class="crumb" aria-label="현재 위치">
+    <a href="/">폰트픽</a><span>›</span><span>{{UC_H1_SHORT}}</span>
   </nav>
 
   <header class="hero">

@@ -36,3 +36,27 @@ SITE_URL = os.getenv("SITE_URL", "https://freefontpick.tdtd.io").rstrip("/")
 # 정적 HTML 이 쓰는 마커. 값이 아니라 이름을 한 곳에 둔다 —
 # 마커 문자열을 여기저기 적으면 오타가 나도 조용히 안 채워진다.
 ORIGIN_MARKER = "{{FFP_ORIGIN}}"
+
+
+def breadcrumb_jsonld(items) -> str:
+    """빵부스러기(BreadcrumbList) 구조화 데이터 <script> 한 덩어리 (2026-10-04).
+
+    items = [(이름, "/경로"), ...] — 사이트 안 경로만 받아 SITE_URL 을 붙인다.
+    구글 PC 검색 결과의 주소 줄이 `도메인 › 무료폰트 › 푸들` 처럼 이 이름으로 보인다
+    (휴대폰은 2025-01 부터 도메인만). 주소 자체는 바꾸지 않는다.
+
+    ⚠ 화면의 빵부스러기(.crumb)와 같은 이름·같은 순서로 넘긴다 — 구글은 구조화
+    데이터가 화면 내용과 어긋나면 무시하거나 문제로 본다.
+    """
+    import json
+    data = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": i, "name": name, "item": SITE_URL + path}
+            for i, (name, path) in enumerate(items, 1)
+        ],
+    }
+    # 폰트 이름에 '</' 가 섞여도 <script> 가 닫히지 않게.
+    body = json.dumps(data, ensure_ascii=False).replace("</", "<\/")
+    return f'<script type="application/ld+json">{body}</script>'
