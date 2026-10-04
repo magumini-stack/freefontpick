@@ -553,7 +553,9 @@
   <div id="content" class="hidden">
     <!-- 빵부스러기 — 서버가 이름을 채운다. 같은 경로를 구조화 데이터(head 의 FFP_CRUMB_LD 마커)로도 낸다
          (app/site.py breadcrumb_jsonld). 둘은 이름·순서가 같아야 한다. -->
-    <nav class="crumb" aria-label="현재 위치"><a href="/">폰트픽</a> › <a href="/fonts">무료폰트</a> › <b id="crumbName">{{FFP_CRUMB_NAME}}</b></nav>
+    <!-- <nav> 를 쓰지 않는다 — header.css 의 맨 'nav' 규칙(display:flex, 링크 padding 6px 11px, 좁은 화면 display:none)이
+         그대로 먹어서 폰트명만 위로 뜨고 휴대폰에서는 통째로 사라졌다(10/4). 같은 뜻의 role 로 대신한다. -->
+    <div class="crumb" role="navigation" aria-label="현재 위치"><a href="/">폰트픽</a> › <a href="/fonts">무료폰트</a> › <b id="crumbName">{{FFP_CRUMB_NAME}}</b></div>
 
     <div class="title-block">
       <div class="title-row">

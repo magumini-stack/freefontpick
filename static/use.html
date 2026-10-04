@@ -180,10 +180,12 @@ a{color:inherit}
 <div class="wrap">
 
   <!-- 빵부스러기 — 같은 경로를 구조화 데이터로도 낸다(app/site.py breadcrumb_jsonld, 이름·순서 같게).
-       마지막 칸은 바로 아래 h1 과 겹치지 않게 짧은 허브 이름만 쓴다(2026-10-04). -->
-  <nav class="crumb" aria-label="현재 위치">
+       마지막 칸은 바로 아래 h1 과 겹치지 않게 짧은 허브 이름만 쓴다(2026-10-04).
+       <nav> 를 쓰지 않는다 — header.css 의 맨 'nav a' 규칙이 '폰트픽'에만 padding 6px 11px 을 줘서
+       글줄이 어긋나 있었다. 같은 뜻의 role 로 대신한다. -->
+  <div class="crumb" role="navigation" aria-label="현재 위치">
     <a href="/">폰트픽</a><span>›</span><span>{{UC_H1_SHORT}}</span>
-  </nav>
+  </div>
 
   <header class="hero">
     <h1>{{UC_H1}}</h1>
