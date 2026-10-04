@@ -671,17 +671,19 @@
 
       <div class="col-side">
 
+        <!-- 오른쪽 칸 순서: 같은 계열 폰트 → 어울리는 조합 (2026-10-04 사용자님 지시로 맞바꿈) -->
+
+        <!-- ⑧ 같은 계열 폰트 — 서버가 목록을 먼저 그려 둔다(app/routers/design.py _related_block).
+             스크립트를 돌리지 않는 크롤러(네이버 등)도 폰트 페이지끼리의 링크를 보게 하려는 것이다.
+             JS(fetchRelated)는 같은 규칙으로 같은 목록을 그 폰트 모양으로 다시 그린다. -->
+        {{FFP_RELATED}}
+
         <!-- ⑦ 페어링 -->
         <section class="blk side-card hidden" id="pairingSec">
           <div class="sec-head"><h2>이 폰트와 어울리는 조합</h2></div>
           <p class="sec-sub" id="pairingSub"></p>
           <div class="pairs" id="pairGrid"></div>
         </section>
-
-        <!-- ⑧ 같은 계열 폰트 — 서버가 목록을 먼저 그려 둔다(app/routers/design.py _related_block).
-             스크립트를 돌리지 않는 크롤러(네이버 등)도 폰트 페이지끼리의 링크를 보게 하려는 것이다.
-             JS(fetchRelated)는 같은 규칙으로 같은 목록을 그 폰트 모양으로 다시 그린다. -->
-        {{FFP_RELATED}}
 
       </div>
     </div>
