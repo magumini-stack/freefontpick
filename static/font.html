@@ -121,7 +121,11 @@
   /* ── TITLE ── */
   .crumb{padding:22px 0 0;font-family:var(--ui);font-size:13px;color:var(--text-muted);letter-spacing:.2px}
   .crumb a:hover{color:var(--accent)}
-  .crumb b{color:var(--text-secondary);font-weight:500}
+  /* 폰트명은 굵기 대신 색으로만 구분한다 — 혼자 굵으면 옆 칸보다 커 보여 '떠 보였다'(10/4).
+     구분자 '›' 는 글꼴에서 한글 가운데보다 아래(x높이 쪽)에 그려져 있어, 그대로 두면 글자가
+     올라가 보인다. 한글 가운데에 오도록 살짝 올린다. */
+  .crumb b{color:var(--text-primary);font-weight:400}
+  .crumb .sep{display:inline-block;margin:0 5px;transform:translateY(-.1em)}
   .title-block{padding:24px 0 38px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:34px;align-items:end}
   .title-row{min-width:0}
   .foundry{font-family:var(--ui);font-size:13px;color:var(--text-muted);letter-spacing:.2px;margin-bottom:14px;display:block}
@@ -555,7 +559,7 @@
          (app/site.py breadcrumb_jsonld). 둘은 이름·순서가 같아야 한다. -->
     <!-- <nav> 를 쓰지 않는다 — header.css 의 맨 'nav' 규칙(display:flex, 링크 padding 6px 11px, 좁은 화면 display:none)이
          그대로 먹어서 폰트명만 위로 뜨고 휴대폰에서는 통째로 사라졌다(10/4). 같은 뜻의 role 로 대신한다. -->
-    <div class="crumb" role="navigation" aria-label="현재 위치"><a href="/">폰트픽</a> › <a href="/fonts">무료폰트</a> › <b id="crumbName">{{FFP_CRUMB_NAME}}</b></div>
+    <div class="crumb" role="navigation" aria-label="현재 위치"><a href="/">폰트픽</a><span class="sep" aria-hidden="true">›</span><a href="/fonts">무료폰트</a><span class="sep" aria-hidden="true">›</span><b id="crumbName">{{FFP_CRUMB_NAME}}</b></div>
 
     <div class="title-block">
       <div class="title-row">

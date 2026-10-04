@@ -78,6 +78,8 @@ a{color:inherit}
 .crumb{font-size:12px;color:var(--text-muted);padding:20px 0 0;display:flex;gap:6px;flex-wrap:wrap}
 .crumb a{text-decoration:none}
 .crumb a:hover{color:var(--accent)}
+.crumb .sep{transform:translateY(-.1em)}   /* '›' 를 한글 가운데로 — font.html .crumb .sep 와 같은 이유 */
+.crumb span:last-child{color:var(--text-secondary)}
 
 /* 히어로 */
 .hero{padding:18px 0 26px;border-bottom:1px solid var(--border);margin-bottom:28px}
@@ -184,7 +186,7 @@ a{color:inherit}
        <nav> 를 쓰지 않는다 — header.css 의 맨 'nav a' 규칙이 '폰트픽'에만 padding 6px 11px 을 줘서
        글줄이 어긋나 있었다. 같은 뜻의 role 로 대신한다. -->
   <div class="crumb" role="navigation" aria-label="현재 위치">
-    <a href="/">폰트픽</a><span>›</span><span>{{UC_H1_SHORT}}</span>
+    <a href="/">폰트픽</a><span class="sep" aria-hidden="true">›</span><span>{{UC_H1_SHORT}}</span>
   </div>
 
   <header class="hero">
