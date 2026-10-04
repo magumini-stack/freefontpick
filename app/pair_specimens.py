@@ -22,6 +22,10 @@
 
 견본 문구는 계열마다 다르다
 ------------------------
+(2026-10-04) 문구를 요즘 많이 쓰는 말로 바꿨다 — 사용자님: "트렌디하게, 딱 봐도 요즘 문구, 재미까지".
+캔버스가 모양마다 실제 장면(슬라이드·책·유튜브 썸네일·SNS 게시물·포스터, static/font-pair.html)
+이 되면서 문구도 그 장면에 놓일 법한 말로 맞췄다.
+
 한 벌로 통일해 봤는데, 계열마다 글이 놓이는 자리가 달라서 맞지 않았다. 손글씨나
 귀여운 글자는 실제로 짧은 말에 쓰인다 — 카드 한 줄, 인사 한 마디다. 거기에 세
 줄짜리 설명문을 깔면 그 폰트가 잘 하는 일을 못 보여준다. 디스플레이는 반대로
@@ -47,16 +51,14 @@ SHAPES = [
         "tags": {"제목-본문용 고딕", "네모틀 고딕", "제목용 굴림", "UI/UX/Web"},
         # 가장 무난한 자리라 견본도 일반적인 글로 둔다. 다른 계열과 견줄 때의
         # 기준이 되는 문구다.
-        "ko": ("같은 문장, 다른 목소리",
-               "제목이 눈길을 잡고 본문이 그 눈길을 붙듭니다. 둘의 결이 너무 "
-               "닮으면 어디부터 읽어야 할지 알기 어렵고, 너무 다르면 서로를 "
-               "잡아먹습니다. 굵기와 크기로 차이를 주고 개성은 한쪽에만 두는 "
-               "편이 안전합니다."),
-        "en": ("One Voice, Two Roles",
-               "A headline catches the eye and the text keeps it. When the two "
-               "look too much alike the reader cannot tell where to begin; when "
-               "they clash they fight for the same attention. Set them apart by "
-               "weight and size, and let only one of them carry the personality."),
+        "ko": ("회의는 짧게, 퇴근은 칼같이",
+               "이번 분기 목표는 단 하나, 회의를 줄이는 것입니다. 안건은 미리 공유하고 "
+               "결론 없는 회의는 과감히 취소합니다. 아낀 시간은 진짜 일에 쓰고, "
+               "남은 시간은 각자 알아서 행복하기로 합니다."),
+        "en": ("Short Meetings, Early Logoffs",
+               "This quarter has one goal: fewer meetings. Share the agenda ahead, "
+               "cancel any meeting that ends without a decision, spend the saved time "
+               "on real work, and the rest of it on being happy."),
     },
     {
         "key": "serif",
@@ -65,14 +67,14 @@ SHAPES = [
                 "길게 읽는 글과 격식 있는 자리에 어울립니다.",
         "tags": {"부드러운 명조", "독특한 세리프"},
         # 길게 읽는 자리다. 본문을 넉넉히 두어 여러 줄이 쌓였을 때를 보여준다.
-        "ko": ("오래 읽어도 지치지 않는 글",
-               "명조는 획 끝에 작은 맺음을 답니다. 그 맺음이 시선을 다음 글자로 "
-               "넘겨 주어, 긴 글을 읽을 때 눈이 덜 지칩니다. 책과 신문이 오래도록 "
-               "이 계열을 써 온 이유입니다."),
-        "en": ("Made for Long Reading",
-               "A serif finishes each stroke with a small flag. Those flags pass "
-               "the eye along to the next letter, which is why books and "
-               "newspapers have set long text this way for centuries."),
+        "ko": ("잘 쉬는 것도 실력입니다",
+               "주말 계획표를 세웠다가 지웠다. 해야 할 일 대신 하지 않을 일을 적어 보니 "
+               "마음이 한결 가벼워졌다. 늦잠을 자고, 식은 커피를 마시고, 창밖 구름이 "
+               "흘러가는 속도를 구경했다. 아무것도 안 한 하루가 이렇게 꽉 찰 줄은 몰랐다."),
+        "en": ("Rest Is a Skill Too",
+               "I made a weekend plan and then erased it. Listing what I would not do "
+               "made everything lighter. I slept in, drank cold coffee and watched the "
+               "clouds drift past. A day of doing nothing turned out to be full."),
     },
     {
         "key": "display",
@@ -85,12 +87,12 @@ SHAPES = [
         # 덧말은 단어 나열이 아니라 문장이다. 처음에는 '무료 · 상업용 가능 ·
         # 5분 정리'처럼 썼는데, 글자 수가 적고 조사·받침이 거의 없어서 폰트를
         # 견줄 거리가 안 됐다. 짧아도 문장이어야 획이 이어지는 모양이 보인다.
-        "ko": ("이 폰트 하나면\n끝납니다",
-               "무료 폰트만 골라 담았습니다.\n"
-               "상업용으로도 마음 놓고 쓰세요."),
-        "en": ("One Font\nDoes It All",
-               "Every font here is free to use.\n"
-               "Commercial projects included."),
+        "ko": ("월급 빼고\n다 올랐다",
+               "장보기 물가 실화냐?\n"
+               "한 달 식비 반으로 줄인 비법 공개"),
+        "en": ("Everything's Up\nExcept My Pay",
+               "Groceries cost how much now?\n"
+               "How I cut my food bill in half"),
     },
     {
         "key": "hand",
@@ -102,14 +104,14 @@ SHAPES = [
         # 그래도 본문은 세 줄은 둔다 — 글자마다 모양이 미묘하게 달라서 여러 줄이
         # 쌓여야 그 결이 보인다. 줄바꿈은 문장 단위로 직접 넣는다(화면이
         # pre-line 으로 그린다).
-        "ko": ("오늘도 잘 지냈나요",
-               "손으로 쓴 글씨와 둥근 글자는 짧은 말에 어울립니다.\n"
-               "같은 글자를 두 번 써도 모양이 조금씩 다르고,\n"
-               "그 어긋남이 사람 손의 흔적으로 읽힙니다."),
-        "en": ("Hope your day went well",
-               "Handwriting and round letters suit short lines.\n"
-               "Write the same letter twice and it comes out\n"
-               "a little different — that drift reads as a person."),
+        "ko": ("오운완! 오늘도 해냈다",
+               "아침엔 분명 쉬려고 했는데\n"
+               "어쩌다 보니 스쿼트 100개 클리어\n"
+               "내일의 나야, 근육통은 네가 감당해 줘"),
+        "en": ("Workout done! Nailed it",
+               "I swore I would rest this morning\n"
+               "somehow I finished 100 squats\n"
+               "dear tomorrow me, the soreness is yours"),
     },
 ]
 
@@ -155,12 +157,12 @@ SURPRISE = {
     "desc": "어울림 계산을 끄고 아무거나 붙여 보는 자리입니다. 대부분은 어긋나지만, "
             "가끔 규칙으로는 만나지 않았을 짝이 나옵니다.",
     "tags": set(),
-    "ko": ("어울릴 리 없는 둘",
-           "규칙을 끄고 아무거나 붙였습니다. 대개는 어긋나지만, "
-           "가끔 계산으로는 만나지 않았을 짝이 나옵니다."),
-    "en": ("Two That Should Not Match",
-           "The rules are off here. Most of these clash, but now and then a "
-           "pair turns up that no calculation would have found."),
+    "ko": ("도파민 디톡스 페스티벌",
+           "휴대폰은 입구에 맡기세요. 멍 때리기 대회, 느리게 걷기, 아무 말 대잔치까지. "
+           "심심함을 즐기는 사람들의 이틀."),
+    "en": ("Dopamine Detox Festival",
+           "Leave your phone at the door. Zoning-out contests, slow walks and "
+           "nonsense talk: two days for people who enjoy being bored."),
 }
 
 # 처음 열었을 때. 고딕으로 둔다 — 가장 많이 쓰는 계열이고, 여기서 시작하면
