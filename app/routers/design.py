@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import (Font, FontPairing, FontSubmission, SubmissionAnswer,
-                      UseCase, UseCaseFont)
+                      UseCase, UseCaseFont, FontTag, Tag)
 from ..header import inject_header, not_found_page
 from .. import content_cache
 
@@ -661,7 +661,7 @@ def _fill_font_markers(html: str, font: Font, db: Session) -> str:
         html.replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
             .replace("{{FFP_USAGE}}", _usage_examples(font), 1)
             .replace("{{FFP_LIC_PENDING}}", _lic_pending_block(font), 1)
-            .replace("{{FFP_HUBS}}", _font_hub_block(font, db), 1)
+            .replace("{{FFP_HUBS}}", _font_hub_block(font, db) + _similar_fonts_block(font, db), 1)
             .replace("{{FFP_TRY_KO}}", _esc(ko), 1)
             .replace("{{FFP_TRY_EN}}", _esc(en), 1)
     )
@@ -856,6 +856,60 @@ def _font_hub_block(font: Font, db: Session) -> str:
     )
 
 
+# 상업적 이용 — 검색하는 사람이 가장 먼저 묻는 것("OO체 상업용")이라 제목·설명에 넣는다
+# (2026-10-04). 근거는 직접 조사한 라이선스 권한표뿐이다. 확인한 폰트에서 인쇄·웹·영상·
+# 포장 넷이 모두 '사용 가능'일 때만 "상업적 이용 가능"이라고 쓴다. 하나라도 조건부·불가면
+# 범위를 확인하라고 쓰고, 확인 전 폰트에는 아무 말도 하지 않는다 — 틀린 "가능"이 가장 나쁘다.
+_COMMERCIAL_KEYS = ("print", "web", "video", "package")
+
+
+def _commercial_status(font: Font):
+    """'yes' | 'partial' | None(미확인)"""
+    meta = font.meta if isinstance(font.meta, dict) else {}
+    lic = meta.get("license") if isinstance(meta.get("license"), dict) else None
+    if not lic or not lic.get("verified"):
+        return None
+    perms = lic.get("perms") if isinstance(lic.get("perms"), dict) else {}
+    vals = [str(perms.get(k) or "").lower() for k in _COMMERCIAL_KEYS]
+    return "yes" if all(v == "y" for v in vals) else "partial"
+
+
+def _similar_fonts_block(font: Font, db: Session) -> str:
+    """비슷한 모양의 무료폰트 — 폰트 페이지끼리 잇는 내부 링크 (2026-10-04).
+
+    용도 허브에 든 폰트는 527종 중 175종뿐이라, 나머지 페이지에는 다른 페이지로 가는
+    길이 조합 몇 개밖에 없었다. 모양 태그(axis='shape')를 가장 많이 겹치는 폰트 6종을
+    잇는다. 화면에도 보이는 섹션이다(크롤러만 읽는 글이 되지 않게).
+    """
+    shape_ids = [t.id for t in (font.tags or []) if (t.axis or "") == "shape"]
+    if not shape_ids:
+        return ""
+    from sqlalchemy import func as _f
+    rows = (
+        db.query(Font, _f.count(FontTag.tag_id).label("n"))
+        .join(FontTag, FontTag.font_id == Font.id)
+        .filter(FontTag.tag_id.in_(shape_ids), Font.id != font.id)
+        .group_by(Font.id)
+        .order_by(_f.count(FontTag.tag_id).desc(), Font.sort_order, Font.id)
+        .limit(6)
+        .all()
+    )
+    if not rows:
+        return ""
+    shape = next((t.name for t in font.tags if t.id in shape_ids), "")
+    items = "".join(
+        f'<li><a href="/font/{f.id}"><b>{_esc(f.name)}</b></a> <span class="sim-maker">{_esc(f.maker or "")}</span></li>'
+        for f, _n in rows
+    )
+    sub = f'<p class="sec-sub">{_esc(font.name)}처럼 &lsquo;{_esc(shape)}&rsquo; 모양인 무료폰트입니다.</p>' if shape else ""
+    return (
+        '<section class="blk" id="similarSec">'
+        f'<div class="sec-head"><h2>비슷한 모양의 무료폰트</h2></div>{sub}'
+        f'<ul class="hub-list">{items}</ul>'
+        '<p class="sec-sub"><a href="/fonts">전체 무료폰트 보기 →</a></p></section>'
+    )
+
+
 def _font_detail_meta(font: Font) -> dict:
     """폰트 상세페이지(/font/{id})용 title/description/keywords/url/og_image 생성"""
     name = font.name
@@ -867,13 +921,29 @@ def _font_detail_meta(font: Font) -> dict:
         intro = str(font.meta.get("intro") or "").strip()
         summary = str(font.meta.get("summary") or "").strip()
 
-    title = f"{name} 무료폰트 다운로드 - 어울리는 폰트 조합까지 | 폰트픽"
+    status = _commercial_status(font)
+    _lic = (font.meta or {}).get("license") if isinstance(font.meta, dict) else None
+    perms = _lic.get("perms") if isinstance(_lic, dict) and isinstance(_lic.get("perms"), dict) else {}
+    if status == "yes":
+        title = f"{name} 무료폰트 다운로드 · 상업적 이용 가능 | 폰트픽"
+        uses = "인쇄·웹·영상" + ("·로고" if str(perms.get("bici") or "").lower() == "y" else "")
+        lead = f"{name} 무료 다운로드, 상업적 이용 가능({uses})."
+    elif status == "partial":
+        title = f"{name} 무료폰트 다운로드 · 상업용 사용 범위 | 폰트픽"
+        lead = f"{name} 무료 다운로드. 상업적 이용 범위는 라이선스 표에서 확인하세요."
+    else:
+        title = f"{name} 무료폰트 다운로드 - 어울리는 폰트 조합까지 | 폰트픽"
+        lead = ""
     # meta description — 검색결과에 뜨는 자리라 길이를 맞춰야 한다.
     #   · 너무 길면 잘린다. 소개글(본문용, 500자 이상)을 그대로 쓰면 안 된다.
     #   · 너무 짧아도 손해다. 한 줄 요약만 쓰면 20자 안팎이라 스니펫이 빈다.
     # 그래서 한 줄 요약으로 시작하고, 모자라는 만큼 소개글 첫 문단을 문장
     # 단위로 이어 붙여 120~155자를 채운다.
     TARGET, HARD_MAX = 120, 155
+    DESC_MAX = HARD_MAX
+    if lead:
+        # 앞머리(무료 다운로드·상업적 이용)만큼 소개에 쓸 몫을 줄인다 — 문장 중간에서 잘리지 않게.
+        TARGET, HARD_MAX = max(50, TARGET - len(lead) - 1), HARD_MAX - len(lead) - 1
     first_para = " ".join(re.split(r"\n\s*\n", intro)[0].split()) if intro else ""
     desc = " ".join(summary.split())
     if len(desc) < TARGET and first_para:
@@ -884,7 +954,9 @@ def _font_detail_meta(font: Font) -> dict:
             sent = sent.strip()
             if not sent or sent in desc:
                 continue
-            cand = f"{desc} {sent}".strip() if desc else sent
+            # 한 줄 요약은 마침표 없이 쓰여 있어 소개와 붙으면 한 문장처럼 읽혔다 — 사이에 마침표.
+            joiner = " " if desc[-1:] in ".!?…" else ". "
+            cand = f"{desc}{joiner}{sent}".strip() if desc else sent
             if len(cand) > HARD_MAX:
                 break
             desc = cand
@@ -893,13 +965,16 @@ def _font_detail_meta(font: Font) -> dict:
     if not desc:
         desc = (
             f"{name}({maker}) 무료 한글 폰트를 미리 써보고 다운로드하세요. "
-            f"상업적 사용 가능, 어울리는 폰트 조합까지 폰트픽에서 한 번에 확인할 수 있습니다."
+            f"어울리는 폰트 조합까지 폰트픽에서 한 번에 확인할 수 있습니다."
         )
         desc = " ".join(desc.split())
-    if len(desc) > HARD_MAX:
-        desc = desc[: HARD_MAX - 1].rstrip() + "…"
+    if lead:
+        # 검색 의도 1순위(무료 다운로드·상업적 이용)를 맨 앞에 두고 소개를 잇는다.
+        desc = f"{lead} {desc}".strip()
+    if len(desc) > DESC_MAX:
+        desc = desc[: DESC_MAX - 1].rstrip() + "…"
     keywords = ", ".join(
-        [name, f"{name} 다운로드", "무료폰트", "무료 한글 폰트", maker] + tags[:4]
+        [name, f"{name} 다운로드", f"{name} 상업용", "무료폰트", "무료 한글 폰트", maker] + tags[:4]
     )
     url = f"{BASE_URL}/font/{font.id}"
     og_image = f"{BASE_URL}/api/fonts/{font.id}/og-image.png"
