@@ -28,7 +28,7 @@ from .database import SessionLocal as _SessionLocal
 from .header import inject_header, not_found_page
 from .seed import init_db
 from .site import SITE_URL
-from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, magazine_links, sample_image, db_migrate, gif_templates, gif, font_pair, stats, find, subscribe_picks, subfonts
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, magazine_links, sample_image, db_migrate, gif_templates, gif, font_pair, stats, find, subscribe_picks, subfonts, track
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -487,6 +487,7 @@ app.include_router(db_migrate.router)
 # 어드민 통계. design.router(캐치올 성격의 페이지 라우트)보다 먼저 등록해야
 # /api/admin/stats/* 가 정적 파일 서빙으로 새지 않는다.
 app.include_router(stats.router)
+app.include_router(track.router)   # 메인 4칸 메뉴 클릭 기록 (2026-10-04)
 # wisefont / design / use 라우터는 catch-all(/{full_path:path})보다 반드시 먼저 등록해야
 # /wisefont/{slug}, /design/{id}, /use/{slug}, /find-font 요청이 catch-all에 가로채이지 않는다.
 app.include_router(wisefont.router)

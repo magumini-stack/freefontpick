@@ -72,6 +72,7 @@ def summary(days: int = 30, _admin=Depends(require_password_changed),
         "font_count": int(font_kinds),        # 조회가 한 번이라도 있던 폰트 수
         "hub_views": by_kind.get("use", 0),
         "pair_views": by_kind.get("pair", 0),
+        "home_tool_clicks": by_kind.get("home_tool", 0),   # 메인 4칸 클릭 (2026-10-04부터)
     }
 
 
@@ -161,3 +162,20 @@ def hub_stats(days: int = 30, _admin=Depends(require_password_changed),
     for i, r in enumerate(out):
         r["rank"] = i + 1
     return out
+
+
+@router.get("/home-tools")
+def home_tool_stats(days: int = 30, _admin=Depends(require_password_changed),
+                    db: Session = Depends(get_db)):
+    """메인 4칸 메뉴 칸별 클릭 수 (app/routers/track.py). 2026-10-04 부터 센다.
+    한 번도 안 눌린 칸도 0 으로 넣는다 — 네 칸을 늘 같은 순서로 보여 준다."""
+    from .track import HOME_TOOLS
+    since, _today, days = _span(days)
+    rows = db.execute(
+        select(PageView.key, func.sum(PageView.count))
+        .where(PageView.kind == "home_tool", PageView.day >= since)
+        .group_by(PageView.key)
+    ).all()
+    got = {str(r[0]): int(r[1] or 0) for r in rows}
+    return [{"key": k, "label": label, "clicks": got.get(k, 0)}
+            for k, label in HOME_TOOLS.items()]
