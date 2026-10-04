@@ -78,7 +78,9 @@ def add_like(font_id: int, request: Request, db: Session = Depends(get_db)):
     db.execute(
         update(Font)
         .where(Font.id == font_id)
-        .values(like_count=Font.like_count + 1)
+        # updated_at 을 그대로 둔다 — 좋아요는 페이지 내용이 아니다. 안 그러면 onupdate 가
+        # 수정일을 '오늘'로 바꿔 사이트맵 lastmod 가 거짓이 된다(app/routers/seo.py, 2026-10-04).
+        .values(like_count=Font.like_count + 1, updated_at=Font.updated_at)
     )
     db.commit()
     db.refresh(font)
@@ -100,7 +102,7 @@ def remove_like(font_id: int, request: Request, db: Session = Depends(get_db)):
             update(Font)
             .where(Font.id == font_id)
             .where(Font.like_count > 0)
-            .values(like_count=Font.like_count - 1)
+            .values(like_count=Font.like_count - 1, updated_at=Font.updated_at)
         )
         db.commit()
         db.refresh(font)

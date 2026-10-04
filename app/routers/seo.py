@@ -2,7 +2,7 @@
 import os
 import sys
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.responses import Response, JSONResponse
@@ -24,9 +24,47 @@ def _x(s) -> str:
             .replace(">", "&gt;").replace('"', "&quot;"))
 
 
+# ── lastmod: 실제로 내용이 바뀐 날 (2026-10-04) ─────────────────────────────
+# 예전에는 모든 주소에 '오늘'을 찍었다. 매일 549개가 전부 바뀌었다고 하는 사이트맵은
+# 구글이 lastmod 를 믿지 않고 버린다. 그래서 바뀐 날을 그대로 적는다.
+#   폰트 상세  폰트 행 수정일(어드민 편집) · 폰트 파일 · 활용 예시 이미지 중 가장 늦은 날
+#   용도 허브  허브 행 수정일(추천 폰트·문구를 바꾸면 올라간다, use_cases_admin.py)
+#   홈        허브들 중 가장 늦은 날(홈 본문이 허브 추천이다)
+#   전체 폰트  폰트들 중 가장 늦은 날
+#   매거진    걸어 둔 글 중 가장 늦은 날
+#   그 밖(소개·FAQ·약관·GIF)  믿을 만한 날짜가 없어 lastmod 를 아예 안 쓴다(구글: 선택 항목)
+# 좋아요·순서 바꾸기는 수정일을 건드리지 않게 해 두었다(likes.py, fonts.py reorder).
+#
+# LASTMOD_FLOOR: 상세·허브 '틀'이 검색에 보이게 바뀐 날. 폰트마다의 날짜가 이보다 이르면
+# 이 날로 올린다. 2026-10-04 에 전 상세페이지 제목·설명·빵부스러기를 바꿨다.
+# 다음에 틀을 크게 바꾸면(제목 형식, 구조화 데이터 등) 이 날짜를 그날로 고친다.
+KST = timezone(timedelta(hours=9))
+LASTMOD_FLOOR = datetime(2026, 10, 4, tzinfo=KST)
+
+
+def _as_kst(v):
+    """DB 시각(UTC, 시간대 없음)·파일 시각(epoch 초)을 KST datetime 으로. 없으면 None."""
+    if v is None or v == 0:
+        return None
+    if isinstance(v, (int, float)):
+        return datetime.fromtimestamp(v, tz=KST)
+    if isinstance(v, str):
+        try:
+            v = datetime.fromisoformat(v)
+        except ValueError:
+            return None
+    if v.tzinfo is None:
+        v = v.replace(tzinfo=timezone.utc)
+    return v.astimezone(KST)
+
+
+def _latest(*vals):
+    got = [d for d in (_as_kst(v) for v in vals) if d is not None]
+    return max(got) if got else None
+
+
 @router.get("/sitemap.xml", include_in_schema=False)
 def sitemap(db: Session = Depends(get_db)):
-    today = datetime.utcnow().strftime("%Y-%m-%d")
     pages = [
         {"loc": f"{SITE_URL}/", "priority": "1.0", "changefreq": "weekly"},
         # 전체 무료폰트 보기 — 2026-09-22 홈에서 분리된 갤러리. 폰트 링크가 전부
@@ -63,19 +101,27 @@ def sitemap(db: Session = Depends(get_db)):
         pass
     # 매거진 글(/magazine/{slug})은 2026-09-29 에 지웠다 — 이제 티스토리 글을 건다.
 
+    font_dates, hub_dates = [], []   # 아래 블록 하나가 실패해도 다음 블록이 이름 오류로 죽지 않게
+
     # 폰트별 상세페이지 (핵심 SEO 자산)
     # 2026-07: /design/{id}는 /font/{id}의 canonical 페이지이므로 sitemap에서 제외.
     # canonical이 아닌 URL을 sitemap에 올리면 구글에게 엇갈린 신호를 줘서
     # 중복 색인 판단을 더 헷갈리게 만든다 (/font/ 색인 누락의 원인 중 하나였음).
     try:
         from .sample_image import has_sample, sample_version
+        from .files import file_version_of
 
-        fonts = db.query(Font.id, Font.name).all()
-        for fid, fname in fonts:
+        fonts = db.query(Font.id, Font.name, Font.updated_at).all()
+        font_dates = []
+        for fid, fname, fupd in fonts:
+            mod = _latest(LASTMOD_FLOOR, fupd, file_version_of(fid),
+                          sample_version(fid) if has_sample(fid) else 0)
+            font_dates.append(mod)
             page = {
                 "loc": f"{SITE_URL}/font/{fid}",
                 "priority": "0.9",
                 "changefreq": "monthly",
+                "lastmod": mod,
             }
             if has_sample(fid):
                 page["image"] = {
@@ -103,18 +149,44 @@ def sitemap(db: Session = Depends(get_db)):
     # 허브를 켜고 끌 때 sitemap이 어긋난다.
     try:
         from ..models import UseCase
-        for (uslug,) in db.query(UseCase.slug).filter(UseCase.is_active.is_(True)).all():
+        hub_dates = []
+        for uslug, uupd in (db.query(UseCase.slug, UseCase.updated_at)
+                            .filter(UseCase.is_active.is_(True)).all()):
+            mod = _latest(LASTMOD_FLOOR, uupd)
+            hub_dates.append(mod)
             pages.append({
                 "loc": f"{SITE_URL}/use/{uslug}",
                 "priority": "0.9",
                 "changefreq": "weekly",
+                "lastmod": mod,
             })
+        # 홈 본문은 허브 추천이고, 전체 폰트 보기는 폰트 전부의 목록이다.
+        for p in pages:
+            if p["loc"] == f"{SITE_URL}/" and hub_dates:
+                p["lastmod"] = max(hub_dates)
+            elif p["loc"] == f"{SITE_URL}/fonts" and font_dates:
+                p["lastmod"] = max(font_dates)
+    except Exception:
+        pass
+
+    # 매거진 — 걸어 둔 티스토리 글 중 가장 늦게 넣거나 고친 날
+    try:
+        from ..models import MagazineLink
+        from sqlalchemy import func as _f
+        mz = db.query(_f.max(MagazineLink.updated_at), _f.max(MagazineLink.created_at)).one()
+        mz_mod = _latest(*mz)
+        if mz_mod:
+            for p in pages:
+                if p["loc"] == f"{SITE_URL}/magazine":
+                    p["lastmod"] = mz_mod
     except Exception:
         pass
 
     def _one(p):
-        out = (
-            f"  <url>\n    <loc>{p['loc']}</loc>\n    <lastmod>{today}</lastmod>\n"
+        out = f"  <url>\n    <loc>{p['loc']}</loc>\n"
+        if p.get("lastmod"):
+            out += f"    <lastmod>{p['lastmod'].strftime('%Y-%m-%d')}</lastmod>\n"
+        out += (
             f"    <changefreq>{p['changefreq']}</changefreq>\n"
             f"    <priority>{p['priority']}</priority>\n"
         )

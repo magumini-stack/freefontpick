@@ -548,7 +548,9 @@ def reorder_fonts(
 ):
     """폰트 정렬 순서 일괄 변경. items: [{id, sort_order}, ...]"""
     for item in payload.items:
-        db.query(Font).filter(Font.id == item.id).update({"sort_order": item.sort_order})
+        # 순서만 바꾸는 것이라 수정일(updated_at)은 그대로 — 사이트맵 lastmod 가 거짓이 되지 않게.
+        db.query(Font).filter(Font.id == item.id).update(
+            {"sort_order": item.sort_order, "updated_at": Font.updated_at})
     db.commit()
     fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
     paired = _paired_font_ids(db)

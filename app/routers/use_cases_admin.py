@@ -12,6 +12,7 @@ fonts.py에서 이미 같은 함정을 겪었으므로(주석 참고) 아예 분
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 
@@ -185,6 +186,9 @@ def replace_picks(
         db.add(UseCaseFont(
             use_case_id=uc.id, font_id=p.font_id, rank=i, reason=p.reason or "",
         ))
+    # 추천 목록은 다른 표(use_case_fonts)라 허브 행의 수정일이 저절로 안 바뀐다.
+    # 사이트맵 lastmod(app/routers/seo.py)가 이 값을 쓰므로 직접 올린다.
+    uc.updated_at = func.now()
     _mark_admin_edited(db)
     db.commit()
     db.refresh(uc)
@@ -209,6 +213,7 @@ def replace_phrases(
     db.query(UseCasePhrase).filter(UseCasePhrase.use_case_id == uc.id).delete()
     for i, t in enumerate(cleaned):
         db.add(UseCasePhrase(use_case_id=uc.id, text=t, sort_order=(i + 1) * 10))
+    uc.updated_at = func.now()      # 위 replace_picks 와 같은 이유
     _mark_admin_edited(db)
     db.commit()
     db.refresh(uc)
@@ -223,9 +228,10 @@ def reorder(
 ):
     by_id = {uc.id: uc for uc in db.query(UseCase).all()}
     for it in items:
-        uc = by_id.get(it.id)
-        if uc is not None:
-            uc.sort_order = it.sort_order
+        if it.id in by_id:
+            # 순서만 바꾸는 것이라 허브 수정일은 그대로 (사이트맵 lastmod)
+            db.query(UseCase).filter(UseCase.id == it.id).update(
+                {"sort_order": it.sort_order, "updated_at": UseCase.updated_at})
     _mark_admin_edited(db)
     db.commit()
     rows = db.query(UseCase).order_by(UseCase.sort_order, UseCase.id).all()
