@@ -411,6 +411,11 @@
        띄우는 양은 JS가 바 높이를 실측해 계산하므로 여기선 값을 두지 않는다 —
        두 곳에 적어두면 한쪽만 고쳐져 어긋난다. */
     .font-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0 28px;grid-auto-flow:dense}
+    /* 타닥타닥 구독 광고 (10/5) */
+    .fonts-sub-ad{display:block;margin:0 0 22px;border-radius:12px;overflow:hidden;transition:opacity .15s}
+    .fonts-sub-ad:hover{opacity:.94}
+    .fonts-sub-ad[hidden]{display:none}
+    .fonts-sub-ad img{display:block;width:100%;height:auto}
     .font-card{cursor:pointer;background:none;border:none;border-bottom:1px solid var(--border);
       border-radius:0;padding:24px 2px 20px;transition:background-color .15s;position:relative;
       display:flex;flex-direction:column;min-width:0;animation:fadeUp .25s ease both}
@@ -734,9 +739,6 @@
   <div class="gallery-sticky" id="gallerySticky">
   <div class="tags-bar" id="tagsBar">
     <span class="tags-label">모양으로 찾기</span>
-    <!-- 타닥타닥 구독 폰트 칸(2026-10-01, static/ffp-subscribe.js). 무료 갈래보다 앞에 둔다.
-         .tag 를 쓰지 않는다 — resetTagToAll 이 첫 .tag 를 '무료전체'로 여긴다. -->
-    <button type="button" class="ffs-chip" id="subChip" aria-pressed="false" aria-controls="subView">구독 폰트</button>
     <div class="tags-scroll" id="tagsScroll" role="group" aria-label="폰트 모양 카테고리 필터"></div>
     <!-- [이동 2026-08] 보기 방식은 아이콘 두 개짜리 전용 줄을 따로 쓰고 있었다.
          둘 다 갤러리를 다루는 도구라 같은 줄에 둔다 — 줄 하나(40px)가 사라진다. -->
@@ -788,9 +790,17 @@
        이어진다(stashPreviewText → sessionStorage). -->
 
   <!-- [제거 2026-09-22] 좌측 용도 레일 — 위 용도 12칸으로 충분하다(사용자 결정). -->
-  <!-- 구독 폰트 — 무료 목록 첫 줄 고정 4장, 칩을 누르면 구독 폰트만 (static/ffp-subscribe.js) -->
-  <section id="subPin" hidden aria-label="타닥타닥 구독 폰트 추천"></section>
-  <section id="subView" class="ffs-view" hidden aria-label="타닥타닥 구독 폰트"></section>
+  <!-- 타닥타닥 구독 광고 (2026-10-05) — 메인과 같은 그림 한 장, 누르면 tdtd.io. 검색 중에는 감춘다.
+       폰트픽에는 타닥타닥 폰트 보기를 두지 않는다(사용자님) — 10/1 에 붙였던 구독 폰트 칩·첫 줄 4장·
+       구독 화면(static/ffp-subscribe.js)을 걷고 이 그림으로 바꿨다. 그림 원본은 메인과 같다
+       (Desktop/projects/폰트픽/구독광고_배너/build.py). -->
+  <a class="fonts-sub-ad" id="subAd" href="https://tdtd.io/" target="_blank" rel="noopener">
+    <picture>
+      <source media="(max-width:640px)" srcset="/static/ads/tdtd-sub-m.webp" width="720" height="520">
+      <img src="/static/ads/tdtd-sub-pc.webp" width="1200" height="200" decoding="async"
+           alt="타닥타닥 폰트 구독 서비스 — 월 6,600원으로 타닥타닥 폰트 전종을 라이선스 제한 없이 사용하세요. 구독 알아보기">
+    </picture>
+  </a>
   <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
 
 
@@ -924,7 +934,6 @@
 <!-- 공유 데이터 레이어 (관리자 페이지와 동일 파일을 사용) -->
 
 <script src="/static/ffp-phrases.js"></script>
-<script src="/static/ffp-subscribe.js"></script>
 <script src="/static/api-client.js"></script>
 <script>
 let FONTS=[];
@@ -3191,10 +3200,6 @@ async function route(){
     /* 구 해시 URL 호환: 폰트 찾기는 별도 페이지다(static/find-font.html) */
     location.replace('/find-font');
     return;
-  } else if(hash === '#subscribe'){
-    /* 구독 폰트 칸 — 화면 전환은 static/ffp-subscribe.js 가 맡는다. 보던 검색·카테고리는 둔다. */
-    showHomeView();
-    setMenuActive({notice:false, submit:false});
   } else if(hash.startsWith('#search/')){
     showHomeView();
     setMenuActive({notice:false, submit:false});
@@ -3389,11 +3394,16 @@ init().catch(function(err){
 </script>
 
 <script>
-  /* 구독 폰트 칸 (2026-10-01) */
-  if (window.FFPSub) FFPSub.mountFonts({
-    chip: document.getElementById('subChip'), pin: document.getElementById('subPin'),
-    view: document.getElementById('subView'), grid: document.getElementById('fontGrid')
-  });
+  /* 타닥타닥 구독 광고 — 검색어가 있으면 감춘다(결과를 밀어내지 않게). 검색은 입력·주소(#search/)
+     두 길로 들어오므로 둘 다 본다. route() 가 먼저 돌도록 이 스크립트는 맨 끝에 둔다. */
+  (function(){
+    var ad = document.getElementById('subAd'), q = document.getElementById('globalSearch');
+    if (!ad) return;
+    function sync(){ ad.hidden = !!(q && q.value.trim()); }
+    if (q) q.addEventListener('input', sync);
+    window.addEventListener('hashchange', function(){ setTimeout(sync, 0); });
+    setTimeout(sync, 0);
+  })();
 </script>
 </body>
 </html>
