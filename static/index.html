@@ -200,8 +200,10 @@
       color:var(--text-secondary);white-space:nowrap;text-decoration:none;transition:all .15s}
     .use-chip:hover{background:var(--text-primary);color:var(--bg-card);border-color:var(--text-primary)}
 
-    /* 구독 폰트 띠 — 쓰는 자리 바 바로 아래(10/1, 광고 띠 자리). 모양은 ffp-subscribe.js 가 입힌다. */
-    #subBand{margin-top:18px}
+    /* 타닥타닥 구독 광고 — 쓰는 자리 바 바로 아래(10/5). 그림 한 장, 누르면 tdtd.io (app/routers/design.py) */
+    .home-sub-ad{display:block;margin-top:18px;border-radius:12px;overflow:hidden;transition:opacity .15s}
+    .home-sub-ad:hover{opacity:.94}
+    .home-sub-ad img{display:block;width:100%;height:auto}
 
     /* 용도별 섹션 */
     .use-sec{padding:26px 0 18px;border-bottom:1px solid var(--border);scroll-margin-top:110px}
@@ -401,7 +403,6 @@
 
 <!-- 카드 글꼴 자료 — 서버가 섹션과 함께 내린다(design.py home_fonts_json) -->
 <script type="application/json" id="homeFonts">{{FFP_HOME_FONTS}}</script>
-<script src="/static/ffp-subscribe.js"></script>
 <script src="/static/api-client.js"></script>
 <script src="/static/ffp-fontface.js"></script>
 <script>
@@ -632,7 +633,6 @@ function showToast(msg){
 
 </script>
 
-<script>if (window.FFPSub) FFPSub.mountBand(document.getElementById('subBand'));</script>
 <script>
 /* 메인 4칸 메뉴 클릭 기록 (2026-10-04) — 어드민 '통계' 탭의 '메인 4칸 클릭'.
    서버는 app/routers/track.py. sendBeacon 이라 페이지를 떠나도 끝까지 가고 이동을 늦추지 않는다.
