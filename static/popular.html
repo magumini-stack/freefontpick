@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{P_TITLE}}</title>
+<meta name="description" content="{{P_DESC}}">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="{{P_CANONICAL}}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{P_TITLE}}">
+<meta property="og:description" content="{{P_DESC}}">
+<meta property="og:url" content="{{P_CANONICAL}}">
+<meta property="og:image" content="{{P_OG_IMAGE}}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="폰트픽">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{P_TITLE}}">
+<meta name="twitter:description" content="{{P_DESC}}">
+<meta name="twitter:image" content="{{P_OG_IMAGE}}">
+{{P_JSONLD}}
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/static/header.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+<script>
+/* 렌더 전에 저장된 테마를 먼저 적용 — 새로고침 시 흰 화면 번쩍임 방지 */
+(function(){try{var t=localStorage.getItem('ffp-theme');
+if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+<style>
+/* ── 인기 무료폰트 TOP 100 (2026-10-05) ─────────────────────────
+   틀은 용도 허브(use.html)와 같고, 목록은 전체 폰트 보기(fonts.html)의 '한 줄 보기'처럼
+   폰트 하나에 한 줄이다. 서버(app/routers/popular.py)가 100줄을 다 그리고, 아래 스크립트는
+   화면에 들어온 줄에만 글꼴을 입힌다. 토큰은 index.html·use.html 과 같다. */
+:root{
+  --bg:#FFFFFF;--bg-card:#fff;--bg-secondary:#F5F5F3;
+  --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+  --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+  --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
+  --up:#E5484D;--down:#2F6FED;--new:#F2711C;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+  --mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  --ui:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+  --pv:30px;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+  --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+  --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+  --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+  --up:#FF6B70;--down:#6E9BFF;--new:#FF9147;
+  color-scheme:dark;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]):not([data-theme="dark"]){
+    --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;
+    --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#666660;
+    --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.2);
+    --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+    --up:#FF6B70;--down:#6E9BFF;--new:#FF9147;
+    color-scheme:dark;
+  }
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ui);background:var(--bg);color:var(--text-primary);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px 80px}
+
+/* 빵부스러기 — use.html 과 같다 (<nav> 를 쓰지 않는 이유도 같다) */
+.crumb{font-size:12px;color:var(--text-muted);padding:20px 0 0;display:flex;gap:6px;flex-wrap:wrap}
+.crumb a{text-decoration:none}
+.crumb a:hover{color:var(--accent)}
+.crumb .sep{transform:translateY(-.1em)}
+.crumb span:last-child{color:var(--text-secondary)}
+
+/* 히어로 */
+.hero{padding:18px 0 22px;border-bottom:1px solid var(--border);margin-bottom:22px}
+.hero h1{font-size:30px;font-weight:900;letter-spacing:-.8px;line-height:1.25}
+.hero .sub{margin-top:8px;font-size:15px;color:var(--text-secondary)}
+.hero .count{margin-top:12px;display:inline-block;font-size:12.5px;font-weight:700;
+  color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:3px 8px}
+
+/* 이렇게 셉니다 */
+.brief{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);
+  padding:16px 20px;margin-bottom:22px}
+.brief h2{font-size:13px;font-weight:800;color:var(--accent);margin-bottom:8px}
+.brief ul{list-style:none;display:flex;flex-direction:column;gap:4px}
+.brief li{font-size:13.5px;color:var(--text-secondary);line-height:1.7;padding-left:12px;position:relative}
+.brief li::before{content:"";position:absolute;left:0;top:.75em;width:4px;height:4px;border-radius:50%;background:var(--text-muted)}
+.brief .up{color:var(--up);font-weight:700}.brief .down{color:var(--down);font-weight:700}.brief .new{color:var(--new);font-weight:700}
+
+/* 미리 써보기 — 전체 폰트 보기의 미리보기 바를 줄인 것 */
+.try{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:var(--radius-md);
+  background:var(--bg-card);padding:10px 14px;margin-bottom:6px;position:sticky;top:68px;z-index:5}   /* 머리글(고정 60px) 바로 아래 */
+.try label{font-size:12px;color:var(--text-muted);white-space:nowrap}
+.try input[type=text]{flex:1;min-width:0;border:none;outline:none;background:none;font:inherit;font-size:14px;color:var(--text-primary)}
+.try input[type=text]::placeholder{color:var(--text-muted)}
+.try .size{display:flex;align-items:center;gap:8px;border-left:1px solid var(--border);padding-left:12px}
+.try input[type=range]{width:110px;accent-color:var(--accent)}
+.try .size-val{font-size:12px;color:var(--text-secondary);width:34px;text-align:right;font-variant-numeric:tabular-nums}
+@media(max-width:560px){.try .size{display:none}}
+
+/* 순위 목록 — 한 줄에 폰트 하나 */
+.list{border-top:1px solid var(--border)}
+.row{display:grid;grid-template-columns:64px minmax(0,1fr) 32px;gap:0 14px;align-items:center;
+  padding:18px 4px 18px 0;border-bottom:1px solid var(--border);text-decoration:none;color:inherit;transition:background-color .15s}
+.row:hover{background:var(--bg-secondary)}
+.rk{display:flex;flex-direction:column;align-items:center;gap:2px;font-variant-numeric:tabular-nums}
+.rk b{font-size:22px;font-weight:800;line-height:1.1;letter-spacing:-.5px}
+.row.top .rk b{color:var(--accent);font-size:26px;font-weight:900}
+.chg{font-size:11px;font-weight:700;line-height:1;white-space:nowrap}
+.chg.up{color:var(--up)}.chg.down{color:var(--down)}.chg.same{color:var(--text-muted)}
+.chg.new{color:var(--new);letter-spacing:.04em}
+.bd{min-width:0}
+.meta{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.nm{font-size:14px;font-weight:700;letter-spacing:-.1px}
+.mk{font-size:12px;color:var(--text-muted)}
+.wt{font-size:11px;color:var(--text-secondary)}
+.pv{font-size:var(--pv);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:var(--text-primary);padding:2px 0}
+.go{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;color:var(--text-muted);border-radius:2px}
+.go svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.row:hover .go{color:var(--accent);background:var(--accent-light)}
+.empty{font-size:14px;color:var(--text-muted);padding:32px 0}
+@media(max-width:560px){
+  .row{grid-template-columns:44px minmax(0,1fr) 22px;gap:0 10px;padding:14px 0}
+  .rk b{font-size:18px}.row.top .rk b{font-size:21px}
+  .go{width:22px}
+  :root{--pv:24px}
+}
+
+/* 다른 용도 */
+.others{margin-top:44px;padding-top:26px;border-top:1px solid var(--border)}
+.others h2{font-size:15px;font-weight:800;margin-bottom:14px}
+.other-links{display:flex;gap:8px;flex-wrap:wrap}
+.other-links a{font-size:13px;font-weight:700;padding:8px 14px;border-radius:20px;
+  border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);text-decoration:none;transition:all .15s}
+.other-links a:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!--FFP_HEADER-->
+
+<div class="wrap">
+
+  <div class="crumb" role="navigation" aria-label="현재 위치">
+    <a href="/">폰트픽</a><span class="sep" aria-hidden="true">›</span><span>인기 TOP 100</span>
+  </div>
+
+  <header class="hero">
+    <h1>인기 무료폰트 TOP 100</h1>
+    <p class="sub">최근 7일 동안 폰트픽에서 가장 많이 본 무료폰트 순위예요. 매일 새로 집계합니다.</p>
+    <span class="count">{{P_DATE}} 기준</span>
+  </header>
+
+  <section class="brief">
+    <h2>이렇게 셉니다</h2>
+    <ul>
+      <li>폰트 상세페이지를 연 수로 줄을 세웠어요 ({{P_PERIOD}}, 7일).</li>
+      <li>검색 로봇과, 같은 사람이 30분 안에 다시 연 것은 세지 않아요.</li>
+      <li>순위 옆 <span class="up">▲</span><span class="down">▼</span>는 하루 전 순위와 견준 것이고,
+        <span class="new">NEW</span>는 새로 100위 안에 들어온 폰트예요.</li>
+    </ul>
+  </section>
+
+  <div class="try">
+    <label for="tryText">미리 써보기</label>
+    <input type="text" id="tryText" maxlength="60" autocomplete="off" placeholder="원하는 문구를 쓰면 100개 폰트에 바로 적용돼요">
+    <div class="size">
+      <input type="range" id="trySize" min="16" max="64" step="1" value="30" aria-label="미리보기 글자 크기">
+      <span class="size-val" id="trySizeVal">30px</span>
+    </div>
+  </div>
+
+  <div class="list" id="list">
+    {{P_ROWS}}
+  </div>
+
+  <section class="others">
+    <h2>용도로 찾기</h2>
+    <div class="other-links">{{P_OTHERS}}</div>
+  </section>
+
+<!--FFP_FOOTER-->
+</div>
+
+<script type="application/json" id="popFonts">{{P_FONTS}}</script>
+<script src="/static/ffp-fontface.js"></script>
+<script>
+(function(){
+  /* 글꼴은 줄이 화면에 가까워질 때만 가벼운 미리보기 판(.p)으로 받는다 — 100줄을 한꺼번에 받지 않는다.
+     미리 써보기에 판에 없는 글자를 치면(새 글자) 그때만 받은 줄을 원본 파일로 바꿔 끼운다
+     (fonts.html useFullFonts 와 같은 방식). */
+  var fonts = {};
+  try { JSON.parse(document.getElementById('popFonts').textContent || '[]')
+          .forEach(function(f){ fonts[f.id] = f; }); } catch(e){}
+  var SAMPLE_KO = {{P_SAMPLE_KO}}, SAMPLE_EN = {{P_SAMPLE_EN}};   // 서버가 JSON 문자열로 넣는다
+  var rows = Array.prototype.slice.call(document.querySelectorAll('.row[data-font-id]'));
+  var dressed = {}, full = false, fullDone = {};
+
+  var sheet = document.createElement('style'); document.head.appendChild(sheet);
+  function fullFace(f){
+    if (fullDone[f.id] || !f.has_file || (f.webfont_family && f.file_source !== 'user')) return;
+    fullDone[f.id] = true;
+    var pw = f.primary_weight || 0, v = f.file_version || 0;
+    var url = '/api/fonts/' + f.id + '/file/' + pw + (v ? '.v' + v : '') + '.woff2';
+    sheet.appendChild(document.createTextNode("@font-face{font-family:'FFP-" + String(f.id).padStart(3,'0') +
+      "';src:url('" + url + "') format('woff2');font-display:swap;font-weight:normal;font-style:normal}"));
+  }
+  function dress(row){
+    var f = fonts[parseInt(row.getAttribute('data-font-id'), 10)];
+    var el = row.querySelector('.pv');
+    if (!f || !el || !window.FFPFont || dressed[f.id]) return;
+    dressed[f.id] = true;
+    FFPFont.ensureFont(f, true);
+    if (full) fullFace(f);
+    el.style.fontFamily = FFPFont.stackOf(f);
+  }
+  if ('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if (e.isIntersecting){ dress(e.target); io.unobserve(e.target); } });
+    }, {rootMargin:'400px 0px'});
+    rows.forEach(function(r){ io.observe(r); });
+  } else { rows.forEach(dress); }
+
+  /* 판(.p)에 들어 있다고 확실히 아는 글자 — 견본 문장, 폰트 이름·제작사, 영숫자·기호 */
+  var known = null;
+  function needsFull(t){
+    if (!known){
+      known = {};
+      var add = function(s){ for (var i = 0; i < (s || '').length; i++) known[s.charAt(i)] = 1; };
+      add(' .,!?·…-~/:;\'"()[]%&*+=@#'); add(SAMPLE_KO); add(SAMPLE_EN);
+      for (var c = 48; c <= 122; c++) known[String.fromCharCode(c)] = 1;
+      Object.keys(fonts).forEach(function(k){ add(fonts[k].name); });
+    }
+    for (var i = 0; i < t.length; i++) if (!known[t.charAt(i)]) return true;
+    return false;
+  }
+
+  var input = document.getElementById('tryText');
+  input.addEventListener('input', function(){
+    var t = input.value.trim();
+    if (t && !full && needsFull(t)){
+      full = true;
+      Object.keys(dressed).forEach(function(id){ fullFace(fonts[id]); });
+    }
+    rows.forEach(function(r){
+      var f = fonts[parseInt(r.getAttribute('data-font-id'), 10)];
+      var el = r.querySelector('.pv');
+      if (!el) return;
+      el.textContent = t || ((f && f.is_english) ? SAMPLE_EN : SAMPLE_KO);
+    });
+  });
+
+  var size = document.getElementById('trySize'), sizeVal = document.getElementById('trySizeVal');
+  size.addEventListener('input', function(){
+    document.documentElement.style.setProperty('--pv', size.value + 'px');
+    sizeVal.textContent = size.value + 'px';
+  });
+})();
+</script>
+</body>
+</html>

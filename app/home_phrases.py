@@ -40,6 +40,13 @@ HOME_PHRASES = {
                "서두르지 않아야|닿는 것들이 있습니다", "오래 두고 볼수록|깊어지는 이름"],
 }
 
+# 인기 TOP 100 (2026-10-05) — 메인 첫 섹션 카드(1~4위)와 /popular 목록의 견본.
+# 순위표는 모든 줄이 같은 문장이어야 서체를 견줄 수 있다. 이 모듈의 글자는 미리보기
+# 서브셋(app/font_subset.py)에 자동으로 들어가므로 카드에서 글자가 빠지지 않는다.
+HOME_PHRASES["popular"] = ["요즘 다들|이 폰트 쓰더라", "이번 주 가장 많이 본|무료폰트",
+                           "다들 이걸로|바꿨다던데", "많이 본 데는|다 이유가 있지"]
+POPULAR_SAMPLE = ("요즘 다들 이 폰트 쓰더라", "Everyone's using this one lately")
+
 # 영문 전용 폰트에는 한글 문구를 얹을 수 없다(글자가 통째로 깨진다).
 ENGLISH_PHRASES = ["Fewer things,|chosen better", "Built with care,|meant to stay",
                    "The quiet hour|before morning", "Made to last,|made to share"]

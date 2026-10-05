@@ -28,7 +28,7 @@ from .database import SessionLocal as _SessionLocal
 from .header import inject_header, not_found_page
 from .seed import init_db
 from .site import SITE_URL
-from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, magazine_links, sample_image, db_migrate, gif_templates, gif, font_pair, stats, find, track
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, magazine_links, sample_image, db_migrate, gif_templates, gif, font_pair, stats, find, track, popular
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -492,6 +492,7 @@ app.include_router(track.router)   # 메인 4칸 메뉴 클릭 기록 (2026-10-0
 # /wisefont/{slug}, /design/{id}, /use/{slug}, /find-font 요청이 catch-all에 가로채이지 않는다.
 app.include_router(wisefont.router)
 app.include_router(use_case_route.router)
+app.include_router(popular.router)   # 인기 무료폰트 TOP 100 — /popular (2026-10-05)
 # 매거진 — /about.html 301 이 여기 들어 있어 정적 catch-all 보다 먼저 등록해야 한다.
 app.include_router(magazine.router)
 app.include_router(magazine_links.router)   # 매거진에 거는 티스토리 글 (2026-09-29)
@@ -609,7 +610,7 @@ if STATIC_DIR.exists():
 # 라우트는 이 파일들을 디스크에서 직접 읽으므로(FONT_PAGE_PATH 등) 여기서
 # 막아도 정상 페이지에는 영향이 없다.
 SSR_ONLY_TEMPLATES = {
-    "font.html", "use.html", "wisefont.html", "font-pair.html",
+    "font.html", "use.html", "wisefont.html", "font-pair.html", "popular.html",
     "gif-templates.html", "magazine.html", "about.html",
     # 폰트 찾기는 /find-font 로만 연다 — 원본 파일을 그대로 주면 {{FFP_FIND_SSR}}
     # 마커와 헤더 자리가 빈 채로 보인다(2026-09-22 index.html 에서 떼어 냄).

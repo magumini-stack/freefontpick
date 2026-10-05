@@ -289,3 +289,44 @@ def prune(db, keep_days: int = 400) -> int:
         except Exception:
             pass
         return 0
+
+
+# ── 인기 TOP 100 (2026-10-05) ───────────────────────────────────
+#
+# /popular 페이지와 메인 첫 섹션이 쓴다(app/routers/popular.py, design.py _home_sections_data).
+# 사용자님이 정한 것: 최근 7일 상세페이지 조회수, 메인에는 1~4위, 순위 변동(▲▼ NEW) 표시.
+#
+# 하루 동안 순위가 출렁이지 않도록 '어제까지 7일'로 센다(오늘 조회는 내일 차트에 들어간다).
+# 변동은 그 하루 전 차트(그저께까지 7일)와 견준다. 어제 100위 안에 없던 폰트는 NEW.
+# 조회수 숫자는 내보내지 않는다 — 순위만(인기 배지와 같은 원칙).
+
+def chart(db, end_day: date, days: int = 7, limit: int = 100) -> list:
+    """end_day(포함)까지 days 일 조회 합계 상위 font_id 목록 (많은 순, 같으면 id 순)."""
+    since = end_day - timedelta(days=days - 1)
+    rows = db.execute(
+        select(FontView.font_id)
+        .where(FontView.day >= since, FontView.day <= end_day)
+        .group_by(FontView.font_id)
+        .order_by(func.sum(FontView.count).desc(), FontView.font_id)
+        .limit(limit)
+    ).all()
+    return [int(r[0]) for r in rows]
+
+
+def top100(db, days: int = 7) -> dict:
+    """{"start", "end": date, "rows": [{"font_id", "rank", "change"}]}
+
+    change: 양수 = 올라온 칸 수, 음수 = 내려간 칸 수, 0 = 그대로, None = 새로 100위 안(NEW).
+    """
+    end = date.today() - timedelta(days=1)
+    now = chart(db, end, days, 100)
+    if not now:
+        # 어제까지 기록이 하나도 없을 때(기록을 막 시작한 서버 등)는 오늘까지로 센다.
+        end = date.today()
+        now = chart(db, end, days, 100)
+    prev = {fid: i + 1 for i, fid in enumerate(chart(db, end - timedelta(days=1), days, 100))}
+    rows = []
+    for i, fid in enumerate(now, start=1):
+        p = prev.get(fid)
+        rows.append({"font_id": fid, "rank": i, "change": (p - i) if p else None})
+    return {"start": end - timedelta(days=days - 1), "end": end, "rows": rows}

@@ -70,6 +70,8 @@ def sitemap(db: Session = Depends(get_db)):
         # 전체 무료폰트 보기 — 2026-09-22 홈에서 분리된 갤러리. 폰트 링크가 전부
         # 여기 실리므로 홈 다음으로 중요하다.
         {"loc": f"{SITE_URL}/fonts", "priority": "0.9", "changefreq": "weekly"},
+        # 인기 무료폰트 TOP 100 (2026-10-05) — 하루에 한 번 순위가 바뀐다. lastmod 는 아래에서 순위 기준일로.
+        {"loc": f"{SITE_URL}/popular", "priority": "0.9", "changefreq": "daily"},
         # /find-font 는 아래에서 답변 글이 얼마나 쌓였는지 보고 넣는다 —
         # 읽을 글이 없는 게시판을 검색엔진에 먼저 알릴 이유가 없다.
         # /#notice 는 뺐다. 조각(#)은 구글이 무시하므로 "/" 와 같은 URL 로 취급되고,
@@ -166,6 +168,16 @@ def sitemap(db: Session = Depends(get_db)):
                 p["lastmod"] = max(hub_dates)
             elif p["loc"] == f"{SITE_URL}/fonts" and font_dates:
                 p["lastmod"] = max(font_dates)
+    except Exception:
+        pass
+
+    # 인기 TOP 100 — 순위 기준일(어제까지 7일, app/font_views.py top100). 실제로 매일 바뀐다.
+    try:
+        from ..font_views import top100
+        end = top100(db)["end"]
+        for p in pages:
+            if p["loc"] == f"{SITE_URL}/popular":
+                p["lastmod"] = datetime(end.year, end.month, end.day, tzinfo=KST)
     except Exception:
         pass
 

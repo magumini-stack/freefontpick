@@ -203,6 +203,32 @@ def _home_sections_data(db: Session) -> list:
             "slug": uc.slug, "title": uc.title, "subtitle": uc.subtitle or "",
             "count": len(pick_ids | tag_ids), "cards": cards,
         })
+
+    # 인기 TOP 100 — 용도 허브들 맨 위에 1~4위 (2026-10-05, app/routers/popular.py)
+    try:
+        from ..font_views import top100
+        top = top100(db)["rows"][:HOME_PICKS]
+        fmap = {f.id: f for f in db.query(Font).filter(
+            Font.id.in_([r["font_id"] for r in top])).all()} if top else {}
+        pcards = []
+        for r in top:
+            f = fmap.get(r["font_id"])
+            if f is None:
+                continue
+            pcards.append({
+                "font": _home_font_slim(f), "maker": f.maker or "", "weights": f.weights or "1종",
+                "tags": [t.name for t in f.tags], "rank": r["rank"], "rank_text": f"{r['rank']}위",
+                "text": phrase_for("popular", r["rank"], bool(f.is_english), []),
+            })
+        if pcards:
+            out.insert(0, {
+                "slug": "popular", "title": "인기 TOP 100",
+                "subtitle": "최근 7일 폰트픽에서 가장 많이 본 무료폰트 — 매일 바뀌어요",
+                "count": None, "cards": pcards,
+                "href": "/popular", "more": "100위까지 보기 →",
+            })
+    except Exception:
+        pass
     return out
 
 
@@ -232,7 +258,8 @@ def render_home_sections(sections: list) -> str:
         cards = []
         for c in s["cards"]:
             f = c["font"]
-            rank = (f'<span class="font-tag rank" title="요즘 많이 보는 폰트 {c["rank"]}위">인기 {c["rank"]}</span>'
+            rank = (f'<span class="font-tag rank" title="요즘 많이 보는 폰트 {c["rank"]}위">'
+                    f'{_esc(c.get("rank_text") or "인기 " + str(c["rank"]))}</span>'
                     if c.get("rank") else "")
             tags = "".join(f'<span class="font-tag">{_esc(t)}</span>' for t in c["tags"])
             text = "<br>".join(_esc(p) for p in c["text"].split("|"))
@@ -251,7 +278,8 @@ def render_home_sections(sections: list) -> str:
         html.append(
             f'<section class="use-sec" id="use-{_esc(s["slug"])}">'
             f'<div class="use-head"><div><h2>{_esc(s["title"])}</h2>{sub}</div>'
-            f'<a class="more" href="/use/{_esc(s["slug"])}">{s["count"]}종 전체 보기 →</a></div>'
+            f'<a class="more" href="{_esc(s.get("href") or "/use/" + s["slug"])}">'
+            f'{_esc(s.get("more") or str(s["count"]) + "종 전체 보기 →")}</a></div>'
             f'<div class="font-grid">{"".join(cards)}</div></section>')
     return "".join(html)
 
