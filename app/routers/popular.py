@@ -104,7 +104,7 @@ def popular_page(request: Request, db: Session = Depends(get_db)):
     data = content_cache.get(f"popular:{date.today().isoformat()}", ttl=1800,
                              build=lambda: popular_data(db))
     rows = data["rows"]
-    start, end = date.fromisoformat(data["start"]), date.fromisoformat(data["end"])
+    end = date.fromisoformat(data["end"])
     url = f"{SITE_URL}/popular"
     title = "인기 무료폰트 TOP 100 - 이번 주 순위 | 폰트픽"
     names = [r["font"]["name"] for r in rows[:3]]
@@ -141,7 +141,6 @@ def popular_page(request: Request, db: Session = Depends(get_db)):
         "{{P_OG_IMAGE}}": f"{SITE_URL}/og-image-v3.png",
         "{{P_JSONLD}}": jsonld,
         "{{P_DATE}}": _md(end),
-        "{{P_PERIOD}}": f"{_md(start)} ~ {_md(end)}",
         "{{P_ROWS}}": body,
         "{{P_FONTS}}": fonts_json,
         # 스크립트 안 문자열이라 HTML 이스케이프가 아니라 JSON 으로 (영문 견본에 ' 가 있다)
