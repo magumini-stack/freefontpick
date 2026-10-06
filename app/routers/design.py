@@ -700,6 +700,7 @@ def _fill_font_markers(html: str, font: Font, db: Session) -> str:
             .replace("{{FFP_USAGE}}", _usage_examples(font), 1)
             .replace("{{FFP_LIC_PENDING}}", _lic_pending_block(font), 1)
             .replace("{{FFP_HUBS}}", _font_hub_block(font, db), 1)
+            .replace("{{FFP_WEBFONT}}", _webfont_block(font), 1)
             .replace("{{FFP_RELATED}}", _related_block(font, db), 1)
             .replace("{{FFP_TRY_KO}}", _esc(ko), 1)
             .replace("{{FFP_TRY_EN}}", _esc(en), 1)
@@ -951,6 +952,60 @@ def _related_block(font: Font, db: Session) -> str:
     return ('<section class="blk side-card" id="relatedSec">'
             '<div class="lbl">같은 계열 폰트</div>'
             f'<div class="rel-grid" id="relatedGrid">{cards}</div></section>')
+
+
+def _webfont_block(font: Font) -> str:
+    """'웹폰트로 쓰기' — 상세페이지 오른쪽 맨 위 (2026-10-06, 사용자님 제안).
+
+    공식 배포처가 공개한 웹폰트 주소와 font-family 이름을 복사해 가게 한다. 주소는
+    app/webfont_sources.py 표에서 온다(구글 폰트·네이버·제작사 CDN·제작자 저장소만, 눈누 제외).
+    폰트픽 서버는 아무것도 내주지 않는다 — 화면에 주소와 출처만 적는다.
+
+    라이선스를 확인했고 '임베딩'(웹사이트에 폰트 탑재)이 가능·조건부일 때만 그린다.
+    표에 주소가 있어도 미확인·불가면 그리지 않는다 — 쓸 수 없는 폰트에 코드를 주면 안 된다.
+    """
+    from ..webfont_sources import WEBFONT_SOURCES
+
+    src = WEBFONT_SOURCES.get(font.id)
+    if not src:
+        return ""
+    meta = font.meta if isinstance(font.meta, dict) else {}
+    lic = meta.get("license") if isinstance(meta.get("license"), dict) else {}
+    perms = lic.get("perms") if isinstance(lic.get("perms"), dict) else {}
+    embed = str(perms.get("embed") or "").lower()
+    if not lic.get("verified") or embed not in ("y", "c"):
+        return ""
+
+    def step(cap: str, part: str, code: str) -> str:
+        return ('<div class="wf-step">'
+                f'<div class="wf-cap"><span>{cap}</span>'
+                f'<button type="button" class="wf-copy" data-part="{part}">복사</button></div>'
+                f'<pre class="wf-code">{_esc(code)}</pre></div>')
+
+    family = f"font-family: '{src['family']}', {src.get('generic') or 'sans-serif'};"
+    if src.get("css"):
+        first = step("① HTML &lt;head&gt; 안에", "link", f'<link rel="stylesheet" href="{src["css"]}">')
+    else:
+        first = step("① CSS 맨 위에", "fontface", src["fontface"])
+    parts = [
+        f'<section class="blk side-card wf-card" id="webfontSec" data-font-id="{font.id}">',
+        '<div class="lbl">웹폰트로 쓰기</div>',
+        '<p class="wf-lead">파일을 받지 않고 내 사이트에 바로 쓰는 공식 주소예요.</p>',
+        first,
+        step("② CSS 에서 이 이름으로", "family", family),
+    ]
+    if src.get("weights_by_name"):
+        names = " · ".join(f"<code>{_esc(n)}</code>" for n in src["weights_by_name"])
+        parts.append(f'<p class="wf-note">굵기는 이름을 바꿔 써요: {names}</p>')
+    if src.get("note"):
+        parts.append(f'<p class="wf-note">{_esc(src["note"])}</p>')
+    if embed == "c":
+        parts.append('<p class="wf-cond">임베딩은 <b>조건부 허용</b>이에요. '
+                     '아래 라이선스 표의 조건을 확인한 뒤 쓰세요.</p>')
+    link = (f'<a href="{_esc(src["src"])}" target="_blank" rel="noopener nofollow">{_esc(src["provider"])}</a>'
+            if src.get("src") else _esc(src["provider"]))
+    parts.append(f'<p class="wf-src">제공 {link}</p></section>')
+    return "".join(parts)
 
 
 def _font_detail_meta(font: Font) -> dict:

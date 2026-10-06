@@ -384,6 +384,29 @@
     #fpModal .pairs{grid-template-columns:1fr}
   }
 
+  /* ── 웹폰트로 쓰기 (사이드바, 2026-10-06) ──
+     주소가 길어 340px 칸에서 가로로 흘러넘치므로 아무 데서나 줄을 바꿔 전부 보이게 한다
+     (overflow-wrap:anywhere — 띄어쓰기가 있으면 거기서 먼저 바꾼다). */
+  .wf-lead{font-size:12.5px;color:var(--text-secondary);line-height:1.6;margin:-6px 0 14px;word-break:keep-all}
+  .wf-step+.wf-step{margin-top:12px}
+  .wf-cap{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;
+    font-family:var(--ui);font-size:12px;font-weight:700;color:var(--text-secondary)}
+  .wf-copy{border:1px solid var(--border-hover);background:var(--bg-card);color:var(--text-secondary);
+    font-family:inherit;font-size:11.5px;font-weight:700;border-radius:12px;padding:3px 11px;cursor:pointer;flex:0 0 auto}
+  .wf-copy:hover{border-color:var(--accent);color:var(--accent)}
+  .wf-copy.ok{border-color:var(--status-allow-fg);color:var(--status-allow-fg)}
+  .wf-code{margin:0;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;padding:10px 12px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.6;
+    color:var(--text-primary);white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto}
+  .wf-note{font-size:12px;color:var(--text-secondary);line-height:1.7;margin-top:10px;word-break:keep-all}
+  .wf-note code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;
+    background:var(--bg-secondary);padding:1px 5px;border-radius:4px;white-space:nowrap}
+  .wf-cond{font-size:12px;line-height:1.6;margin-top:10px;padding:9px 11px;border-radius:6px;
+    background:var(--status-reviewed-bg);color:var(--status-reviewed-fg);word-break:keep-all}
+  .wf-src{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--text-muted)}
+  .wf-src a{color:var(--text-secondary);font-weight:700;text-decoration:none;margin-left:4px}
+  .wf-src a:hover{color:var(--accent)}
+
   /* ── RELATED (사이드바) ── */
   .rel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
   .rel-card{border:1px solid var(--border);border-radius:3px;padding:16px 14px;transition:.18s;height:118px;min-width:0;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center}
@@ -671,7 +694,13 @@
 
       <div class="col-side">
 
-        <!-- 오른쪽 칸 순서: 같은 계열 폰트 → 어울리는 조합 (2026-10-04 사용자님 지시로 맞바꿈) -->
+        <!-- 오른쪽 칸 순서: 웹폰트로 쓰기 → 같은 계열 폰트 → 어울리는 조합
+             (2026-10-04 같은 계열·조합을 맞바꿈, 2026-10-06 웹폰트 칸을 맨 위에 — 사용자님 지시) -->
+
+        <!-- ⑦-0 웹폰트로 쓰기 — 공식 배포처의 웹폰트 주소(app/webfont_sources.py)를 서버가 그린다
+             (app/routers/design.py _webfont_block). 주소가 없거나 라이선스 '임베딩'이 가능·조건부가
+             아니면 빈칸이다. 복사 단추는 아래 스크립트(.wf-copy). -->
+        {{FFP_WEBFONT}}
 
         <!-- ⑧ 같은 계열 폰트 — 서버가 목록을 먼저 그려 둔다(app/routers/design.py _related_block).
              스크립트를 돌리지 않는 크롤러(네이버 등)도 폰트 페이지끼리의 링크를 보게 하려는 것이다.
@@ -737,6 +766,38 @@
       if(!document.documentElement.hasAttribute('data-theme')) applyThemeIcons();
     });
   }
+})();
+
+/* '웹폰트로 쓰기' 복사 단추 (app/routers/design.py _webfont_block).
+   클립보드를 못 쓰는 환경(오래된 브라우저·http)에서는 코드를 선택해 두어 Ctrl+C 로 가져가게 한다. */
+(function(){
+  document.addEventListener('click', function(e){
+    var b = e.target && e.target.closest ? e.target.closest('.wf-copy') : null;
+    if (!b) return;
+    var step = b.closest('.wf-step'), pre = step && step.querySelector('.wf-code');
+    if (!pre) return;
+    var text = pre.textContent;
+    function pick(){
+      try { var r = document.createRange(); r.selectNodeContents(pre);
+            var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch(_) {}
+    }
+    function show(ok){
+      b.textContent = ok ? '복사됨' : '선택됨 · Ctrl+C';
+      b.classList.add('ok');
+      clearTimeout(b._wfT);
+      b._wfT = setTimeout(function(){ b.textContent = '복사'; b.classList.remove('ok'); }, 1800);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function(){ show(true); }, function(){ pick(); show(false); });
+    } else {
+      pick(); show(false);
+    }
+    try {
+      var sec = document.getElementById('webfontSec');
+      if (window.gtag) gtag('event', 'webfont_copy', {font_id: sec ? sec.getAttribute('data-font-id') : '',
+                                                     part: b.getAttribute('data-part') || ''});
+    } catch(_) {}
+  });
 })();
 </script>
 
