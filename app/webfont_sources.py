@@ -25,12 +25,16 @@
   css              <link> 로 부를 CSS 주소           fontface  CSS 파일 없이 안내하는 @font-face 코드
   family           font-family 에 쓸 이름            generic   이름 뒤에 붙일 기본 서체(sans-serif·serif·monospace)
   weights_by_name  굵기마다 따로 붙은 이름(네이버)   note      한 줄 덧붙임
-  provider         내주는 곳(화면에 그대로)          src       그곳의 안내 페이지
+  provider         내주는 곳(화면에 그대로)          src       그곳의 안내 페이지(origin 이 있으면 그 저장소)
+  origin           jsDelivr 로 받는 것의 원본 — 제작자의 공식 저장소(owner/repo)
 """
 
 NAVER = "네이버 한글한글 아름답게"
-JSD_GH = "jsDelivr · 제작자 GitHub"
-JSD_NPM = "jsDelivr · 제작자 npm"
+# jsDelivr 는 제작자가 GitHub·npm 에 올린 파일을 그대로 전해 주는 무료 CDN 이다. 폰트를 만든 것도,
+# 파일을 올린 것도 제작자다. 그래서 '제공'은 jsDelivr, '원본'(origin)은 제작자의 공식 저장소로 나눠 적는다.
+# (처음엔 'jsDelivr · 제작자 GitHub'이라고 한 줄로 썼는데 '제작자가 GitHub'으로 읽힌다는
+#  사용자님 지적을 받고 나눴다, 2026-10-06)
+JSD = "jsDelivr 무료 CDN"
 
 
 def _gf(family: str, axis: str = "", generic: str = "sans-serif") -> dict:
@@ -239,7 +243,7 @@ WEBFONT_SOURCES = {
         "css": "https://statics.goorm.io/fonts/GoormSans/v1.0.0/GoormSans.min.css",
         "family": "Goorm Sans",
         "generic": "sans-serif",
-        "provider": "구름",
+        "provider": "구름(goorm)",
         "src": "https://goorm.co/resources/fonts",
     },
     233: {  # 엘리스 DX널리체
@@ -269,70 +273,79 @@ WEBFONT_SOURCES = {
         "css": "https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css",
         "family": "Spoqa Han Sans Neo",
         "generic": "sans-serif",
-        "provider": "스포카 GitHub",
+        "provider": "스포카",
         "src": "https://spoqa.github.io/spoqa-han-sans/ko-KR/",
     },
     98: {  # 페이퍼로지
         "css": "https://cdn.jsdelivr.net/gh/Freesentation/paperlogy@main/Paperlogy.css",
         "family": "Paperlogy",
         "generic": "sans-serif",
-        "provider": JSD_GH,
+        "provider": JSD,
+        "origin": "Freesentation/paperlogy",
         "src": "https://github.com/Freesentation/paperlogy",
     },
     101: {  # 프리텐다드
         "css": "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css",
         "family": "Pretendard Variable",
         "generic": "sans-serif",
-        "provider": JSD_GH,
+        "provider": JSD,
+        "origin": "orioncactus/pretendard",
         "src": "https://github.com/orioncactus/pretendard",
     },
     157: {  # 수트
         "css": "https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css",
         "family": "SUIT Variable",
         "generic": "sans-serif",
-        "provider": JSD_GH,
+        "provider": JSD,
+        "origin": "sun-typeface/SUIT",
         "src": "https://github.com/sun-typeface/SUIT",
     },
     191: {  # 원티드산스
         "css": "https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css",
         "family": "Wanted Sans Variable",
         "generic": "sans-serif",
-        "provider": JSD_GH,
-        "src": "https://github.com/wanteddev/wanted-sans/blob/main/packages/wanted-sans/documentation/webfonts/README.md",
+        "provider": JSD,
+        "origin": "wanteddev/wanted-sans",
+        "src": "https://github.com/wanteddev/wanted-sans",
     },
     209: {  # 프리젠테이션
         "css": "https://cdn.jsdelivr.net/gh/Freesentation/freesentation@main/Freesentation.css",
         "family": "Freesentation",
         "generic": "sans-serif",
-        "provider": JSD_GH,
+        "provider": JSD,
+        "origin": "Freesentation/freesentation",
         "src": "https://github.com/Freesentation/freesentation",
     },
     213: {  # Mona12
         "css": "https://cdn.jsdelivr.net/gh/MonadABXY/mona-font/web/mona.css",
         "family": "Mona12",
         "generic": "monospace",
-        "provider": JSD_GH,
+        "provider": JSD,
+        "origin": "MonadABXY/mona-font",
         "src": "https://github.com/MonadABXY/mona-font",
     },
     214: {  # 갈무리14
         "css": "https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css",
         "family": "Galmuri14",
         "generic": "sans-serif",
-        "provider": JSD_NPM,
+        "provider": JSD,
+        "origin": "quiple/galmuri",
         "src": "https://github.com/quiple/galmuri",
     },
     366: {  # Neo둥근모
         "css": "https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@1.601/neodgm/style.css",
         "family": "NeoDunggeunmo",
         "generic": "monospace",
-        "provider": JSD_GH,
+        "provider": JSD,
+        "origin": "neodgm/neodgm-webfont",
         "src": "https://github.com/neodgm/neodgm-webfont",
     },
     401: {  # 갈무리9
         "css": "https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css",
         "family": "Galmuri9",
         "generic": "sans-serif",
-        "provider": JSD_NPM,
+        "provider": JSD,
+        "origin": "quiple/galmuri",
         "src": "https://github.com/quiple/galmuri",
     },
     405: {  # 양진체
@@ -346,7 +359,8 @@ WEBFONT_SOURCES = {
         ),
         "family": "yangjin",
         "generic": "sans-serif",
-        "provider": JSD_GH,
-        "src": "https://www.supernovice.org/font",
+        "provider": JSD,
+        "origin": "supernovice-lab/font",
+        "src": "https://github.com/supernovice-lab/font",
     },
 }

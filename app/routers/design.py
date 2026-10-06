@@ -1002,9 +1002,17 @@ def _webfont_block(font: Font) -> str:
     if embed == "c":
         parts.append('<p class="wf-cond">임베딩은 <b>조건부 허용</b>이에요. '
                      '아래 라이선스 표의 조건을 확인한 뒤 쓰세요.</p>')
-    link = (f'<a href="{_esc(src["src"])}" target="_blank" rel="noopener nofollow">{_esc(src["provider"])}</a>'
-            if src.get("src") else _esc(src["provider"]))
-    parts.append(f'<p class="wf-src">제공 {link}</p></section>')
+    def link(text: str) -> str:
+        return (f'<a href="{_esc(src["src"])}" target="_blank" rel="noopener nofollow">{_esc(text)}</a>'
+                if src.get("src") else f"<b>{_esc(text)}</b>")
+
+    if src.get("origin"):
+        # jsDelivr 로 받는 폰트 — 전해 주는 곳(CDN)과 파일을 올린 제작자의 저장소를 나눠 적는다.
+        # 한 줄('jsDelivr · 제작자 GitHub')로 쓰면 '제작자가 GitHub'으로 읽힌다(사용자님 지적).
+        parts.append(f'<p class="wf-src">제공 <b>{_esc(src["provider"])}</b><br>'
+                     f'원본 제작자 공식 저장소 {link(src["origin"])}</p></section>')
+    else:
+        parts.append(f'<p class="wf-src">제공 {link(src["provider"])}</p></section>')
     return "".join(parts)
 
 
