@@ -22,11 +22,14 @@ from ..font_views import record_page
 router = APIRouter(tags=["track"])
 
 # 칸 이름 → 화면 이름. 어드민 통계가 이 순서·이름으로 보여 준다(app/routers/stats.py).
+# 2026-10-06 셋째 칸을 GIF 만들기 → 폰트 변환으로 바꿨다. 'gif' 는 지난 기록을 보이려고 맨 끝에 남긴다
+# (캐시된 옛 메인에서 며칠 더 들어올 수도 있다).
 HOME_TOOLS = {
     "pair": "폰트 조합 찾기",
     "find": "이미지로 폰트 찾기",
-    "gif": "GIF 만들기",
+    "convert": "폰트 변환",
     "apps": "글자로 노는 앱",
+    "gif": "GIF 만들기 (10/6까지)",
 }
 
 

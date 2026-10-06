@@ -179,12 +179,11 @@
     .tool-ico{flex:0 0 38px;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
       background:var(--accent-light);color:var(--accent)}
     .tool-ico svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-    .tool.gif .tool-ico{background:linear-gradient(100deg,#FF4D6D,#FF9F1C,#2EC4B6,#4361EE,#B5179E,#FF4D6D);
-      background-size:300% 100%;color:#fff;animation:ffpGifFlow 6s linear infinite}
+    .tool.convert .tool-ico{background:#E8F7EE;color:#1A8A3A}
     .tool.find .tool-ico{background:#FFF4E0;color:#B8790A}
     .tool.apps .tool-ico{background:var(--text-primary);color:var(--bg-card)}
     :root[data-theme="dark"] .tool.find .tool-ico{background:#2A2210}
-    @media(prefers-reduced-motion:reduce){.tool.gif .tool-ico{animation:none}}
+    :root[data-theme="dark"] .tool.convert .tool-ico{background:#0F2A18;color:#5FCB85}
     .tool-t{font-size:15px;font-weight:800;letter-spacing:-.3px;margin-bottom:2px;display:flex;align-items:center;gap:6px}
     /* 설명은 한 줄 고정 — 글자 수가 달라도 네 칸 높이가 같아야 한다 */
     .tool-d{font-size:12.5px;color:var(--text-secondary);line-height:1.4;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -341,9 +340,10 @@
         <span class="tool-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 9"/></svg></span>
         <span><span class="tool-t">이미지로 폰트 찾기 <span class="tool-new">NEW</span></span><span class="tool-d">비슷한 무료폰트를 우선 추천</span></span>
       </a>
-      <a class="tool gif" data-track="gif" href="/gif" target="_blank" rel="noopener">
-        <span class="tool-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg></span>
-        <span><span class="tool-t">GIF 만들기</span><span class="tool-d">템플릿 50종 만들어 두었어요!</span></span>
+      <!-- 셋째 칸: GIF 만들기 → 폰트 변환 (2026-10-06 사용자님). GIF 생성기는 머리글 메뉴에 그대로 있다. -->
+      <a class="tool convert" data-track="convert" href="/font-convert" target="_blank" rel="noopener">
+        <span class="tool-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 10h14l-4-4"/><path d="M17 14H3l4 4"/></svg></span>
+        <span><span class="tool-t">폰트 변환 <span class="tool-new">NEW</span></span><span class="tool-d">웹폰트 만들기 · OTF↔TTF</span></span>
       </a>
       <a class="tool apps" data-track="apps" href="https://tdtd.io/apps.html" target="_blank" rel="noopener">
         <span class="tool-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M11 18h2"/></svg></span>
