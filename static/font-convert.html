@@ -97,7 +97,10 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
      넓은 화면: 왼쪽에 놓는 칸·결과, 오른쪽에 설정. 좁은 화면: 놓는 칸 → 설정 → 결과 순서로 쌓는다
      (설정을 먼저 쌓으면 가장 먼저 할 일인 '파일 놓기'가 한 화면 아래로 밀린다). */
   .grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;column-gap:28px;row-gap:0;align-items:start;padding-bottom:80px;
-        grid-template-areas:"drop side" "list side"}
+        grid-template-areas:"drop side" "list side";
+        /* 윗줄은 놓는 칸 높이 그대로. 두 줄에 걸친 설정 칸이 길면 남는 높이는 아랫줄(1fr)이 받는다 —
+           auto 두 줄이면 그 높이를 반씩 나눠 가져 놓는 칸 아래에 빈 틈이 생겼다(10/6 사용자님 지적) */
+        grid-template-rows:auto 1fr}
   .g-drop{grid-area:drop;min-width:0}
   .g-list{grid-area:list;min-width:0}
   .side{grid-area:side;position:sticky;top:20px;display:flex;flex-direction:column;gap:16px}
@@ -200,7 +203,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   .out-actions{display:flex;gap:8px;margin-top:12px}
 
   @media (max-width:900px){
-    .grid{grid-template-columns:1fr;grid-template-areas:"drop" "side" "list";row-gap:18px}
+    .grid{grid-template-columns:1fr;grid-template-areas:"drop" "side" "list";grid-template-rows:none;row-gap:18px}
     .side{position:static}
     .empty{grid-template-columns:1fr}
   }
