@@ -2620,7 +2620,9 @@ async function refreshStats(){
     + `<div class="st-card"><b>${stNum(sum.hub_views)}</b><span>용도 허브 조회</span></div>`
     + `<div class="st-card"><b>${stNum(sum.pair_views)}</b><span>폰트 조합 찾기 조회</span></div>`
     + `<div class="st-card"><b>${stNum(sum.font_count)}</b><span>한 번이라도 열린 폰트</span></div>`
-    + `<div class="st-card"><b>${stNum(sum.home_tool_clicks)}</b><span>메인 4칸 메뉴 클릭</span></div>`;
+    + `<div class="st-card"><b>${stNum(sum.home_tool_clicks)}</b><span>메인 4칸 메뉴 클릭</span></div>`
+    + `<div class="st-card"><b>${stNum(sum.convert_views)}</b><span>폰트 변환 열람</span></div>`
+    + `<div class="st-card"><b>${stNum(sum.convert_downloads)}</b><span>폰트 변환 받기</span></div>`;
 
   /* 메인 4칸 — 늘 같은 순서(왼쪽 위 → 오른쪽 아래)로 네 줄 */
   const maxTool = Math.max(1, ...tools.map(t => t.clicks));

@@ -28,7 +28,7 @@ from .database import SessionLocal as _SessionLocal
 from .header import inject_header, not_found_page
 from .seed import init_db
 from .site import SITE_URL
-from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, magazine_links, sample_image, db_migrate, gif_templates, gif, font_pair, stats, find, track, popular
+from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, magazine_links, sample_image, db_migrate, gif_templates, gif, font_pair, stats, find, track, popular, convert
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -493,6 +493,7 @@ app.include_router(track.router)   # 메인 4칸 메뉴 클릭 기록 (2026-10-0
 app.include_router(wisefont.router)
 app.include_router(use_case_route.router)
 app.include_router(popular.router)   # 인기 무료폰트 TOP 100 — /popular (2026-10-05)
+app.include_router(convert.router)   # 폰트 변환 — /font-convert, 변환은 브라우저에서 (2026-10-06)
 # 매거진 — /about.html 301 이 여기 들어 있어 정적 catch-all 보다 먼저 등록해야 한다.
 app.include_router(magazine.router)
 app.include_router(magazine_links.router)   # 매거진에 거는 티스토리 글 (2026-09-29)
@@ -615,6 +616,8 @@ SSR_ONLY_TEMPLATES = {
     # 폰트 찾기는 /find-font 로만 연다 — 원본 파일을 그대로 주면 {{FFP_FIND_SSR}}
     # 마커와 헤더 자리가 빈 채로 보인다(2026-09-22 index.html 에서 떼어 냄).
     "find-font.html",
+    # 폰트 변환은 /font-convert 로만 연다 — 원본 파일엔 머리글·바닥글 자리가 비어 있다(2026-10-06).
+    "font-convert.html",
 }
 
 

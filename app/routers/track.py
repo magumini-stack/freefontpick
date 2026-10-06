@@ -38,3 +38,20 @@ def track_home_tool(request: Request, tool: str = "", db: Session = Depends(get_
         except Exception:
             pass
     return Response(status_code=204)
+
+
+# 폰트 변환(/font-convert, 2026-10-06) 받기 — 단추를 눌러 파일을 받아 간 횟수.
+# 변환은 브라우저 안에서만 하므로 서버가 아는 것은 이 신호뿐이다. 파일 이름·내용은 오지 않는다.
+# key 는 '형식:범위'(예: woff2:web). 세는 규칙은 위와 같다(봇 제외, 30분 안 같은 받기는 한 번).
+CONVERT_FORMATS = {"woff2", "woff", "ttf", "otf", "zip"}
+CONVERT_RANGES = {"web", "k2780", "hangul", "all", "custom"}
+
+
+@router.post("/api/track/convert", include_in_schema=False)
+def track_convert(request: Request, fmt: str = "", r: str = "", db: Session = Depends(get_db)):
+    if fmt in CONVERT_FORMATS:
+        try:
+            record_page(request, "convert_dl", f"{fmt}:{r if r in CONVERT_RANGES else '-'}", db)
+        except Exception:
+            pass
+    return Response(status_code=204)

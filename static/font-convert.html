@@ -1,0 +1,1743 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>폰트 변환 - TTF·OTF를 WOFF2 웹폰트로, OTF↔TTF 변환 | 폰트픽</title>
+<meta name="description" content="TTF·OTF를 웹폰트(WOFF2·WOFF)로, OTF는 TTF로, TTF는 OTF로 바꿔요. 한글 2,350자·Adobe KR-9 2,780자만 남겨 용량을 줄이고, 파일은 서버에 올리지 않고 브라우저 안에서 바로 변환해요.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="{{FFP_ORIGIN}}/font-convert">
+<meta property="og:type" content="website">
+<meta property="og:title" content="폰트 변환 - TTF·OTF를 WOFF2 웹폰트로, OTF↔TTF 변환 | 폰트픽">
+<meta property="og:description" content="TTF·OTF를 웹폰트(WOFF2·WOFF)로, OTF는 TTF로, TTF는 OTF로. 한글 2,350자·2,780자만 남겨 용량을 줄여요. 파일은 서버로 올라가지 않아요.">
+<meta property="og:url" content="{{FFP_ORIGIN}}/font-convert">
+<meta property="og:image" content="{{FFP_ORIGIN}}/og-image-v3.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="폰트픽">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="폰트 변환 - TTF·OTF를 WOFF2 웹폰트로, OTF↔TTF 변환 | 폰트픽">
+<meta name="twitter:description" content="TTF·OTF를 웹폰트(WOFF2·WOFF)로, OTF는 TTF로, TTF는 OTF로. 한글 2,350자·2,780자만 남겨 용량을 줄여요.">
+<meta name="twitter:image" content="{{FFP_ORIGIN}}/og-image-v3.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"폰트 변환","url":"{{FFP_ORIGIN}}/font-convert","applicationCategory":"DesignApplication","operatingSystem":"Any","browserRequirements":"JavaScript, WebAssembly","inLanguage":"ko","description":"TTF·OTF를 웹폰트(WOFF2·WOFF)로, OTF는 TTF로, TTF는 OTF로 바꾸고, 한글 2,350자·Adobe KR-9 2,780자·11,172자로 글자를 줄이는 무료 도구. 파일은 서버로 올리지 않고 브라우저 안에서 변환한다.","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"publisher":{"@type":"Organization","name":"폰트픽","url":"{{FFP_ORIGIN}}/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"폰트픽","item":"{{FFP_ORIGIN}}/"},{"@type":"ListItem","position":2,"name":"폰트 변환","item":"{{FFP_ORIGIN}}/font-convert"}]}</script>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/static/header.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+<script>
+/* 렌더 전에 저장된 테마를 먼저 적용 — 새로고침 시 흰 화면 번쩍임 방지 */
+(function(){try{var t=localStorage.getItem('ffp-theme');
+if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+<!--
+  폰트 변환 — /font-convert (2026-10-06, app/routers/convert.py)
+
+  사용자님: "브라우저에서 폰트 변환하는 서비스를 만들어보고 싶어" → 시안(Desktop\projects\폰트픽\폰트변환_시안)
+  → "폰트픽 사이트에 붙이자". 파일은 브라우저 안에서만 바뀐다 — 서버로 올리지 않으니 서버 부담도 없다.
+  엔진(둘 다 jsDelivr 에서 처음 한 번 받는다): 글자 줄이기 harfbuzzjs 1.6.2 harfbuzz-subset.wasm,
+  WOFF2 wawoff2 2.0.1, WOFF 는 브라우저 내장 압축. TTF⇄OTF 곡선 변환(CFF 읽기·cu2qu·glyf·CFF 쓰기)은
+  아래 engineSrc 안에 직접 짰다. 변환은 웹 워커에서 돈다 — 큰 한글 폰트를 다루는 동안 화면이 굳지 않게.
+  시안 폴더의 점검\화면점검.ps1 이 같은 화면을 헤드리스 Edge 로 돌려 본다.
+-->
+<style>
+  :root{
+    --bg:#FFFFFF;--bg-card:#fff;--bg-secondary:#F5F5F3;--bg-sunk:#FAFAF8;
+    --text-primary:#1A1A1A;--text-secondary:#6B6B6B;--text-muted:#9A9A9A;
+    --border:rgba(0,0,0,.09);--border-hover:rgba(0,0,0,.18);
+    --accent:#1E3A8A;--accent-light:#EEF2FB;--accent-hover:#16307A;
+    --ok:#1A8A3A;--ok-bg:#E8F7EE;--warn:#9A6400;--warn-bg:#FFF4E0;--bad:#C8281F;--bad-bg:#FDECEC;
+    --ui:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    color-scheme:light;
+  }
+  :root[data-theme="dark"]{
+      --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;--bg-sunk:#191919;
+      --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#77776F;
+      --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.22);
+      --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+      --ok:#5FCB85;--ok-bg:#0F2A18;--warn:#E0AC4D;--warn-bg:#2E2410;--bad:#FF7873;--bad-bg:#2A0F0E;
+      color-scheme:dark;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]):not([data-theme="dark"]){
+      --bg:#141414;--bg-card:#1E1E1E;--bg-secondary:#2A2A2A;--bg-sunk:#191919;
+      --text-primary:#F0F0EC;--text-secondary:#A0A09A;--text-muted:#77776F;
+      --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.22);
+      --accent:#5B82E0;--accent-light:#141A2A;--accent-hover:#7B9CE8;
+      --ok:#5FCB85;--ok-bg:#0F2A18;--warn:#E0AC4D;--warn-bg:#2E2410;--bad:#FF7873;--bad-bg:#2A0F0E;
+      color-scheme:dark;
+    }
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}   /* display:grid 같은 규칙이 hidden 을 이기지 않게 */
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--text-primary);font-family:var(--ui);font-size:15px;line-height:1.6;
+       -webkit-font-smoothing:antialiased;word-break:keep-all}
+  a{color:inherit}
+  button{font-family:inherit}
+  .wrap{max-width:1140px;margin:0 auto;padding-inline:24px}
+
+  /* ── 첫머리 ── */
+  .hero{padding-block:14px 28px}
+  /* 빵부스러기 — 인기 TOP 100(popular.html)과 같은 모양 */
+  .crumb{font-size:12px;color:var(--text-muted);padding:20px 0 0;display:flex;gap:6px;flex-wrap:wrap}
+  .crumb a{text-decoration:none}
+  .crumb a:hover{color:var(--accent)}
+  .crumb .sep{transform:translateY(-.1em)}
+  .crumb span:last-child{color:var(--text-secondary)}
+  .hero h1{font-size:40px;line-height:1.2;letter-spacing:-1.2px;margin:0 0 12px;font-weight:800;text-wrap:balance}
+  .lead{font-size:17px;color:var(--text-secondary);margin:0 0 18px;text-wrap:pretty}   /* 두 문장을 한 줄씩 */
+  .m-br{display:none}   /* 좁은 화면에서만 끊는 자리 — 뜻이 끊기는 곳에서 줄을 바꾼다 */
+  .local{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--ok);
+         background:var(--ok-bg);border-radius:20px;padding:6px 14px 6px 12px;margin:0}
+  .local svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+
+  /* ── 본문 두 칸 ──
+     넓은 화면: 왼쪽에 놓는 칸·결과, 오른쪽에 설정. 좁은 화면: 놓는 칸 → 설정 → 결과 순서로 쌓는다
+     (설정을 먼저 쌓으면 가장 먼저 할 일인 '파일 놓기'가 한 화면 아래로 밀린다). */
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;column-gap:28px;row-gap:0;align-items:start;padding-bottom:80px;
+        grid-template-areas:"drop side" "list side"}
+  .g-drop{grid-area:drop;min-width:0}
+  .g-list{grid-area:list;min-width:0}
+  .side{grid-area:side;position:sticky;top:20px;display:flex;flex-direction:column;gap:16px}
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px}
+  .card h2{font-size:13px;font-weight:700;color:var(--text-secondary);margin:0 0 12px;letter-spacing:.2px}
+
+  /* ── 놓는 자리 ── */
+  .drop{position:relative;border:1.5px dashed var(--border-hover);border-radius:14px;background:var(--bg-sunk);
+        padding:34px 24px;text-align:center;cursor:pointer;transition:.15s}
+  .drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-light)}
+  .drop .ic{width:46px;height:46px;margin:0 auto 12px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);
+            display:grid;place-items:center;color:var(--accent)}
+  .drop .ic svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
+  .drop b{display:block;font-size:17px;margin-bottom:4px}
+  .drop span{font-size:13px;color:var(--text-muted)}
+  .drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+  .for-touch{display:none!important}
+  @media (hover:none) and (pointer:coarse){   /* 휴대폰에는 끌어다 놓을 데가 없다 */
+    .for-mouse{display:none!important}
+    .for-touch{display:block!important}
+  }
+  .fmts{display:flex;gap:6px;justify-content:center;margin-top:14px}
+  .fmts em{font-style:normal;font-family:var(--mono);font-size:11.5px;border:1px solid var(--border);border-radius:6px;
+           padding:2px 7px;color:var(--text-secondary);background:var(--bg-card)}
+
+  /* ── 파일 목록 ── */
+  .list{display:flex;flex-direction:column;gap:12px;margin-top:18px}
+  .row{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px 18px 16px}
+  .row-h{display:flex;align-items:flex-start;gap:14px}
+  .aa{flex:0 0 auto;width:54px;height:54px;border-radius:10px;background:var(--bg-secondary);display:grid;place-items:center;
+      font-size:26px;line-height:1;color:var(--text-primary)}
+  .meta{flex:1;min-width:0}
+  .nm{font-size:16px;font-weight:700;letter-spacing:-.2px;overflow-wrap:anywhere}
+  .sub{font-size:12.5px;color:var(--text-muted);margin-top:2px;overflow-wrap:anywhere}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .chip{font-size:11.5px;border-radius:6px;padding:2px 8px;background:var(--bg-secondary);color:var(--text-secondary);white-space:nowrap}
+  .chip.k{background:var(--accent-light);color:var(--accent);font-weight:700}
+  .acts{display:flex;gap:6px;flex:0 0 auto}
+  .btn{border:1px solid var(--accent);background:var(--accent);color:#fff;font-size:13px;font-weight:700;border-radius:8px;
+       padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .btn:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.ghost{background:var(--bg-card);color:var(--text-secondary);border-color:var(--border-hover)}
+  .btn.ghost:hover{color:var(--bad);border-color:var(--bad)}
+  .btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2}
+
+  .size{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;margin-top:14px;font-size:13px}
+  .size .from{color:var(--text-muted);white-space:nowrap}
+  .size .to{font-weight:700;white-space:nowrap}
+  .size .to small{font-weight:700;color:var(--ok);margin-left:6px}
+  .size .to small.up{color:var(--text-muted)}
+  .bar{height:8px;border-radius:4px;background:var(--bg-secondary);position:relative;overflow:hidden}
+  .bar i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:4px;transition:width .5s}
+  .bar.busy i{width:35%!important;animation:slide 1.1s ease-in-out infinite;background:var(--border-hover)}
+  @keyframes slide{0%{left:-35%}100%{left:100%}}
+  .state{font-size:12.5px;color:var(--text-muted);margin-top:6px;min-height:20px}
+  .state.err{color:var(--bad)}
+  .pv{margin-top:12px;border-top:1px dashed var(--border);padding-top:12px;font-size:22px;line-height:1.45;
+      color:var(--text-primary);overflow-wrap:anywhere}
+  .pv small{display:block;font-family:var(--ui);font-size:11.5px;color:var(--text-muted);margin-bottom:4px;letter-spacing:.2px}
+  .note{font-size:12.5px;line-height:1.6;border-radius:8px;padding:8px 11px;margin-top:10px}
+  .note.warn{background:var(--warn-bg);color:var(--warn)}
+  .note.bad{background:var(--bad-bg);color:var(--bad)}
+  .note.info{background:var(--bg-secondary);color:var(--text-secondary)}
+
+  .empty{margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .how{border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--bg-card)}
+  .how b{display:block;font-size:14px;margin-bottom:4px}
+  .how p{margin:0;font-size:12.5px;color:var(--text-secondary);line-height:1.6}
+  .how .f{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700;margin-bottom:8px;display:block}
+
+  /* ── 오른쪽: 설정 ── */
+  .opt{display:flex;flex-direction:column;gap:8px}
+  .opt label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;padding:10px 12px;
+             cursor:pointer;transition:.12s}
+  .opt label:hover{border-color:var(--border-hover)}
+  .opt input{margin:3px 0 0;accent-color:var(--accent)}
+  .opt label:has(input:checked){border-color:var(--accent);background:var(--accent-light)}
+  .opt .t{font-size:14px;font-weight:700;line-height:1.4}
+  .opt .t em{font-style:normal;font-size:11px;font-weight:700;color:#fff;background:var(--accent);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:1px}
+  .opt .d{display:block;font-size:12px;color:var(--text-secondary);font-weight:400;line-height:1.55;margin-top:2px}
+  textarea{width:100%;min-height:84px;border:1px solid var(--border-hover);border-radius:8px;padding:9px 11px;font-family:var(--ui);
+           font-size:14px;line-height:1.5;background:var(--bg-card);color:var(--text-primary);resize:vertical;margin-top:8px}
+  textarea:focus{outline:none;border-color:var(--accent)}
+  .ck{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-secondary);margin-top:6px}
+  .ck input{accent-color:var(--accent)}
+  .lic{font-size:12.5px;line-height:1.65;color:var(--text-secondary)}
+  .lic p{margin:0 0 8px}
+  .lic b{color:var(--text-primary)}
+
+  /* ── CSS 코드 ── */
+  .code{margin:0;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:12px 14px;
+        font-family:var(--mono);font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;max-height:300px;overflow:auto}
+  .code-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .copy{border:1px solid var(--border-hover);background:var(--bg-card);color:var(--text-secondary);font-size:11.5px;font-weight:700;
+        border-radius:12px;padding:3px 11px;cursor:pointer}
+  .copy:hover{border-color:var(--accent);color:var(--accent)}
+  .out-actions{display:flex;gap:8px;margin-top:12px}
+
+  @media (max-width:900px){
+    .grid{grid-template-columns:1fr;grid-template-areas:"drop" "side" "list";row-gap:18px}
+    .side{position:static}
+    .empty{grid-template-columns:1fr}
+  }
+  @media (max-width:560px){
+    .wrap{padding-inline:16px}
+    .hero h1{font-size:30px}
+    .lead{font-size:15.5px}
+    .m-br{display:inline}
+    .local{align-items:flex-start;border-radius:12px;padding:8px 14px 8px 12px}
+    .local svg{margin-top:3px;flex:0 0 auto}
+    .drop{padding:26px 18px}
+    /* 좁은 화면에서는 고른 칸의 설명만 펼친다 — 설정 두 장이 한 화면을 다 먹지 않게 */
+    .opt label .d{display:none}
+    .opt label:has(input:checked) .d{display:block}
+    .row-h{flex-wrap:wrap}
+    .acts{width:100%}
+    .acts .btn{flex:1;justify-content:center}
+    .size{grid-template-columns:1fr;gap:6px}
+  }
+</style>
+</head>
+<body>
+
+<!--FFP_HEADER-->
+
+<main class="wrap">
+  <div class="crumb" role="navigation" aria-label="현재 위치">
+    <a href="/">폰트픽</a><span class="sep" aria-hidden="true">›</span><span>폰트 변환</span>
+  </div>
+
+  <section class="hero">
+    <h1>폰트 변환</h1>
+    <p class="lead">TTF·OTF를 웹폰트(WOFF2·WOFF)로,<br class="m-br"> OTF는 TTF로, TTF는 OTF로.<br>필요한 글자만 남기면 용량이 몇 분의 일로 줄어요.</p>
+    <p class="local"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>파일은 이 브라우저 안에서만 바뀌어요.<br class="m-br"> 폰트픽 서버로 올라가지 않아요.</span></p>
+  </section>
+
+  <div class="grid">
+    <section class="g-drop" aria-label="폰트 넣기">
+      <div class="drop" id="drop">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 16V4"/><polyline points="7 9 12 4 17 9"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></div>
+        <b class="for-mouse">폰트 파일을 여기에 끌어다 놓으세요</b>
+        <b class="for-touch">눌러서 폰트 파일 고르기</b>
+        <span><span class="for-mouse">또는 눌러서 고르기 · </span>굵기별 파일 여러 개를 한꺼번에</span>
+        <div class="fmts"><em>TTF</em><em>OTF</em><em>WOFF</em><em>WOFF2</em></div>
+        <input type="file" id="pick" multiple accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" aria-label="폰트 파일 고르기">
+      </div>
+
+      <div class="empty" id="empty">
+        <div class="how"><span class="f">TTF·OTF → WOFF2</span><b>내 사이트에 올릴 웹폰트</b><p>지금 쓰는 모든 브라우저가 읽는 가장 작은 형식이에요. 같은 글자라도 TTF의 절반 아래로 줄어요.</p></div>
+        <div class="how"><span class="f">한글 2,350 · 2,780자만</span><b>용량을 확 줄이기</b><p>11,172자 한글 폰트를 완성형 2,350자나 Adobe KR-9 2,780자와 기호만 남기면 보통 70~85% 줄어요.</p></div>
+        <div class="how"><span class="f">OTF ⇄ TTF</span><b>곡선 형식 바꾸기</b><p>OTF만 있는 폰트를 TTF만 받는 프로그램에 넣을 때, 반대로 TTF를 OTF로 쓸 때. 웹폰트도 다시 풀어 줘요.</p></div>
+      </div>
+    </section>
+
+    <section class="g-list" aria-label="변환 결과">
+      <div class="list" id="list"></div>
+
+      <div class="card" id="outCard" hidden style="margin-top:18px">
+        <div class="code-h"><h2 style="margin:0">내 사이트에 넣는 CSS</h2><button type="button" class="copy" id="copyCss">복사</button></div>
+        <pre class="code" id="css"></pre>
+        <div class="out-actions">
+          <button type="button" class="btn" id="zipBtn"><svg viewBox="0 0 24 24"><path d="M12 4v12"/><polyline points="7 11 12 16 17 11"/><path d="M5 20h14"/></svg>모두 받기 (ZIP)</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side" aria-label="변환 설정">
+      <div class="card">
+        <h2>① 바꿀 형식</h2>
+        <div class="opt" id="optFormat">
+          <label><input type="radio" name="fmt" value="woff2" checked><span><span class="t">WOFF2<em>웹 권장</em></span><span class="d">웹사이트용. 가장 작고, 지금 쓰는 모든 브라우저가 읽어요.</span></span></label>
+          <label><input type="radio" name="fmt" value="woff"><span><span class="t">WOFF</span><span class="d">아주 오래된 브라우저까지 챙길 때.</span></span></label>
+          <label><input type="radio" name="fmt" value="ttf"><span><span class="t">TTF</span><span class="d">윈도·앱·게임 엔진처럼 TTF만 받는 곳에. OTF를 넣으면 곡선을 TTF 곡선으로 바꿔요(오차 1단위 이내).</span></span></label>
+          <label><input type="radio" name="fmt" value="otf"><span><span class="t">OTF</span><span class="d">디자인 프로그램용. TTF를 넣으면 곡선을 OTF(CFF) 곡선으로 바꿔요. 모양은 그대로예요.</span></span></label>
+        </div>
+      </div>
+      <div class="card">
+        <h2>② 남길 글자</h2>
+        <div class="opt" id="optRange">
+          <label><input type="radio" name="rng" value="web" checked><span><span class="t">웹 추천 · 한글 2,350자<em>추천</em></span><span class="d">완성형 한글 + 영문·숫자·기호. 대부분의 문장은 이걸로 충분해요. '똠·햏' 같은 드문 글자는 빠져요.</span></span></label>
+          <label><input type="radio" name="rng" value="k2780"><span><span class="t">Adobe KR-9 2,780자</span><span class="d">Adobe-KR-9 규격의 기본 한글(Supplement 0). 2,350자에 '똠·햏·뷁' 같은 430자를 더한, 폰트 회사들이 기본으로 만드는 범위예요.</span></span></label>
+          <label><input type="radio" name="rng" value="hangul"><span><span class="t">한글 11,172자 전부</span><span class="d">현대 한글을 빠짐없이 + 영문·숫자·기호. 한자·옛한글 등은 빠져요.</span></span></label>
+          <label><input type="radio" name="rng" value="all"><span><span class="t">모든 글자 그대로</span><span class="d">형식만 바꿔요. 폰트에 든 글자가 하나도 빠지지 않아요.</span></span></label>
+          <label><input type="radio" name="rng" value="custom"><span><span class="t">직접 입력한 글자만</span><span class="d">로고·제목처럼 쓸 글자가 정해져 있을 때. 가장 작아져요.</span></span></label>
+        </div>
+        <div id="customBox" hidden>
+          <textarea id="customText" placeholder="남길 글자를 입력하세요. 예) 폰트픽 무료폰트 큐레이션">폰트픽 무료폰트 큐레이션</textarea>
+          <label class="ck"><input type="checkbox" id="withAscii" checked>영문·숫자·기호도 함께 남기기</label>
+        </div>
+      </div>
+      <div class="card lic">
+        <h2>변환 전에 꼭 확인하세요</h2>
+        <p>폰트를 바꾸거나 글자를 줄이는 것은 <b>라이선스가 '수정·변환'을 허용할 때만</b> 할 수 있어요. 폰트픽 상세페이지의 라이선스 표(임베딩·OFL 칸)에서 확인할 수 있어요.</p>
+        <p style="margin:0">파일 안에 제작자가 적어 둔 사용 표시(fsType)도 읽어서, 막아 둔 것이 있으면 파일마다 알려 드려요.</p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<!--FFP_FOOTER-->
+
+<!-- ───────────────────────── 변환 엔진 (워커에서 돈다) ─────────────────────────
+     이 블록의 글자를 그대로 Blob 으로 만들어 new Worker 에 넣는다. 화면 쪽 코드를 쓰면 안 된다. -->
+<script type="text/plain" id="engineSrc">
+(function (scope) {
+'use strict';
+var CDN = {
+  hb:  'https://cdn.jsdelivr.net/npm/harfbuzzjs@1.6.2/dist/harfbuzz-subset.wasm',
+  w2c: 'https://cdn.jsdelivr.net/npm/wawoff2@2.0.1/build/compress_binding.js',
+  w2d: 'https://cdn.jsdelivr.net/npm/wawoff2@2.0.1/build/decompress_binding.js'
+};
+var cache = {};
+function once(key, make) {
+  if (!cache[key]) cache[key] = make().catch(function (e) { delete cache[key]; throw e; });
+  return cache[key];
+}
+
+// 하프버즈 서브셋터 — 가져올 것(import)이 없는 wasm 이라 그대로 띄운다
+function loadHB() {
+  return once('hb', async function () {
+    var res = await fetch(CDN.hb);
+    if (!res.ok) throw new Error('글자 줄이기 엔진을 받지 못했어요 (' + res.status + ')');
+    var r = await WebAssembly.instantiate(await res.arrayBuffer(), {});
+    return r.instance.exports;
+  });
+}
+// wawoff2 — 압축·풀기 두 파일이 둘 다 전역 Module 을 쓴다. 한 곳에 넣으면 서로 덮어쓰니
+// 함수 안에 가둬서 띄운다(var Module 이 그 함수의 매개변수 Module 을 가리키게).
+function loadEm(key) {
+  return once(key, async function () {
+    var res = await fetch(CDN[key]);
+    if (!res.ok) throw new Error('WOFF2 엔진을 받지 못했어요 (' + res.status + ')');
+    var code = await res.text();
+    return await new Promise(function (resolve, reject) {
+      var M = { print: function () {}, printErr: function () {},
+                onAbort: function (what) { reject(new Error('WOFF2 엔진 오류: ' + what)); } };
+      M.onRuntimeInitialized = function () { resolve(M); };
+      try { (new Function('Module', code + '\n;return Module;'))(M); } catch (e) { reject(e); }
+    });
+  });
+}
+
+// ── 바이트 다루기 ──
+function dvOf(u8) { return new DataView(u8.buffer, u8.byteOffset, u8.byteLength); }
+function tagAt(u8, o) { return String.fromCharCode(u8[o], u8[o + 1], u8[o + 2], u8[o + 3]); }
+function pad4(n) { return (n + 3) & ~3; }
+function concat(parts) {
+  var n = 0; parts.forEach(function (p) { n += p.length; });
+  var out = new Uint8Array(n), o = 0;
+  parts.forEach(function (p) { out.set(p, o); o += p.length; });
+  return out;
+}
+function sniff(u8) {
+  if (u8.length < 12) return null;
+  var s = dvOf(u8).getUint32(0);
+  if (s === 0x00010000 || s === 0x74727565) return 'ttf';   // 0x00010000, 'true'
+  if (s === 0x4F54544F) return 'otf';                       // 'OTTO'
+  if (s === 0x774F4646) return 'woff';                      // 'wOFF'
+  if (s === 0x774F4632) return 'woff2';                     // 'wOF2'
+  if (s === 0x74746366) return 'ttc';                       // 'ttcf'
+  return null;
+}
+function readTables(u8) {
+  var dv = dvOf(u8), n = dv.getUint16(4), t = {};
+  for (var i = 0; i < n; i++) {
+    var o = 12 + i * 16, tag = tagAt(u8, o);
+    t[tag] = { tag: tag, checksum: dv.getUint32(o + 4), offset: dv.getUint32(o + 8), length: dv.getUint32(o + 12) };
+  }
+  return t;
+}
+function tableCopy(u8, T, tag) { var t = T[tag]; return u8.slice(t.offset, t.offset + t.length); }
+function byTag(a, b) { return a.tag < b.tag ? -1 : a.tag > b.tag ? 1 : 0; }
+function buildSfnt(flavor, tables) {
+  tables.sort(byTag);
+  var n = tables.length, es = Math.floor(Math.log2(n)), sr = (1 << es) * 16;
+  var off = 12 + 16 * n, total = off;
+  tables.forEach(function (t) { total += pad4(t.data.length); });
+  var out = new Uint8Array(total), o = dvOf(out);
+  o.setUint32(0, flavor); o.setUint16(4, n); o.setUint16(6, sr); o.setUint16(8, es); o.setUint16(10, n * 16 - sr);
+  tables.forEach(function (t, i) {
+    var e = 12 + 16 * i;
+    for (var k = 0; k < 4; k++) out[e + k] = t.tag.charCodeAt(k);
+    o.setUint32(e + 4, t.checksum); o.setUint32(e + 8, off); o.setUint32(e + 12, t.data.length);
+    out.set(t.data, off); off += pad4(t.data.length);
+  });
+  return out;
+}
+function checksum(u8) {
+  var n = u8.length, sum = 0, i = 0;
+  for (; i + 3 < n; i += 4) sum = (sum + ((u8[i] << 24) | (u8[i + 1] << 16) | (u8[i + 2] << 8) | u8[i + 3])) >>> 0;
+  if (i < n) { var v = 0; for (var k = 0; k < 4; k++) v = (v << 8) | (i + k < n ? u8[i + k] : 0); sum = (sum + v) >>> 0; }
+  return sum >>> 0;
+}
+// 표를 새로 묶을 때: 표마다 checksum 과 head.checkSumAdjustment 를 다시 센다
+function packSfnt(flavor, tables) {
+  if (tables.head) { tables.head = tables.head.slice(); dvOf(tables.head).setUint32(8, 0); }
+  var list = Object.keys(tables).map(function (tag) { return { tag: tag, data: tables[tag], checksum: checksum(tables[tag]) }; });
+  var out = buildSfnt(flavor, list);
+  if (tables.head) dvOf(out).setUint32(readTables(out).head.offset + 8, (0xB1B0AFBA - checksum(out)) >>> 0);
+  return out;
+}
+
+// ── WOFF 1.0 — 표마다 zlib 로 눌러 담는 상자. 브라우저 내장 압축으로 만든다 ──
+async function zlib(u8, inflate) {
+  var s = inflate ? new DecompressionStream('deflate') : new CompressionStream('deflate');
+  return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(s)).arrayBuffer());
+}
+async function sfntToWoff(u8) {
+  var flavor = dvOf(u8).getUint32(0), tabs = Object.values(readTables(u8)).sort(byTag), n = tabs.length;
+  var sfntSize = 12 + 16 * n, parts = [];
+  for (var i = 0; i < n; i++) {
+    var t = tabs[i], raw = u8.subarray(t.offset, t.offset + t.length), c = await zlib(raw);
+    sfntSize += pad4(t.length);
+    parts.push({ t: t, data: c.length < raw.length ? c : raw });
+  }
+  var off = 44 + 20 * n, total = off;
+  parts.forEach(function (p) { total += pad4(p.data.length); });
+  var out = new Uint8Array(total), o = dvOf(out);
+  o.setUint32(0, 0x774F4646); o.setUint32(4, flavor); o.setUint32(8, total);
+  o.setUint16(12, n); o.setUint32(16, sfntSize); o.setUint16(20, 1);
+  parts.forEach(function (p, i) {
+    var e = 44 + 20 * i;
+    for (var k = 0; k < 4; k++) out[e + k] = p.t.tag.charCodeAt(k);
+    o.setUint32(e + 4, off); o.setUint32(e + 8, p.data.length); o.setUint32(e + 12, p.t.length); o.setUint32(e + 16, p.t.checksum);
+    out.set(p.data, off); off += pad4(p.data.length);
+  });
+  return out;
+}
+async function woffToSfnt(u8) {
+  var dv = dvOf(u8), flavor = dv.getUint32(4), n = dv.getUint16(12), tabs = [];
+  for (var i = 0; i < n; i++) {
+    var e = 44 + 20 * i, off = dv.getUint32(e + 4), comp = dv.getUint32(e + 8), orig = dv.getUint32(e + 12);
+    var raw = u8.subarray(off, off + comp);
+    tabs.push({ tag: tagAt(u8, e), checksum: dv.getUint32(e + 16), data: comp < orig ? await zlib(raw, true) : raw });
+  }
+  return buildSfnt(flavor, tabs);
+}
+async function woff2Encode(sfnt) {
+  var M = await loadEm('w2c'), r = M.compress(sfnt);
+  if (!r) throw new Error('WOFF2로 압축하지 못했어요');
+  return new Uint8Array(r);           // wasm 메모리를 가리키는 판이라 바로 복사해 둔다
+}
+async function woff2Decode(u8) {
+  var M = await loadEm('w2d'), r = M.decompress(u8);
+  if (!r) throw new Error('WOFF2를 풀지 못했어요');
+  return new Uint8Array(r);
+}
+async function toSfnt(u8) {
+  var k = sniff(u8);
+  if (k === 'ttf' || k === 'otf') return u8;
+  if (k === 'woff') return await woffToSfnt(u8);
+  if (k === 'woff2') return await woff2Decode(u8);
+  if (k === 'ttc') throw new Error('TTC(여러 폰트를 묶은 파일)는 아직 열 수 없어요');
+  throw new Error('폰트 파일이 아니에요');
+}
+
+// ── 글자 줄이기 (하프버즈) ──
+var KERN = 0x6B65726E;                                  // 'kern'
+function hbSubset(ex, sfnt, cps) {
+  var T = readTables(sfnt), keepKern = !!T.kern && !T.GPOS;
+  var n = sfnt.byteLength, ptr = ex.malloc(n);
+  new Uint8Array(ex.memory.buffer).set(sfnt, ptr);       // malloc 뒤에 판을 새로 잡아야 한다(메모리가 늘었을 수 있다)
+  var blob = ex.hb_blob_create(ptr, n, 2, 0, 0);         // 2 = HB_MEMORY_MODE_WRITABLE
+  var face = ex.hb_face_create(blob, 0);
+  ex.hb_blob_destroy(blob);
+  var input = ex.hb_subset_input_create_or_fail();
+  if (!input) { ex.hb_face_destroy(face); ex.free(ptr); throw new Error('글자 줄이기를 시작하지 못했어요'); }
+  var us = ex.hb_subset_input_unicode_set(input);
+  for (var i = 0; i < cps.length; i++) ex.hb_set_add(us, cps[i]);
+  // 전부 남길 것: 이름표(4 NAME_ID·5 NAME_LANG_ID)와 레이아웃 기능(6 LAYOUT_FEATURE_TAG).
+  // 기본값은 영어 이름(0~6번)만 남겨 한글 폰트 이름이 사라지고, ss01·tnum·case 같은 선택 기능도 버린다.
+  [4, 5, 6].forEach(function (which) {
+    var s = ex.hb_subset_input_set(input, which); ex.hb_set_clear(s); ex.hb_set_invert(s);
+  });
+  var flags = ex.hb_subset_input_get_flags(input) | 0x08 | 0x40;                 // NAME_LEGACY | NOTDEF_OUTLINE
+  if (keepKern) {
+    // GPOS 없이 옛 kern 표로만 글자 사이를 맞추는 폰트. 하프버즈는 kern 표를 줄이지 못해 기본으로 버리는데,
+    // 그러면 자간이 틀어진다. 글리프 번호를 그대로 두고(RETAIN_GIDS) 표를 통째로 넘긴다.
+    flags |= 0x02;
+    ex.hb_set_del(ex.hb_subset_input_set(input, 3), KERN);                       // 3 = DROP_TABLE_TAG
+    ex.hb_set_add(ex.hb_subset_input_set(input, 2), KERN);                       // 2 = NO_SUBSET_TABLE_TAG
+  }
+  ex.hb_subset_input_set_flags(input, flags);
+  var sub = ex.hb_subset_or_fail(face, input);
+  ex.hb_subset_input_destroy(input);
+  if (!sub) { ex.hb_face_destroy(face); ex.free(ptr); throw new Error('글자 줄이기에 실패했어요'); }
+  var ob = ex.hb_face_reference_blob(sub), len = ex.hb_blob_get_length(ob), dp = ex.hb_blob_get_data(ob, 0);
+  var out = new Uint8Array(ex.memory.buffer, dp, len).slice();
+  ex.hb_blob_destroy(ob); ex.hb_face_destroy(sub); ex.hb_face_destroy(face); ex.free(ptr);
+  if (!len) throw new Error('글자 줄이기 결과가 비었어요');
+  return out;
+}
+
+// ── 남길 글자 묶음 ──
+// Adobe-KR-9 Supplement 0(CID 0~3058)의 한글 2,780자 = KS X 1001 2,350자 + 아래 430자,
+// 그리고 같은 Supplement 의 한글 아닌 글자 225자. 어도비 공식 자료(adobe-type-tools/Adobe-KR 의
+// akr9-hangul.txt·Adobe-KR-9_ordering.txt)에서 그대로 뽑았다(2026-10-06).
+var AKR0_EXTRA = '갋갣걥겂겍겷겿곘곹괐괒괢굠굥궃궸귕귬귭긂긇긏긑긓긘긩깄깯꺆꺍꺠꺤껓껕꼉꼳꽅꽌꽨꽸꿏꿘뀰뀼끠끤낐낻냗냡냣냬넏넑넢넫넾녇녱놁놑놥놰뇄뇍뇡뇸눍눝뉻늗늧늫늼늿닁닏닞닠닽댖댠댱덯됏됬됭둗둚뒙뒸듥듧듼딀딫딮딲딷떄떈떔떙똠똡똣똭똰뙇뙜뚧뚯뚸뜄뜌뜳뜽뜾띃띡랃랟랰랲럅럐럔럲럳렜렫롣롹뢔뤈뤤릏릐릔맀맆맔맜맟맢맫맻맽먄먐멌멛멫멷몐몯몱뫠뫴묌뭤뭥뮊뮙뮛뮹믁믑믕믜믠믭믱밣밨밫밲밷뱜뱟뱡벘벝벟볌볓볻볽볾볿봣봥뵜뵴붔붝붠붭붴뷁뷥븁븕븡븨븩븰븽빋빘빧빩빾뺜뻙뻰뼌뽓뾱뿕뿝쀠쁭샆샏샾섁섿셑셱솀솁솓쇴쇵숖슌슫슲싀싁싥싰싳싿쌰쌱쎂쎅쎔쎠쎤쎵쎼쏚쏼쐋쑀쑝쒐쒠쒬쓔씃씫씼씿앋앏앜얐얬얭얺엏엤옏옝옦옫옯왎왘왭왰욌욷웂웇웟웻윘윾읃읇읎읩읬읭읻잌잍쟵젂젇젉젋젔젹졂졋좐좦좬죅쥭즁즒즤짔짗짣짲쨤쨰쩰쫃쫒쫜쬧쬬쬭쬲쭛쮀쮓쯍쯕찓찟찦찿쳊쳡쳥촣촥촵쵀췍췔츅츩츼칢칬칮칰칻캨캰컄컽켔켘켙콛쾃쿈쿽퀌퀜퀠큲킄킈킸탇턔턻텦텰텻톧퇻툥툶퉷틍틑팑팓팤팯퍝펖펵폔퐅퐉픙픠픵핐핤핰핳핻햋햏햔햣햬헀헗헠헡헣헸헿홥홨횽훍훐훓훕흝힜힣';
+var AKR0_OTHER = '20,21,22,23,24,25,26,27,28,29,2A,2B,2C,2D,2E,2F,30,31,32,33,34,35,36,37,38,39,3A,3B,3C,3D,3E,3F,40,41,42,43,44,45,46,47,48,49,4A,4B,4C,4D,4E,4F,50,51,52,53,54,55,56,57,58,59,5A,5B,5C,5D,5E,5F,60,61,62,63,64,65,66,67,68,69,6A,6B,6C,6D,6E,6F,70,71,72,73,74,75,76,77,78,79,7A,7B,7C,7D,7E,A2,A3,A4,A5,A9,AE,B0,B1,B6,B7,D7,F7,2002,2003,2004,2005,2006,2007,2009,200A,2012,2013,2014,2015,2018,2019,201C,201D,2020,2021,2022,2023,2025,2026,2032,2033,203B,20A9,20AC,2103,2109,2122,2190,2191,2192,2193,2194,2195,2196,2197,2198,2199,2212,2260,2264,2265,25A1,25CB,25E6,274C,2E3A,2E3B,3008,3009,300A,300B,300C,300D,300E,300F,3010,3011,3014,3015,3131,3132,3133,3134,3135,3136,3137,3138,3139,313A,313B,313C,313D,313E,313F,3140,3141,3142,3143,3144,3145,3146,3147,3148,3149,314A,314B,314C,314D,314E,314F,3150,3151,3152,3153,3154,3155,3156,3157,3158,3159,315A,315B,315C,315D,315E,315F,3160,3161,3162,3163,FB00,FB01,FB02,FB03,FB04';
+var KS = null;      // KS X 1001 완성형: 한글 2,350자 + 기호·자모(한자 제외)
+function ks() {
+  if (KS) return KS;
+  var dec = new TextDecoder('euc-kr'), hangul = [], symbols = [];
+  for (var lead = 0xA1; lead <= 0xC8; lead++) for (var trail = 0xA1; trail <= 0xFE; trail++) {
+    var s = dec.decode(new Uint8Array([lead, trail])), cp = s.codePointAt(0);
+    if (s.length !== 1 || cp === 0xFFFD) continue;
+    (lead >= 0xB0 ? hangul : symbols).push(cp);
+  }
+  return (KS = { hangul: hangul, symbols: symbols });
+}
+function range(a, b, into) { for (var c = a; c <= b; c++) into.push(c); return into; }
+function basics() {   // 영문·숫자·기호
+  var a = range(0x20, 0x7E, []);
+  [0xA0, 0xA9, 0xAE, 0xB7, 0xD7, 0x2013, 0x2014, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2026, 0x20A9, 0x2122].forEach(function (c) { a.push(c); });
+  return a.concat(ks().symbols);
+}
+function codepointsFor(opt) {
+  var set = new Set();
+  function add(arr) { arr.forEach(function (c) { set.add(c); }); }
+  if (opt.range === 'web') { add(ks().hangul); add(basics()); }
+  else if (opt.range === 'k2780') {
+    add(ks().hangul); for (var ch0 of AKR0_EXTRA) set.add(ch0.codePointAt(0));
+    add(AKR0_OTHER.split(',').map(function (h) { return parseInt(h, 16); })); add(basics());
+  }
+  else if (opt.range === 'hangul') { add(range(0xAC00, 0xD7A3, [])); add(range(0x3131, 0x318E, [])); add(basics()); }
+  else if (opt.range === 'custom') {
+    for (var ch of (opt.custom || '')) set.add(ch.codePointAt(0));
+    set.add(0x20);
+    if (opt.withAscii) add(range(0x20, 0x7E, []));
+  }
+  return Array.from(set);
+}
+
+// ── 폰트 살펴보기 ──
+function readNames(u8, T) {
+  var t = T.name; if (!t) return {};
+  var dv = dvOf(u8), base = t.offset, count = dv.getUint16(base + 2), str = base + dv.getUint16(base + 4), recs = {};
+  for (var i = 0; i < count; i++) {
+    var r = base + 6 + i * 12, pid = dv.getUint16(r), eid = dv.getUint16(r + 2), lid = dv.getUint16(r + 4),
+        nid = dv.getUint16(r + 6), len = dv.getUint16(r + 8), off = str + dv.getUint16(r + 10), s = null;
+    if (pid === 3 || pid === 0) { s = ''; for (var k = 0; k + 1 < len; k += 2) s += String.fromCharCode((u8[off + k] << 8) | u8[off + k + 1]); }
+    else if (pid === 1 && eid === 0) { s = ''; for (var m = 0; m < len; m++) s += String.fromCharCode(u8[off + m]); }
+    if (s === null) continue;
+    (recs[nid] = recs[nid] || []).push({ pid: pid, lid: lid, s: s });
+  }
+  function pick(nid, ko) {
+    var a = recs[nid] || [], f = function (p) { return a.find(p); };
+    var r = (ko && f(function (x) { return x.pid === 3 && x.lid === 0x412; })) || f(function (x) { return x.pid === 3 && x.lid === 0x409; })
+            || f(function (x) { return x.pid === 3; }) || a[0];
+    return r ? r.s.replace(/\0/g, '').trim() : '';
+  }
+  return { family: pick(16) || pick(1), familyKo: pick(16, true) || pick(1, true), style: pick(17) || pick(2),
+           version: pick(5), ps: pick(6), legacyFamily: pick(1), legacyStyle: pick(2), full: pick(4), copyright: pick(0) };
+}
+function readCmap(u8, T) {   // 글자 → 글리프 번호
+  var map = new Map(), t = T.cmap; if (!t) return map;
+  var dv = dvOf(u8), b = t.offset, n = dv.getUint16(b + 2), best = null, bs = -1;
+  for (var i = 0; i < n; i++) {
+    var pid = dv.getUint16(b + 4 + i * 8), eid = dv.getUint16(b + 6 + i * 8), off = b + dv.getUint32(b + 8 + i * 8), fmt = dv.getUint16(off);
+    var sc = (fmt === 12 && (pid === 3 && eid === 10 || pid === 0)) ? 3 : (fmt === 4 && (pid === 3 && eid === 1 || pid === 0)) ? 2 : -1;
+    if (sc > bs) { bs = sc; best = { off: off, fmt: fmt }; }
+  }
+  if (!best) return map;
+  var o = best.off;
+  if (best.fmt === 12) {
+    var ng = dv.getUint32(o + 12);
+    for (var g = 0; g < ng; g++) {
+      var p = o + 16 + g * 12, s0 = dv.getUint32(p), e0 = dv.getUint32(p + 4), gid = dv.getUint32(p + 8);
+      for (var c = s0; c <= e0 && c <= 0x10FFFF; c++) map.set(c, gid + (c - s0));
+    }
+  } else {
+    var seg = dv.getUint16(o + 6) / 2, endO = o + 14, startO = endO + seg * 2 + 2, deltaO = startO + seg * 2, rangeO = deltaO + seg * 2;
+    for (var s = 0; s < seg; s++) {
+      var end = dv.getUint16(endO + s * 2), start = dv.getUint16(startO + s * 2), delta = dv.getInt16(deltaO + s * 2), ro = dv.getUint16(rangeO + s * 2);
+      for (var cc = start; cc <= end && cc !== 0xFFFF; cc++) {
+        var gg;
+        if (ro === 0) gg = (cc + delta) & 0xFFFF;
+        else { gg = dv.getUint16(rangeO + s * 2 + ro + (cc - start) * 2); if (gg) gg = (gg + delta) & 0xFFFF; }
+        if (gg) map.set(cc, gg);
+      }
+    }
+  }
+  return map;
+}
+// 모양이 없는 글리프 — cmap 칸만 세면 틀린다(빈 글리프로 11,172칸을 채운 폰트가 있다)
+function emptyGlyphs(u8, T, numGlyphs) {
+  var dv = dvOf(u8), out = new Set();
+  if (T.glyf && T.loca && T.head) {
+    var long = dv.getInt16(T.head.offset + 50) === 1, l = T.loca.offset;
+    for (var g = 0; g < numGlyphs; g++) {
+      var a = long ? dv.getUint32(l + g * 4) : dv.getUint16(l + g * 2) * 2;
+      var b = long ? dv.getUint32(l + g * 4 + 4) : dv.getUint16(l + g * 2 + 2) * 2;
+      if (b <= a) out.add(g);
+    }
+    return out;
+  }
+  if (T['CFF ']) {
+    try {
+      var c = T['CFF '].offset, hdr = dv.getUint8(c + 2);
+      var nameIdx = readIndex(dv, c + hdr), topIdx = readIndex(dv, nameIdx.end);
+      var top = readDict(dv, topIdx.data + topIdx.offs[0], topIdx.data + topIdx.offs[1]);
+      if (!top[17]) return null;
+      var cs = readIndex(dv, c + top[17][0]);
+      for (var i = 0; i < cs.count; i++) {
+        var p = cs.data + cs.offs[i], q = cs.data + cs.offs[i + 1];
+        if (firstOp(dv, p, q) === 14) out.add(i);       // 처음 만나는 명령이 endchar 면 빈 글리프
+      }
+      return out;
+    } catch (e) { return null; }
+  }
+  return null;
+}
+function readIndex(dv, off) {
+  var count = dv.getUint16(off);
+  if (!count) return { count: 0, offs: [], data: off + 2, end: off + 2 };
+  var sz = dv.getUint8(off + 2), offs = [], p = off + 3;
+  for (var i = 0; i <= count; i++) { var v = 0; for (var k = 0; k < sz; k++) v = v * 256 + dv.getUint8(p++); offs.push(v); }
+  var data = p - 1;
+  return { count: count, offs: offs, data: data, end: data + offs[count] };
+}
+function readDict(dv, p, end) {
+  var ops = {}, st = [];
+  while (p < end) {
+    var b = dv.getUint8(p);
+    if (b <= 21) { var op = b; p++; if (b === 12) { op = 1200 + dv.getUint8(p); p++; } ops[op] = st; st = []; }
+    else if (b === 28) { st.push(dv.getInt16(p + 1)); p += 3; }
+    else if (b === 29) { st.push(dv.getInt32(p + 1)); p += 5; }
+    else if (b === 30) {                                 // 실수: 반 바이트 글자들
+      p++; var s = '', stop = false;
+      while (p < end && !stop) {
+        var x = dv.getUint8(p++);
+        [x >> 4, x & 15].forEach(function (nb) {
+          if (stop) return;
+          if (nb <= 9) s += nb; else if (nb === 10) s += '.'; else if (nb === 11) s += 'E'; else if (nb === 12) s += 'E-';
+          else if (nb === 14) s += '-'; else if (nb === 15) stop = true;
+        });
+      }
+      st.push(parseFloat(s) || 0);
+    }
+    else if (b >= 32 && b <= 246) { st.push(b - 139); p++; }
+    else if (b >= 247 && b <= 250) { st.push((b - 247) * 256 + dv.getUint8(p + 1) + 108); p += 2; }
+    else if (b >= 251 && b <= 254) { st.push(-(b - 251) * 256 - dv.getUint8(p + 1) - 108); p += 2; }
+    else p++;
+  }
+  return ops;
+}
+function firstOp(dv, p, end) {
+  while (p < end) {
+    var b = dv.getUint8(p);
+    if (b === 28) p += 3;
+    else if (b === 255) p += 5;
+    else if (b >= 32 && b <= 246) p += 1;
+    else if (b >= 247 && b <= 254) p += 2;
+    else return b;                                  // 0~31 은 명령
+  }
+  return -1;
+}
+function fvarAxes(u8, T) {
+  var t = T.fvar; if (!t) return [];
+  var dv = dvOf(u8), b = t.offset, ao = b + dv.getUint16(b + 4), cnt = dv.getUint16(b + 8), size = dv.getUint16(b + 10), axes = [];
+  for (var i = 0; i < cnt; i++) {
+    var o = ao + i * size;
+    axes.push({ tag: tagAt(u8, o), min: dv.getInt32(o + 4) / 65536, def: dv.getInt32(o + 8) / 65536, max: dv.getInt32(o + 12) / 65536 });
+  }
+  return axes;
+}
+function inspect(u8) {
+  var T = readTables(u8), dv = dvOf(u8);
+  var numGlyphs = T.maxp ? dv.getUint16(T.maxp.offset + 4) : 0;
+  var os2 = T['OS/2'] ? { weight: dv.getUint16(T['OS/2'].offset + 4), fsType: dv.getUint16(T['OS/2'].offset + 8),
+                           fsSelection: dv.getUint16(T['OS/2'].offset + 62) } : { weight: 400, fsType: 0, fsSelection: 0 };
+  var cmap = readCmap(u8, T), empty = emptyGlyphs(u8, T, numGlyphs), set = ks();
+  var filled = function (gid) { return !empty || !empty.has(gid); };
+  var hangul = 0, hangulSlots = 0, latin = 0, chars = 0, k2350 = 0;
+  cmap.forEach(function (gid, cp) {
+    if (!filled(gid)) { if (cp >= 0xAC00 && cp <= 0xD7A3) hangulSlots++; return; }
+    chars++;
+    if (cp >= 0xAC00 && cp <= 0xD7A3) { hangul++; hangulSlots++; }
+    else if (cp >= 0x21 && cp <= 0x7E) latin++;
+  });
+  set.hangul.forEach(function (cp) { var g = cmap.get(cp); if (g !== undefined && filled(g)) k2350++; });
+  var outline = T.glyf ? 'TrueType' : T.CFF2 ? 'CFF2' : T['CFF '] ? 'CFF' : '기타';
+  return {
+    names: readNames(u8, T), weight: os2.weight, italic: !!(os2.fsSelection & 0x201), fsType: os2.fsType,
+    numGlyphs: numGlyphs, chars: chars, hangul: hangul, hangulSlots: hangulSlots, latin: latin, k2350: k2350,
+    outline: outline, axes: fvarAxes(u8, T), emptyKnown: !!empty, hinted: !!(T.fpgm || T.prep)
+  };
+}
+function missingChars(u8, text) {   // 칸은 있어도 모양이 빈 글자도 '없는 글자'다
+  var T = readTables(u8), cmap = readCmap(u8, T), dv = dvOf(u8), miss = [];
+  var empty = emptyGlyphs(u8, T, T.maxp ? dv.getUint16(T.maxp.offset + 4) : 0);
+  for (var ch of (text || '')) {
+    var cp = ch.codePointAt(0), g = cmap.get(cp);
+    if (cp > 0x20 && (g === undefined || (empty && empty.has(g))) && miss.indexOf(ch) < 0) miss.push(ch);
+  }
+  return miss;
+}
+
+// ══════════════ 윤곽 바꾸기: OTF(CFF, 3차 곡선) ↔ TTF(glyf, 2차 곡선) ══════════════
+// 표준 이름표 — fontTools 의 cffStandardStrings(391개)·standardGlyphOrder(맥 258개)를 그대로 옮겼다.
+var CFF_STD = '.notdef space exclam quotedbl numbersign dollar percent ampersand quoteright parenleft parenright asterisk plus comma hyphen period slash zero one two three four five six seven eight nine colon semicolon less equal greater question at A B C D E F G H I J K L M N O P Q R S T U V W X Y Z bracketleft backslash bracketright asciicircum underscore quoteleft a b c d e f g h i j k l m n o p q r s t u v w x y z braceleft bar braceright asciitilde exclamdown cent sterling fraction yen florin section currency quotesingle quotedblleft guillemotleft guilsinglleft guilsinglright fi fl endash dagger daggerdbl periodcentered paragraph bullet quotesinglbase quotedblbase quotedblright guillemotright ellipsis perthousand questiondown grave acute circumflex tilde macron breve dotaccent dieresis ring cedilla hungarumlaut ogonek caron emdash AE ordfeminine Lslash Oslash OE ordmasculine ae dotlessi lslash oslash oe germandbls onesuperior logicalnot mu trademark Eth onehalf plusminus Thorn onequarter divide brokenbar degree thorn threequarters twosuperior registered minus eth multiply threesuperior copyright Aacute Acircumflex Adieresis Agrave Aring Atilde Ccedilla Eacute Ecircumflex Edieresis Egrave Iacute Icircumflex Idieresis Igrave Ntilde Oacute Ocircumflex Odieresis Ograve Otilde Scaron Uacute Ucircumflex Udieresis Ugrave Yacute Ydieresis Zcaron aacute acircumflex adieresis agrave aring atilde ccedilla eacute ecircumflex edieresis egrave iacute icircumflex idieresis igrave ntilde oacute ocircumflex odieresis ograve otilde scaron uacute ucircumflex udieresis ugrave yacute ydieresis zcaron exclamsmall Hungarumlautsmall dollaroldstyle dollarsuperior ampersandsmall Acutesmall parenleftsuperior parenrightsuperior twodotenleader onedotenleader zerooldstyle oneoldstyle twooldstyle threeoldstyle fouroldstyle fiveoldstyle sixoldstyle sevenoldstyle eightoldstyle nineoldstyle commasuperior threequartersemdash periodsuperior questionsmall asuperior bsuperior centsuperior dsuperior esuperior isuperior lsuperior msuperior nsuperior osuperior rsuperior ssuperior tsuperior ff ffi ffl parenleftinferior parenrightinferior Circumflexsmall hyphensuperior Gravesmall Asmall Bsmall Csmall Dsmall Esmall Fsmall Gsmall Hsmall Ismall Jsmall Ksmall Lsmall Msmall Nsmall Osmall Psmall Qsmall Rsmall Ssmall Tsmall Usmall Vsmall Wsmall Xsmall Ysmall Zsmall colonmonetary onefitted rupiah Tildesmall exclamdownsmall centoldstyle Lslashsmall Scaronsmall Zcaronsmall Dieresissmall Brevesmall Caronsmall Dotaccentsmall Macronsmall figuredash hypheninferior Ogoneksmall Ringsmall Cedillasmall questiondownsmall oneeighth threeeighths fiveeighths seveneighths onethird twothirds zerosuperior foursuperior fivesuperior sixsuperior sevensuperior eightsuperior ninesuperior zeroinferior oneinferior twoinferior threeinferior fourinferior fiveinferior sixinferior seveninferior eightinferior nineinferior centinferior dollarinferior periodinferior commainferior Agravesmall Aacutesmall Acircumflexsmall Atildesmall Adieresissmall Aringsmall AEsmall Ccedillasmall Egravesmall Eacutesmall Ecircumflexsmall Edieresissmall Igravesmall Iacutesmall Icircumflexsmall Idieresissmall Ethsmall Ntildesmall Ogravesmall Oacutesmall Ocircumflexsmall Otildesmall Odieresissmall OEsmall Oslashsmall Ugravesmall Uacutesmall Ucircumflexsmall Udieresissmall Yacutesmall Thornsmall Ydieresissmall 001.000 001.001 001.002 001.003 Black Bold Book Light Medium Regular Roman Semibold'.split(' ');
+var MAC_STD = '.notdef .null nonmarkingreturn space exclam quotedbl numbersign dollar percent ampersand quotesingle parenleft parenright asterisk plus comma hyphen period slash zero one two three four five six seven eight nine colon semicolon less equal greater question at A B C D E F G H I J K L M N O P Q R S T U V W X Y Z bracketleft backslash bracketright asciicircum underscore grave a b c d e f g h i j k l m n o p q r s t u v w x y z braceleft bar braceright asciitilde Adieresis Aring Ccedilla Eacute Ntilde Odieresis Udieresis aacute agrave acircumflex adieresis atilde aring ccedilla eacute egrave ecircumflex edieresis iacute igrave icircumflex idieresis ntilde oacute ograve ocircumflex odieresis otilde uacute ugrave ucircumflex udieresis dagger degree cent sterling section bullet paragraph germandbls registered copyright trademark acute dieresis notequal AE Oslash infinity plusminus lessequal greaterequal yen mu partialdiff summation product pi integral ordfeminine ordmasculine Omega ae oslash questiondown exclamdown logicalnot radical florin approxequal Delta guillemotleft guillemotright ellipsis nonbreakingspace Agrave Atilde Otilde OE oe endash emdash quotedblleft quotedblright quoteleft quoteright divide lozenge ydieresis Ydieresis fraction currency guilsinglleft guilsinglright fi fl daggerdbl periodcentered quotesinglbase quotedblbase perthousand Acircumflex Ecircumflex Aacute Edieresis Egrave Iacute Icircumflex Idieresis Igrave Oacute Ocircumflex apple Ograve Uacute Ucircumflex Ugrave dotlessi circumflex tilde macron breve dotaccent ring cedilla hungarumlaut ogonek caron Lslash lslash Scaron scaron Zcaron zcaron brokenbar Eth eth Yacute yacute Thorn thorn minus multiply onesuperior twosuperior threesuperior onehalf onequarter threequarters franc Gbreve gbreve Idotaccent Scedilla scedilla Cacute cacute Ccaron ccaron dcroat'.split(' ');
+var CFF_STD_IDX = null, MAC_STD_IDX = null;
+function stdIdx(list, which) {
+  if (which === 'cff' && CFF_STD_IDX) return CFF_STD_IDX;
+  if (which === 'mac' && MAC_STD_IDX) return MAC_STD_IDX;
+  var m = new Map(); list.forEach(function (s, i) { if (!m.has(s)) m.set(s, i); });
+  if (which === 'cff') CFF_STD_IDX = m; else MAC_STD_IDX = m;
+  return m;
+}
+function ascii(s) { var o = ''; for (var i = 0; i < (s || '').length; i++) { var c = s.charCodeAt(i); if (c >= 0x20 && c <= 0x7E) o += s[i]; } return o.trim(); }
+function psSafe(s) {   // PostScript 이름: 출력 가능한 ASCII 중 괄호·슬래시·% 빼고, 63자까지
+  var o = '';
+  for (var i = 0; i < (s || '').length && o.length < 63; i++) {
+    var c = s.charCodeAt(i);
+    if (c > 0x20 && c < 0x7F && '[](){}<>/%'.indexOf(s[i]) < 0) o += s[i];
+  }
+  return o;
+}
+function glyphNameSafe(s) {
+  var o = '';
+  for (var i = 0; i < (s || '').length && o.length < 63; i++) {
+    var c = s.charCodeAt(i);
+    if ((c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c === 46 || c === 95 || c === 45) o += s[i];
+  }
+  return o;
+}
+function hexN(v, n) { var s = v.toString(16).toUpperCase(); while (s.length < n) s = '0' + s; return s; }
+// 글리프 이름 — 주어진 이름(post·CFF)을 살리고, 없거나 겹치면 cmap 으로 uniXXXX, 그래도 없으면 glyphNNNNN
+function makeGlyphNames(u8, T, numGlyphs, given) {
+  var byGid = new Map();
+  readCmap(u8, T).forEach(function (gid, cp) { if (!byGid.has(gid) || cp < byGid.get(gid)) byGid.set(gid, cp); });
+  var names = [], used = new Set();
+  for (var g = 0; g < numGlyphs; g++) {
+    var nm = g === 0 ? '.notdef' : glyphNameSafe(given && given[g]);
+    if (!nm || used.has(nm) || (g > 0 && nm === '.notdef')) {
+      var cp = byGid.get(g);
+      nm = cp === undefined ? 'glyph' + g : (cp <= 0xFFFF ? 'uni' + hexN(cp, 4) : 'u' + hexN(cp, 5));
+      if (used.has(nm)) nm = nm + '.' + g;
+    }
+    used.add(nm); names.push(nm);
+  }
+  return names;
+}
+function postV2Names(u8, T) {
+  if (!T.post) return null;
+  var dv = dvOf(u8), o = T.post.offset;
+  if (dv.getUint32(o) !== 0x00020000 || T.post.length < 34) return null;
+  var n = dv.getUint16(o + 32), idx = [], p = o + 34, end = o + T.post.length;
+  for (var g = 0; g < n; g++) { idx.push(dv.getUint16(p)); p += 2; }
+  var extra = [];
+  while (p < end) { var len = u8[p++], s = ''; for (var k = 0; k < len && p + k < end; k++) s += String.fromCharCode(u8[p + k]); extra.push(s); p += len; }
+  return idx.map(function (i) { return i < 258 ? MAC_STD[i] : extra[i - 258]; });
+}
+function readHmtx(u8, T, numGlyphs) {
+  var dv = dvOf(u8), nh = dv.getUint16(T.hhea.offset + 34), o = T.hmtx.offset, adv = [], lsb = [], last = 0;
+  for (var g = 0; g < numGlyphs; g++) {
+    if (g < nh) { last = dv.getUint16(o + g * 4); adv.push(last); lsb.push(dv.getInt16(o + g * 4 + 2)); }
+    else { adv.push(last); lsb.push(dv.getInt16(o + nh * 4 + (g - nh) * 2)); }
+  }
+  return { adv: adv, lsb: lsb, nh: nh };
+}
+function clamp16(v) { return Math.max(-32768, Math.min(32767, Math.round(v))); }
+function writeHmtx(hm, lsb) {
+  var nh = hm.nh, n = hm.adv.length, out = new Uint8Array(nh * 4 + (n - nh) * 2), o = dvOf(out);
+  for (var g = 0; g < n; g++) {
+    if (g < nh) { o.setUint16(g * 4, hm.adv[g]); o.setInt16(g * 4 + 2, clamp16(lsb[g])); }
+    else o.setInt16(nh * 4 + (g - nh) * 2, clamp16(lsb[g]));
+  }
+  return out;
+}
+function patchHead(head, bbox, locFormat) {
+  var h = head.slice(), o = dvOf(h);
+  o.setInt16(36, clamp16(bbox[0])); o.setInt16(38, clamp16(bbox[1])); o.setInt16(40, clamp16(bbox[2])); o.setInt16(42, clamp16(bbox[3]));
+  o.setInt16(50, locFormat); o.setInt16(52, 0);
+  return h;
+}
+function postHeader(post, version) { var h = new Uint8Array(32); h.set(post.subarray(0, 32)); dvOf(h).setUint32(0, version); return h; }
+
+// ── 3차 곡선 ──
+// 윤곽 하나 = { start:[x,y], segs:[{p:[x,y]} 직선 | {c1,c2,p} 3차 곡선] }, 마지막 구간은 시작점으로 돌아온다(닫힘)
+function reverseCubic(ct) {
+  var nodes = [ct.start].concat(ct.segs.map(function (s) { return s.p; })), segs = [];
+  for (var k = ct.segs.length - 1; k >= 0; k--) {
+    var s = ct.segs[k], to = nodes[k];
+    segs.push(s.c1 ? { c1: s.c2, c2: s.c1, p: to } : { p: to });
+  }
+  return { start: nodes[nodes.length - 1], segs: segs };
+}
+function cubicAxisExtrema(a, b, c, d, out) {   // 3차 곡선 한 축의 극값(0<t<1)을 out 에 더한다
+  var A = -a + 3 * b - 3 * c + d, B = 2 * (a - 2 * b + c), C = b - a, ts = [];
+  if (Math.abs(A) < 1e-12) { if (Math.abs(B) > 1e-12) ts.push(-C / B); }
+  else { var disc = B * B - 4 * A * C; if (disc >= 0) { var sq = Math.sqrt(disc); ts.push((-B + sq) / (2 * A), (-B - sq) / (2 * A)); } }
+  ts.forEach(function (t) { if (t > 0 && t < 1) { var mt = 1 - t; out.push(mt * mt * mt * a + 3 * mt * mt * t * b + 3 * mt * t * t * c + t * t * t * d); } });
+}
+function cubicBounds(cts) {   // 곡선의 실제 끝(조절점이 아니라)으로 잰 경계
+  var xs = [], ys = [];
+  cts.forEach(function (ct) {
+    var cur = ct.start; xs.push(cur[0]); ys.push(cur[1]);
+    ct.segs.forEach(function (s) {
+      xs.push(s.p[0]); ys.push(s.p[1]);
+      if (s.c1) { cubicAxisExtrema(cur[0], s.c1[0], s.c2[0], s.p[0], xs); cubicAxisExtrema(cur[1], s.c1[1], s.c2[1], s.p[1], ys); }
+      cur = s.p;
+    });
+  });
+  if (!xs.length) return null;
+  return [Math.min.apply(null, xs), Math.min.apply(null, ys), Math.max.apply(null, xs), Math.max.apply(null, ys)];
+}
+
+// ── cu2qu — fontTools.cu2qu 를 옮김: 3차 곡선 하나를 오차 tol 안의 2차 곡선 묶음(TrueType 점열)으로 ──
+function cAdd(a, b) { return [a[0] + b[0], a[1] + b[1]]; }
+function cSub(a, b) { return [a[0] - b[0], a[1] - b[1]]; }
+function cMul(a, k) { return [a[0] * k, a[1] * k]; }
+function cAbs(a) { return Math.sqrt(a[0] * a[0] + a[1] * a[1]); }
+function fitInside(p0, p1, p2, p3, tol) {
+  if (cAbs(p2) <= tol && cAbs(p1) <= tol) return true;
+  var mid = cMul(cAdd(cAdd(p0, cMul(cAdd(p1, p2), 3)), p3), 0.125);
+  if (cAbs(mid) > tol) return false;
+  var d3 = cMul(cSub(cSub(cAdd(p3, p2), p1), p0), 0.125);
+  return fitInside(p0, cMul(cAdd(p0, p1), 0.5), cSub(mid, d3), mid, tol) &&
+         fitInside(mid, cAdd(mid, d3), cMul(cAdd(p2, p3), 0.5), p3, tol);
+}
+function intersect(a, b, c, d) {
+  var ab = cSub(b, a), cd = cSub(d, c), p = [-ab[1], ab[0]];
+  var den = p[0] * cd[0] + p[1] * cd[1];
+  if (den === 0) return null;
+  var h = (p[0] * (a[0] - c[0]) + p[1] * (a[1] - c[1])) / den;
+  return cAdd(c, cMul(cd, h));
+}
+function approxQuad(p0, p1, p2, p3, tol) {
+  var q1 = intersect(p0, p1, p2, p3);
+  if (!q1) return null;
+  var c1 = cAdd(p0, cMul(cSub(q1, p0), 2 / 3)), c2 = cAdd(p3, cMul(cSub(q1, p3), 2 / 3));
+  if (!fitInside([0, 0], cSub(c1, p1), cSub(c2, p2), [0, 0], tol)) return null;
+  return [p0, q1, p3];
+}
+function splitN(p0, p1, p2, p3, n) {
+  var c = cMul(cSub(p1, p0), 3), b = cSub(cMul(cSub(p2, p1), 3), c), d = p0, a = cSub(cSub(cSub(p3, d), c), b);
+  var dt = 1 / n, d2 = dt * dt, d3 = dt * d2, out = [];
+  for (var i = 0; i < n; i++) {
+    var t1 = i * dt, t2 = t1 * t1;
+    var a1 = cMul(a, d3), b1 = cMul(cAdd(cMul(a, 3 * t1), b), d2);
+    var c1 = cMul(cAdd(cAdd(cMul(b, 2 * t1), c), cMul(a, 3 * t2)), dt);
+    var d1 = cAdd(cAdd(cAdd(cMul(a, t1 * t2), cMul(b, t2)), cMul(c, t1)), d);
+    var q1 = cAdd(cMul(c1, 1 / 3), d1), q2 = cAdd(cMul(cAdd(b1, c1), 1 / 3), q1), q3 = cAdd(cAdd(cAdd(a1, d1), c1), b1);
+    out.push([d1, q1, q2, q3]);
+  }
+  return out;
+}
+function approxControl(t, p0, p1, p2, p3) {
+  var x1 = cAdd(p0, cMul(cSub(p1, p0), 1.5)), x2 = cAdd(p3, cMul(cSub(p2, p3), 1.5));
+  return cAdd(x1, cMul(cSub(x2, x1), t));
+}
+function approxSpline(p0, p1, p2, p3, n, tol) {
+  var cubics = splitN(p0, p1, p2, p3, n), next = cubics[0];
+  var nextQ1 = approxControl(0, next[0], next[1], next[2], next[3]);
+  var q2 = p0, d1 = [0, 0], spline = [p0, nextQ1];
+  for (var i = 1; i <= n; i++) {
+    var cc = next, q0 = q2, q1 = nextQ1;
+    if (i < n) {
+      next = cubics[i];
+      nextQ1 = approxControl(i / (n - 1), next[0], next[1], next[2], next[3]);
+      spline.push(nextQ1);
+      q2 = cMul(cAdd(q1, nextQ1), 0.5);
+    } else q2 = cc[3];
+    var d0 = d1; d1 = cSub(q2, cc[3]);
+    if (cAbs(d1) > tol || !fitInside(d0, cSub(cAdd(q0, cMul(cSub(q1, q0), 2 / 3)), cc[1]),
+                                          cSub(cAdd(q2, cMul(cSub(q1, q2), 2 / 3)), cc[2]), d1, tol)) return null;
+  }
+  spline.push(p3);
+  return spline;
+}
+function cu2qu(p0, p1, p2, p3, tol) {
+  for (var n = 1; n <= 100; n++) {
+    var sp = n === 1 ? approxQuad(p0, p1, p2, p3, tol) : approxSpline(p0, p1, p2, p3, n, tol);
+    if (sp) return sp;
+  }
+  return [p0, p3];
+}
+
+// ── CFF 읽기: Type2 charstring 을 돌려 3차 곡선을 얻는다 ──
+function readCharset(dv, base, off, count) {
+  var ids = new Array(count).fill(0), g;
+  if (off <= 2) { for (g = 1; g < count; g++) ids[g] = g; return ids; }        // 미리 정해진 charset(ISOAdobe 등)
+  var p = base + off, fmt = dv.getUint8(p++);
+  g = 1;
+  if (fmt === 0) { for (; g < count; g++) { ids[g] = dv.getUint16(p); p += 2; } }
+  else {
+    while (g < count) {
+      var first = dv.getUint16(p), nLeft; p += 2;
+      if (fmt === 1) { nLeft = dv.getUint8(p); p += 1; } else { nLeft = dv.getUint16(p); p += 2; }
+      for (var k = 0; k <= nLeft && g < count; k++) ids[g++] = first + k;
+    }
+  }
+  return ids;
+}
+function readFDSelect(dv, off, count) {
+  var fmt = dv.getUint8(off), sel = new Uint8Array(count), g;
+  if (fmt === 0) { for (g = 0; g < count; g++) sel[g] = dv.getUint8(off + 1 + g); }
+  else if (fmt === 3) {
+    var nr = dv.getUint16(off + 1), p = off + 3;
+    for (var r = 0; r < nr; r++) {
+      var first = dv.getUint16(p), fd = dv.getUint8(p + 2), next = dv.getUint16(p + 3);
+      for (g = first; g < next && g < count; g++) sel[g] = fd;
+      p += 3;
+    }
+  }
+  return sel;
+}
+function subrBias(idx) { var n = idx ? idx.count : 0; return n < 1240 ? 107 : n < 33900 ? 1131 : 32768; }
+function runCharString(dv, start, end, gsubrs, subrs) {
+  var st = [], nStems = 0, haveWidth = false, x = 0, y = 0, cts = [], cur = null, done = false;
+  var gBias = subrBias(gsubrs), lBias = subrBias(subrs);
+  function close() { if (cur && cur.segs.length) cts.push(cur); cur = null; }
+  function moveTo(dx, dy) { close(); x += dx; y += dy; cur = { start: [x, y], segs: [] }; }
+  function ensure() { if (!cur) cur = { start: [x, y], segs: [] }; }
+  function lineTo(dx, dy) { ensure(); x += dx; y += dy; cur.segs.push({ p: [x, y] }); }
+  function curveTo(a, b, c, d, e, f) {
+    ensure();
+    var c1 = [x + a, y + b], c2 = [c1[0] + c, c1[1] + d];
+    x = c2[0] + e; y = c2[1] + f;
+    cur.segs.push({ c1: c1, c2: c2, p: [x, y] });
+  }
+  function stems() { if (!haveWidth && st.length % 2) st.shift(); haveWidth = true; nStems += st.length >> 1; st.length = 0; }
+  function exec(p, e, depth) {
+    while (p < e && !done) {
+      var b0 = dv.getUint8(p);
+      if (b0 >= 32 || b0 === 28) {
+        if (b0 === 28) { st.push(dv.getInt16(p + 1)); p += 3; }
+        else if (b0 <= 246) { st.push(b0 - 139); p += 1; }
+        else if (b0 <= 250) { st.push((b0 - 247) * 256 + dv.getUint8(p + 1) + 108); p += 2; }
+        else if (b0 <= 254) { st.push(-(b0 - 251) * 256 - dv.getUint8(p + 1) - 108); p += 2; }
+        else { st.push(dv.getInt32(p + 1) / 65536); p += 5; }
+        continue;
+      }
+      p++;
+      var i, h, s = st;
+      switch (b0) {
+        case 1: case 3: case 18: case 23: stems(); break;                     // hstem vstem hstemhm vstemhm
+        case 19: case 20:                                                      // hintmask cntrmask
+          if (s.length) stems(); else haveWidth = true;
+          p += (nStems + 7) >> 3; break;
+        case 21: if (!haveWidth && s.length > 2) s.shift(); haveWidth = true; moveTo(s[0], s[1]); s.length = 0; break;
+        case 22: if (!haveWidth && s.length > 1) s.shift(); haveWidth = true; moveTo(s[0], 0); s.length = 0; break;
+        case 4:  if (!haveWidth && s.length > 1) s.shift(); haveWidth = true; moveTo(0, s[0]); s.length = 0; break;
+        case 5: for (i = 0; i + 1 < s.length; i += 2) lineTo(s[i], s[i + 1]); s.length = 0; break;
+        case 6: case 7:
+          for (i = 0, h = (b0 === 6); i < s.length; i++, h = !h) { if (h) lineTo(s[i], 0); else lineTo(0, s[i]); }
+          s.length = 0; break;
+        case 8: for (i = 0; i + 5 < s.length; i += 6) curveTo(s[i], s[i + 1], s[i + 2], s[i + 3], s[i + 4], s[i + 5]); s.length = 0; break;
+        case 24:                                                               // rcurveline
+          for (i = 0; i + 6 <= s.length - 2; i += 6) curveTo(s[i], s[i + 1], s[i + 2], s[i + 3], s[i + 4], s[i + 5]);
+          lineTo(s[i], s[i + 1]); s.length = 0; break;
+        case 25:                                                               // rlinecurve
+          for (i = 0; i + 2 <= s.length - 6; i += 2) lineTo(s[i], s[i + 1]);
+          curveTo(s[i], s[i + 1], s[i + 2], s[i + 3], s[i + 4], s[i + 5]); s.length = 0; break;
+        case 26:                                                               // vvcurveto
+          i = 0; var dx1 = 0;
+          if (s.length % 4 === 1) { dx1 = s[0]; i = 1; }
+          for (; i + 3 < s.length; i += 4) { curveTo(dx1, s[i], s[i + 1], s[i + 2], 0, s[i + 3]); dx1 = 0; }
+          s.length = 0; break;
+        case 27:                                                               // hhcurveto
+          i = 0; var dy1 = 0;
+          if (s.length % 4 === 1) { dy1 = s[0]; i = 1; }
+          for (; i + 3 < s.length; i += 4) { curveTo(s[i], dy1, s[i + 1], s[i + 2], s[i + 3], 0); dy1 = 0; }
+          s.length = 0; break;
+        case 30: case 31:                                                      // vhcurveto hvcurveto
+          h = (b0 === 31);
+          for (i = 0; i + 3 < s.length;) {
+            var last = (s.length - i === 5);
+            if (h) curveTo(s[i], 0, s[i + 1], s[i + 2], last ? s[i + 4] : 0, s[i + 3]);
+            else curveTo(0, s[i], s[i + 1], s[i + 2], s[i + 3], last ? s[i + 4] : 0);
+            i += last ? 5 : 4; h = !h;
+          }
+          s.length = 0; break;
+        case 10: case 29: {                                                    // callsubr callgsubr
+          var idx = b0 === 10 ? subrs : gsubrs, n = s.pop() + (b0 === 10 ? lBias : gBias);
+          if (idx && n >= 0 && n < idx.count && depth < 12) exec(idx.data + idx.offs[n], idx.data + idx.offs[n + 1], depth + 1);
+          break;
+        }
+        case 11: return;                                                       // return
+        case 14:                                                               // endchar
+          if (!haveWidth && s.length > 0 && s.length !== 4) s.shift();
+          haveWidth = true; done = true; s.length = 0; return;
+        case 12: {
+          var b1 = dv.getUint8(p++), a, bb;
+          if (b1 === 35) { curveTo(s[0], s[1], s[2], s[3], s[4], s[5]); curveTo(s[6], s[7], s[8], s[9], s[10], s[11]); s.length = 0; }
+          else if (b1 === 34) { curveTo(s[0], 0, s[1], s[2], s[3], 0); curveTo(s[4], 0, s[5], -s[2], s[6], 0); s.length = 0; }
+          else if (b1 === 36) { curveTo(s[0], s[1], s[2], s[3], s[4], 0); curveTo(s[5], 0, s[6], s[7], s[8], -(s[1] + s[3] + s[7])); s.length = 0; }
+          else if (b1 === 37) {
+            var sx = s[0] + s[2] + s[4] + s[6] + s[8], sy = s[1] + s[3] + s[5] + s[7] + s[9];
+            curveTo(s[0], s[1], s[2], s[3], s[4], s[5]);
+            if (Math.abs(sx) > Math.abs(sy)) curveTo(s[6], s[7], s[8], s[9], s[10], -sy);
+            else curveTo(s[6], s[7], s[8], s[9], -sx, s[10]);
+            s.length = 0;
+          }
+          else if (b1 === 9) s.push(Math.abs(s.pop()));
+          else if (b1 === 10) { bb = s.pop(); a = s.pop(); s.push(a + bb); }
+          else if (b1 === 11) { bb = s.pop(); a = s.pop(); s.push(a - bb); }
+          else if (b1 === 12) { bb = s.pop(); a = s.pop(); s.push(bb ? a / bb : 0); }
+          else if (b1 === 14) s.push(-s.pop());
+          else if (b1 === 18) s.pop();
+          else if (b1 === 24) { bb = s.pop(); a = s.pop(); s.push(a * bb); }
+          else if (b1 === 26) s.push(Math.sqrt(Math.abs(s.pop())));
+          else if (b1 === 27) s.push(s[s.length - 1]);
+          else if (b1 === 28) { bb = s.pop(); a = s.pop(); s.push(bb, a); }
+          else s.length = 0;
+          break;
+        }
+        default: s.length = 0;
+      }
+    }
+  }
+  exec(start, end, 0);
+  close();
+  return cts;
+}
+function parseCFF(u8, base) {
+  var dv = dvOf(u8), hdr = u8[base + 2];
+  var nameIdx = readIndex(dv, base + hdr), topIdx = readIndex(dv, nameIdx.end), strIdx = readIndex(dv, topIdx.end), gsubrIdx = readIndex(dv, strIdx.end);
+  var top = readDict(dv, topIdx.data + topIdx.offs[0], topIdx.data + topIdx.offs[1]);
+  if (!top[17]) throw new Error('CFF 안에 글리프가 없어요');
+  var cs = readIndex(dv, base + top[17][0]), count = cs.count, isCID = !!top[1230];
+  function strAt(sid) {
+    if (sid < 391) return CFF_STD[sid];
+    var i = sid - 391; if (i >= strIdx.count) return '';
+    var a = strIdx.data + strIdx.offs[i], b = strIdx.data + strIdx.offs[i + 1], s = '';
+    for (var k = a; k < b; k++) s += String.fromCharCode(u8[k]);
+    return s;
+  }
+  var ids = readCharset(dv, base, top[15] ? top[15][0] : 0, count);
+  var names = ids.map(function (v, g) { return g === 0 ? '.notdef' : isCID ? '' : strAt(v); });
+  function privOf(d) {
+    var pr = d[18]; if (!pr) return { subrs: null };
+    var off = base + pr[1], pd = readDict(dv, off, off + pr[0]);
+    return { subrs: pd[19] ? readIndex(dv, off + pd[19][0]) : null };
+  }
+  var privs, sel = null;
+  if (isCID) {
+    var fa = readIndex(dv, base + top[1236][0]);
+    privs = [];
+    for (var i = 0; i < fa.count; i++) privs.push(privOf(readDict(dv, fa.data + fa.offs[i], fa.data + fa.offs[i + 1])));
+    sel = readFDSelect(dv, base + top[1237][0], count);
+  } else privs = [privOf(top)];
+  return {
+    count: count, names: names, isCID: isCID,
+    glyph: function (g) {
+      var pv = privs[sel ? sel[g] : 0] || privs[0];
+      return runCharString(dv, cs.data + cs.offs[g], cs.data + cs.offs[g + 1], gsubrIdx, pv.subrs);
+    }
+  };
+}
+
+// ── glyf 쓰기 ──
+function rnd(v) { return Math.round(v); }
+function cubicToTT(ct, tol) {   // 3차 곡선 윤곽(PostScript 방향) → TrueType 점열(시계 방향)
+  var pts = [{ x: ct.start[0], y: ct.start[1], on: true }], cur = ct.start;
+  ct.segs.forEach(function (s) {
+    if (s.c1) {
+      var straight = Math.abs(s.c1[0] - cur[0]) + Math.abs(s.c1[1] - cur[1]) < 1e-9 && Math.abs(s.c2[0] - s.p[0]) + Math.abs(s.c2[1] - s.p[1]) < 1e-9;
+      if (!straight) {
+        var sp = cu2qu(cur, s.c1, s.c2, s.p, tol);
+        for (var i = 1; i < sp.length - 1; i++) pts.push({ x: sp[i][0], y: sp[i][1], on: false });
+      }
+    }
+    pts.push({ x: s.p[0], y: s.p[1], on: true });
+    cur = s.p;
+  });
+  var out = [];
+  pts.forEach(function (p) {
+    var q = { x: rnd(p.x), y: rnd(p.y), on: p.on }, l = out[out.length - 1];
+    if (l && l.on && q.on && l.x === q.x && l.y === q.y) return;      // 반올림으로 겹친 점
+    out.push(q);
+  });
+  var f = out[0], l2 = out[out.length - 1];
+  if (out.length > 1 && l2.on && l2.x === f.x && l2.y === f.y) out.pop();   // 닫는 점은 첫 점과 같다
+  if (out.length < 2) return null;
+  return [out[0]].concat(out.slice(1).reverse());
+}
+function encodeGlyf(cts) {
+  var n = 0; cts.forEach(function (c) { n += c.length; });
+  if (!n) return { bytes: new Uint8Array(0), bbox: null, nPts: 0, nCts: 0 };
+  var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  cts.forEach(function (c) { c.forEach(function (p) { if (p.x < x0) x0 = p.x; if (p.y < y0) y0 = p.y; if (p.x > x1) x1 = p.x; if (p.y > y1) y1 = p.y; }); });
+  var flags = [], xb = [], yb = [], px = 0, py = 0, ends = [], k = -1;
+  cts.forEach(function (c) {
+    c.forEach(function (p) {
+      var f = p.on ? 1 : 0, dx = p.x - px, dy = p.y - py; px = p.x; py = p.y;
+      if (dx === 0) f |= 0x10; else if (dx >= -255 && dx <= 255) { f |= 0x02; if (dx > 0) f |= 0x10; xb.push(Math.abs(dx)); } else xb.push((dx >> 8) & 255, dx & 255);
+      if (dy === 0) f |= 0x20; else if (dy >= -255 && dy <= 255) { f |= 0x04; if (dy > 0) f |= 0x20; yb.push(Math.abs(dy)); } else yb.push((dy >> 8) & 255, dy & 255);
+      flags.push(f); k++;
+    });
+    ends.push(k);
+  });
+  var fb = [];
+  for (var i = 0; i < flags.length;) {
+    var r = 0;
+    while (i + r + 1 < flags.length && flags[i + r + 1] === flags[i] && r < 255) r++;
+    if (r > 1) { fb.push(flags[i] | 8, r); i += r + 1; } else { fb.push(flags[i]); i++; }
+  }
+  var len = 10 + ends.length * 2 + 2 + fb.length + xb.length + yb.length;
+  var out = new Uint8Array(pad4(len)), o = dvOf(out), p = 10;
+  o.setInt16(0, cts.length); o.setInt16(2, x0); o.setInt16(4, y0); o.setInt16(6, x1); o.setInt16(8, y1);
+  ends.forEach(function (e) { o.setUint16(p, e); p += 2; });
+  o.setUint16(p, 0); p += 2;                                // 힌팅 명령 없음
+  out.set(fb, p); p += fb.length; out.set(xb, p); p += xb.length; out.set(yb, p);
+  return { bytes: out, bbox: [x0, y0, x1, y1], nPts: n, nCts: cts.length };
+}
+function otfToTtf(sfnt) {
+  var T = readTables(sfnt), dv = dvOf(sfnt);
+  if (T.CFF2) throw new Error('CFF2(가변 OTF)는 아직 TTF로 바꿀 수 없어요');
+  if (!T['CFF ']) throw new Error('CFF 곡선이 없는 폰트예요');
+  var numGlyphs = dv.getUint16(T.maxp.offset + 4), cff = parseCFF(sfnt, T['CFF '].offset);
+  var hm = readHmtx(sfnt, T, numGlyphs), parts = [], loca = new Uint8Array((numGlyphs + 1) * 4), lo = dvOf(loca);
+  var lsb = [], maxPts = 0, maxCts = 0, bb = [Infinity, Infinity, -Infinity, -Infinity], off = 0;
+  for (var g = 0; g < numGlyphs; g++) {
+    var cts = g < cff.count ? cff.glyph(g) : [];
+    var tt = cts.map(function (c) { return cubicToTT(c, 1.0); }).filter(Boolean);
+    var e = encodeGlyf(tt);
+    lo.setUint32(g * 4, off); parts.push(e.bytes); off += e.bytes.length;
+    lsb.push(e.bbox ? e.bbox[0] : 0);
+    if (e.bbox) { bb[0] = Math.min(bb[0], e.bbox[0]); bb[1] = Math.min(bb[1], e.bbox[1]); bb[2] = Math.max(bb[2], e.bbox[2]); bb[3] = Math.max(bb[3], e.bbox[3]); }
+    maxPts = Math.max(maxPts, e.nPts); maxCts = Math.max(maxCts, e.nCts);
+  }
+  lo.setUint32(numGlyphs * 4, off);
+  if (!isFinite(bb[0])) bb = [0, 0, 0, 0];
+  var tables = {};
+  Object.keys(T).forEach(function (tag) { tables[tag] = tableCopy(sfnt, T, tag); });
+  ['CFF ', 'VORG', 'DSIG'].forEach(function (t) { delete tables[t]; });
+  tables.glyf = concat(parts);
+  tables.loca = loca;
+  tables.head = patchHead(tables.head, bb, 1);
+  var maxp = new Uint8Array(32), mo = dvOf(maxp);
+  mo.setUint32(0, 0x00010000); mo.setUint16(4, numGlyphs); mo.setUint16(6, maxPts); mo.setUint16(8, maxCts); mo.setUint16(14, 2);
+  tables.maxp = maxp;
+  tables.hmtx = writeHmtx(hm, lsb);
+  // 글리프 이름은 post 2.0 으로 옮긴다 — CFF 이름(CID 폰트면 cmap 으로 지은 uniXXXX)
+  var names = makeGlyphNames(sfnt, T, numGlyphs, cff.isCID ? null : cff.names), macIdx = stdIdx(MAC_STD, 'mac');
+  var idx = new Uint8Array(2 + numGlyphs * 2), io = dvOf(idx), strs = [];
+  io.setUint16(0, numGlyphs);
+  names.forEach(function (nm, g) {
+    var mi = macIdx.get(nm);
+    if (mi !== undefined) io.setUint16(2 + g * 2, mi); else { io.setUint16(2 + g * 2, 258 + strs.length); strs.push(nm); }
+  });
+  var sb = [];
+  strs.forEach(function (s) { sb.push(s.length); for (var i = 0; i < s.length; i++) sb.push(s.charCodeAt(i)); });
+  tables.post = concat([postHeader(tables.post, 0x00020000), idx, new Uint8Array(sb)]);
+  // 힌팅이 없는 TTF — 어느 크기에서나 부드럽게(gasp 0x000F)
+  tables.gasp = new Uint8Array([0, 1, 0, 1, 0xFF, 0xFF, 0, 0x0F]);
+  return packSfnt(0x00010000, tables);
+}
+
+// ── glyf 읽기 ──
+function glyfReader(u8, T, numGlyphs) {
+  var dv = dvOf(u8), long = dv.getInt16(T.head.offset + 50) === 1, lo = T.loca.offset, go = T.glyf.offset, memo = new Map();
+  function locaAt(g) { return long ? dv.getUint32(lo + g * 4) : dv.getUint16(lo + g * 2) * 2; }
+  function glyph(g, depth) {
+    if (memo.has(g)) return memo.get(g);
+    var res = [];
+    if (g < numGlyphs) {
+      var a = locaAt(g), b = locaAt(g + 1);
+      if (b > a) {
+        var p = go + a, nc = dv.getInt16(p);
+        if (nc >= 0) res = simple(p, nc); else if (depth < 8) res = composite(p, depth);
+      }
+    }
+    memo.set(g, res);
+    return res;
+  }
+  function simple(p, nc) {
+    var ends = [], q = p + 10, i, j;
+    for (i = 0; i < nc; i++) { ends.push(dv.getUint16(q)); q += 2; }
+    var n = nc ? ends[nc - 1] + 1 : 0, il = dv.getUint16(q); q += 2 + il;
+    var flags = new Uint8Array(n);
+    for (j = 0; j < n;) { var f = u8[q++]; flags[j++] = f; if (f & 8) { var r = u8[q++]; while (r-- > 0 && j < n) flags[j++] = f; } }
+    var xs = new Int32Array(n), ys = new Int32Array(n), v = 0, d;
+    for (j = 0; j < n; j++) { f = flags[j]; if (f & 2) { d = u8[q++]; v += (f & 16) ? d : -d; } else if (!(f & 16)) { v += dv.getInt16(q); q += 2; } xs[j] = v; }
+    v = 0;
+    for (j = 0; j < n; j++) { f = flags[j]; if (f & 4) { d = u8[q++]; v += (f & 32) ? d : -d; } else if (!(f & 32)) { v += dv.getInt16(q); q += 2; } ys[j] = v; }
+    var cs = [], s0 = 0;
+    for (i = 0; i < nc; i++) {
+      var c = [];
+      for (j = s0; j <= ends[i]; j++) c.push({ x: xs[j], y: ys[j], on: !!(flags[j] & 1) });
+      s0 = ends[i] + 1;
+      if (c.length) cs.push(c);
+    }
+    return cs;
+  }
+  function composite(p, depth) {
+    var q = p + 10, out = [], more = true;
+    while (more) {
+      var fl = dv.getUint16(q), gi = dv.getUint16(q + 2), a1, a2;
+      q += 4;
+      if (fl & 1) { a1 = (fl & 2) ? dv.getInt16(q) : dv.getUint16(q); a2 = (fl & 2) ? dv.getInt16(q + 2) : dv.getUint16(q + 2); q += 4; }
+      else { a1 = (fl & 2) ? dv.getInt8(q) : dv.getUint8(q); a2 = (fl & 2) ? dv.getInt8(q + 1) : dv.getUint8(q + 1); q += 2; }
+      var xx = 1, xy = 0, yx = 0, yy = 1;
+      if (fl & 8) { xx = yy = dv.getInt16(q) / 16384; q += 2; }
+      else if (fl & 0x40) { xx = dv.getInt16(q) / 16384; yy = dv.getInt16(q + 2) / 16384; q += 4; }
+      else if (fl & 0x80) { xx = dv.getInt16(q) / 16384; xy = dv.getInt16(q + 2) / 16384; yx = dv.getInt16(q + 4) / 16384; yy = dv.getInt16(q + 6) / 16384; q += 8; }
+      var dx = (fl & 2) ? a1 : 0, dy = (fl & 2) ? a2 : 0;       // 점 맞춤(point matching)은 드물어 0 으로 둔다
+      if ((fl & 0x800) && !(fl & 0x1000)) { var tx = dx * xx + dy * yx, ty = dx * xy + dy * yy; dx = tx; dy = ty; }
+      var flip = xx * yy - xy * yx < 0;
+      glyph(gi, depth + 1).forEach(function (c) {
+        var t = c.map(function (pt) { return { x: pt.x * xx + pt.y * yx + dx, y: pt.x * xy + pt.y * yy + dy, on: pt.on }; });
+        if (flip) t = [t[0]].concat(t.slice(1).reverse());    // 뒤집힌 부품은 방향을 되돌린다
+        out.push(t);
+      });
+      more = !!(fl & 0x20);
+    }
+    return out;
+  }
+  return function (g) { return glyph(g, 0); };
+}
+function quadToCubic(c) {   // TrueType 점열(닫힘) → 3차 곡선 윤곽. 2차 곡선은 3차로 정확히 옮겨진다
+  var n = c.length; if (n < 2) return null;
+  var si = -1, i;
+  for (i = 0; i < n; i++) if (c[i].on) { si = i; break; }
+  var pts = si < 0 ? [{ x: (c[n - 1].x + c[0].x) / 2, y: (c[n - 1].y + c[0].y) / 2, on: true }].concat(c) : c.slice(si).concat(c.slice(0, si));
+  pts.push(pts[0]);
+  var segs = [], cur = pts[0], ctrl = null;
+  function q2c(p0, q, p1) {
+    return { c1: [p0.x + (q.x - p0.x) * 2 / 3, p0.y + (q.y - p0.y) * 2 / 3], c2: [p1.x + (q.x - p1.x) * 2 / 3, p1.y + (q.y - p1.y) * 2 / 3], p: [p1.x, p1.y] };
+  }
+  for (i = 1; i < pts.length; i++) {
+    var p = pts[i];
+    if (p.on) { segs.push(ctrl ? q2c(cur, ctrl, p) : { p: [p.x, p.y] }); ctrl = null; cur = p; }
+    else {
+      if (ctrl) { var mid = { x: (ctrl.x + p.x) / 2, y: (ctrl.y + p.y) / 2 }; segs.push(q2c(cur, ctrl, mid)); cur = mid; }
+      ctrl = p;
+    }
+  }
+  return { start: [pts[0].x, pts[0].y], segs: segs };
+}
+
+// ── CFF 쓰기 ──
+function t2num(v, out) {
+  v = Math.round(v);
+  if (v >= -107 && v <= 107) out.push(v + 139);
+  else if (v >= 108 && v <= 1131) { v -= 108; out.push((v >> 8) + 247, v & 255); }
+  else if (v >= -1131 && v <= -108) { v = -v - 108; out.push((v >> 8) + 251, v & 255); }
+  else { v = Math.max(-32768, Math.min(32767, v)); out.push(28, (v >> 8) & 255, v & 255); }
+}
+function charString(cts, widthArg) {   // 3차 곡선 윤곽들 → Type2 charstring (힌트 없음)
+  var out = [], x = 0, y = 0, first = true;
+  function R(p) { return [Math.round(p[0]), Math.round(p[1])]; }
+  cts.forEach(function (ct) {
+    var s = R(ct.start);
+    if (first && widthArg !== null) t2num(widthArg, out);
+    t2num(s[0] - x, out); t2num(s[1] - y, out); out.push(21);              // rmoveto
+    x = s[0]; y = s[1]; first = false;
+    var segs = ct.segs.slice(), lastSeg = segs[segs.length - 1];
+    if (lastSeg && !lastSeg.c1) { var lp = R(lastSeg.p); if (lp[0] === s[0] && lp[1] === s[1]) segs.pop(); }   // CFF 는 저절로 닫힌다
+    var i = 0;
+    while (i < segs.length) {
+      var cnt = 0;
+      if (!segs[i].c1) {
+        while (i < segs.length && !segs[i].c1 && cnt < 24) {
+          var p = R(segs[i].p);
+          if (p[0] !== x || p[1] !== y) { t2num(p[0] - x, out); t2num(p[1] - y, out); x = p[0]; y = p[1]; cnt++; }
+          i++;
+        }
+        if (cnt) out.push(5);                                               // rlineto
+      } else {
+        while (i < segs.length && segs[i].c1 && cnt < 8) {
+          var a = R(segs[i].c1), b = R(segs[i].c2), e = R(segs[i].p);
+          t2num(a[0] - x, out); t2num(a[1] - y, out); t2num(b[0] - a[0], out); t2num(b[1] - a[1], out); t2num(e[0] - b[0], out); t2num(e[1] - b[1], out);
+          x = e[0]; y = e[1]; cnt++; i++;
+        }
+        out.push(8);                                                        // rrcurveto
+      }
+    }
+  });
+  if (first && widthArg !== null) t2num(widthArg, out);
+  out.push(14);                                                             // endchar
+  return new Uint8Array(out);
+}
+function makeIndex(items) {
+  var count = items.length;
+  if (!count) return new Uint8Array([0, 0]);
+  var total = 1; items.forEach(function (it) { total += it.length; });
+  var os = total < 0x100 ? 1 : total < 0x10000 ? 2 : total < 0x1000000 ? 3 : 4;
+  var out = new Uint8Array(3 + (count + 1) * os + total - 1), p = 0, off = 1;
+  out[p++] = count >> 8; out[p++] = count & 255; out[p++] = os;
+  function put(v) { for (var k = os - 1; k >= 0; k--) out[p++] = Math.floor(v / Math.pow(256, k)) & 255; }
+  put(off); items.forEach(function (it) { off += it.length; put(off); });
+  items.forEach(function (it) { out.set(it, p); p += it.length; });
+  return out;
+}
+function dictInt(v, out) {
+  if (v >= -107 && v <= 107) out.push(v + 139);
+  else if (v >= 108 && v <= 1131) { v -= 108; out.push((v >> 8) + 247, v & 255); }
+  else if (v >= -1131 && v <= -108) { v = -v - 108; out.push((v >> 8) + 251, v & 255); }
+  else if (v >= -32768 && v <= 32767) out.push(28, (v >> 8) & 255, v & 255);
+  else out.push(29, (v >>> 24) & 255, (v >>> 16) & 255, (v >>> 8) & 255, v & 255);
+}
+function dictInt32(v, out) { out.push(29, (v >>> 24) & 255, (v >>> 16) & 255, (v >>> 8) & 255, v & 255); }
+function dictNum(v, out) {
+  if (Number.isInteger(v)) return dictInt(v, out);
+  var s = String(v).toUpperCase(), nib = [];
+  for (var i = 0; i < s.length; i++) {
+    var ch = s[i];
+    if (ch >= '0' && ch <= '9') nib.push(ch.charCodeAt(0) - 48);
+    else if (ch === '.') nib.push(10);
+    else if (ch === 'E') { if (s[i + 1] === '-') { nib.push(12); i++; } else { nib.push(11); if (s[i + 1] === '+') i++; } }
+    else if (ch === '-') nib.push(14);
+  }
+  nib.push(15); if (nib.length % 2) nib.push(15);
+  out.push(30);
+  for (var k = 0; k < nib.length; k += 2) out.push((nib[k] << 4) | nib[k + 1]);
+}
+function buildCFF(o) {
+  var std = stdIdx(CFF_STD, 'cff'), strings = [], strMap = new Map();
+  function sid(s) {
+    if (std.has(s)) return std.get(s);
+    if (strMap.has(s)) return strMap.get(s);
+    var id = 391 + strings.length; strings.push(s); strMap.set(s, id); return id;
+  }
+  function bytes(s) { var a = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i) & 255; return a; }
+  var charsetSids = [];
+  for (var g = 1; g < o.names.length; g++) charsetSids.push(sid(o.names[g]));
+  function topDict(offCharset, offCS, privSize, offPriv) {
+    var d = [];
+    [['version', 0], ['notice', 1], ['fullName', 2], ['family', 3], ['weight', 4]].forEach(function (kv) {
+      var v = o.top[kv[0]]; if (v) { dictInt(sid(v), d); d.push(kv[1]); }
+    });
+    o.bbox.forEach(function (v) { dictInt(Math.round(v), d); }); d.push(5);
+    if (o.upm !== 1000) { [1 / o.upm, 0, 0, 1 / o.upm, 0, 0].forEach(function (v) { dictNum(v, d); }); d.push(12, 7); }
+    dictInt32(offCharset, d); d.push(15);
+    dictInt32(offCS, d); d.push(17);
+    dictInt32(privSize, d); dictInt32(offPriv, d); d.push(18);
+    return new Uint8Array(d);
+  }
+  var topLen = makeIndex([topDict(0, 0, 0, 0)]).length;      // 문자열 등록 + 크기 재기(오프셋은 늘 5바이트라 크기가 같다)
+  var header = new Uint8Array([1, 0, 4, 4]), nameIdx = makeIndex([bytes(o.psName)]);
+  var strIdx = makeIndex(strings.map(bytes)), gsubrIdx = makeIndex([]);
+  var charset = new Uint8Array(1 + charsetSids.length * 2);
+  charsetSids.forEach(function (s, i) { charset[1 + i * 2] = s >> 8; charset[2 + i * 2] = s & 255; });
+  var csIdx = makeIndex(o.charstrings), priv = [];
+  dictInt(o.defW, priv); priv.push(20); dictInt(o.nomW, priv); priv.push(21);
+  var offCharset = header.length + nameIdx.length + topLen + strIdx.length + gsubrIdx.length;
+  var offCS = offCharset + charset.length, offPriv = offCS + csIdx.length;
+  var topIdx = makeIndex([topDict(offCharset, offCS, priv.length, offPriv)]);
+  if (topIdx.length !== topLen) throw new Error('CFF 머리 크기가 어긋났어요');
+  return concat([header, nameIdx, topIdx, strIdx, gsubrIdx, charset, csIdx, new Uint8Array(priv)]);
+}
+function ttfToOtf(sfnt) {
+  var T = readTables(sfnt), dv = dvOf(sfnt);
+  if (!T.glyf || !T.loca) throw new Error('TrueType 곡선이 없는 폰트예요');
+  if (T.fvar || T.gvar) throw new Error('가변 폰트는 아직 OTF로 바꿀 수 없어요');
+  var numGlyphs = dv.getUint16(T.maxp.offset + 4), upm = dv.getUint16(T.head.offset + 18);
+  var glyph = glyfReader(sfnt, T, numGlyphs), hm = readHmtx(sfnt, T, numGlyphs);
+  var names = makeGlyphNames(sfnt, T, numGlyphs, postV2Names(sfnt, T));
+  var freq = new Map(), defW = 0, best = -1;     // 가장 흔한 너비 — 그 너비인 글리프는 charstring 에 너비를 안 적는다
+  hm.adv.forEach(function (w) { var c = (freq.get(w) || 0) + 1; freq.set(w, c); if (c > best) { best = c; defW = w; } });
+  var nomW = defW, css = [], lsb = [], bb = [Infinity, Infinity, -Infinity, -Infinity];
+  for (var g = 0; g < numGlyphs; g++) {
+    var cts = glyph(g).map(quadToCubic).filter(Boolean).map(reverseCubic);   // TrueType(시계) → PostScript(반시계)
+    var gb = cubicBounds(cts);
+    lsb.push(gb ? Math.round(gb[0]) : 0);
+    if (gb) { bb[0] = Math.min(bb[0], gb[0]); bb[1] = Math.min(bb[1], gb[1]); bb[2] = Math.max(bb[2], gb[2]); bb[3] = Math.max(bb[3], gb[3]); }
+    css.push(charString(cts, hm.adv[g] === defW ? null : hm.adv[g] - nomW));
+  }
+  if (!isFinite(bb[0])) bb = [0, 0, 0, 0];
+  bb = bb.map(Math.round);
+  var nm = readNames(sfnt, T);
+  var family = ascii(nm.legacyFamily) || ascii(nm.family) || 'Font', style = ascii(nm.legacyStyle) || 'Regular';
+  var psName = psSafe(nm.ps) || psSafe(family + '-' + style) || 'Font';
+  var cff = buildCFF({ psName: psName, names: names, charstrings: css, bbox: bb, upm: upm, defW: defW, nomW: nomW,
+                       top: { version: ascii(nm.version).replace(/^Version\s*/i, ''), notice: ascii(nm.copyright).slice(0, 200),
+                              fullName: ascii(nm.full) || family + ' ' + style, family: family, weight: style } });
+  var tables = {};
+  Object.keys(T).forEach(function (tag) { tables[tag] = tableCopy(sfnt, T, tag); });
+  ['glyf', 'loca', 'fpgm', 'prep', 'cvt ', 'gasp', 'hdmx', 'LTSH', 'VDMX', 'DSIG'].forEach(function (t) { delete tables[t]; });
+  tables['CFF '] = cff;
+  var maxp = new Uint8Array(6), mo = dvOf(maxp); mo.setUint32(0, 0x00005000); mo.setUint16(4, numGlyphs);
+  tables.maxp = maxp;
+  tables.post = postHeader(tables.post, 0x00030000);       // 이름은 CFF 안으로 옮겼다
+  tables.hmtx = writeHmtx(hm, lsb);
+  tables.head = patchHead(tables.head, bb, 0);
+  return packSfnt(0x4F54544F, tables);
+}
+
+// ── 메시지 ──
+var sfntCache = new Map();          // 파일 번호 → 풀어 둔 TTF/OTF (설정만 바꿔 다시 돌릴 때 또 풀지 않게)
+scope.onmessage = async function (e) {
+  var m = e.data, id = m.id;
+  function stage(s) { scope.postMessage({ id: id, stage: s }); }
+  try {
+    if (m.op === 'ping') return scope.postMessage({ id: id, ok: true });
+    if (m.op === 'warm') { (m.parts || []).forEach(function (p) { (p === 'hb' ? loadHB() : loadEm(p)).catch(function () {}); }); return; }
+    if (m.op === 'forget') { sfntCache.delete(m.key); return; }
+    if (m.op === 'inspect') {
+      var u8 = new Uint8Array(m.bytes), kind = sniff(u8);
+      if (kind === 'woff2') stage('WOFF2 푸는 중');
+      var sf = await toSfnt(u8);
+      sfntCache.set(m.key, sf);
+      return scope.postMessage({ id: id, ok: true, kind: kind, info: inspect(sf) });
+    }
+    if (m.op === 'convert') {
+      var sfnt = sfntCache.get(m.key), fmt = m.opt.format;
+      if (!sfnt) { stage('푸는 중'); sfnt = await toSfnt(new Uint8Array(m.bytes)); sfntCache.set(m.key, sfnt); }
+      var before = inspect(sfnt), work = sfnt, miss = [], conv = '';
+      if (m.opt.range !== 'all') {
+        if (before.fsType & 0x0100) throw new Error('이 폰트는 제작자가 글자 줄이기를 막아 두었어요(fsType). \'모든 글자 그대로\'로만 바꿀 수 있어요');
+        stage('글자 줄이는 중');
+        var ex = await loadHB();
+        work = hbSubset(ex, sfnt, codepointsFor(m.opt));
+        if (m.opt.range === 'custom') miss = missingChars(sfnt, m.opt.custom);
+      }
+      if (fmt === 'ttf' && (before.outline === 'CFF' || before.outline === 'CFF2')) {
+        stage('OTF 곡선을 TTF 곡선으로 바꾸는 중');
+        work = otfToTtf(work); conv = 'OTF 곡선(CFF) → TTF 곡선';
+      } else if (fmt === 'otf' && before.outline === 'TrueType') {
+        stage('TTF 곡선을 OTF 곡선으로 바꾸는 중');
+        work = ttfToOtf(work); conv = 'TTF 곡선 → OTF 곡선(CFF)';
+      }
+      var after = inspect(work), out, ext;
+      if (fmt === 'woff2') { stage('WOFF2로 압축하는 중'); out = await woff2Encode(work); ext = 'woff2'; }
+      else if (fmt === 'woff') { stage('WOFF로 압축하는 중'); out = await sfntToWoff(work); ext = 'woff'; }
+      else { out = work === sfnt ? sfnt.slice() : work; ext = fmt; }
+      var buf = out.buffer.byteLength === out.byteLength ? out.buffer : out.slice().buffer;
+      return scope.postMessage({ id: id, ok: true, out: buf, ext: ext, info: after, missing: miss, conv: conv,
+                                 lostHints: !!conv }, [buf]);
+    }
+  } catch (err) {
+    scope.postMessage({ id: id, ok: false, error: (err && err.message) || String(err) });
+  }
+};
+})(self);
+</script>
+
+<script>
+(function () {
+'use strict';
+
+/* ── 엔진 띄우기: 워커 → 안 되면 화면 쪽에서 ── */
+var engineSrc = document.getElementById('engineSrc').textContent;
+var pending = new Map(), seq = 0, engine = null;
+function attach(target) {
+  target.onmessage = function (e) {
+    var d = e.data, p = pending.get(d.id);
+    if (!p) return;
+    if (d.stage) { p.onStage && p.onStage(d.stage); return; }
+    pending.delete(d.id);
+    d.ok ? p.resolve(d) : p.reject(new Error(d.error));
+  };
+}
+function call(msg, onStage, transfer) {
+  return new Promise(function (resolve, reject) {
+    var id = ++seq;
+    pending.set(id, { resolve: resolve, reject: reject, onStage: onStage });
+    msg.id = id;
+    engine.postMessage(msg, transfer || []);
+  });
+}
+function inlineEngine() {      // 워커를 못 쓰는 곳: 같은 코드를 이 화면에서 돌린다
+  var outer = { onmessage: null }, inner = { onmessage: null };
+  inner.postMessage = function (d) { setTimeout(function () { outer.onmessage && outer.onmessage({ data: d }); }, 0); };
+  outer.postMessage = function (d) { setTimeout(function () { inner.onmessage && inner.onmessage({ data: d }); }, 0); };
+  (new Function('self', engineSrc))(inner);
+  return outer;
+}
+var ready = (async function () {
+  try {
+    var w = new Worker(URL.createObjectURL(new Blob([engineSrc], { type: 'text/javascript' })));
+    engine = w; attach(w);
+    var ok = await Promise.race([
+      call({ op: 'ping' }).then(function () { return true; }),
+      new Promise(function (r) { w.onerror = function () { r(false); }; setTimeout(function () { r(false); }, 4000); })
+    ]);
+    if (ok) return 'worker';
+    w.terminate();
+  } catch (e) { /* file:// 등 */ }
+  engine = inlineEngine(); attach(engine);
+  return 'inline';
+})();
+ready.then(function () { engine.postMessage({ op: 'warm', parts: ['w2c', 'hb'] }); });
+
+/* ── 상태 ── */
+var $ = function (id) { return document.getElementById(id); };
+var opt = { format: 'woff2', range: 'web', custom: $('customText').value, withAscii: true };
+var files = [];        // {key, name, bytes, size, kind, info, row, run, result}
+var keySeq = 0;
+var SAMPLE_KO = '키스의 고유조건은 입술끼리 만나야 하고 특별한 기술은 필요치 않다';
+var SAMPLE_EN = 'The quick brown fox jumps over 1,234 lazy dogs.';
+
+function fmtSize(n) {
+  if (n >= 1048576) return (n / 1048576).toFixed(n >= 10485760 ? 1 : 2) + ' MB';
+  return Math.max(1, Math.round(n / 1024)) + ' KB';
+}
+function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+function baseName(n) { return n.replace(/\.(ttf|otf|woff2?|ttc)$/i, ''); }
+var RANGE_SUFFIX = { web: '-2350', k2780: '-2780', hangul: '-hangul', custom: '-custom', all: '' };
+var KIND_LABEL = { ttf: 'TTF', otf: 'OTF', woff: 'WOFF', woff2: 'WOFF2' };
+var EXT_FMT = { woff2: 'woff2', woff: 'woff', ttf: 'truetype', otf: 'opentype' };
+
+/* ── 파일 받기 ── */
+function addFiles(list) {
+  var arr = Array.prototype.slice.call(list).filter(function (f) { return /\.(ttf|otf|woff2?|ttc)$/i.test(f.name) || /font/.test(f.type); });
+  if (!arr.length) return;
+  $('empty').hidden = true;
+  arr.forEach(function (f) {
+    var it = { key: 'f' + (++keySeq), name: f.name, size: f.size, run: 0 };
+    files.push(it);
+    it.row = makeRow(it);
+    $('list').appendChild(it.row.el);
+    f.arrayBuffer().then(function (buf) { it.bytes = buf; return load(it); });
+  });
+}
+async function load(it) {
+  setState(it, '살펴보는 중…', true);
+  await ready;
+  try {
+    var r = await call({ op: 'inspect', key: it.key, bytes: it.bytes.slice(0) }, function (s) { setState(it, s + '…', true); });
+    it.kind = r.kind; it.info = r.info;
+    paintInfo(it);
+    preview(it, it.bytes, it.row.aa, 'o');
+    convert(it);
+  } catch (e) { setState(it, e.message, false, true); }
+}
+
+/* ── 한 줄 그리기 ── */
+function makeRow(it) {
+  var el = document.createElement('article');
+  el.className = 'row';
+  el.innerHTML =
+    '<div class="row-h">' +
+      '<div class="aa" aria-hidden="true">가</div>' +
+      '<div class="meta"><div class="nm"></div><div class="sub"></div><div class="chips"></div></div>' +
+      '<div class="acts"><button type="button" class="btn dl" disabled><svg viewBox="0 0 24 24"><path d="M12 4v12"/><polyline points="7 11 12 16 17 11"/><path d="M5 20h14"/></svg>받기</button>' +
+      '<button type="button" class="btn ghost rm" aria-label="목록에서 빼기">빼기</button></div>' +
+    '</div>' +
+    '<div class="size"><span class="from"></span><div class="bar busy"><i></i></div><span class="to">—</span></div>' +
+    '<div class="state"></div>' +
+    '<div class="notes"></div>' +
+    '<div class="pv" hidden><small>바꾼 파일로 그린 글자</small><span class="pvt"></span></div>';
+  var q = function (s) { return el.querySelector(s); };
+  var row = { el: el, aa: q('.aa'), nm: q('.nm'), sub: q('.sub'), chips: q('.chips'), dl: q('.dl'), from: q('.from'),
+              bar: q('.bar'), to: q('.to'), state: q('.state'), notes: q('.notes'), pv: q('.pv'), pvt: q('.pvt') };
+  row.nm.textContent = it.name;
+  row.from.textContent = fmtSize(it.size);
+  row.dl.onclick = function () { if (it.result) { download(new Blob([it.result.out]), it.result.file); track(it.result.ext); } };
+  q('.rm').onclick = function () {
+    files = files.filter(function (x) { return x !== it; });
+    el.remove();
+    engine && engine.postMessage({ op: 'forget', key: it.key });
+    if (!files.length) $('empty').hidden = false;
+    paintCss();
+  };
+  return row;
+}
+function setState(it, text, busy, err) {
+  it.row.state.textContent = text || '';
+  it.row.state.className = 'state' + (err ? ' err' : '');
+  it.row.bar.classList.toggle('busy', !!busy);
+}
+function paintInfo(it) {
+  var i = it.info, n = i.names || {}, row = it.row;
+  var title = n.familyKo && n.familyKo !== n.family ? n.familyKo + ' · ' + n.family : (n.family || baseName(it.name));
+  row.nm.textContent = title + (n.style ? ' ' + n.style : '');
+  var ver = (n.version || '').split(';')[0].replace(/^Version\s*/i, '').trim();     // 'Version 1.309;Glyphs 3.2' → 1.309
+  row.sub.textContent = it.name + ' · ' + (KIND_LABEL[it.kind] || '') + ' · ' + i.outline + ' 윤곽' + (ver ? ' · v' + ver : '');
+  var chips = [];
+  if (i.hangul) chips.push('<span class="chip k">한글 ' + i.hangul.toLocaleString() + '자</span>');
+  else chips.push('<span class="chip">한글 없음</span>');
+  if (i.emptyKnown && i.hangulSlots > i.hangul) chips.push('<span class="chip" title="cmap 에는 있지만 모양이 비어 있는 칸">빈 칸 ' + (i.hangulSlots - i.hangul).toLocaleString() + '자 제외</span>');
+  if (i.hangul) chips.push('<span class="chip">완성형 ' + i.k2350.toLocaleString() + '/2,350</span>');
+  chips.push('<span class="chip">영문·기호 ' + i.latin + '자</span>');
+  chips.push('<span class="chip">글리프 ' + i.numGlyphs.toLocaleString() + '개</span>');
+  chips.push('<span class="chip">굵기 ' + i.weight + (i.italic ? ' 기울임' : '') + '</span>');
+  if (i.axes && i.axes.length) chips.push('<span class="chip k">가변 ' + i.axes.map(function (a) { return a.tag + ' ' + a.min + '–' + a.max; }).join(', ') + '</span>');
+  row.chips.innerHTML = chips.join('');
+  // 제작자가 파일 안에 적어 둔 사용 표시(OS/2 fsType)
+  var notes = [];
+  var t = i.fsType;
+  if ((t & 0x000F) === 0x0002) notes.push('<div class="note bad"><b>임베딩 금지 표시</b>가 있어요(fsType 2). 제작자가 문서·웹에 싣는 것을 막아 둔 폰트라 웹폰트로 쓰면 안 돼요.</div>');
+  if (t & 0x0100) notes.push('<div class="note warn"><b>글자 줄이기 금지 표시</b>가 있어요. 이 파일은 \'모든 글자 그대로\'로만 바꿀 수 있어요.</div>');
+  if (t & 0x0200) notes.push('<div class="note warn">비트맵으로만 실을 수 있다는 표시가 있어요(fsType 0x200). 라이선스를 꼭 확인하세요.</div>');
+  row.notes.innerHTML = notes.join('');
+}
+
+/* ── 변환 ── */
+async function convert(it) {
+  if (!it.info) return;
+  var my = ++it.run;
+  it.result = null;
+  it.row.dl.disabled = true;
+  it.row.pv.hidden = true;
+  it.row.to.textContent = '—';
+  it.row.bar.querySelector('i').style.width = '0';
+  it.row.notes.querySelectorAll('.run-note').forEach(function (n) { n.remove(); });   // 지난 변환의 안내
+  setState(it, '변환 준비 중…', true);
+  paintCss();
+  var t0 = performance.now();
+  try {
+    var r = await call({ op: 'convert', key: it.key, bytes: it.bytes.slice(0),
+                         opt: { format: opt.format, range: opt.range, custom: opt.custom, withAscii: opt.withAscii } },
+                       function (s) { if (my === it.run) setState(it, s + '…', true); });
+    if (my !== it.run) return;               // 그사이 설정이 또 바뀌었다
+    var file = baseName(it.name) + RANGE_SUFFIX[opt.range] + '.' + r.ext;
+    it.result = { out: r.out, ext: r.ext, file: file, info: r.info };
+    var pct = Math.round((1 - r.out.byteLength / it.size) * 100);
+    // 커진 것도 숨기지 않는다 — TTF→OTF 처럼 형식만 바꾸면 오히려 커질 수 있다
+    it.row.to.innerHTML = esc(r.ext.toUpperCase() + ' · ' + fmtSize(r.out.byteLength)) +
+      (pct > 0 ? '<small>−' + pct + '%</small>' : pct < 0 ? '<small class="up">+' + (-pct) + '%</small>' : '');
+    it.row.bar.querySelector('i').style.width = Math.max(2, Math.min(100, r.out.byteLength / it.size * 100)) + '%';
+    var kept = r.info.hangul ? '한글 ' + r.info.hangul.toLocaleString() + '자 · 영문·기호 ' + r.info.latin + '자 남김' : '글자 ' + r.info.chars.toLocaleString() + '자 남김';
+    setState(it, '끝 · ' + (r.conv ? r.conv + ' · ' : '') + kept + ' · ' + ((performance.now() - t0) / 1000).toFixed(1) + '초', false);
+    if (r.missing && r.missing.length) {
+      it.row.notes.insertAdjacentHTML('beforeend', '<div class="note warn run-note">이 폰트에 없는 글자: ' + esc(r.missing.join(' ')) + '</div>');
+    }
+    if (r.lostHints) {
+      it.row.notes.insertAdjacentHTML('beforeend', '<div class="note info run-note">곡선 형식을 바꾸면 힌팅은 옮겨 가지 않아요. ' +
+        '화면에서 아주 작은 글자는 원본과 조금 달라 보일 수 있어요(인쇄·큰 글자는 같아요).</div>');
+    }
+    it.row.dl.disabled = false;
+    it.row.pvt.textContent = opt.range === 'custom' ? (opt.custom || SAMPLE_KO) : (it.info.hangul ? SAMPLE_KO : SAMPLE_EN);
+    it.row.pv.hidden = false;
+    preview(it, r.out, it.row.pv, 'r' + my);
+  } catch (e) {
+    if (my === it.run) { setState(it, e.message, false, true); it.row.to.textContent = '—'; }
+  }
+  paintCss();
+}
+function convertAll() { files.forEach(convert); }
+
+/* 바꾼 파일을 실제로 띄워서 그린다 — 깨진 파일이면 여기서 드러난다 */
+function preview(it, buf, el, tag) {
+  var fam = 'fc-' + it.key + '-' + tag;
+  try {
+    var ff = new FontFace(fam, buf.slice(0));
+    ff.load().then(function (f) {
+      document.fonts.add(f);
+      el.style.fontFamily = "'" + fam + "', var(--ui)";
+    }).catch(function () {
+      if (tag !== 'o') { setState(it, '바꾼 파일을 브라우저가 읽지 못했어요', false, true); it.row.dl.disabled = true; }
+    });
+  } catch (e) {}
+}
+
+/* ── CSS 코드 · ZIP ── */
+function paintCss() {
+  var done = files.filter(function (it) { return it.result; });
+  $('outCard').hidden = !done.length;
+  if (!done.length) return;
+  $('css').textContent = done.map(function (it) {
+    var n = it.info.names || {}, fam = (n.family || baseName(it.name)).replace(/'/g, '');
+    return "@font-face {\n" +
+      "  font-family: '" + fam + "';\n" +
+      "  src: url('./" + it.result.file + "') format('" + EXT_FMT[it.result.ext] + "');\n" +
+      "  font-weight: " + (it.info.weight || 400) + ";\n" +
+      "  font-style: " + (it.info.italic ? 'italic' : 'normal') + ";\n" +
+      "  font-display: swap;\n}";
+  }).join('\n\n');
+  $('zipBtn').disabled = done.length < 1;
+}
+var CRC_T = (function () { var t = new Uint32Array(256); for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { var c = 0xFFFFFFFF; for (var i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function makeZip(items) {   // 압축 없이 담기만 하는 ZIP — 웹폰트는 이미 눌려 있다
+  var enc = new TextEncoder(), parts = [], central = [], off = 0, d = new Date();
+  var dt = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  var tm = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+  items.forEach(function (f) {
+    var nm = enc.encode(f.name), data = new Uint8Array(f.data), crc = crc32(data);
+    var lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+    lh.setUint16(10, tm, true); lh.setUint16(12, dt, true); lh.setUint32(14, crc, true);
+    lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, nm.length, true);
+    parts.push(new Uint8Array(lh.buffer), nm, data);
+    var ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+    ch.setUint16(12, tm, true); ch.setUint16(14, dt, true); ch.setUint32(16, crc, true);
+    ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, nm.length, true);
+    ch.setUint32(42, off, true);
+    central.push(new Uint8Array(ch.buffer), nm);
+    off += 30 + nm.length + data.length;
+  });
+  var cdSize = central.reduce(function (s, c) { return s + c.length; }, 0);
+  var end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, items.length, true); end.setUint16(10, items.length, true);
+  end.setUint32(12, cdSize, true); end.setUint32(16, off, true);
+  return new Blob(parts.concat(central, [new Uint8Array(end.buffer)]), { type: 'application/zip' });
+}
+function download(blob, name) {
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+}
+$('zipBtn').onclick = function () {
+  var done = files.filter(function (it) { return it.result; });
+  if (!done.length) return;
+  var items = done.map(function (it) { return { name: it.result.file, data: it.result.out }; });
+  items.push({ name: 'fonts.css', data: new TextEncoder().encode($('css').textContent + '\n').buffer });
+  download(makeZip(items), 'webfonts.zip');
+  track('zip');
+};
+$('copyCss').onclick = function () {
+  var b = this, text = $('css').textContent;
+  function show(t) { b.textContent = t; setTimeout(function () { b.textContent = '복사'; }, 1600); }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { show('복사됨'); }, function () { select(); show('선택됨'); });
+  else { select(); show('선택됨'); }
+  function select() { var r = document.createRange(); r.selectNodeContents($('css')); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+};
+
+/* ── 설정 ── */
+document.querySelectorAll('input[name=fmt]').forEach(function (r) { r.onchange = function () { opt.format = this.value; convertAll(); }; });
+document.querySelectorAll('input[name=rng]').forEach(function (r) { r.onchange = function () {
+  opt.range = this.value; $('customBox').hidden = opt.range !== 'custom'; convertAll(); }; });
+var tmr = null;
+$('customText').oninput = function () { opt.custom = this.value; clearTimeout(tmr); tmr = setTimeout(function () { if (opt.range === 'custom') convertAll(); }, 500); };
+$('withAscii').onchange = function () { opt.withAscii = this.checked; if (opt.range === 'custom') convertAll(); };
+
+/* ── 놓기 ── */
+var drop = $('drop');
+['dragenter', 'dragover'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+['dragleave', 'drop'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+drop.addEventListener('drop', function (e) { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
+$('pick').onchange = function () { addFiles(this.files); this.value = ''; };
+// 놓는 자리 밖에 떨어뜨려도 브라우저가 폰트 파일을 열어 버리지 않게
+window.addEventListener('dragover', function (e) { e.preventDefault(); });
+window.addEventListener('drop', function (e) { e.preventDefault(); if (e.target !== drop && !drop.contains(e.target) && e.dataTransfer) addFiles(e.dataTransfer.files); });
+
+/* 받기 기록 — 어드민 '통계'(app/routers/track.py, kind=convert_dl)와 애널리틱스 이벤트.
+   파일 내용·이름은 보내지 않는다. 어떤 형식·범위로 받았는지만. */
+function track(fmt) {
+  var q = '/api/track/convert?fmt=' + encodeURIComponent(fmt) + '&r=' + encodeURIComponent(opt.range);
+  try { if (navigator.sendBeacon) navigator.sendBeacon(q); } catch (e) {}
+  try { if (window.gtag) gtag('event', 'font_convert_download', { format: fmt, glyph_range: opt.range }); } catch (e) {}
+}
+
+window.__fc = { get files() { return files; }, opt: opt, ready: ready, addFiles: addFiles, makeZip: makeZip };   // 점검용(시안 폴더 점검\화면점검.ps1)
+})();
+</script>
+</body>
+</html>

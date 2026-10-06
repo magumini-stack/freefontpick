@@ -73,6 +73,8 @@ def summary(days: int = 30, _admin=Depends(require_password_changed),
         "hub_views": by_kind.get("use", 0),
         "pair_views": by_kind.get("pair", 0),
         "home_tool_clicks": by_kind.get("home_tool", 0),   # 메인 4칸 클릭 (2026-10-04부터)
+        "convert_views": by_kind.get("convert", 0),        # 폰트 변환 열람 (2026-10-06부터)
+        "convert_downloads": by_kind.get("convert_dl", 0), # 폰트 변환 받기 (app/routers/track.py)
     }
 
 

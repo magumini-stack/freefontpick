@@ -37,6 +37,8 @@ NAV_ITEMS = [
     # gif 라우터가 inject_header(html, "gif")로 넘기는 키와 같아야 활성 표시가 붙는다.
     # 2026-08: 템플릿 목록(/gif/templates) 대신 편집기(/gif)로 바로 보낸다.
     ("gif", "/gif", "GIF 생성기", None, None),
+    # 폰트 변환(2026-10-06) — 파일을 브라우저 안에서 바꾸는 도구. 만드는 자리라 GIF 생성기 옆에 둔다.
+    ("convert", "/font-convert", "폰트 변환", None, None),
     ("apps", "https://tdtd.io/apps.html", "Apps", None, None),
 ]
 
@@ -53,7 +55,7 @@ ABOUT_KEYS = {k for k, *_ in ABOUT_ITEMS}
 # 새 창으로 여는 항목. GIF 생성기와 조합 찾기는 화면에서 뭔가를 맞춰 가는
 # 자리라, 보던 페이지를 덮으면 뒤로 가기로 돌아왔을 때 맞춰 두었던 것이
 # 사라진다. Apps 는 다른 사이트(tdtd.io)다.
-_NEW_WINDOW = {"gif", "fontpair", "apps"}
+_NEW_WINDOW = {"gif", "fontpair", "convert", "apps"}   # 폰트 변환도 파일을 올려 두고 작업하는 자리라 같다
 
 # 메뉴 클릭 핸들러.
 #
