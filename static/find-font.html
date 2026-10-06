@@ -853,7 +853,8 @@ document.addEventListener('keydown', function(e){
       var img = '/api/find/render?fid=' + encodeURIComponent(r.fid) + '&w=' + r.w + '&text=' + encodeURIComponent(text) + '&h=56';
       var actions = r.source === 'tdtd'
         ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">타닥타닥에서 보기</a>'
-        : '<a href="' + esc(r.link) + '">폰트 보기</a><a class="primary" href="' + esc(r.link) + '/design">이 폰트로 디자인하기</a>';
+        // 새 창으로 연다(10/6 사용자님) — 같은 창이면 올린 이미지와 찾은 결과가 사라진다
+        : '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">폰트 보기</a><a class="primary" href="' + esc(r.link) + '/design" target="_blank" rel="noopener">이 폰트로 디자인하기</a>';
       // 영문 줄은 두 묶음(엔진·서비스 2026-09-26): 영어 폰트 먼저, 그다음 영문이 비슷한 한글 폰트
       var head = (r.group && (i === 0 || j.results[i - 1].group !== r.group))
         ? '<div class="ff-group">' + (r.group === 'en' ? '영문 폰트' : '영문이 비슷한 한글 폰트') + '</div>' : '';
