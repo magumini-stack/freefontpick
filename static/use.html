@@ -221,6 +221,8 @@ a{color:inherit}
   <div id="picksSsr">
     {{UC_PICKS_SSR}}
   </div>
+  <!-- 허브 자료(추천·더 보기) — 서버가 채운다(app/routers/use_case_route.py _hub_boot, 2026-10-07) -->
+  {{UC_BOOT}}
   <div class="picks" id="picks" style="display:none"></div>
 
   <div id="moreSection" style="display:none">
@@ -347,8 +349,12 @@ a{color:inherit}
     renderPicks(); renderMore();
   });
 
-  fetch('/api/use-cases/' + SLUG)
-    .then(function(r){ return r.ok ? r.json() : null; })
+  /* 허브 자료는 서버가 페이지 안에 실어 보낸다(#hubBoot, 2026-10-07) — 있으면 API 를 다시 부르지 않아
+     꾸민 카드가 바로 뜬다. 없거나 깨졌으면 예전처럼 부른다(app/routers/use_case_route.py _hub_boot). */
+  var hubBoot = null;
+  try { var _hb = document.getElementById('hubBoot'); if (_hb) hubBoot = JSON.parse(_hb.textContent); } catch (e) { hubBoot = null; }
+  (hubBoot ? Promise.resolve(hubBoot)
+           : fetch('/api/use-cases/' + SLUG).then(function(r){ return r.ok ? r.json() : null; }))
     .then(function(d){
       if (!d) return;
       picksData = d.picks || [];

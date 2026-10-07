@@ -245,7 +245,11 @@ def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
             out.append(item)
         return _json.dumps(jsonable_encoder(out), ensure_ascii=False).encode("utf-8")
 
-    body = content_cache.get(f"fonts:list:{int(bool(weights))}", ttl=120, build=build)
+    # weights=1 은 조합 찾기 '폰트 고르기' 창 하나만 쓰는데, 굽는 데 2초가 걸린다(2026-10-07 실측, 528종).
+    # 방문이 드물면 2분 TTL 이 늘 지나 있어서 창을 여는 사람마다 기다렸다 → 30분으로 늘린다.
+    # 폰트·태그·파일을 고치면 판이 올라 곧바로 새로 구우므로(content_cache.bump) 낡은 값이 남지 않는다.
+    # 메인이 쓰는 weights=0 은 그대로 둔다.
+    body = content_cache.get(f"fonts:list:{int(bool(weights))}", ttl=1800 if weights else 120, build=build)
     return Response(content=body, media_type="application/json")
 
 

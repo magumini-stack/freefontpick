@@ -54,6 +54,37 @@ def hub_font_total(db: Session, uc: UseCase) -> int:
     return total
 
 
+def _hub_boot(slug: str, db: Session) -> str:
+    """허브 화면이 불러오던 /api/use-cases/{slug} 의 답을 페이지 안에 함께 싣는다(2026-10-07).
+
+    화면(static/use.html)은 이 블록이 있으면 API 를 부르지 않고 바로 꾸민 카드를 그린다 —
+    예전에는 서버 목록이 보이다가 0.3초쯤 뒤 카드로 바뀌었다. 같은 함수(use_cases.get_use_case)로
+    만들되, 화면이 읽지 않는 소개글·약관 원문(meta.intro·license)은 뺀다. 전체 폰트 목록 API 와
+    같은 기준이다(fonts._META_DETAIL_ONLY). 큰 허브는 85KB 가 그 둘이 대부분이다.
+    무엇이든 실패하면 빈 문자열을 돌려준다 — 그러면 화면이 예전처럼 API 를 부른다.
+    """
+    try:
+        from fastapi.encoders import jsonable_encoder
+        from .use_cases import get_use_case
+        from .fonts import _META_DETAIL_ONLY
+        data = jsonable_encoder(get_use_case(slug, db))
+
+        def trim(f):
+            m = f.get("meta") if isinstance(f, dict) else None
+            if isinstance(m, dict):
+                f["meta"] = {k: v for k, v in m.items() if k not in _META_DETAIL_ONLY}
+
+        for p in data.get("picks") or []:
+            trim(p.get("font"))
+        for f in data.get("more") or []:
+            trim(f)
+    except Exception:
+        return ""
+    txt = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    txt = txt.replace("</", "<\\/").replace("<!--", "<\\!--")   # </script> 로 블록이 끊기지 않게
+    return f'<script type="application/json" id="hubBoot">{txt}</script>'
+
+
 @router.get("/use/{slug}", response_class=HTMLResponse)
 def use_case_page(request: Request, slug: str, db: Session = Depends(get_db)):
     # 합쳐져 꺼진 허브는 남은 허브로 보낸다(app/use_case_reshape.py). 404 로 두면
@@ -196,6 +227,7 @@ def use_case_page(request: Request, slug: str, db: Session = Depends(get_db)):
         "{{UC_HOWTO}}": howto_html,
         "{{UC_PHRASE_CHIPS}}": phrase_chips,
         "{{UC_PICKS_SSR}}": picks_ssr,
+        "{{UC_BOOT}}": _hub_boot(slug, db),
         "{{UC_OTHERS}}": other_links,
         "{{UC_SLUG}}": slug,
     }

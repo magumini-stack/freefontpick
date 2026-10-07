@@ -957,15 +957,25 @@
     $('fpPickerList').scrollTop = 0;
     if (ALL_FONTS) { drawPicker(); return; }
     $('fpPickerList').innerHTML = '<div class="fp-empty">불러오는 중…</div>';
-    /* ?weights=1 로 굵기까지 받는다. 이게 없으면 faceFor 가 '굵기 파일 없음'
-       으로 보고 대표 파일 하나를 1~999 범위로 깔아, 700 을 골라도 대표 파일의
-       원래 굵기가 그려진다. 새로고침하면 조합 API 가 굵기를 실어 주므로
-       그때만 제대로 나왔다 — 고른 직후와 새로고침 뒤가 달랐던 이유다. */
-    fetch('/api/fonts?weights=1').then(function(r){ return r.json(); }).then(function(list){
-      ALL_FONTS = list || []; drawPicker();
-    }).catch(function(){
+    loadAllFonts().then(function(){ drawPicker(); }).catch(function(){
       $('fpPickerList').innerHTML = '<div class="fp-empty">폰트 목록을 불러오지 못했어요.</div>';
     });
+  }
+  /* 폰트 고르기 목록. ?weights=1 로 굵기까지 받는다. 이게 없으면 faceFor 가 '굵기 파일 없음'
+     으로 보고 대표 파일 하나를 1~999 범위로 깔아, 700 을 골라도 대표 파일의
+     원래 굵기가 그려진다. 새로고침하면 조합 API 가 굵기를 실어 주므로
+     그때만 제대로 나왔다 — 고른 직후와 새로고침 뒤가 달랐던 이유다.
+     받는 데 길게는 2초가 걸려서, 페이지가 뜬 뒤 쉬는 틈에 미리 받아 둔다(아래 '시작', 2026-10-07).
+     창을 그 전에 열면 같은 요청을 함께 기다린다 — 두 번 받지 않는다. */
+  var allFontsP = null;
+  function loadAllFonts(){
+    if (!allFontsP) {
+      allFontsP = fetch('/api/fonts?weights=1')
+        .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function(list){ ALL_FONTS = list || []; return ALL_FONTS; })
+        .catch(function(e){ allFontsP = null; throw e; });   // 실패하면 다음에 창을 열 때 다시 받는다
+    }
+    return allFontsP;
   }
   /* 목록의 폰트 파일은 화면에 들어온 줄만 받는다. 한글 폰트만 180종이라
      한 번에 다 받으면 목록이 뜨기까지 한참 걸린다. */
@@ -1103,6 +1113,14 @@
   });
 
   // ── 시작 ────────────────────────────────────────────
+  /* 폰트 고르기 목록을 미리 받는다 — 페이지가 다 뜬 뒤 쉬는 틈에, 첫 화면 요청과 다투지 않게.
+     검색 로봇에게는 받지 않는다(크롤링 몫을 JSON 에 쓰지 않게, 2026-10-07). */
+  window.addEventListener('load', function(){
+    if (/bot|crawl|spider|slurp/i.test(navigator.userAgent || '')) return;
+    var go = function(){ loadAllFonts().catch(function(){}); };
+    if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 4000 });
+    else setTimeout(go, 1500);
+  });
   var want = readUrl();
   [].forEach.call($('fpScript').querySelectorAll('button'), function(b){
     b.classList.toggle('on', b.dataset.sc === S.script);
