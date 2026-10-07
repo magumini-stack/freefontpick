@@ -185,6 +185,22 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   .opt .t{font-size:14px;font-weight:700;line-height:1.4}
   .opt .t em{font-style:normal;font-size:11px;font-weight:700;color:#fff;background:var(--accent);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:1px}
   .opt .d{display:block;font-size:12px;color:var(--text-secondary);font-weight:400;line-height:1.55;margin-top:2px}
+  /* ① 바꿀 형식은 한 줄씩 — 설명을 형식 오른쪽에 짧게 붙여 세로폭을 줄인다(10/7 사용자님: '남길 글자'가 위로 오게).
+     긴 설명은 label 의 title 로 남겨 마우스를 올리면 보인다. */
+  .opt.inline{gap:6px}
+  .opt.inline label{align-items:center;padding:8px 12px}
+  .opt.inline input{margin:0}
+  .opt.inline .line{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:8px;min-width:0}
+  .opt.inline label .d,.opt.inline label:has(input:checked) .d{display:inline;margin:0;color:var(--text-muted)}
+
+  /* ── [변환하기] (10/7 사용자님) — 파일을 올리면 살펴보기만 하고, 형식·남길 글자를 고른 뒤 눌러야 바꾼다 ── */
+  .go{display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px;margin-top:14px}
+  .go .btn{font-size:15px;padding:12px 26px;border-radius:10px}
+  .go-sum{margin:0;font-size:13px;color:var(--text-secondary)}
+  .go-sum b{color:var(--text-primary)}
+  /* 설정이 바뀌어 다시 바꿔야 하는 줄 — 지난 결과는 흐리게, 그 결과의 안내는 숨긴다 */
+  .row.stale .size,.row.stale .pv{opacity:.4}
+  .row.stale .run-note{display:none}
   textarea{width:100%;min-height:84px;border:1px solid var(--border-hover);border-radius:8px;padding:9px 11px;font-family:var(--ui);
            font-size:14px;line-height:1.5;background:var(--bg-card);color:var(--text-primary);resize:vertical;margin-top:8px}
   textarea:focus{outline:none;border-color:var(--accent)}
@@ -217,6 +233,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
     .row-h{flex-wrap:wrap}
     .acts{width:100%}
     .acts .btn{flex:1;justify-content:center}
+    .go .btn{flex:1 1 100%;justify-content:center}
     .size{grid-template-columns:1fr;gap:6px}
   }
 </style>
@@ -254,6 +271,12 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
     <section class="g-list" aria-label="변환 결과">
       <div class="list" id="list"></div>
 
+      <!-- [변환하기] — 파일을 올리면 보인다. 누를 때만 바꾼다(10/7 사용자님). -->
+      <div class="go" id="goBar" hidden>
+        <button type="button" class="btn" id="goBtn">변환하기</button>
+        <p class="go-sum" id="goSum"></p>
+      </div>
+
       <div class="card" id="outCard" hidden style="margin-top:18px">
         <div class="code-h"><h2 style="margin:0">내 사이트에 넣는 CSS</h2><button type="button" class="copy" id="copyCss">복사</button></div>
         <pre class="code" id="css"></pre>
@@ -272,11 +295,11 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
     <aside class="side" aria-label="변환 설정">
       <div class="card">
         <h2>① 바꿀 형식</h2>
-        <div class="opt" id="optFormat">
-          <label><input type="radio" name="fmt" value="woff2" checked><span><span class="t">WOFF2<em>웹 권장</em></span><span class="d">웹사이트용. 가장 작고, 지금 쓰는 모든 브라우저가 읽어요.</span></span></label>
-          <label><input type="radio" name="fmt" value="woff"><span><span class="t">WOFF</span><span class="d">아주 오래된 브라우저까지 챙길 때.</span></span></label>
-          <label><input type="radio" name="fmt" value="ttf"><span><span class="t">TTF</span><span class="d">윈도·앱·게임 엔진처럼 TTF만 받는 곳에. OTF를 넣으면 곡선을 TTF 곡선으로 바꿔요(오차 1단위 이내).</span></span></label>
-          <label><input type="radio" name="fmt" value="otf"><span><span class="t">OTF</span><span class="d">디자인 프로그램용. TTF를 넣으면 곡선을 OTF(CFF) 곡선으로 바꿔요. 모양은 그대로예요.</span></span></label>
+        <div class="opt inline" id="optFormat">
+          <label title="웹사이트용. 가장 작고, 지금 쓰는 모든 브라우저가 읽어요."><input type="radio" name="fmt" value="woff2" checked><span class="line"><span class="t">WOFF2<em>웹 권장</em></span><span class="d">웹사이트용 · 가장 작음</span></span></label>
+          <label title="아주 오래된 브라우저까지 챙길 때."><input type="radio" name="fmt" value="woff"><span class="line"><span class="t">WOFF</span><span class="d">아주 옛 브라우저용</span></span></label>
+          <label title="윈도·앱·게임 엔진처럼 TTF만 받는 곳에. OTF를 넣으면 곡선을 TTF 곡선으로 바꿔요(오차 1단위 이내)."><input type="radio" name="fmt" value="ttf"><span class="line"><span class="t">TTF</span><span class="d">윈도·앱·게임 엔진용</span></span></label>
+          <label title="디자인 프로그램용. TTF를 넣으면 곡선을 OTF(CFF) 곡선으로 바꿔요. 모양은 그대로예요."><input type="radio" name="fmt" value="otf"><span class="line"><span class="t">OTF</span><span class="d">디자인 프로그램용</span></span></label>
         </div>
       </div>
       <div class="card">
@@ -1505,12 +1528,13 @@ function addFiles(list) {
   if (!arr.length) return;
   $('empty').hidden = true;
   arr.forEach(function (f) {
-    var it = { key: 'f' + (++keySeq), name: f.name, size: f.size, run: 0 };
+    var it = { key: 'f' + (++keySeq), name: f.name, size: f.size, run: 0, inspecting: true };
     files.push(it);
     it.row = makeRow(it);
     $('list').appendChild(it.row.el);
     f.arrayBuffer().then(function (buf) { it.bytes = buf; return load(it); });
   });
+  refresh();
 }
 async function load(it) {
   setState(it, '살펴보는 중…', true);
@@ -1520,8 +1544,9 @@ async function load(it) {
     it.kind = r.kind; it.info = r.info;
     paintInfo(it);
     preview(it, it.bytes, it.row.aa, 'o');
-    convert(it);
-  } catch (e) { setState(it, e.message, false, true); }
+  } catch (e) { it.bad = true; setState(it, e.message, false, true); }
+  it.inspecting = false;
+  refresh();     // 바로 바꾸지 않는다 — [변환하기]를 누를 때 바꾼다(10/7 사용자님)
 }
 
 /* ── 한 줄 그리기 ── */
@@ -1544,13 +1569,13 @@ function makeRow(it) {
               bar: q('.bar'), to: q('.to'), state: q('.state'), notes: q('.notes'), pv: q('.pv'), pvt: q('.pvt') };
   row.nm.textContent = it.name;
   row.from.textContent = fmtSize(it.size);
-  row.dl.onclick = function () { if (it.result) { download(new Blob([it.result.out]), it.result.file); track(it.result.ext); } };
+  row.dl.onclick = function () { if (usable(it)) { download(new Blob([it.result.out]), it.result.file); track(it.result.ext, it.result.range); } };
   q('.rm').onclick = function () {
     files = files.filter(function (x) { return x !== it; });
     el.remove();
     engine && engine.postMessage({ op: 'forget', key: it.key });
     if (!files.length) $('empty').hidden = false;
-    paintCss();
+    refresh();
   };
   return row;
 }
@@ -1584,33 +1609,44 @@ function paintInfo(it) {
   row.notes.innerHTML = notes.join('');
 }
 
-/* ── 변환 ── */
+/* ── 변환 ──
+   파일을 올리면 살펴보기만 하고, [변환하기]를 눌러야 바꾼다(10/7 사용자님). 결과는 바꿀 때의 설정(sig)을
+   기억한다. 설정이 그와 다르면 '다시 변환' 대상이 되고 받기를 잠근다 — 설정을 되돌리면 다시 받을 수 있다. */
+function sig() { return opt.format + '|' + opt.range + (opt.range === 'custom' ? '|' + opt.custom + '|' + opt.withAscii : ''); }
+function fresh(it) { return !!(it.result && it.result.sig === sig()); }
+function usable(it) { return fresh(it) && !it.result.broken; }
+function needs(it) { return !!it.info && !it.busy && !fresh(it) && it.errSig !== sig(); }
+
 async function convert(it) {
   if (!it.info) return;
-  var my = ++it.run;
+  var my = ++it.run, s = sig();
+  var o = { format: opt.format, range: opt.range, custom: opt.custom, withAscii: opt.withAscii };
+  it.busy = true;
+  it.errSig = null;
   it.result = null;
+  it.row.el.classList.remove('stale');
   it.row.dl.disabled = true;
   it.row.pv.hidden = true;
   it.row.to.textContent = '—';
   it.row.bar.querySelector('i').style.width = '0';
   it.row.notes.querySelectorAll('.run-note').forEach(function (n) { n.remove(); });   // 지난 변환의 안내
   setState(it, '변환 준비 중…', true);
-  paintCss();
+  refresh();
   var t0 = performance.now();
   try {
-    var r = await call({ op: 'convert', key: it.key, bytes: it.bytes.slice(0),
-                         opt: { format: opt.format, range: opt.range, custom: opt.custom, withAscii: opt.withAscii } },
-                       function (s) { if (my === it.run) setState(it, s + '…', true); });
-    if (my !== it.run) return;               // 그사이 설정이 또 바뀌었다
-    var file = baseName(it.name) + RANGE_SUFFIX[opt.range] + '.' + r.ext;
-    it.result = { out: r.out, ext: r.ext, file: file, info: r.info };
+    var r = await call({ op: 'convert', key: it.key, bytes: it.bytes.slice(0), opt: o },
+                       function (st) { if (my === it.run) setState(it, st + '…', true); });
+    if (my !== it.run) return;
+    var file = baseName(it.name) + RANGE_SUFFIX[o.range] + '.' + r.ext;
     var pct = Math.round((1 - r.out.byteLength / it.size) * 100);
     // 커진 것도 숨기지 않는다 — TTF→OTF 처럼 형식만 바꾸면 오히려 커질 수 있다
     it.row.to.innerHTML = esc(r.ext.toUpperCase() + ' · ' + fmtSize(r.out.byteLength)) +
       (pct > 0 ? '<small>−' + pct + '%</small>' : pct < 0 ? '<small class="up">+' + (-pct) + '%</small>' : '');
     it.row.bar.querySelector('i').style.width = Math.max(2, Math.min(100, r.out.byteLength / it.size * 100)) + '%';
     var kept = r.info.hangul ? '한글 ' + r.info.hangul.toLocaleString() + '자 · 영문·기호 ' + r.info.latin + '자 남김' : '글자 ' + r.info.chars.toLocaleString() + '자 남김';
-    setState(it, '끝 · ' + (r.conv ? r.conv + ' · ' : '') + kept + ' · ' + ((performance.now() - t0) / 1000).toFixed(1) + '초', false);
+    var done = '끝 · ' + (r.conv ? r.conv + ' · ' : '') + kept + ' · ' + ((performance.now() - t0) / 1000).toFixed(1) + '초';
+    it.result = { out: r.out, ext: r.ext, file: file, info: r.info, sig: s, range: o.range, state: done };
+    setState(it, done, false);
     if (r.missing && r.missing.length) {
       it.row.notes.insertAdjacentHTML('beforeend', '<div class="note warn run-note">이 폰트에 없는 글자: ' + esc(r.missing.join(' ')) + '</div>');
     }
@@ -1618,16 +1654,45 @@ async function convert(it) {
       it.row.notes.insertAdjacentHTML('beforeend', '<div class="note info run-note">곡선 형식을 바꾸면 힌팅은 옮겨 가지 않아요. ' +
         '화면에서 아주 작은 글자는 원본과 조금 달라 보일 수 있어요(인쇄·큰 글자는 같아요).</div>');
     }
-    it.row.dl.disabled = false;
-    it.row.pvt.textContent = opt.range === 'custom' ? (opt.custom || SAMPLE_KO) : (it.info.hangul ? SAMPLE_KO : SAMPLE_EN);
+    it.row.pvt.textContent = o.range === 'custom' ? (o.custom || SAMPLE_KO) : (it.info.hangul ? SAMPLE_KO : SAMPLE_EN);
     it.row.pv.hidden = false;
     preview(it, r.out, it.row.pv, 'r' + my);
   } catch (e) {
-    if (my === it.run) { setState(it, e.message, false, true); it.row.to.textContent = '—'; }
+    if (my === it.run) { it.errSig = s; setState(it, e.message, false, true); it.row.to.textContent = '—'; }
   }
-  paintCss();
+  it.busy = false;
+  refresh();
 }
-function convertAll() { files.forEach(convert); }
+function runConvert() { files.filter(needs).forEach(convert); }   // 엔진이 차례로 처리한다
+
+/* 줄 하나를 지금 설정에 맞춰 다시 칠한다 */
+function paintRow(it) {
+  if (it.busy || it.bad || !it.info) return;
+  var stale = !!it.result && !fresh(it);
+  it.row.el.classList.toggle('stale', stale);
+  it.row.dl.disabled = !usable(it);
+  if (stale) setState(it, '설정이 바뀌었어요 · [변환하기]를 누르면 새 설정으로 바꿔요', false);
+  else if (it.result && it.result.broken) setState(it, '바꾼 파일을 브라우저가 읽지 못했어요', false, true);
+  else if (it.result) setState(it, it.result.state, false);
+  else if (it.errSig !== sig()) setState(it, '변환 대기 · 형식과 남길 글자를 고른 뒤 [변환하기]를 누르세요', false);
+}
+var RANGE_NAME = { web: '웹 추천 · 한글 2,350자', k2780: 'Adobe KR-9 2,780자', hangul: '한글 11,172자 전부',
+                   all: '모든 글자 그대로', custom: '직접 입력한 글자만' };
+function refresh() {
+  files.forEach(paintRow);
+  paintCss();
+  $('goBar').hidden = !files.length;
+  if (!files.length) return;
+  var busy = files.some(function (it) { return it.busy; });
+  var loading = files.some(function (it) { return it.inspecting; });
+  var n = files.filter(needs).length;
+  var btn = $('goBtn');
+  btn.disabled = busy || loading || !n;
+  btn.textContent = busy ? '변환 중…' : loading ? '파일 살펴보는 중…' : '변환하기';   // 개수는 붙이지 않는다(10/7 사용자님)
+  $('goSum').innerHTML = (busy || loading || n)
+    ? '바꿀 설정 <b>' + KIND_LABEL[opt.format] + '</b> · ' + esc(RANGE_NAME[opt.range])
+    : '모두 바꿨어요 · 형식이나 남길 글자를 바꾸면 다시 변환할 수 있어요';
+}
 
 /* 바꾼 파일을 실제로 띄워서 그린다 — 깨진 파일이면 여기서 드러난다 */
 function preview(it, buf, el, tag) {
@@ -1638,14 +1703,14 @@ function preview(it, buf, el, tag) {
       document.fonts.add(f);
       el.style.fontFamily = "'" + fam + "', var(--ui)";
     }).catch(function () {
-      if (tag !== 'o') { setState(it, '바꾼 파일을 브라우저가 읽지 못했어요', false, true); it.row.dl.disabled = true; }
+      if (tag !== 'o' && it.result && tag === 'r' + it.run) { it.result.broken = true; refresh(); }
     });
   } catch (e) {}
 }
 
 /* ── CSS 코드 · ZIP ── */
 function paintCss() {
-  var done = files.filter(function (it) { return it.result; });
+  var done = files.filter(usable);
   $('outCard').hidden = !done.length;
   if (!done.length) return;
   $('css').textContent = done.map(function (it) {
@@ -1693,7 +1758,7 @@ function download(blob, name) {
   setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
 }
 $('zipBtn').onclick = function () {
-  var done = files.filter(function (it) { return it.result; });
+  var done = files.filter(usable);
   if (!done.length) return;
   var items = done.map(function (it) { return { name: it.result.file, data: it.result.out }; });
   items.push({ name: 'fonts.css', data: new TextEncoder().encode($('css').textContent + '\n').buffer });
@@ -1709,12 +1774,13 @@ $('copyCss').onclick = function () {
 };
 
 /* ── 설정 ── */
-document.querySelectorAll('input[name=fmt]').forEach(function (r) { r.onchange = function () { opt.format = this.value; convertAll(); }; });
+/* 설정을 바꿔도 바로 바꾸지 않는다 — 결과를 '다시 변환' 대상으로 표시하고 [변환하기]를 기다린다 */
+document.querySelectorAll('input[name=fmt]').forEach(function (r) { r.onchange = function () { opt.format = this.value; refresh(); }; });
 document.querySelectorAll('input[name=rng]').forEach(function (r) { r.onchange = function () {
-  opt.range = this.value; $('customBox').hidden = opt.range !== 'custom'; convertAll(); }; });
-var tmr = null;
-$('customText').oninput = function () { opt.custom = this.value; clearTimeout(tmr); tmr = setTimeout(function () { if (opt.range === 'custom') convertAll(); }, 500); };
-$('withAscii').onchange = function () { opt.withAscii = this.checked; if (opt.range === 'custom') convertAll(); };
+  opt.range = this.value; $('customBox').hidden = opt.range !== 'custom'; refresh(); }; });
+$('customText').oninput = function () { opt.custom = this.value; refresh(); };
+$('withAscii').onchange = function () { opt.withAscii = this.checked; refresh(); };
+$('goBtn').onclick = runConvert;
 
 /* ── 놓기 ── */
 var drop = $('drop');
@@ -1728,13 +1794,14 @@ window.addEventListener('drop', function (e) { e.preventDefault(); if (e.target 
 
 /* 받기 기록 — 어드민 '통계'(app/routers/track.py, kind=convert_dl)와 애널리틱스 이벤트.
    파일 내용·이름은 보내지 않는다. 어떤 형식·범위로 받았는지만. */
-function track(fmt) {
-  var q = '/api/track/convert?fmt=' + encodeURIComponent(fmt) + '&r=' + encodeURIComponent(opt.range);
+function track(fmt, range) {
+  var rng = range || opt.range;
+  var q = '/api/track/convert?fmt=' + encodeURIComponent(fmt) + '&r=' + encodeURIComponent(rng);
   try { if (navigator.sendBeacon) navigator.sendBeacon(q); } catch (e) {}
-  try { if (window.gtag) gtag('event', 'font_convert_download', { format: fmt, glyph_range: opt.range }); } catch (e) {}
+  try { if (window.gtag) gtag('event', 'font_convert_download', { format: fmt, glyph_range: rng }); } catch (e) {}
 }
 
-window.__fc = { get files() { return files; }, opt: opt, ready: ready, addFiles: addFiles, makeZip: makeZip };   // 점검용(시안 폴더 점검\화면점검.ps1)
+window.__fc = { get files() { return files; }, opt: opt, ready: ready, addFiles: addFiles, run: runConvert, makeZip: makeZip };   // 점검용(시안 폴더 점검\화면점검.ps1)
 })();
 </script>
 </body>
