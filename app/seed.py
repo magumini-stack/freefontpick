@@ -59,6 +59,7 @@ def init_db():
         _migrate_webfont_weights(db)
         _migrate_clean_css_urls(db)
         _migrate_arita_weights(db)
+        _migrate_pairing_josa(db)
         _seed_gif_use_cases(db)
         _seed_gif_templates(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
@@ -1796,3 +1797,31 @@ def _migrate_arita_weights(db: Session):
     db.commit()
     print("[migrate] 아리따 굵기 표기: %d종%s"
           % (len(changed), (" — " + ", ".join(changed)) if changed else ""))
+
+
+# ─── 조합 설명의 주격 조사 (2026-10-07) ─────────────────────────────
+# 자동으로 만든 조합 설명(app/routers/pairings.py _describe)이 이름 뒤에 늘 '가'를 붙였다.
+# 그래서 '에스코어드림가 본문을'·'…제목용 고딕가 제목을' 처럼 틀린 문장이 3,060개 중 794개였다.
+# 생성기는 고쳤고(app/josa.py), 이미 저장된 설명은 여기서 조사만 다시 고른다.
+#
+# 시작할 때마다 돈다. 틀에 맞는 설명만 손대고, 이미 맞으면 그대로라 몇 번을 돌아도 결과가 같다.
+# 어드민이 손으로 고친 설명은 틀에 안 맞으면 건드리지 않는다. 바뀐 것이 있을 때만 커밋한다.
+# 실패해도 뒤의 시드(build_font_resolution 등)는 돌아야 하므로 예외를 삼킨다.
+def _migrate_pairing_josa(db: Session):
+    try:
+        from .routers.pairings import fix_description_josa
+        rows = (db.query(FontPairing.id, FontPairing.description)
+                .filter(FontPairing.description.like("%제목을 잡고%")).all())
+        n = 0
+        for pid, desc in rows:
+            new = fix_description_josa(desc)
+            if new != desc:
+                db.query(FontPairing).filter(FontPairing.id == pid).update(
+                    {"description": new}, synchronize_session=False)
+                n += 1
+        if n:
+            db.commit()
+            print("[migrate] 조합 설명 조사: %d건 고침" % n, flush=True)
+    except Exception as e:
+        db.rollback()
+        print("[migrate] 조합 설명 조사 실패 (건너뜀): %s" % e, flush=True)

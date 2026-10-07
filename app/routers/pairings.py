@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..font_metrics import metrics_of
+from ..josa import i_ga
 from ..models import Font, FontPairing
 from ..auth import require_password_changed
 from ..schemas import PairingCreate, PairingUpdate
@@ -798,11 +799,29 @@ def _pick_body_weight(font: Font, title_weight: int) -> int:
 
 
 def _describe(title_font: Font, body_font: Font, theme: str) -> str:
+    # 조사는 앞말의 받침을 보고 고른다(app/josa.py). 2026-10-07 전에는 늘 '가'여서
+    # '에스코어드림가'·'…고딕가' 같은 문장이 나왔다.
     t_summary = (title_font.meta or {}).get("summary") or f"{title_font.name}"
     return (
-        f"{theme}에 어울리는 조합이에요. {t_summary}가 제목을 잡고, "
-        f"{body_font.name}가 본문을 안정적으로 받쳐줍니다."
+        f"{theme}에 어울리는 조합이에요. {t_summary}{i_ga(t_summary)} 제목을 잡고, "
+        f"{body_font.name}{i_ga(body_font.name)} 본문을 안정적으로 받쳐줍니다."
     )
+
+
+# _describe 틀로 만든 설명 — 이미 저장된 설명의 조사만 다시 고를 때 쓴다(app/seed.py).
+_DESCRIBE_RE = re.compile(
+    r"^(?P<theme>.+?)에 어울리는 조합이에요\. (?P<t>.+?)(?:이|가) 제목을 잡고, "
+    r"(?P<b>.+?)(?:이|가) 본문을 안정적으로 받쳐줍니다\.$", re.S)
+
+
+def fix_description_josa(text: str) -> str:
+    """_describe 틀로 만든 설명이면 이/가 를 다시 고른 문장을, 아니면 받은 그대로 돌려준다."""
+    m = _DESCRIBE_RE.match(text or "")
+    if not m:
+        return text
+    t, b = m.group("t"), m.group("b")
+    return (f"{m.group('theme')}에 어울리는 조합이에요. {t}{i_ga(t)} 제목을 잡고, "
+            f"{b}{i_ga(b)} 본문을 안정적으로 받쳐줍니다.")
 
 
 class _GenContext:
