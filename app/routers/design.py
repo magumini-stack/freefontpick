@@ -684,6 +684,40 @@ def _preview_phrase(font: Font) -> tuple:
     return ko, en
 
 
+def _font_boot_block(font: Font, db: Session) -> str:
+    """상세페이지 첫 화면이 부르던 API 세 개의 답을 페이지 안에 함께 싣는다(2026-10-07).
+
+        폰트 정보  /api/fonts/{id}           fonts.get_font 와 같은 _to_out
+        굵기       /api/fonts/{id}/weights   files._merged_weights (FontWeightOut 모양)
+        조합       /api/fonts/{id}/pairings  pairings.font_pairings — 화면에 쓰는 앞 6개만
+
+    서치콘솔 크롤링 통계에서 구글 요청의 절반(JSON 52%)이 상세페이지마다 이 셋을 따로
+    가져가는 데 쓰였다. 화면(static/font.html)은 이 블록이 있으면 API 를 부르지 않고,
+    없거나 깨졌으면 예전처럼 부른다. 같은 함수로 만들어 API 응답과 같은 모양이 되게 한다.
+    무엇이든 실패하면 빈 문자열을 돌려준다 — 그러면 화면이 API 로 간다.
+    상세페이지(/font/{id}, /font/{id}/design)에만 쓴다. 메인은 건드리지 않는다(사용자님).
+    """
+    try:
+        from fastapi.encoders import jsonable_encoder
+        from .fonts import _to_out, _paired_font_ids
+        from .files import _merged_weights
+        from .pairings import font_pairings
+        from ..schemas import FontWeightOut
+        data = {
+            "font": jsonable_encoder(_to_out(font, _paired_font_ids(db))),
+            "weights": jsonable_encoder([FontWeightOut(**w) if isinstance(w, dict) else w
+                                         for w in _merged_weights(font)]),
+            # 화면은 앞 6개만 그린다(font.html renderPairings). 아리따부리처럼 조합이 168개인 폰트를
+            # 통째로 실으면 162KB 가 붙으므로 그 6개만 싣는다 — 순서는 API 와 같다.
+            "pairings": jsonable_encoder(font_pairings(font.id, db)[:6]),
+        }
+    except Exception:
+        return ""
+    txt = _json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    txt = txt.replace("</", "<\\/").replace("<!--", "<\\!--")   # </script> 로 블록이 끊기지 않게
+    return f'<script type="application/json" id="fontBoot">{txt}</script>'
+
+
 def _fill_font_markers(html: str, font: Font, db: Session) -> str:
     """font.html의 {{FFP_*}} 마커를 전부 채운다.
 
@@ -698,6 +732,7 @@ def _fill_font_markers(html: str, font: Font, db: Session) -> str:
         html.replace("{{FFP_CRUMB_NAME}}", _esc(font.name), 1)
             .replace("{{FFP_CRUMB_LD}}", crumbs, 1)
             .replace("{{FFP_SSR}}", _font_ssr_block(font, db), 1)
+            .replace("{{FFP_FONT_BOOT}}", _font_boot_block(font, db), 1)
             .replace("{{FFP_USAGE}}", _usage_examples(font), 1)
             .replace("{{FFP_LIC_PENDING}}", _lic_pending_block(font), 1)
             .replace("{{FFP_HUBS}}", _font_hub_block(font, db), 1)
