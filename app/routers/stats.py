@@ -75,6 +75,7 @@ def summary(days: int = 30, _admin=Depends(require_password_changed),
         "home_tool_clicks": by_kind.get("home_tool", 0),   # 메인 4칸 클릭 (2026-10-04부터)
         "convert_views": by_kind.get("convert", 0),        # 폰트 변환 열람 (2026-10-06부터)
         "convert_downloads": by_kind.get("convert_dl", 0), # 폰트 변환 받기 (app/routers/track.py)
+        "tdtd_ad_clicks": by_kind.get("tdtd_ad", 0),       # 타닥타닥 구독 배너 클릭 (2026-10-07부터)
     }
 
 
@@ -181,3 +182,23 @@ def home_tool_stats(days: int = 30, _admin=Depends(require_password_changed),
     got = {str(r[0]): int(r[1] or 0) for r in rows}
     return [{"key": k, "label": label, "clicks": got.get(k, 0)}
             for k, label in HOME_TOOLS.items()]
+
+
+@router.get("/tdtd-ad")
+def tdtd_ad_stats(days: int = 30, _admin=Depends(require_password_changed),
+                  db: Session = Depends(get_db)):
+    """타닥타닥 구독 배너 자리별 클릭 수 (app/routers/track.py). 2026-10-07 부터 센다.
+    자리마다 기간 합계와 오늘 수를 준다. 안 눌린 자리도 0 으로 넣는다."""
+    from .track import TDTD_AD_SPOTS
+    since, today, days = _span(days)
+    total, on_today = {}, {}
+    for key, day, n in db.execute(
+        select(PageView.key, PageView.day, func.sum(PageView.count))
+        .where(PageView.kind == "tdtd_ad", PageView.day >= since)
+        .group_by(PageView.key, PageView.day)
+    ).all():
+        total[str(key)] = total.get(str(key), 0) + int(n or 0)
+        if day == today:
+            on_today[str(key)] = int(n or 0)
+    return [{"key": k, "label": label, "clicks": total.get(k, 0), "today": on_today.get(k, 0)}
+            for k, label in TDTD_AD_SPOTS.items()]

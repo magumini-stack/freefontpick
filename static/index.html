@@ -654,6 +654,20 @@ function showToast(msg){
     a.addEventListener('auxclick', function(e){ if (e.button === 1) send(tool); });
   });
 })();
+
+/* 타닥타닥 구독 배너 클릭 기록 (2026-10-07) — 어드민 '통계' 탭의 '타닥타닥 구독 배너 클릭'.
+   배너는 서버가 그린다(app/routers/design.py, data-tdtd-ad="home"). 애널리틱스 이벤트는 tdtd_ad_click. */
+(function(){
+  function send(spot){
+    try { navigator.sendBeacon('/api/track/tdtd-ad?spot=' + encodeURIComponent(spot)); } catch(e){}
+    try { if (typeof window.gtag === 'function') window.gtag('event', 'tdtd_ad_click', { spot: spot }); } catch(e){}
+  }
+  document.querySelectorAll('a[data-tdtd-ad]').forEach(function(a){
+    var spot = a.getAttribute('data-tdtd-ad');
+    a.addEventListener('click', function(){ send(spot); });
+    a.addEventListener('auxclick', function(e){ if (e.button === 1) send(spot); });
+  });
+})();
 </script>
 </body>
 </html>

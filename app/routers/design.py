@@ -247,7 +247,8 @@ def render_home_sections(sections: list) -> str:
         # 누르면 tdtd.io). 그림은 Desktop/projects/폰트픽/구독광고_배너/build.py 가 만든다
         # (PC 1200×200 · 휴대폰 720×520, 둘 다 2배 해상도 WebP). 문구는 그림 안에 있으므로
         # alt 에 같은 문장을 적는다. 이 자리는 10/1 광고 띠 → 구독 폰트 카드 → 이 그림 순으로 바뀌었다.
-        '<a class="home-sub-ad" href="https://tdtd.io/" target="_blank" rel="noopener">'
+        # data-tdtd-ad: 누르면 클릭 수를 센다(static/index.html 맨 끝 스크립트 → app/routers/track.py, 10/7)
+        '<a class="home-sub-ad" data-tdtd-ad="home" href="https://tdtd.io/" target="_blank" rel="noopener">'
         '<picture>'
         '<source media="(max-width:640px)" srcset="/static/ads/tdtd-sub-m.webp" width="720" height="520">'
         '<img src="/static/ads/tdtd-sub-pc.webp" width="1200" height="200" decoding="async" '

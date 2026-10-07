@@ -794,7 +794,7 @@
        폰트픽에는 타닥타닥 폰트 보기를 두지 않는다(사용자님) — 10/1 에 붙였던 구독 폰트 칩·첫 줄 4장·
        구독 화면(static/ffp-subscribe.js)을 걷고 이 그림으로 바꿨다. 그림 원본은 메인과 같다
        (Desktop/projects/폰트픽/구독광고_배너/build.py). -->
-  <a class="fonts-sub-ad" id="subAd" href="https://tdtd.io/" target="_blank" rel="noopener">
+  <a class="fonts-sub-ad" id="subAd" data-tdtd-ad="fonts" href="https://tdtd.io/" target="_blank" rel="noopener">
     <picture>
       <source media="(max-width:640px)" srcset="/static/ads/tdtd-sub-m.webp" width="720" height="520">
       <img src="/static/ads/tdtd-sub-pc.webp" width="1200" height="200" decoding="async"
@@ -3403,6 +3403,14 @@ init().catch(function(err){
     if (q) q.addEventListener('input', sync);
     window.addEventListener('hashchange', function(){ setTimeout(sync, 0); });
     setTimeout(sync, 0);
+    /* 클릭 수 (2026-10-07) — 어드민 '통계' 탭의 '타닥타닥 구독 배너 클릭'(app/routers/track.py).
+       애널리틱스 이벤트는 tdtd_ad_click. 가운데 버튼(새 탭)도 센다. */
+    function send(){
+      try { navigator.sendBeacon('/api/track/tdtd-ad?spot=fonts'); } catch(e){}
+      try { if (typeof window.gtag === 'function') window.gtag('event', 'tdtd_ad_click', { spot: 'fonts' }); } catch(e){}
+    }
+    ad.addEventListener('click', send);
+    ad.addEventListener('auxclick', function(e){ if (e.button === 1) send(); });
   })();
 </script>
 </body>
