@@ -60,6 +60,15 @@ async def lifespan(app: FastAPI):
     except Exception:
         pass
 
+    # 공유 이미지 중 9/27~10/7 에 글자가 깨진 채 만든 것을 한 번 지운다(app/routers/og_image.py).
+    try:
+        from .routers.og_image import sweep_broken_cards
+        n = sweep_broken_cards()
+        if n:
+            print(f"[startup] 깨진 공유 이미지 {n}장 지움 — 요청 때 다시 만든다", flush=True)
+    except Exception:
+        pass
+
     # 조회수 집계의 오래된 칸을 지운다.
     try:
         from .database import SessionLocal

@@ -225,6 +225,50 @@ def _bump_content_cache() -> None:
         pass
 
 
+def _choose_font_source(font_id: int, name: str, seed_map: dict, weight_map: dict):
+    """폰트 하나의 대표 파일 — ((경로, 출처) 또는 None, 굵기 묶음 또는 None).
+
+    우선순위: 어드민 업로드(user) → 굵기 묶음(weights) → 시드 이름 대조(bundled-by-name).
+    앱 기동 때의 build_font_resolution 과 공유 이미지 프로세스의 fill_font_resolution 이
+    같은 답을 내야 해서 규칙을 여기 한 곳에 둔다.
+    """
+    chosen = None
+    up = font_path(font_id)
+    if up.exists():
+        chosen = (up, "user")
+    weights = weight_map.get(_norm_font_name(name))
+    if weights and chosen is None:
+        base = min(weights, key=lambda w: abs(w["weight"] - 400))
+        chosen = (Path(base["path"]), "weights")
+    if chosen is None:
+        sid = seed_map.get(_norm_font_name(name))
+        if sid:
+            for p in _bundled_candidates(sid):
+                chosen = (p, "bundled-by-name")
+                break
+    return chosen, weights
+
+
+def fill_font_resolution(db) -> int:
+    """FONT_RESOLUTION 만 채운다 — DB 를 고치지 않고 파일 속 이름도 읽지 않는다.
+
+    공유 이미지는 앱과 다른 프로세스(app/og_build.py)에서 만든다. 그 프로세스는 앱 기동
+    (build_font_resolution)을 거치지 않아 이 표가 비어 있었고, 업로드 파일이 없는 폰트를
+    못 찾았다. 저장소 /fonts 에 묶인 UI 글꼴(id 10, Noto Sans CJK KR)이 그랬다 — 그래서
+    2026-09-27~10-07 에 만든 카드는 배포처·'폰트픽' 글자가 □ 로 깨졌다. 파일을 못 찾으면
+    캐시 키(파일 mtime)도 앱과 달라져, 앱이 그 카드를 못 찾고 계속 다시 만들게 한다.
+    """
+    seed_map = _seed_name_map()
+    weight_map = _load_weight_manifests()
+    n = 0
+    for fid, name in db.query(Font.id, Font.name).all():
+        chosen, _ = _choose_font_source(fid, name, seed_map, weight_map)
+        if chosen:
+            FONT_RESOLUTION[fid] = (str(chosen[0]), chosen[1])
+            n += 1
+    return n
+
+
 def build_font_resolution(db) -> dict:
     from ..models import Font as _Font
 
@@ -240,31 +284,17 @@ def build_font_resolution(db) -> dict:
     for font in db.query(_Font).all():
         entry = {"id": font.id, "name": font.name, "source": "none",
                  "path": None, "note": ""}
-        chosen = None
+        chosen, weights = _choose_font_source(font.id, font.name, seed_map, weight_map)
 
-        up = font_path(font.id)
-        if up.exists():
-            chosen = (up, "user")
-            emb = _embedded_names(up)
+        if chosen and chosen[1] == "user":
+            emb = _embedded_names(chosen[0])
             if emb and not _name_matches(font.name, emb):
                 entry["note"] = f"내장이름 확인 필요: {emb[:3]}"
 
-        wkey = _norm_font_name(font.name)
-        weights = weight_map.get(wkey)
         if weights:
             WEIGHT_RESOLUTION[font.id] = weights
-            weight_keys_used.add(wkey)
+            weight_keys_used.add(_norm_font_name(font.name))
             entry["weights"] = [w["weight"] for w in weights]
-            if chosen is None:
-                base = min(weights, key=lambda w: abs(w["weight"] - 400))
-                chosen = (Path(base["path"]), "weights")
-
-        if chosen is None:
-            sid = seed_map.get(_norm_font_name(font.name))
-            if sid:
-                for p in _bundled_candidates(sid):
-                    chosen = (p, "bundled-by-name")
-                    break
 
         if chosen:
             FONT_RESOLUTION[font.id] = (str(chosen[0]), chosen[1])

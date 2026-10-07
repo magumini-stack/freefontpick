@@ -29,10 +29,14 @@ def main(argv) -> int:
     from .database import SessionLocal
     from .models import Font
     from .routers import og_image as og
+    from .routers.files import fill_font_resolution
 
     kind, arg = argv
     db = SessionLocal()
     try:
+        # 앱이 기동 때 채우는 폰트 파일 위치표를 여기서도 채운다. 비어 있으면 업로드 파일이
+        # 없는 폰트(UI 글꼴 id 10 등)를 못 찾아 카드 글자가 □ 로 깨진다(2026-10-07 고침).
+        fill_font_resolution(db)
         if kind == "font":
             font = db.query(Font).filter(Font.id == int(arg)).first()
             if font is None:

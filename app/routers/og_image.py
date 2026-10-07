@@ -653,6 +653,32 @@ def _default_card():
                         headers={"Cache-Control": "no-cache"})
 
 
+# ── 9/27~10/7 에 깨진 채 만든 카드 지우기 (2026-10-07) ─────────────────
+# 카드를 별도 프로세스에서 만들기 시작한 뒤(2d5e7ec, 2026-09-27 12:21) 그 프로세스가
+# UI 글꼴을 못 찾아, 배포처·'폰트픽' 글자가 □ 로 깨진 카드가 쌓였다
+# (app/routers/files.py fill_font_resolution 에서 고침). 이름만으로는 언제 만든 것인지
+# 알 수 없어서, 고친 판이 처음 뜰 때 그 무렵 이후에 만든 카드를 한 번 지운다.
+# 지운 카드는 다음 요청 때 기본 카드가 나가고 뒤에서 다시 만들어진다.
+# 표지 파일이 있으면 다시 지우지 않는다. 다음 배포 때 이 블록은 지운다.
+_BROKEN_SINCE = 1790478000  # 2026-09-27 12:00 KST
+_SWEEP_MARK = CACHE_DIR / ".swept-ui-font-20261007"
+
+
+def sweep_broken_cards() -> int:
+    if _SWEEP_MARK.exists():
+        return 0
+    n = 0
+    for p in CACHE_DIR.glob("*.png"):
+        try:
+            if p.stat().st_mtime >= _BROKEN_SINCE:
+                p.unlink()
+                n += 1
+        except OSError:
+            pass
+    _SWEEP_MARK.write_text(f"{n}\n", encoding="utf-8")
+    return n
+
+
 @router.get("/{font_id}/og-image.png")
 def get_og_image(font_id: int, db: Session = Depends(get_db)):
     font = db.query(Font).filter(Font.id == font_id).first()
