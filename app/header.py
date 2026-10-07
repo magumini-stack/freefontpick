@@ -252,6 +252,10 @@ ADSENSE_CLIENT = "ca-pub-4036975940442022"
 #   홈·상세페이지 하단 앵커              자동 광고, 코드로 켬    (anchor=True)
 #   조합 찾기·GIF 생성기·폰트 찾기 진입  자동 광고 전면 광고     (VIGNETTE_PATHS)
 #   조합 찾기 아래 안내 제목 밑          광고 단위 "pair"     (routers/design.py)
+#   메인 맨 아래 '전체 폰트 보기' 밑      가로형 "home_bottom"    (static/index.html)
+#   폰트 찾기 결과 아래 '질문하기' 위     가로형 "find_bottom"    (static/find-font.html)
+#   폰트 변환 안내 아래 → 결과 아래      가로형 "convert_bottom" (static/font-convert.html)
+#   (가로형 세 칸은 2026-10-07 사용자님. 찾기·변환 결과를 가리지 않게 늘 결과보다 뒤에 둔다)
 #
 # 갤러리에는 처음에 폰트 8개마다 한 칸씩 더 넣었다가 같은 날 뺐다 — 사용자 판단으로
 # "너무 지저분하다".
@@ -267,6 +271,11 @@ ADSENSE_CLIENT = "ca-pub-4036975940442022"
 AD_SLOTS = {
     "gallery": "8661560354",   # 홈 갤러리        (애드센스 이름: 갤러리용)
     "pair": "4496927948",      # 폰트 조합 찾기 아래 (애드센스 이름: 조합하단용)
+    # 가로형 세 칸(2026-10-07). 전용 단위를 아직 안 만들어 '조합하단용' 번호를 같이 쓴다.
+    # 애드센스에서 가로형 단위를 만들면 번호만 바꾼다 — 그러면 자리별 수익이 따로 잡힌다.
+    "home_bottom": "4496927948",     # 메인 맨 아래
+    "find_bottom": "4496927948",     # 폰트 찾기 '질문하기' 위
+    "convert_bottom": "4496927948",  # 폰트 변환 안내·결과 아래
 }
 
 # 전면 광고(비네트)를 띄워도 되는 목적지. 비네트는 페이지마다 켜고 끌 수 없고,
@@ -318,6 +327,12 @@ window.ffpFillAd = function(box, key){
   window.ffpLazyAds = function(scope, reset){
     if(reset && io){ io.disconnect(); io = null; }
     var boxes = (scope || document).querySelectorAll('.ffp-ad[data-ad-key]:not([data-ad-filled])');
+    /* 페이지에 박아 둔 칸인데 번호가 비었으면(AD_SLOTS) '광고' 이름표만 남지 않게 걷어 낸다 */
+    boxes = Array.prototype.filter.call(boxes, function(b){
+      if(ffpHasAd(b.getAttribute('data-ad-key'))) return true;
+      b.remove();
+      return false;
+    });
     if(!boxes.length) return;
     if(!('IntersectionObserver' in window)){
       Array.prototype.forEach.call(boxes, function(b){ ffpFillAd(b, b.getAttribute('data-ad-key')); });

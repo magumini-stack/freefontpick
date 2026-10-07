@@ -103,6 +103,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
         grid-template-rows:auto 1fr}
   .g-drop{grid-area:drop;min-width:0}
   .g-list{grid-area:list;min-width:0}
+  .convert-ad{margin-top:36px}
   .side{grid-area:side;position:sticky;top:20px;display:flex;flex-direction:column;gap:16px}
   .card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px}
   .card h2{font-size:13px;font-weight:700;color:var(--text-secondary);margin:0 0 12px;letter-spacing:.2px}
@@ -260,6 +261,12 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
           <button type="button" class="btn" id="zipBtn"><svg viewBox="0 0 24 24"><path d="M12 4v12"/><polyline points="7 11 12 16 17 11"/><path d="M5 20h14"/></svg>모두 받기 (ZIP)</button>
         </div>
       </div>
+
+      <!-- 가로형 광고 (2026-10-07 사용자님) — 결과 칸의 맨 끝.
+           처음엔 결과가 비어 있어 놓는 칸·안내 바로 아래에 보이고, 변환하면 결과(#list·#outCard)가
+           위에 쌓여 저절로 맨 아래로 내려간다. 광고를 옮기지 않는다 — 뜬 광고를 옮기면 다시 불린다.
+           받기 단추와 헷갈리지 않게 위를 넉넉히 띄운다. 번호는 app/header.py AD_SLOTS -->
+      <div class="ffp-ad convert-ad" data-ad-key="convert_bottom" data-ad-format="horizontal"><span class="ffp-ad-lbl">광고</span></div>
     </section>
 
     <aside class="side" aria-label="변환 설정">
