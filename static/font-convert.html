@@ -255,11 +255,13 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 16V4"/><polyline points="7 9 12 4 17 9"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></div>
         <b class="for-mouse">폰트 파일을 여기에 끌어다 놓으세요</b>
         <b class="for-touch">눌러서 폰트 파일 고르기</b>
-        <span><span class="for-mouse">또는 눌러서 고르기 · </span>굵기별 파일 여러 개를 한꺼번에</span>
+        <span><span class="for-mouse">또는 눌러서 고르기 · </span>굵기별 파일 5개까지 한꺼번에</span>
         <div class="fmts"><em>TTF</em><em>OTF</em><em>WOFF</em><em>WOFF2</em></div>
         <p class="drop-note"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>파일은 이 브라우저 안에서만 바뀌고,<br class="m-br"> 폰트픽 서버로 올라가지 않아요.</span></p>
         <input type="file" id="pick" multiple accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" aria-label="폰트 파일 고르기">
       </div>
+      <!-- 5개를 넘게 올렸을 때 안내(10/7 사용자님). 놓는 칸 바로 아래라 휴대폰에서도 바로 보인다 -->
+      <p class="note warn" id="limitNote" role="status" hidden></p>
 
       <div class="empty" id="empty">
         <div class="how"><span class="f">TTF·OTF → WOFF2</span><b>내 사이트에 올릴 웹폰트</b><p>지금 쓰는 모든 브라우저가 읽는 가장 작은 형식이에요. 같은 글자라도 TTF의 절반 아래로 줄어요.</p></div>
@@ -1523,8 +1525,17 @@ var KIND_LABEL = { ttf: 'TTF', otf: 'OTF', woff: 'WOFF', woff2: 'WOFF2' };
 var EXT_FMT = { woff2: 'woff2', woff: 'woff', ttf: 'truetype', otf: 'opentype' };
 
 /* ── 파일 받기 ── */
+/* 한 번에 바꾸는 파일은 5개까지(10/7 사용자님). 원본·결과를 모두 브라우저 메모리에 두므로
+   휴대폰에서 큰 폰트를 여러 개 올리면 화면이 멈출 수 있다. 넘치는 것은 넣지 않고 놓는 칸 아래에 알린다. */
+var MAX_FILES = 5;
 function addFiles(list) {
   var arr = Array.prototype.slice.call(list).filter(function (f) { return /\.(ttf|otf|woff2?|ttc)$/i.test(f.name) || /font/.test(f.type); });
+  if (!arr.length) return;
+  var room = Math.max(0, MAX_FILES - files.length), skipped = Math.max(0, arr.length - room);
+  arr = arr.slice(0, room);
+  $('limitNote').hidden = !skipped;
+  if (skipped) $('limitNote').textContent = '한 번에 ' + MAX_FILES + '개까지 바꿀 수 있어요. ' + skipped +
+    '개는 넣지 않았어요 — 다 받은 파일을 [빼기]로 빼고 다시 올려 주세요.';
   if (!arr.length) return;
   $('empty').hidden = true;
   arr.forEach(function (f) {
@@ -1575,6 +1586,7 @@ function makeRow(it) {
     el.remove();
     engine && engine.postMessage({ op: 'forget', key: it.key });
     if (!files.length) $('empty').hidden = false;
+    $('limitNote').hidden = true;     // 자리가 났다
     refresh();
   };
   return row;
