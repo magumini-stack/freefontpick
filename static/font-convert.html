@@ -20,7 +20,7 @@
 <meta name="twitter:title" content="폰트 변환 - TTF·OTF를 WOFF2 웹폰트로, OTF↔TTF 변환 | 폰트픽">
 <meta name="twitter:description" content="TTF·OTF를 웹폰트(WOFF2·WOFF)로, OTF는 TTF로, TTF는 OTF로. 한글 2,350자·2,780자만 남겨 용량을 줄여요.">
 <meta name="twitter:image" content="{{FFP_ORIGIN}}/og-image-v3.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"폰트 변환","url":"{{FFP_ORIGIN}}/font-convert","applicationCategory":"DesignApplication","operatingSystem":"Any","browserRequirements":"JavaScript, WebAssembly","inLanguage":"ko","description":"TTF·OTF를 웹폰트(WOFF2·WOFF)로, OTF는 TTF로, TTF는 OTF로 바꾸고, 한글 2,350자·Adobe KR-9 2,780자·11,172자로 글자를 줄이는 무료 도구. 파일은 서버로 올리지 않고 브라우저 안에서 변환한다.","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"publisher":{"@type":"Organization","name":"폰트픽","url":"{{FFP_ORIGIN}}/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"폰트 변환","url":"{{FFP_ORIGIN}}/font-convert","applicationCategory":"DesignApplication","operatingSystem":"Any","browserRequirements":"JavaScript, WebAssembly","inLanguage":"ko","description":"TTF·OTF를 웹폰트(WOFF2·WOFF)로, OTF는 TTF로, TTF는 OTF로 바꾸고, 한글 2,350자·Adobe KR-9 2,780자로 글자를 줄이는 무료 도구. 파일은 서버로 올리지 않고 브라우저 안에서 변환한다.","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"publisher":{"@type":"Organization","name":"폰트픽","url":"{{FFP_ORIGIN}}/"}}</script>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
@@ -192,6 +192,12 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   .opt.inline input{margin:0}
   .opt.inline .line{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:8px;min-width:0}
   .opt.inline label .d,.opt.inline label:has(input:checked) .d{display:inline;margin:0;color:var(--text-muted)}
+  /* ② 남길 글자는 제목 아래 설명 한 줄만 — 넘치면 … 로 자른다(10/7 사용자님). 휴대폰에서도 모두 보인다 */
+  .opt.oneline{gap:6px}
+  .opt.oneline label{padding:8px 12px}
+  .opt.oneline label > span{min-width:0;flex:1}
+  .opt.oneline label .d,.opt.oneline label:has(input:checked) .d{display:block;margin-top:1px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-muted)}
 
   /* ── [변환하기] (10/7 사용자님) — 파일을 올리면 살펴보기만 하고, 형식·남길 글자를 고른 뒤 눌러야 바꾼다 ── */
   .go{display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px;margin-top:14px}
@@ -306,12 +312,13 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
       </div>
       <div class="card">
         <h2>② 남길 글자</h2>
-        <div class="opt" id="optRange">
-          <label><input type="radio" name="rng" value="web" checked><span><span class="t">웹 추천 · 한글 2,350자<em>추천</em></span><span class="d">완성형 한글 + 영문·숫자·기호. 대부분의 문장은 이걸로 충분해요. '똠·햏' 같은 드문 글자는 빠져요.</span></span></label>
-          <label><input type="radio" name="rng" value="k2780"><span><span class="t">Adobe KR-9 2,780자</span><span class="d">Adobe-KR-9 규격의 기본 한글(Supplement 0). 2,350자에 '똠·햏·뷁' 같은 430자를 더한, 폰트 회사들이 기본으로 만드는 범위예요.</span></span></label>
-          <label><input type="radio" name="rng" value="hangul"><span><span class="t">한글 11,172자 전부</span><span class="d">현대 한글을 빠짐없이 + 영문·숫자·기호. 한자·옛한글 등은 빠져요.</span></span></label>
-          <label><input type="radio" name="rng" value="all"><span><span class="t">모든 글자 그대로</span><span class="d">형식만 바꿔요. 폰트에 든 글자가 하나도 빠지지 않아요.</span></span></label>
-          <label><input type="radio" name="rng" value="custom"><span><span class="t">직접 입력한 글자만</span><span class="d">로고·제목처럼 쓸 글자가 정해져 있을 때. 가장 작아져요.</span></span></label>
+        <!-- 설명은 제목 아래 한 줄만(10/7 사용자님). 긴 설명은 title 로 — 마우스를 올리면 보인다.
+             '한글 11,172자 전부'는 뺐다 — 2,780자 폰트를 11,172자로 늘려 준다고 오해할 수 있고, '모든 글자 그대로'가 있다 -->
+        <div class="opt oneline" id="optRange">
+          <label title="완성형 한글 + 영문·숫자·기호. 대부분의 문장은 이걸로 충분해요. '똠·햏' 같은 드문 글자는 빠져요."><input type="radio" name="rng" value="web" checked><span><span class="t">웹 추천 · 한글 2,350자<em>추천</em></span><span class="d">완성형 한글 + 영문·숫자·기호</span></span></label>
+          <label title="Adobe-KR-9 규격의 기본 한글(Supplement 0). 2,350자에 '똠·햏·뷁' 같은 430자를 더한, 폰트 회사들이 기본으로 만드는 범위예요."><input type="radio" name="rng" value="k2780"><span><span class="t">Adobe KR-9 2,780자</span><span class="d">2,350자 + 똠·햏·뷁 같은 430자</span></span></label>
+          <label title="형식만 바꿔요. 폰트에 든 글자가 하나도 빠지지 않아요."><input type="radio" name="rng" value="all"><span><span class="t">모든 글자 그대로</span><span class="d">형식만 바꾸고 글자는 그대로</span></span></label>
+          <label title="로고·제목처럼 쓸 글자가 정해져 있을 때. 가장 작아져요."><input type="radio" name="rng" value="custom"><span><span class="t">직접 입력한 글자만</span><span class="d">로고·제목용 · 가장 작아요</span></span></label>
         </div>
         <div id="customBox" hidden>
           <textarea id="customText" placeholder="남길 글자를 입력하세요. 예) 폰트픽 무료폰트 큐레이션">폰트픽 무료폰트 큐레이션</textarea>
@@ -1520,7 +1527,7 @@ function fmtSize(n) {
 }
 function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
 function baseName(n) { return n.replace(/\.(ttf|otf|woff2?|ttc)$/i, ''); }
-var RANGE_SUFFIX = { web: '-2350', k2780: '-2780', hangul: '-hangul', custom: '-custom', all: '' };
+var RANGE_SUFFIX = { web: '-2350', k2780: '-2780', custom: '-custom', all: '' };
 var KIND_LABEL = { ttf: 'TTF', otf: 'OTF', woff: 'WOFF', woff2: 'WOFF2' };
 var EXT_FMT = { woff2: 'woff2', woff: 'woff', ttf: 'truetype', otf: 'opentype' };
 
@@ -1688,7 +1695,7 @@ function paintRow(it) {
   else if (it.result) setState(it, it.result.state, false);
   else if (it.errSig !== sig()) setState(it, '변환 대기 · 형식과 남길 글자를 고른 뒤 [변환하기]를 누르세요', false);
 }
-var RANGE_NAME = { web: '웹 추천 · 한글 2,350자', k2780: 'Adobe KR-9 2,780자', hangul: '한글 11,172자 전부',
+var RANGE_NAME = { web: '웹 추천 · 한글 2,350자', k2780: 'Adobe KR-9 2,780자',
                    all: '모든 글자 그대로', custom: '직접 입력한 글자만' };
 function refresh() {
   files.forEach(paintRow);
