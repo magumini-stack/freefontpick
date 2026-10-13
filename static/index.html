@@ -199,10 +199,16 @@
       color:var(--text-secondary);white-space:nowrap;text-decoration:none;transition:all .15s}
     .use-chip:hover{background:var(--text-primary);color:var(--bg-card);border-color:var(--text-primary)}
 
-    /* 타닥타닥 구독 광고 — 쓰는 자리 바 바로 아래(10/5). 그림 한 장, 누르면 tdtd.io (app/routers/design.py) */
-    .home-sub-ad{display:block;margin-top:18px;border-radius:12px;overflow:hidden;transition:opacity .15s}
-    .home-sub-ad:hover{opacity:.94}
-    .home-sub-ad img{display:block;width:100%;height:auto}
+    /* 타닥타닥 광고 — 쓰는 자리 바 바로 아래(10/5). 그림을 누르면 tdtd.io (app/routers/design.py).
+       10/13 부터 구독 배너·앱 다운로드 배너 두 장을 한 칸에 겹쳐 두고 번갈아 보인다(.on 이 보이는 장).
+       두 그림 크기가 같아서 자리 높이는 그대로다. 안 보이는 장은 visibility 로 감춰 눌리지 않는다. */
+    .ad-roll{display:grid}
+    .ad-roll>a{grid-area:1/1;display:block;border-radius:12px;overflow:hidden;opacity:0;visibility:hidden;
+      transition:opacity .6s ease,visibility 0s linear .6s,filter .15s}
+    .ad-roll>a.on{opacity:1;visibility:visible;transition:opacity .6s ease,visibility 0s,filter .15s}
+    .ad-roll>a:hover{filter:brightness(.94)}
+    .ad-roll img{display:block;width:100%;height:auto}
+    .home-sub-ad{margin-top:18px}
 
     /* 용도별 섹션 */
     .use-sec{padding:26px 0 18px;border-bottom:1px solid var(--border);scroll-margin-top:110px}
@@ -655,8 +661,9 @@ function showToast(msg){
   });
 })();
 
-/* 타닥타닥 구독 배너 클릭 기록 (2026-10-07) — 어드민 '통계' 탭의 '타닥타닥 구독 배너 클릭'.
-   배너는 서버가 그린다(app/routers/design.py, data-tdtd-ad="home"). 애널리틱스 이벤트는 tdtd_ad_click. */
+/* 타닥타닥 배너 클릭 기록 (2026-10-07) — 어드민 '통계' 탭의 '타닥타닥 배너 클릭'.
+   배너는 서버가 그린다(app/routers/design.py). 구독 배너 data-tdtd-ad="home", 10/13 부터 번갈아 나오는
+   앱 다운로드 배너 "home_apps". 애널리틱스 이벤트는 tdtd_ad_click. */
 (function(){
   function send(spot){
     try { navigator.sendBeacon('/api/track/tdtd-ad?spot=' + encodeURIComponent(spot)); } catch(e){}

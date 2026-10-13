@@ -75,7 +75,7 @@ def summary(days: int = 30, _admin=Depends(require_password_changed),
         "home_tool_clicks": by_kind.get("home_tool", 0),   # 메인 4칸 클릭 (2026-10-04부터)
         "convert_views": by_kind.get("convert", 0),        # 폰트 변환 열람 (2026-10-06부터)
         "convert_downloads": by_kind.get("convert_dl", 0), # 폰트 변환 받기 (app/routers/track.py)
-        "tdtd_ad_clicks": by_kind.get("tdtd_ad", 0),       # 타닥타닥 구독 배너 클릭 (2026-10-07부터)
+        "tdtd_ad_clicks": by_kind.get("tdtd_ad", 0),       # 타닥타닥 배너 클릭 (구독·앱 다운로드 합계, 2026-10-07부터)
     }
 
 
@@ -187,7 +187,7 @@ def home_tool_stats(days: int = 30, _admin=Depends(require_password_changed),
 @router.get("/tdtd-ad")
 def tdtd_ad_stats(days: int = 30, _admin=Depends(require_password_changed),
                   db: Session = Depends(get_db)):
-    """타닥타닥 구독 배너 자리별 클릭 수 (app/routers/track.py). 2026-10-07 부터 센다.
+    """타닥타닥 배너 자리·그림별 클릭 수 (app/routers/track.py). 2026-10-07 부터 센다(앱 다운로드 배너는 10/13~).
     자리마다 기간 합계와 오늘 수를 준다. 안 눌린 자리도 0 으로 넣는다."""
     from .track import TDTD_AD_SPOTS
     since, today, days = _span(days)

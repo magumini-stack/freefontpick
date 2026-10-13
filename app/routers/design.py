@@ -232,6 +232,24 @@ def _home_sections_data(db: Session) -> list:
     return out
 
 
+# 배너 두 장 번갈아 보이기 (2026-10-13) — 바로 앞 .ad-roll 안의 <a> 들을 6초마다 넘긴다.
+# 처음 보일 장은 무작위로 고른다 — 늘 첫 장부터면 대부분 6초 안에 지나가서 앞 장만 보인다.
+# 바로 뒤에 두는 이유: 맨 끝에 두면 첫 장이 잠깐 보였다가 바뀐다. 마우스를 올려 두었거나 탭이
+# 가려졌으면 멈추고, '움직임 줄이기' 설정이면 넘기지 않는다. 전체 무료폰트 보기(static/fonts.html
+# #subAd 뒤)에도 같은 스크립트가 있다 — 고치면 둘 다 고칠 것.
+_AD_ROLL_SCRIPT = (
+    "<script>(function(roll){"
+    "if(!roll)return;var s=roll.querySelectorAll('a'),i=Math.floor(Math.random()*s.length),hold=false;"
+    "function show(n){for(var k=0;k<s.length;k++)s[k].classList.toggle('on',k===n);i=n;}"
+    "show(i);if(s.length<2)return;"
+    "try{if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;}catch(e){}"
+    "roll.addEventListener('mouseenter',function(){hold=true;});"
+    "roll.addEventListener('mouseleave',function(){hold=false;});"
+    "setInterval(function(){if(!hold&&!document.hidden&&!roll.hidden)show((i+1)%s.length);},6000);"
+    "})(document.currentScript&&document.currentScript.previousElementSibling);</script>"
+)
+
+
 def render_home_sections(sections: list) -> str:
     """섹션 자료 → 홈 본문 HTML. 카드 마크업은 fonts.html 격자 보기와 같은 이름을 쓴다."""
     if not sections:
@@ -248,12 +266,22 @@ def render_home_sections(sections: list) -> str:
         # (PC 1200×200 · 휴대폰 720×520, 둘 다 2배 해상도 WebP). 문구는 그림 안에 있으므로
         # alt 에 같은 문장을 적는다. 이 자리는 10/1 광고 띠 → 구독 폰트 카드 → 이 그림 순으로 바뀌었다.
         # data-tdtd-ad: 누르면 클릭 수를 센다(static/index.html 맨 끝 스크립트 → app/routers/track.py, 10/7)
-        '<a class="home-sub-ad" data-tdtd-ad="home" href="https://tdtd.io/" target="_blank" rel="noopener">'
+        # 10/13 사용자님: 같은 자리에 '글자로 노는 앱' 다운로드 배너(→ tdtd.io/apps.html)를 더해 두 장을
+        # 번갈아 보인다. 그림은 같은 폴더의 build_apps.py. 넘기는 방식은 _AD_ROLL_SCRIPT.
+        '<div class="home-sub-ad ad-roll">'
+        '<a class="on" data-tdtd-ad="home" href="https://tdtd.io/" target="_blank" rel="noopener">'
         '<picture>'
         '<source media="(max-width:640px)" srcset="/static/ads/tdtd-sub-m.webp" width="720" height="520">'
         '<img src="/static/ads/tdtd-sub-pc.webp" width="1200" height="200" decoding="async" '
         'alt="타닥타닥 폰트 구독 서비스 — 월 6,600원으로 타닥타닥 폰트 전종을 라이선스 제한 없이 사용하세요. 구독 알아보기">'
-        '</picture></a>',
+        '</picture></a>'
+        '<a data-tdtd-ad="home_apps" href="https://tdtd.io/apps.html" target="_blank" rel="noopener">'
+        '<picture>'
+        '<source media="(max-width:640px)" srcset="/static/ads/tdtd-apps-m.webp" width="720" height="520">'
+        '<img src="/static/ads/tdtd-apps-pc.webp" width="1200" height="200" decoding="async" '
+        'alt="글자로 노는 앱, 지금 다운 받으세요 — 와이즈폰트 무료 앱 5종: 캘리공방 · 글씨사진관 · 움짤공방 · 폰트박스 · 흐어어 메모장. 앱 다운로드">'
+        '</picture></a>'
+        '</div>' + _AD_ROLL_SCRIPT,
     ]
     for s in sections:
         cards = []

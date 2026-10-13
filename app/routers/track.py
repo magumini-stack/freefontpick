@@ -2,7 +2,7 @@
 
   POST /api/track/home-tool?tool=pair|find|convert|apps   (공개, 204)
   POST /api/track/convert?fmt=..&r=..                     (공개, 204)
-  POST /api/track/tdtd-ad?spot=home|fonts                 (공개, 204)
+  POST /api/track/tdtd-ad?spot=home|home_apps|fonts|fonts_apps   (공개, 204)
 
 사용자님이 "메인 4칸 메뉴 박스 클릭 수를 볼 수 있을까?" 하셔서 붙였다. 머리글 메뉴에도
 같은 링크가 있어서 애널리틱스의 '다음 페이지'로는 4칸을 눌렀는지 메뉴를 눌렀는지 가를 수
@@ -65,9 +65,13 @@ def track_convert(request: Request, fmt: str = "", r: str = "", db: Session = De
 # 타닥타닥 구독 배너(그림 한 장, 누르면 tdtd.io) 클릭 — 2026-10-07 사용자님 "클릭 수를 체크해보자".
 # 메인은 쓰는 자리 바 아래(app/routers/design.py), 전체 무료폰트 보기는 목록 위(static/fonts.html).
 # 세는 규칙은 위와 같다(봇 제외, 같은 사람이 30분 안에 다시 누르면 한 번). 어드민 통계가 이 순서·이름으로 보여 준다.
+# 10/13 같은 두 자리에 '글자로 노는 앱' 다운로드 배너(→ tdtd.io/apps.html)를 더해 번갈아 보인다 — 그림마다 따로 센다.
+# 두 장이 반씩 나뉘어 보이므로, 그림끼리는 클릭 수를 그대로 견주면 된다.
 TDTD_AD_SPOTS = {
-    "home": "메인 (쓰는 자리 아래)",
-    "fonts": "전체 무료폰트 보기 (목록 위)",
+    "home": "메인 · 구독 배너 (→ tdtd.io)",
+    "home_apps": "메인 · 앱 다운로드 배너 (→ 앱 소개, 10/13~)",
+    "fonts": "전체 무료폰트 보기 · 구독 배너",
+    "fonts_apps": "전체 무료폰트 보기 · 앱 다운로드 배너 (10/13~)",
 }
 
 

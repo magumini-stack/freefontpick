@@ -411,11 +411,16 @@
        띄우는 양은 JS가 바 높이를 실측해 계산하므로 여기선 값을 두지 않는다 —
        두 곳에 적어두면 한쪽만 고쳐져 어긋난다. */
     .font-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0 28px;grid-auto-flow:dense}
-    /* 타닥타닥 구독 광고 (10/5) */
-    .fonts-sub-ad{display:block;margin:0 0 22px;border-radius:12px;overflow:hidden;transition:opacity .15s}
-    .fonts-sub-ad:hover{opacity:.94}
+    /* 타닥타닥 광고 (10/5). 10/13 부터 구독 배너·앱 다운로드 배너 두 장을 번갈아 보인다 —
+       메인(static/index.html .ad-roll)과 같은 규칙이다. 고치면 둘 다 고칠 것. */
+    .ad-roll{display:grid}
+    .ad-roll>a{grid-area:1/1;display:block;border-radius:12px;overflow:hidden;opacity:0;visibility:hidden;
+      transition:opacity .6s ease,visibility 0s linear .6s,filter .15s}
+    .ad-roll>a.on{opacity:1;visibility:visible;transition:opacity .6s ease,visibility 0s,filter .15s}
+    .ad-roll>a:hover{filter:brightness(.94)}
+    .ad-roll img{display:block;width:100%;height:auto}
+    .fonts-sub-ad{margin:0 0 22px}
     .fonts-sub-ad[hidden]{display:none}
-    .fonts-sub-ad img{display:block;width:100%;height:auto}
     .font-card{cursor:pointer;background:none;border:none;border-bottom:1px solid var(--border);
       border-radius:0;padding:24px 2px 20px;transition:background-color .15s;position:relative;
       display:flex;flex-direction:column;min-width:0;animation:fadeUp .25s ease both}
@@ -794,13 +799,33 @@
        폰트픽에는 타닥타닥 폰트 보기를 두지 않는다(사용자님) — 10/1 에 붙였던 구독 폰트 칩·첫 줄 4장·
        구독 화면(static/ffp-subscribe.js)을 걷고 이 그림으로 바꿨다. 그림 원본은 메인과 같다
        (Desktop/projects/폰트픽/구독광고_배너/build.py). -->
-  <a class="fonts-sub-ad" id="subAd" data-tdtd-ad="fonts" href="https://tdtd.io/" target="_blank" rel="noopener">
-    <picture>
-      <source media="(max-width:640px)" srcset="/static/ads/tdtd-sub-m.webp" width="720" height="520">
-      <img src="/static/ads/tdtd-sub-pc.webp" width="1200" height="200" decoding="async"
-           alt="타닥타닥 폰트 구독 서비스 — 월 6,600원으로 타닥타닥 폰트 전종을 라이선스 제한 없이 사용하세요. 구독 알아보기">
-    </picture>
-  </a>
+  <!-- 10/13 사용자님: 같은 자리에 '글자로 노는 앱' 다운로드 배너(→ tdtd.io/apps.html, 그림은 같은 폴더의
+       build_apps.py)를 더해 두 장을 번갈아 보인다. 바로 뒤 스크립트는 app/routers/design.py _AD_ROLL_SCRIPT 와 같다. -->
+  <div class="fonts-sub-ad ad-roll" id="subAd">
+    <a class="on" data-tdtd-ad="fonts" href="https://tdtd.io/" target="_blank" rel="noopener">
+      <picture>
+        <source media="(max-width:640px)" srcset="/static/ads/tdtd-sub-m.webp" width="720" height="520">
+        <img src="/static/ads/tdtd-sub-pc.webp" width="1200" height="200" decoding="async"
+             alt="타닥타닥 폰트 구독 서비스 — 월 6,600원으로 타닥타닥 폰트 전종을 라이선스 제한 없이 사용하세요. 구독 알아보기">
+      </picture>
+    </a>
+    <a data-tdtd-ad="fonts_apps" href="https://tdtd.io/apps.html" target="_blank" rel="noopener">
+      <picture>
+        <source media="(max-width:640px)" srcset="/static/ads/tdtd-apps-m.webp" width="720" height="520">
+        <img src="/static/ads/tdtd-apps-pc.webp" width="1200" height="200" decoding="async"
+             alt="글자로 노는 앱, 지금 다운 받으세요 — 와이즈폰트 무료 앱 5종: 캘리공방 · 글씨사진관 · 움짤공방 · 폰트박스 · 흐어어 메모장. 앱 다운로드">
+      </picture>
+    </a>
+  </div>
+  <script>(function(roll){
+    if(!roll)return;var s=roll.querySelectorAll('a'),i=Math.floor(Math.random()*s.length),hold=false;
+    function show(n){for(var k=0;k<s.length;k++)s[k].classList.toggle('on',k===n);i=n;}
+    show(i);if(s.length<2)return;
+    try{if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;}catch(e){}
+    roll.addEventListener('mouseenter',function(){hold=true;});
+    roll.addEventListener('mouseleave',function(){hold=false;});
+    setInterval(function(){if(!hold&&!document.hidden&&!roll.hidden)show((i+1)%s.length);},6000);
+  })(document.currentScript&&document.currentScript.previousElementSibling);</script>
   <div class="font-grid" id="fontGrid" role="list" aria-label="폰트 갤러리"></div>
 
 
@@ -3403,14 +3428,18 @@ init().catch(function(err){
     if (q) q.addEventListener('input', sync);
     window.addEventListener('hashchange', function(){ setTimeout(sync, 0); });
     setTimeout(sync, 0);
-    /* 클릭 수 (2026-10-07) — 어드민 '통계' 탭의 '타닥타닥 구독 배너 클릭'(app/routers/track.py).
+    /* 클릭 수 (2026-10-07) — 어드민 '통계' 탭의 '타닥타닥 배너 클릭'(app/routers/track.py).
+       자리 이름은 그림마다 data-tdtd-ad 에 있다(구독 fonts · 앱 다운로드 fonts_apps, 10/13).
        애널리틱스 이벤트는 tdtd_ad_click. 가운데 버튼(새 탭)도 센다. */
-    function send(){
-      try { navigator.sendBeacon('/api/track/tdtd-ad?spot=fonts'); } catch(e){}
-      try { if (typeof window.gtag === 'function') window.gtag('event', 'tdtd_ad_click', { spot: 'fonts' }); } catch(e){}
+    function send(spot){
+      try { navigator.sendBeacon('/api/track/tdtd-ad?spot=' + encodeURIComponent(spot)); } catch(e){}
+      try { if (typeof window.gtag === 'function') window.gtag('event', 'tdtd_ad_click', { spot: spot }); } catch(e){}
     }
-    ad.addEventListener('click', send);
-    ad.addEventListener('auxclick', function(e){ if (e.button === 1) send(); });
+    ad.querySelectorAll('a[data-tdtd-ad]').forEach(function(a){
+      var spot = a.getAttribute('data-tdtd-ad');
+      a.addEventListener('click', function(){ send(spot); });
+      a.addEventListener('auxclick', function(e){ if (e.button === 1) send(spot); });
+    });
   })();
 </script>
 </body>

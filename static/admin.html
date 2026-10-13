@@ -674,8 +674,8 @@
       </table>
     </div>
 
-    <h3 style="font-size:14px;font-weight:800;margin:22px 0 10px">타닥타닥 구독 배너 클릭
-      <span style="font-weight:500;font-size:12px;color:var(--text-muted);margin-left:6px">2026-10-07부터 셉니다 · 누르면 tdtd.io 로 가는 그림 배너 · 같은 사람이 30분 안에 다시 누르면 한 번</span></h3>
+    <h3 style="font-size:14px;font-weight:800;margin:22px 0 10px">타닥타닥 배너 클릭
+      <span style="font-weight:500;font-size:12px;color:var(--text-muted);margin-left:6px">2026-10-07부터 셉니다 · 10/13부터 구독 배너와 앱 다운로드 배너가 한 자리에서 번갈아 나옵니다 · 같은 사람이 30분 안에 다시 누르면 한 번</span></h3>
     <div class="table-wrap">
       <table>
         <thead><tr><th>자리</th><th style="width:90px;text-align:center">오늘</th><th style="width:190px">기간 합계</th></tr></thead>
@@ -2635,7 +2635,7 @@ async function refreshStats(){
     + `<div class="st-card"><b>${stNum(sum.convert_downloads)}</b><span>폰트 변환 받기</span></div>`
     + `<div class="st-card"><b>${stNum(sum.tdtd_ad_clicks || 0)}</b><span>타닥타닥 배너 클릭</span></div>`;
 
-  /* 타닥타닥 구독 배너 — 메인·전체 폰트 보기 두 줄, 늘 같은 순서 */
+  /* 타닥타닥 배너 — 자리 × 그림(구독·앱 다운로드) 네 줄, 늘 같은 순서(app/routers/track.py TDTD_AD_SPOTS) */
   const maxTdtd = Math.max(1, ...tdtd.map(t => t.clicks));
   document.getElementById('stTdtdBody').innerHTML = tdtd.map(t =>
       `<tr><td><b>${stEsc(t.label)}</b></td><td style="text-align:center">${stNum(t.today)}</td>`
