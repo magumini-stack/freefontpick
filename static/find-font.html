@@ -764,6 +764,10 @@ document.addEventListener('keydown', function(e){
     if(!/^image\/(jpeg|png|webp)$/.test(f.type)){ say('JPG·PNG·WEBP 이미지만 올릴 수 있어요.', true); return; }
     if(f.size > 8*1024*1024){ say('이미지는 8MB 까지만 올릴 수 있어요.', true); return; }
     state.busy = true; result.hidden = true; list.innerHTML = ''; none.hidden = true; boxes.innerHTML = '';
+    // 앞 이미지의 글자 줄을 잊는다(10/14 사용자님) — 안 그러면 새 이미지가 뜨는 순간(onload → layoutBoxes)
+    // 앞 이미지의 글줄 박스가 새 이미지 위에 다시 그려져, 새 글줄을 찾을 때까지 남아 있었다
+    state.imageId = null; state.lines = []; state.line = -1; state.bitmap = null;
+    $('ffHint').textContent = '찾을 글자 줄을 누르세요';
     say('글자 줄을 찾는 중', false, true);
     var url = URL.createObjectURL(f);
     imgEl.onload = function(){ URL.revokeObjectURL(url); layoutBoxes(); };
@@ -785,7 +789,8 @@ document.addEventListener('keydown', function(e){
   }
 
   function layoutBoxes(){
-    if(!state.lines.length || !imgEl.clientWidth) { return; }
+    if(!state.lines.length) { boxes.innerHTML = ''; return; }
+    if(!imgEl.clientWidth) { return; }
     var sx = imgEl.clientWidth / state.w, sy = imgEl.clientHeight / state.h;
     boxes.innerHTML = '';
     state.lines.forEach(function(ln, k){
