@@ -42,6 +42,9 @@ MAX_IMAGES = 20                     # JPEG 로 눌러 두므로 한 장 0.3~1MB 
 RENDER_CACHE = 300
 LATIN_KO = 3                        # 영문 줄에서 영어 폰트 뒤에 보여 줄 '영문이 비슷한 한글 폰트' 수
 RIX_SHOW = 3                        # 무료·타닥타닥 뒤에 붙일 '비슷한 RixFont' 수(완전 같은 RixFont 는 맨 위 — 엔진 rix_exact)
+# 너무 안 비슷한 후보 빼기(2026-10-14 사용자님 "너무 안 비슷한 것들까지 올라오고 있어, 조금 타이트하게") — _tighten
+TIGHT_GAP = float(os.environ.get("TIGHT_GAP", "0.20"))
+TIGHT_MIN = 3
 TDTD_ABOUT = "https://tdtd.io/fonts/about"   # 타닥타닥 폰트정보(폰트보기) 페이지 — #f=<해시> 로 폰트 하나를 짚는다
 # '비슷해요' 기록(2026-09-23 사용자님 4번) — 순위를 실제 질문으로 다시 가르칠 자료. 이미지·읽은 글자는 남기지 않고
 # 숫자만: 글자 모양의 느낌 수치 128개 + 후보 30개의 모양 점수·느낌 코사인 + 누른 폰트. 한 줄에 JSON 하나.
@@ -213,7 +216,8 @@ def match(req: MatchReq):
         img = cv2.imdecode(np.frombuffer(rec["jpg"], np.uint8), cv2.IMREAD_COLOR)[:, :, ::-1]
         r = E.rank_image_ex(db, img, ln["quad"], chars, top=max(3, min(12, req.top)),
                             ocr=tf.recognize, base_conf=base_conf)
-        ctx = _fb_context(db, r)
+        feel = _feel_of(db, r)
+        ctx = _fb_context(db, r, feel)
     text = text_override or r.get("text") or ln["text"]
     out = []
     face_of = {(it["fid"], it["weight"]): it for it in db.items}
@@ -230,6 +234,10 @@ def match(req: MatchReq):
     else:
         picked = [(x, None) for x in shown[:req.top]]
     picked += [(x, "rix") for x in rix]
+    n_all = len(picked)
+    if not r.get("latin"):
+        # 영문 줄은 판단 자료가 없어 그대로 둔다 — 0.2 로 자르면 Pacifico 줄에서 Dancing Script·Lobster 같은 필기체까지 빠졌다
+        picked = _tighten(picked, feel)
     for (score, fid, w, name), group in picked:
         info = db.info[fid]
         link = info["link"]
@@ -248,16 +256,55 @@ def match(req: MatchReq):
         inc["match_loose"] = 1
     if text_override:
         inc["match_edit"] = 1
+    if n_all > len(picked):
+        inc["tight_cut"] = n_all - len(picked)            # 느낌이 너무 멀어 뺀 후보 수(하루 합)
     _count(**inc)
     return {"text": text, "read": ln["text"], "verdict": r["verdict"], "results": out}
 
 
-def _fb_context(db, r):
-    """'비슷해요'를 누르면 남길 숫자들 — 질의 느낌 벡터와 후보 30개(폰트마다 가장 나은 굵기)의 모양 점수·느낌 코사인."""
+def _feel_of(db, r):
+    """질의 글자의 느낌 — (질의 벡터, 굵기별 코사인, {(fid, 굵기): 번호}). 못 재면(기준 벡터를 만드는 중 등) 셋 다 None."""
     try:
-        qv, sims, face_i = E._feel_sims(db, r.get("glyphs") or [])
+        return E._feel_sims(db, r.get("glyphs") or [])
     except Exception:
-        qv = sims = face_i = None
+        return None, None, None
+
+
+def _tighten(picked, feel):
+    """너무 안 비슷한 후보를 뺀다 — picked: [((점수, fid, 굵기, 이름), 묶음)] 화면 순서 그대로.
+
+    느낌 코사인이 앞 묶음(무료·타닥타닥) 상위 3개 중 가장 높은 값보다 TIGHT_GAP 넘게 낮으면 뺀다.
+    RixFont 묶음도 같은 잣대로 거른다. 앞 묶음 1위는 늘 남기고, 앞 묶음은 3개까지는 채운다. 지금은 한글 줄에만 쓴다(match).
+    고른 근거(실험실 tight_eval.py, 9/23 사용자님 판단 23줄 — 정답 폰트를 뺀 대체 폰트 찾기):
+      · 기준보다 0.2 넘게 낮은 후보는 '아님' 16 · '비슷함' 1. 모양 점수 배수로는 '아님'·'비슷함'이 갈리지 않았다.
+      · 0.20 이면 '아님' 91개 중 16개가 빠지고 '비슷함' 75개는 하나도 안 빠진다(0.18 은 19개 빠지고 2개 잃음).
+      · 정답 폰트가 목록에 있을 때(같은 23줄)는 정답이 잘린 줄이 없고, 앞 묶음 8 → 평균 6.7개, RixFont 3 → 1.8개.
+    느낌을 못 쟀으면 그대로 둔다."""
+    _, sims, face_i = feel
+    if sims is None or not face_i or TIGHT_GAP <= 0 or not picked:
+        return picked
+
+    def cos(p):
+        i = face_i.get((p[0][1], p[0][2]))
+        return None if i is None else float(sims[i])
+
+    lead = picked[0][1]
+    head = [p for p in picked if p[1] == lead]
+    cs = [c for c in (cos(p) for p in head[:3]) if c is not None]
+    if not cs:
+        return picked
+    floor = max(cs) - TIGHT_GAP
+    kept = [p for i, p in enumerate(picked) if i == 0 or (cos(p) is not None and cos(p) >= floor)]
+    short = TIGHT_MIN - sum(1 for p in kept if p[1] == lead)
+    if short > 0:
+        add = [p for p in head if p not in kept][:short]
+        kept = sorted(kept + add, key=picked.index)
+    return kept
+
+
+def _fb_context(db, r, feel=None):
+    """'비슷해요'를 누르면 남길 숫자들 — 질의 느낌 벡터와 후보 30개(폰트마다 가장 나은 굵기)의 모양 점수·느낌 코사인."""
+    qv, sims, face_i = feel if feel is not None else _feel_of(db, r)
     seen, cands = set(), []
     for sc, fid, w, _ in r.get("res_all") or r.get("res") or []:     # res 는 보여 줄 개수로 잘려 있다
         if fid in seen:
