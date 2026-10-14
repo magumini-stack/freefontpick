@@ -238,6 +238,7 @@ transition:border-color .15s;}
     .ff-head small{color:var(--text-muted);font-weight:500}
     .ff-badge{font-size:11px;font-weight:700;border-radius:99px;padding:2px 8px}
     .ff-badge.ffp{background:var(--accent-light);color:var(--accent)}
+    .ff-badge.rix{background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border-hover)}
     .ff-badge.td{background:var(--status-reviewed-bg);color:var(--status-reviewed-fg)}
     .ff-best{font-size:11px;font-weight:700;background:var(--text-primary);color:var(--bg-card);border-radius:99px;padding:2px 8px}
     .ff-why{font-size:11px;color:var(--text-muted);margin:3px 0 4px}
@@ -852,16 +853,18 @@ document.addEventListener('keydown', function(e){
     if(!j.results || !j.results.length){ none.hidden = false; list.innerHTML = ''; return; }
     loose.hidden = j.verdict !== 'loose';        // 모양이 똑같은 폰트는 없고 느낌이 비슷한 것들(엔진 _list_first)
     list.innerHTML = j.results.map(function(r, i){
-      var badge = r.source === 'tdtd' ? '<span class="ff-badge td">타닥타닥 · ' + esc(r.maker) + '</span>' : '<span class="ff-badge ffp">폰트픽 무료</span>';
+      var badge = r.source === 'tdtd' ? '<span class="ff-badge td">타닥타닥 · ' + esc(r.maker) + '</span>'
+        : r.source === 'rix' ? '<span class="ff-badge rix">RixFont</span>' : '<span class="ff-badge ffp">폰트픽 무료</span>';
       var best = i === 0 ? '<span class="ff-best">가장 비슷해요</span>' : '';
       var img = '/api/find/render?fid=' + encodeURIComponent(r.fid) + '&w=' + r.w + '&text=' + encodeURIComponent(text) + '&h=56';
       var actions = r.source === 'tdtd'
         ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">타닥타닥에서 보기</a>'
+        : r.source === 'rix' ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">RixFont에서 보기</a>'
         // 새 창으로 연다(10/6 사용자님) — 같은 창이면 올린 이미지와 찾은 결과가 사라진다
         : '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">폰트 보기</a><a class="primary" href="' + esc(r.link) + '/design" target="_blank" rel="noopener">이 폰트로 디자인하기</a>';
       // 영문 줄은 두 묶음(엔진·서비스 2026-09-26): 영어 폰트 먼저, 그다음 영문이 비슷한 한글 폰트
       var head = (r.group && (i === 0 || j.results[i - 1].group !== r.group))
-        ? '<div class="ff-group">' + (r.group === 'en' ? '영문 폰트' : '영문이 비슷한 한글 폰트') + '</div>' : '';
+        ? '<div class="ff-group">' + (r.group === 'en' ? '영문 폰트' : r.group === 'rix' ? 'RixFont에서 비슷한 폰트' : '영문이 비슷한 한글 폰트') + '</div>' : '';
       return head + '<div class="ff-cand' + (i === 0 ? ' is-best' : '') + '"><div class="ff-head">' + esc(r.name) + ' <small>' + r.w + '</small>' + badge + best + '</div>'
         + (r.why ? '<div class="ff-why">' + esc(r.why) + '</div>' : '')
         + '<img src="' + img + '" alt="' + esc(r.name) + '로 쓴 ' + esc(text) + '" loading="lazy">'

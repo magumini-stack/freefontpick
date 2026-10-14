@@ -32,6 +32,8 @@ TDTD_LINK = {
     "상상토끼": "https://tdtd.io/_subpage/kor/buy/list.php?viewMode=view&ca_id=&sel_search=&txt_search=&page=1&idx=11",
     "RakFont": "https://tdtd.io/_subpage/kor/buy/list.php?viewMode=view&ca_id=&sel_search=&txt_search=&page=1&idx=23",
 }
+RIX = os.path.join(DATA, "rix")
+RIX_HOME = "https://rixfontcloud.com/"
 EXCLUDE_VENDORS = {"RakFont"}            # 찾기에 넣지 않는 제작사(비싼 유료 폰트) — engine_v0.EXCLUDE_MAKERS 와 같게
 FAMILY = {"와이즈폰트": "타닥타닥", "상상토끼": "상상토끼"}     # 폰트픽 제작사 → 겹침을 대 볼 타닥타닥 제작사
 SAME_IOU = 0.85
@@ -193,6 +195,34 @@ def fetch_tdtd(ffp):
 
 
 
+def fetch_rix():
+    """RixFont — /data/rix/fonts.json + /data/rix/woff2/r_<해시>.woff2 (실험실 rix/make_subsets.py 가 한글 2,350자·영문으로 줄인 판,
+    rix/make_woff2.py 로 눌러 올린다) → /data/rix/ttf 로 풀어 쓴다.
+
+    유료 폰트라 git 에 넣지 않고 서버에 따로 올린다(타닥타닥과 같음). 엔진은 '뒤 칸'으로 다룬다 — 완전 같을 때만 맨 위,
+    그 밖에는 무료·타닥타닥 다음(engine_v0.SECONDARY_SOURCES). 결과 링크는 rixfontcloud 상세페이지(주소를 확인 못 한 폰트는 첫 화면).
+    타닥타닥에 똑같은 폰트가 있는 것은 실험실에서 이미 뺐다(rix/overlap.json, 겹침 0.97 이상)."""
+    p = os.path.join(RIX, "fonts.json")
+    if not os.path.exists(p):
+        return []
+    out = []
+    for f in json.load(open(p, encoding="utf-8")):
+        faces = []
+        for fc in f["faces"]:
+            fn = os.path.join(RIX, "ttf", "r_%s.ttf" % fc["h"])
+            src = os.path.join(RIX, "woff2", "r_%s.woff2" % fc["h"])      # 올릴 땐 woff2(작게) — 여기서 TTF 로 푼다
+            if not os.path.exists(fn) and os.path.exists(src):
+                os.makedirs(os.path.dirname(fn), exist_ok=True)
+                to_ttf(src, fn)
+            if os.path.exists(fn):
+                faces.append(dict(w=int(fc["w"]), fn=fn, h=fc["h"]))
+        if faces:
+            out.append(dict(id=f["id"], name=f["name"], maker="RixFont", source="rix", is_english=False,
+                            link=f["url"] if f.get("url_ok") else RIX_HOME, tags=[], faces=faces))
+    print("RixFont %d종 %d굵기" % (len(out), sum(len(x["faces"]) for x in out)), flush=True)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--stacks", type=int, default=0, help="미리 구울 한글 글자 수(자주 쓰는 순, 2350 이면 KS X 1001 전부) — 영문·숫자 62자는 늘 뒤에 붙는다")
@@ -215,14 +245,14 @@ def main():
                 print("예전 묶음 키를 못 적음(새로 굽게 됨):", e, flush=True)
         ffp = fetch_ffp()
         td = fetch_tdtd(ffp)
-        cat = ffp + td
+        cat = ffp + td + fetch_rix()        # RixFont 는 맨 뒤(엔진의 뒤 칸)
         json.dump(cat, open(os.path.join(DATA, "catalog.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
         print("목록 저장: %d종 %d굵기 (%.0fs)" % (len(cat), sum(len(x["faces"]) for x in cat), time.time() - t0))
     if a.stacks > 0:
         import engine_v0 as E
         db = E.FontDB(os.path.join(DATA, "catalog.json"))
         db.MAX_STACKS = 4
-        db.MAX_FONTS = int(os.environ.get("BAKE_MAX_FONTS", "400"))   # 글자마다 새 굵기를 다 여니 64 면 파일을 계속 다시 연다
+        db.MAX_FONTS = int(os.environ.get("BAKE_MAX_FONTS", "1000"))  # 글자마다 새 굵기를 다 여니 적으면 파일을 계속 다시 연다(10/14 RixFont 746벌+새 폰트)
         # 영문·숫자도 찾기에 쓰인다(E.usable) — 한글만 구워 두면 처음 나온 영문·숫자마다 그 자리에서 굽느라
         # 줄이 느려졌다(9/23 '모음.zip1탄8' 49초). 62자라 한글 뒤에 붙여도 몇 분이다.
         chars = frequent_hangul(a.stacks) + list(ASCII_ALNUM)

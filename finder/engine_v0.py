@@ -148,6 +148,18 @@ class FontDB:
             keys = list(cache.keys())
             np.savez_compressed(cmap_path, keys=np.array(keys), bits=np.stack([cache[k] for k in keys]))
         self.cmap_bits = np.stack(rows) if rows else np.zeros((0, 65536 // 8), np.uint8)
+        # RixFont(source 'rix')는 '뒤 칸' — 글자 떼어 내기(벌 고르기)는 앞 칸(폰트픽·타닥타닥)만으로 하고, 고른 벌에서
+        # 뒤 칸만 한 번 더 견준다(2026-10-14). 뒤 칸 굵기를 목록 맨 뒤로 모아 두면 글자 묶음 안에서도 줄이 뒤쪽에
+        # 이어져, 앞 칸·뒤 칸을 복사 없이 잘라 쓸 수 있다(part).
+        sec = [self.info[it["fid"]]["source"] in SECONDARY_SOURCES for it in self.items]
+        if any(sec):
+            order = sorted(range(len(self.items)), key=lambda i: (sec[i], i))
+            self.items = [self.items[i] for i in order]
+            self.cmap_bits = self.cmap_bits[order]
+            sec = [sec[i] for i in order]
+        self.secondary = np.array(sec, bool)
+        self.n_main = int(len(sec) - sum(sec))
+        self.has_secondary = bool(self.n_main < len(sec))
         for i, it in enumerate(self.items):
             it["cmap"] = _CmapView(self, i)
         self.is_eng = np.array([it["is_english"] for it in self.items], bool)
@@ -246,6 +258,22 @@ class FontDB:
 
     ROW_FIELDS = ("dt", "n_packed", "nsum", "scv", "oh", "stroke", "aspect", "h")
 
+    def part(self, s, sec):
+        """묶음 s 의 앞 칸(sec=False) 또는 뒤 칸(RixFont, sec=True) 줄만 — 줄이 굵기 순서라 뒤 칸은 뒤쪽에 모여 있다(복사 없음)."""
+        ix = s["idx"]
+        if not len(ix):
+            return s
+        cut = int(np.searchsorted(ix, self.n_main))
+        a, b = (cut, len(ix)) if sec else (0, cut)
+        p = {"idx": ix[a:b]}
+        if b > a:
+            for k in ("dt", "np", "nsum", "dens", "scv", "oh", "stroke", "aspect", "h"):
+                p[k] = s[k][a:b]
+            e0, e1 = int(s["eoff"][a]), int(s["eoff"][b])
+            p["eidx"] = s["eidx"][e0:e1]
+            p["eoff"] = s["eoff"][a:b + 1] - e0
+        return p
+
     def write_legacy_keys(self):
         """예전 태그 폴더에 그 목록의 굵기 키를 적어 둔다 — 목록을 새로 받기 전에 부르면 새 목록이 그 묶음을 옮겨 쓴다."""
         if os.path.isdir(self.stack_dir) and any(f.endswith(".npz") for f in os.listdir(self.stack_dir)):
@@ -297,7 +325,8 @@ class FontDB:
             save.pop("dens")
             save.update(keys=np.array(keys), miss=np.array(sorted(miss), dtype=str))
             tmp = fn + ".tmp.npz"
-            np.savez(tmp, **save)
+            # 압축해 둔다(2026-10-14): 글자 하나 4.0MB → 0.8MB, 읽기 0.01 → 0.02초. RixFont 746벌을 더하며 서버 디스크가 모자랄 뻔했다
+            np.savez_compressed(tmp, **save)
             os.replace(tmp, fn)
         except Exception as e:
             print("글자 묶음 저장 못 함:", fn, e, flush=True)
@@ -785,6 +814,10 @@ def usable(ch):
 
 STROKE_NORM = True     # 획 굵기를 맞춘 뒤 윤곽을 견준다(stroke_variants). 끄면 예전(9/22 아침) 방식
 EXCLUDE_FID = None     # 시험용(eval_real LOO=1): 이 폰트는 후보에서 뺀다
+SECONDARY_SOURCES = {"rix"}   # 뒤 칸 — 고른 벌에서만 견주고, 완전 같을 때만 맨 위·나머지는 무료·타닥타닥 다음(2026-10-14)
+# '완전 같음' = 모양 점수 ≤ PIN_ABS 이고 앞 칸 최고의 이 배수 아래(10/14 시험: RixFont 정답 글줄 72 중 51 맨 위, 정답 뺀 견본에서
+# 잘못 맨 위 5/49 → 2/49, 무료폰트 견본 1/47 → 0/47 — 앞 칸보다 '조금' 나은 것은 닮은 폰트였다)
+RIX_EXACT_MARGIN = 0.85
 # 찾기에서 아예 권하지 않는 제작사(쉼표로). RakFont 는 비싼 유료 폰트라 무료 폰트를 찾으러 온 사람에게 맞지 않는다
 # (2026-09-23 사용자님 — 서비스 컨셉). build_catalog.py 도 다음 목록부터 뺀다.
 EXCLUDE_MAKERS = {m.strip() for m in os.environ.get("FINDER_EXCLUDE_MAKERS", "RakFont").split(",") if m.strip()}
@@ -843,7 +876,7 @@ def clean_glyph(m, frac=0.02):
     return m
 
 
-def rank(db, glyphs, top=10, wmix=None):
+def rank(db, glyphs, top=10, wmix=None, part=None):
     """glyphs: [(ch, 줄에서 자른 마스크)] → [(점수, 폰트id, 굵기, 이름)] 낮을수록 닮음
 
     글자마다 모든 굵기를 배열 한 번으로 견준다(FontDB.stack). 점수 = 글자별
@@ -888,6 +921,8 @@ def rank(db, glyphs, top=10, wmix=None):
 
     for j, (ch, g, vars_) in enumerate(q):
         s = db.stack(ch)
+        if part is not None and getattr(db, "has_secondary", False):
+            s = db.part(s, part == "sec")          # 앞 칸만(벌 고르기) · 뒤 칸만(RixFont 한 번 더)
         ix = s["idx"]
         if not len(ix):
             continue
@@ -1229,7 +1264,8 @@ def rank_image_ex(db, img, quad, char_boxes, top=10, pick="best", ocr=None, base
 def _rank_try(db, tried, need, top, pick, ocr, name, glyphs, text_h, conf_h, use_h):
     """마스크 벌 하나·자르기 하나로 순위를 내고 tried 에 넣는다."""
     if True:
-        res = rank(db, glyphs, top=len(db.items) if pick in ("fuse", "mix", "best") else max(top, 30))
+        res = rank(db, glyphs, top=len(db.items) if pick in ("fuse", "mix", "best") else max(top, 30),
+                   part="main" if getattr(db, "has_secondary", False) else None)
         if not res:
             return
         med = max(1e-6, float(np.median([r[0] for r in res[:30]])))
@@ -1257,6 +1293,11 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
     # 글자가 절반도 안 잘린 벌은 믿지 않는다. 모든 벌이 그러면 가장 많이 잘린 벌 중에서 고른다
     pool = [t for t in tried if t["ok"]] or [t for t in tried if t["n"] == max(x["n"] for x in tried)]
     best = min(pool, key=lambda t: t["crit"])
+    if getattr(db, "has_secondary", False) and pick not in ("fuse", "mix"):
+        # 뒤 칸(RixFont)은 고른 벌 하나에서만 견준다 — 벌마다 다 견주면 RixFont 746벌이 늘어 찾기가 4할쯤 느려진다
+        sec_res = rank(db, best["glyphs"], top=len(db.items), part="sec")
+        if sec_res:
+            best = dict(best, res=sorted(best["res"] + sec_res, key=lambda r: r[0]))
     info = dict(why=best["name"], text=best["text"], conf=best["conf"], glyphs=best["glyphs"],
                 tried=[(t["name"], t["n"], round(t["top1"], 2), round(t["ratio"], 2), round(t["conf"], 2), t["res"][0][3][:8]) for t in tried])
     if TYPO_RERANK:
@@ -1329,15 +1370,24 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
         # 같은 갈래가 하나밖에 안 남았다(9/23). 30위 안에서 채우고, 보여 줄 개수는 부르는 쪽이 자른다.
         if info.get("feel_first"):
             res_all, depth = best["res"], max(top, GATE_DEPTH)
+            # RixFont(2026-10-14 사용자님): '완전 같을 때만' 맨 위 — 거의 같은 폰트 기준(PIN_ABS) 안이고 앞 칸(폰트픽·타닥타닥)
+            # 어느 것보다 모양이 더 맞을 때. 그 밖의 RixFont 는 비슷한 폰트로, 무료·타닥타닥 다음에 따로 붙인다.
+            is_sec = lambda fid: db.info[fid]["source"] in SECONDARY_SOURCES
+            main = [r for r in res_all if not is_sec(r[1])]
+            secs = [r for r in res_all if is_sec(r[1])]
+            best_main = min((r[0] for r in main), default=float("inf"))
+            exact = sorted([r for r in secs if r[0] <= PIN_ABS and r[0] <= RIX_EXACT_MARGIN * best_main], key=lambda r: r[0])[:1]
+            secs = [r for r in secs if not exact or r[1] != exact[0][1]]
+            info["rix_exact"] = [r[1] for r in exact]
             # 줄 글자: 다시 읽은 글자가 없으면(OCR 없이 글자 위치만 받은 경우) 떼어 낸 글자들로 가른다
             if is_latin_text(best.get("text") or "".join(ch for ch, _ in best.get("glyphs") or [])):
                 # 영문 줄(2026-09-26 사용자님): 영어 폰트 중에서 먼저, 그다음 한글 폰트에 든 영문 — 각자 느낌 먼저 순서 그대로
-                en = [r for r in res_all if db.info[r[1]]["is_english"]]
-                ko = [r for r in res_all if not db.info[r[1]]["is_english"]]
-                res_all = en[:depth] + ko[:depth]
+                en = [r for r in main if db.info[r[1]]["is_english"]]
+                ko = [r for r in main if not db.info[r[1]]["is_english"]]
+                res_all = en[:depth] + exact + ko[:depth] + secs[:depth]
                 info["latin"] = True
             else:
-                res_all = res_all[:depth]
+                res_all = exact + main[:depth] + secs[:depth]
             g = _list_first(res_all, best["ratio"],
                             best_shape=min(r[0] for r in best["res"]) if best["res"] else None)
         else:

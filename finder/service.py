@@ -41,6 +41,7 @@ IMAGE_TTL = 15 * 60                 # 올린 이미지는 15분만 들고 있는
 MAX_IMAGES = 20                     # JPEG 로 눌러 두므로 한 장 0.3~1MB — 40장 그대로 두면 RGB 배열로 300MB 였다
 RENDER_CACHE = 300
 LATIN_KO = 3                        # 영문 줄에서 영어 폰트 뒤에 보여 줄 '영문이 비슷한 한글 폰트' 수
+RIX_SHOW = 3                        # 무료·타닥타닥 뒤에 붙일 '비슷한 RixFont' 수(완전 같은 RixFont 는 맨 위 — 엔진 rix_exact)
 TDTD_ABOUT = "https://tdtd.io/fonts/about"   # 타닥타닥 폰트정보(폰트보기) 페이지 — #f=<해시> 로 폰트 하나를 짚는다
 # '비슷해요' 기록(2026-09-23 사용자님 4번) — 순위를 실제 질문으로 다시 가르칠 자료. 이미지·읽은 글자는 남기지 않고
 # 숫자만: 글자 모양의 느낌 수치 128개 + 후보 30개의 모양 점수·느낌 코사인 + 누른 폰트. 한 줄에 JSON 하나.
@@ -216,13 +217,19 @@ def match(req: MatchReq):
     text = text_override or r.get("text") or ln["text"]
     out = []
     face_of = {(it["fid"], it["weight"]): it for it in db.items}
+    # RixFont(2026-10-14 사용자님): 완전 같은 것만 앞에(엔진이 맨 위에 둠), 비슷한 것은 무료·타닥타닥 뒤 'rix' 묶음으로
+    rix_exact = set(r.get("rix_exact") or [])
+    is_rix = lambda x: db.info[x[1]]["source"] == "rix" and x[1] not in rix_exact
+    shown = [x for x in r["shown"] if not is_rix(x)]
+    rix = [x for x in r["shown"] if is_rix(x)][:RIX_SHOW]
     if r.get("latin"):
         # 영문 줄(2026-09-26 사용자님): 영어 폰트 중에서 먼저, 그다음 한글 폰트에 든 영문 — 화면은 두 묶음으로
-        en = [x for x in r["shown"] if db.info[x[1]]["is_english"]][:req.top]
-        ko = [x for x in r["shown"] if not db.info[x[1]]["is_english"]][:LATIN_KO]
+        en = [x for x in shown if db.info[x[1]]["is_english"]][:req.top]
+        ko = [x for x in shown if not db.info[x[1]]["is_english"]][:LATIN_KO]
         picked = [(x, "en") for x in en] + [(x, "ko") for x in ko]
     else:
-        picked = [(x, None) for x in r["shown"][:req.top]]
+        picked = [(x, None) for x in shown[:req.top]]
+    picked += [(x, "rix") for x in rix]
     for (score, fid, w, name), group in picked:
         info = db.info[fid]
         link = info["link"]
