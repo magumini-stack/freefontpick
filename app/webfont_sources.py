@@ -20,6 +20,8 @@
 그 안에 있는지, 글꼴 파일을 다른 사이트에서 부른 것처럼 받아 200·CORS 허용인지.
 조사한 527종 중 이 표에 없는 폰트는 공식 웹폰트 주소를 찾지 못한 것이다
 (카페24·넥슨·가비아·조선일보·학교안심·온글잎 등은 파일 내려받기만 있다).
+2026-10-14 새 폰트 등록 때 Hada Type 3종(541·543·548)을 같은 방법으로 확인해 더했다(118종).
+같은 날 올린 부산단디체 3종·히피체는 공식 웹폰트 주소를 찾지 못했다(부산단디체는 눈누 사본만 있다).
 
 칸
   css              <link> 로 부를 CSS 주소           fontface  CSS 파일 없이 안내하는 @font-face 코드
@@ -268,7 +270,7 @@ WEBFONT_SOURCES = {
         "src": "https://font.elice.io/",
     },
 
-    # ── 제작자 저장소 — 제작자가 README·공식 페이지에서 안내하는 jsDelivr(GitHub·npm)·GitHub Pages 주소 (11종)
+    # ── 제작자 저장소 — 제작자가 README·공식 페이지에서 안내하는 jsDelivr(GitHub·npm)·GitHub Pages 주소 (11종 + 10/14 Hada Type 3종은 맨 아래)
     56: {  # 스포카 한 산스
         "css": "https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css",
         "family": "Spoqa Han Sans Neo",
@@ -362,5 +364,30 @@ WEBFONT_SOURCES = {
         "provider": JSD,
         "origin": "supernovice-lab/font",
         "src": "https://github.com/supernovice-lab/font",
+    },
+    # 2026-10-14 새로 올린 Hada Type 3종 — 공식 페이지와 배포 묶음의 WEBFONT-USAGE.txt 가 이 CSS 를 안내한다(버전 고정 권장)
+    541: {  # 춤추는사람들 — 가변(DANC 축) 하나, CSS 의 굵기는 800
+        "css": "https://cdn.jsdelivr.net/gh/hada0127/hada-type@v2026.10.13.1/css/dancing-peoples.css",
+        "family": "Dancing Peoples",
+        "generic": "sans-serif",
+        "provider": JSD,
+        "origin": "hada0127/hada-type",
+        "src": "https://type.hada0127.net/dancing-peoples",
+    },
+    543: {  # 하다 산스 — 100~900 아홉 굵기
+        "css": "https://cdn.jsdelivr.net/gh/hada0127/hada-type@v2026.10.13.1/css/hada-sans.css",
+        "family": "Hada Sans",
+        "generic": "sans-serif",
+        "provider": JSD,
+        "origin": "hada0127/hada-type",
+        "src": "https://type.hada0127.net/hada-sans",
+    },
+    548: {  # 레벨업 — 400·600·700 + 굵기마다 이탤릭
+        "css": "https://cdn.jsdelivr.net/gh/hada0127/hada-type@v2026.10.13.1/css/levelup.css",
+        "family": "LevelUp",
+        "generic": "sans-serif",
+        "provider": JSD,
+        "origin": "hada0127/hada-type",
+        "src": "https://type.hada0127.net/levelup",
     },
 }
