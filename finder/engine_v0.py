@@ -1339,12 +1339,12 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
             # '거의 같은 폰트'(모양 점수 PIN_ABS 이하)는 모양 순서 그대로 앞에 두고, 나머지만 덧점까지 더해 다시 세운다
             # — 활자 재정렬(상위 TYPO_K)에 모양 점수로는 밀려 있던 후보가 들어올 수 있게 전체 순서부터.
             res = best["res"]
+            near_ok = _near_pred(res, sims, face_i)
             if extra is not None:
-                lim = _near_lim(res)
-                near = [r for r in res if r[0] <= lim]
-                far = sorted([r for r in res if r[0] > lim], key=lambda r: (r[0] + extra(r[1], r[2]), str(r[1])))
+                near = [r for r in res if near_ok(r)]
+                far = sorted([r for r in res if not near_ok(r)], key=lambda r: (r[0] + extra(r[1], r[2]), str(r[1])))
                 res = near + far
-            return rerank_typo(db, best["glyphs"], res, outlined=outlined, pin_first=pin, pq=pq, extra=extra)
+            return rerank_typo(db, best["glyphs"], res, outlined=outlined, pin_first=pin, pq=pq, extra=extra, near=near_ok)
 
         sweep = __import__("os").environ.get("FEEL_SWEEP") or __import__("os").environ.get("STYLE_SWEEP")
         if sweep and (pq is not None or sims is not None):      # 시험용: 무게 여러 개를 한 번에(eval_real 이 적어 둔다)
@@ -1536,13 +1536,39 @@ PIN_ABS = 2.2                        # 모양 점수 이 안이면 '거의 같�
 # '거의 같은 폰트' 무리는 1위 모양 점수의 이 배수 안까지만(2026-10-15 사용자님 마포한아름 줄): 사진 글자가 두껍게 찍히면 굵은 고딕들이
 # 다 2.2 안에 들어와 느낌과 상관없이 모양 순서로 앞에 섰다(프리텐다드·스포카 한 산스 700, 느낌 0.41~0.50 — 정답은 0.84).
 NEAR_REL = float(__import__("os").environ.get("NEAR_REL", "1.15"))
+# 그 무리는 정답이라고 볼 만큼 가까울 때만 둔다(2026-10-15 사용자님 판단 131줄 + 정답 시험 497장, 실험실 bench_sim.py):
+# 모양 1위가 NEAR_MAX 이하이고, 무리에 드는 후보도 느낌 코사인이 최고보다 NEAR_COS_D 넘게 낮지 않을 때.
+# 그 밖에는 느낌 순 — 정답이 없을 때 모양 1등을 늘 맨 위에 세우던 것이 손해였다(1위 비슷함: 모양 순 27%·지금 34%·느낌 순 44%).
+# 결과: 무료·타닥타닥 정답 1위 87.9 → 88.4%, 비슷한 폰트 1위 34 → 43%, nDCG5 0.447 → 0.497.
+NEAR_MAX = float(__import__("os").environ.get("NEAR_MAX", "1.8"))
+NEAR_COS_D = float(__import__("os").environ.get("NEAR_COS_D", "0.10"))
 
 
 def _near_lim(res):
     return min(PIN_ABS, NEAR_REL * min(r[0] for r in res)) if res else PIN_ABS
 
 
-def rerank_typo(db, glyphs, res, k=None, outlined=False, pin_first=False, pq=None, extra=None):
+def _near_pred(res, sims=None, face_i=None):
+    """'거의 같은 폰트' 무리에 넣을지 — r = (모양 점수, fid, 굵기, …) → bool."""
+    if not res:
+        return lambda r: False
+    best = min(r[0] for r in res)
+    lim = min(PIN_ABS, NEAR_REL * best)
+    if best > NEAR_MAX:
+        return lambda r: False
+    if sims is None or not face_i:
+        return lambda r: r[0] <= lim
+
+    def cos(r):
+        i = face_i.get((r[1], r[2]))
+        return None if i is None else float(sims[i])
+    top = max((v for v in (cos(r) for r in res) if v is not None), default=None)
+    if top is None:
+        return lambda r: r[0] <= lim
+    return lambda r: r[0] <= lim and (cos(r) is not None and cos(r) >= top - NEAR_COS_D)
+
+
+def rerank_typo(db, glyphs, res, k=None, outlined=False, pin_first=False, pq=None, extra=None, near=None):
     """res(1차 순위, 절대 점수)의 상위 k 개를 활자 특징 차이를 더한 점수로 다시 세운다. (새 res, 설명 dict)
     outlined: 테두리 글씨(채움만 잡은 벌) — 테두리가 채움의 모서리·끝을 깎아 둥글고 밋밋하게 보이므로 그 둘은 안 잰다."""
     k = k or TYPO_K
@@ -1612,7 +1638,10 @@ def rerank_typo(db, glyphs, res, k=None, outlined=False, pin_first=False, pq=Non
     # 모양 점수가 PIN_ABS(2.2, 정답 1위의 9할이 이 안) 이하인 후보는 '거의 같은 폰트'로 보고 1차 순서 그대로 앞에 둔다.
     # 나머지(대체 폰트 후보)만 특징으로 다시 세운다. 사용자님 테스트 줄들은 모양 점수 2.5~5 라 전부 재정렬된다.
     lim = min(PIN_ABS, NEAR_REL * min(x[4] for x in head)) if len(head) and len(head[0]) == 5 else PIN_ABS
-    keep = [x for x in head if x[4] <= lim] if len(head) and len(head[0]) == 5 else ([head[0]] if pin_first and head else [])
+    if near is not None and len(head) and len(head[0]) == 5:
+        keep = [x for x in head if near((x[4], x[1], x[2]))]       # _finish 가 준 '거의 같은 폰트' 기준(정답형)
+    else:
+        keep = [x for x in head if x[4] <= lim] if len(head) and len(head[0]) == 5 else ([head[0]] if pin_first and head else [])
     rest = [x for x in head if not any(x is y for y in keep)]
     rest.sort(key=lambda x: (x[0], str(x[1])))
     head = keep + rest
