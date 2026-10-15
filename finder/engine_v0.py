@@ -1340,8 +1340,9 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
             # — 활자 재정렬(상위 TYPO_K)에 모양 점수로는 밀려 있던 후보가 들어올 수 있게 전체 순서부터.
             res = best["res"]
             if extra is not None:
-                near = [r for r in res if r[0] <= PIN_ABS]
-                far = sorted([r for r in res if r[0] > PIN_ABS], key=lambda r: (r[0] + extra(r[1], r[2]), str(r[1])))
+                lim = _near_lim(res)
+                near = [r for r in res if r[0] <= lim]
+                far = sorted([r for r in res if r[0] > lim], key=lambda r: (r[0] + extra(r[1], r[2]), str(r[1])))
                 res = near + far
             return rerank_typo(db, best["glyphs"], res, outlined=outlined, pin_first=pin, pq=pq, extra=extra)
 
@@ -1532,6 +1533,13 @@ def _style_pen(db, pq, fid, w=None):
 
 PIN_RATIO, PIN_SCORE = 0.65, 2.8    # (예전 규칙: 1위만 고정) 0.55·2.2 로 실제 168장 1위 79%, 0.65·2.8 로 81%
 PIN_ABS = 2.2                        # 모양 점수 이 안이면 '거의 같은 폰트' 무리 — 1차 순서 유지, 그 뒤만 재정렬
+# '거의 같은 폰트' 무리는 1위 모양 점수의 이 배수 안까지만(2026-10-15 사용자님 마포한아름 줄): 사진 글자가 두껍게 찍히면 굵은 고딕들이
+# 다 2.2 안에 들어와 느낌과 상관없이 모양 순서로 앞에 섰다(프리텐다드·스포카 한 산스 700, 느낌 0.41~0.50 — 정답은 0.84).
+NEAR_REL = float(__import__("os").environ.get("NEAR_REL", "1.15"))
+
+
+def _near_lim(res):
+    return min(PIN_ABS, NEAR_REL * min(r[0] for r in res)) if res else PIN_ABS
 
 
 def rerank_typo(db, glyphs, res, k=None, outlined=False, pin_first=False, pq=None, extra=None):
@@ -1603,7 +1611,8 @@ def rerank_typo(db, glyphs, res, k=None, outlined=False, pin_first=False, pq=Non
         explain[fid] = dict(d=d, q=q, f=f, rq=rq, rf=rf, shape=sc)
     # 모양 점수가 PIN_ABS(2.2, 정답 1위의 9할이 이 안) 이하인 후보는 '거의 같은 폰트'로 보고 1차 순서 그대로 앞에 둔다.
     # 나머지(대체 폰트 후보)만 특징으로 다시 세운다. 사용자님 테스트 줄들은 모양 점수 2.5~5 라 전부 재정렬된다.
-    keep = [x for x in head if x[4] <= PIN_ABS] if len(head) and len(head[0]) == 5 else ([head[0]] if pin_first and head else [])
+    lim = min(PIN_ABS, NEAR_REL * min(x[4] for x in head)) if len(head) and len(head[0]) == 5 else PIN_ABS
+    keep = [x for x in head if x[4] <= lim] if len(head) and len(head[0]) == 5 else ([head[0]] if pin_first and head else [])
     rest = [x for x in head if not any(x is y for y in keep)]
     rest.sort(key=lambda x: (x[0], str(x[1])))
     head = keep + rest
