@@ -223,7 +223,7 @@ def _home_sections_data(db: Session) -> list:
         if pcards:
             out.insert(0, {
                 "slug": "popular", "title": "인기 TOP 100",
-                "subtitle": "최근 7일 폰트픽에서 가장 많이 본 무료폰트 — 매일 바뀌어요",
+                "subtitle": "요즘 많이 쓰는 무료폰트 — 매일 바뀌어요",
                 "count": None, "cards": pcards,
                 "href": "/popular", "more": "100위까지 보기 →",
             })

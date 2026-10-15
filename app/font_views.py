@@ -15,12 +15,15 @@ IP 추출과 메모리 캐시는 app/routers/likes.py 가 쓰는 방식을 그�
 숫자는 화면에 드러내지 않는다. 순위만 쓴다 — 방문이 적을 때 '조회 3' 같은
 숫자가 보이면 오히려 허술해 보인다.
 """
+import json
+import math
 import time
 from datetime import date, timedelta
+from pathlib import Path
 
 from sqlalchemy import func, select, update
 
-from .models import FontView, PageView
+from .models import Font, FontView, PageView
 
 # ── 봇 거르기 ────────────────────────────────────────────────────
 # 이름에 이게 들어가면 세지 않는다. 완벽할 수 없지만, 실제로 사이트를 훑는
@@ -101,37 +104,87 @@ def record_view(request, font_id: int, db) -> bool:
         return False
 
 
-def top_fonts(db, days: int = 7, limit: int = 10) -> list:
-    """최근 N일 조회 합계 상위 font_id 목록 (많은 순).
+# ── 바탕 인기 (2026-10-15) ───────────────────────────────────────
+#
+# 사용자님: "우리 순위를 근본적으로 한번 바꾸는데 임의로 한번만… 눈누 순위와 시장 언급수, 우리 순위는
+# 아주 일부만 반영" → "사이트 전체 순위에 적용".
+#
+# 조회수만으로 줄 세우면 생긴 지 얼마 안 된 사이트라 표본이 적고, 막 등록한 폰트·외부 웹폰트 폰트는
+# 조회가 0이라 '인기 없음'으로 보였다(나눔고딕·나눔명조가 숨은 폰트로 분류됐다). 그래서 한 번만 잰
+# '바탕 점수'(base_popularity.json — 눈누 인기순 55% + 네이버 월 검색량 45%, 만든 곳은
+# Desktop\projects\폰트픽\인기바탕_2026-10-15\compute_base.py)를 깔고, 우리 조회수를 그 위에 섞는다.
+#
+#     점수 = w · 바탕 + (1 − w) · 조회 점수        조회 점수 = log(1+조회) ÷ log(1+그 기간 최다 조회)
+#     w   = 0.9 (2026-10-15) → 0.3 (2027-04-15) 까지 날마다 조금씩 줄고, 그 뒤로는 0.3
+#
+# 시간이 갈수록 우리 조회수가 순위를 넘겨받으므로 바탕 점수를 다시 만들 필요가 없다.
+# 바탕 점수가 없는 폰트(이후 새로 등록한 폰트 등)는 바탕 점수 40% 지점 값으로 시작한다.
+# 숫자는 여전히 화면에 내보내지 않는다 — 순서만 쓴다.
+_BASE_PATH = Path(__file__).resolve().parent / "base_popularity.json"
+_BASE_FROM, _BASE_TO = date(2026, 10, 15), date(2027, 4, 15)
+_W_FROM, _W_TO = 0.9, 0.3
+_base_cache = None
 
-    조회가 한 번도 없는 폰트는 들어가지 않는다. 배포 직후처럼 자료가 없으면
-    빈 목록이 나오고, 화면은 예전과 똑같이 보인다.
+
+def _base():
+    """(font_id → 바탕 점수, 없는 폰트에 줄 기본값). 파일이 없거나 깨졌으면 ({}, 0) — 예전처럼 조회수만 쓴다."""
+    global _base_cache
+    if _base_cache is None:
+        try:
+            raw = json.loads(_BASE_PATH.read_text(encoding="utf-8"))["base"]
+            base = {int(k): float(v) for k, v in raw.items()}
+            vals = sorted(base.values())
+            default = vals[int(len(vals) * 0.4)] if vals else 0.0
+            _base_cache = (base, default)
+        except Exception:
+            _base_cache = ({}, 0.0)
+    return _base_cache
+
+
+def base_weight(day: date) -> float:
+    """그날 바탕 점수에 주는 무게. 0.9 → 0.3 으로 반년에 걸쳐 줄어든다."""
+    if day <= _BASE_FROM:
+        return _W_FROM
+    if day >= _BASE_TO:
+        return _W_TO
+    t = (day - _BASE_FROM).days / (_BASE_TO - _BASE_FROM).days
+    return _W_FROM + (_W_TO - _W_FROM) * t
+
+
+def blended_order(db, end_day: date, days: int) -> list:
+    """end_day(포함)까지 days 일 조회와 바탕 점수를 섞은 순서 — 폰트 전부의 font_id (높은 순, 같으면 id 순)."""
+    since = end_day - timedelta(days=days - 1)
+    counts = _sum_by_font(db, since, end_day)
+    base, default = _base()
+    if not base:      # 바탕 점수가 없으면 예전 그대로(조회가 있는 폰트만, 많이 본 순)
+        return [fid for fid, _ in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))]
+    top = max(counts.values()) if counts else 0
+    w = base_weight(end_day)
+    ids = [int(r[0]) for r in db.execute(select(Font.id)).all()]
+    scored = []
+    for fid in ids:
+        v = math.log1p(counts.get(fid, 0)) / math.log1p(top) if top else 0.0
+        scored.append((-(w * base.get(fid, default) + (1 - w) * v), fid))
+    scored.sort()
+    return [fid for _, fid in scored]
+
+
+def top_fonts(db, days: int = 7, limit: int = 10) -> list:
+    """최근 N일 인기 상위 font_id 목록 — 바탕 점수와 조회수를 섞은 순서(blended_order, 2026-10-15).
+
+    예전에는 조회 합계만 썼고 조회가 없는 폰트는 빠졌다. 이제는 바탕 점수가 있어
+    조회가 적은 날에도 목록이 비지 않는다.
     """
-    since = date.today() - timedelta(days=days - 1)
-    rows = db.execute(
-        select(FontView.font_id, func.sum(FontView.count).label("n"))
-        .where(FontView.day >= since)
-        .group_by(FontView.font_id)
-        .order_by(func.sum(FontView.count).desc(), FontView.font_id)
-        .limit(limit)
-    ).all()
-    return [int(r[0]) for r in rows]
+    return blended_order(db, date.today(), days)[:limit]
 
 
 def view_order(db, days: int = 30) -> list:
-    """최근 N일 조회가 한 번이라도 있는 폰트 전부를 많이 본 순서로 (font_id 목록).
+    """폰트 전부를 인기 순서로 (font_id 목록) — 바탕 점수와 최근 N일 조회수를 섞는다(2026-10-15).
 
     갤러리(/fonts) '인기순' 정렬용이다. 맨 앞 열 자리는 여전히 mixed_top 이
     배지와 함께 차지하고, 그 뒤를 이 순서로 채운다. 숫자는 내보내지 않는다.
     """
-    since = date.today() - timedelta(days=days - 1)
-    rows = db.execute(
-        select(FontView.font_id)
-        .where(FontView.day >= since)
-        .group_by(FontView.font_id)
-        .order_by(func.sum(FontView.count).desc(), FontView.font_id)
-    ).all()
-    return [int(r[0]) for r in rows]
+    return blended_order(db, date.today(), days)
 
 
 # ── 폰트가 아닌 페이지 ──────────────────────────────────────────
@@ -299,18 +352,13 @@ def prune(db, keep_days: int = 400) -> int:
 # 하루 동안 순위가 출렁이지 않도록 '어제까지 7일'로 센다(오늘 조회는 내일 차트에 들어간다).
 # 변동은 그 하루 전 차트(그저께까지 7일)와 견준다. 어제 100위 안에 없던 폰트는 NEW.
 # 조회수 숫자는 내보내지 않는다 — 순위만(인기 배지와 같은 원칙).
+#
+# 2026-10-15부터 조회수만이 아니라 바탕 점수를 섞은 순서다(위 '바탕 인기' 주석, blended_order). 변동(▲▼)은
+# 바탕 점수가 하루 사이 거의 같으므로 사실상 조회수 변화에서 나온다.
 
 def chart(db, end_day: date, days: int = 7, limit: int = 100) -> list:
-    """end_day(포함)까지 days 일 조회 합계 상위 font_id 목록 (많은 순, 같으면 id 순)."""
-    since = end_day - timedelta(days=days - 1)
-    rows = db.execute(
-        select(FontView.font_id)
-        .where(FontView.day >= since, FontView.day <= end_day)
-        .group_by(FontView.font_id)
-        .order_by(func.sum(FontView.count).desc(), FontView.font_id)
-        .limit(limit)
-    ).all()
-    return [int(r[0]) for r in rows]
+    """end_day(포함)까지 days 일 기준 인기 상위 font_id 목록 — 바탕 점수와 조회수를 섞은 순서(2026-10-15)."""
+    return blended_order(db, end_day, days)[:limit]
 
 
 def top100(db, days: int = 7) -> dict:
