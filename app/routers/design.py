@@ -268,17 +268,19 @@ def render_home_sections(sections: list) -> str:
         # data-tdtd-ad: 누르면 클릭 수를 센다(static/index.html 맨 끝 스크립트 → app/routers/track.py, 10/7)
         # 10/13 사용자님: 같은 자리에 '글자로 노는 앱' 다운로드 배너(→ tdtd.io/apps.html)를 더해 두 장을
         # 번갈아 보인다. 그림은 같은 폴더의 build_apps.py. 넘기는 방식은 _AD_ROLL_SCRIPT.
+        # 10/16 사용자님: 세로 30% 줄인 판으로(PC 1200×140 · 휴대폰 720×364, 같은 폴더 build_slim.py → *-slim.webp).
+        # 이름을 바꿔 둔 건 옛 그림이 브라우저·CDN 캐시에 남아 새 크기와 섞이지 않게 하려는 것이다.
         '<div class="home-sub-ad ad-roll">'
         '<a class="on" data-tdtd-ad="home" href="https://tdtd.io/" target="_blank" rel="noopener">'
         '<picture>'
-        '<source media="(max-width:640px)" srcset="/static/ads/tdtd-sub-m.webp" width="720" height="520">'
-        '<img src="/static/ads/tdtd-sub-pc.webp" width="1200" height="200" decoding="async" '
+        '<source media="(max-width:640px)" srcset="/static/ads/tdtd-sub-m-slim.webp" width="720" height="364">'
+        '<img src="/static/ads/tdtd-sub-pc-slim.webp" width="1200" height="140" decoding="async" '
         'alt="타닥타닥 폰트 구독 서비스 — 월 6,600원으로 타닥타닥 폰트 전종을 라이선스 제한 없이 사용하세요. 구독 알아보기">'
         '</picture></a>'
         '<a data-tdtd-ad="home_apps" href="https://tdtd.io/apps.html" target="_blank" rel="noopener">'
         '<picture>'
-        '<source media="(max-width:640px)" srcset="/static/ads/tdtd-apps-m.webp" width="720" height="520">'
-        '<img src="/static/ads/tdtd-apps-pc.webp" width="1200" height="200" decoding="async" '
+        '<source media="(max-width:640px)" srcset="/static/ads/tdtd-apps-m-slim.webp" width="720" height="364">'
+        '<img src="/static/ads/tdtd-apps-pc-slim.webp" width="1200" height="140" decoding="async" '
         'alt="글자로 노는 앱, 지금 다운 받으세요 — 와이즈폰트 무료 앱 5종: 캘리공방 · 글씨사진관 · 움짤공방 · 폰트박스 · 흐어어 메모장. 앱 다운로드">'
         '</picture></a>'
         '</div>' + _AD_ROLL_SCRIPT,

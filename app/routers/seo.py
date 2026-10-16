@@ -87,6 +87,8 @@ def sitemap(db: Session = Depends(get_db)):
         {"loc": f"{SITE_URL}/gif", "priority": "0.7", "changefreq": "weekly"},
         # 폰트 변환(2026-10-06) — 변환은 브라우저에서 하고 페이지 자체는 거의 안 바뀐다.
         {"loc": f"{SITE_URL}/font-convert", "priority": "0.8", "changefreq": "monthly"},
+        # 추천 폰트 자판기(2026-10-16) — 뽑기는 브라우저에서, 후보는 가끔 다시 만든다.
+        {"loc": f"{SITE_URL}/font-vending", "priority": "0.8", "changefreq": "weekly"},
         {"loc": f"{SITE_URL}/policy.html", "priority": "0.3", "changefreq": "yearly"},
         # 개인정보처리방침은 광고 심사에서 실제로 확인하는 문서다. 푸터에만
         # 걸려 있고 사이트맵에는 빠져 있었다.

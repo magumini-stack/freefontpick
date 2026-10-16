@@ -1,6 +1,6 @@
 """클릭 기록 — 메인 4칸 메뉴 (2026-10-04) · 폰트 변환 받기 (10-06) · 타닥타닥 구독 배너 (10-07).
 
-  POST /api/track/home-tool?tool=pair|find|convert|apps   (공개, 204)
+  POST /api/track/home-tool?tool=pair|find|convert|apps|vending   (공개, 204)
   POST /api/track/convert?fmt=..&r=..                     (공개, 204)
   POST /api/track/tdtd-ad?spot=home|home_apps|fonts|fonts_apps   (공개, 204)
 
@@ -31,6 +31,7 @@ HOME_TOOLS = {
     "find": "이미지로 폰트 찾기",
     "convert": "폰트 변환",
     "apps": "글자로 노는 앱",
+    "vending": "추천 폰트 자판기 (제목 아래 단추, 10/16~)",
     "gif": "GIF 만들기 (10/6까지)",
 }
 

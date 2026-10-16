@@ -32,17 +32,36 @@ nav{display:flex;gap:2px}
 nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:6px;text-decoration:none;transition:all .15s;white-space:nowrap}
 nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
 nav a.active{color:var(--accent);background:var(--accent-light);font-weight:700}
-/* ── About ▾ 묶음 (app/header.py ABOUT_ITEMS) ──
-   마우스를 올리거나 키보드 초점이 안에 있으면 펼쳐진다. 부모는 /about 링크라
-   펼침이 안 되는 환경에서도 막다른 길이 아니다. */
-.nav-dd{position:relative}
-.nav-dd > a{display:flex;align-items:center;gap:3px}
-.nav-dd > a svg{width:12px;height:12px;display:block}
-.nav-dd-menu{position:absolute;top:calc(100% + 4px);left:0;min-width:150px;padding:6px;
-  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
-  box-shadow:0 8px 24px rgba(0,0,0,.1);display:none;flex-direction:column;gap:2px;z-index:210}
-.nav-dd:hover .nav-dd-menu,.nav-dd:focus-within .nav-dd-menu{display:flex}
-.nav-dd-menu a{padding:8px 10px}
+
+/* ── 데스크톱 메뉴 (2026-10-16 머리글 개편 B) ──
+   사용자님: "[타닥타닥 구독]을 빼고 다른 메뉴들을 눈에 잘 띄게" → B(글자 + 색 아이콘).
+   13px 회색 → 15px 검정·굵게, 칸 넓게. 아이콘은 메인 기능 칸과 같은 그림·색이고, 주소(href)로 고른다
+   (app/header.py NAV_ITEMS — 메뉴를 더하면 여기 한 줄도 더한다). 그림은 mask 라 색을 --ic-c 하나로 바꾼다.
+   ⚠ GIF 생성기(.nav-gif)는 글자에 그라데이션을 칠하므로(아래 .nav-gif 주석) 배경을 바꾸는 :hover·.active 에서 뺀다.
+   폭이 좁아지면 차례로 줄인다(맨 아래 @media). 휴대폰 펼침 메뉴(.mobile-nav)는 여기에 안 걸린다. */
+.header-inner nav{gap:4px}
+.header-inner nav > a{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:600;color:var(--text-primary);
+  padding:8px 14px;border-radius:8px;letter-spacing:-.2px}
+.header-inner nav > a:not(.nav-gif):hover{background:var(--bg-secondary)}
+.header-inner nav > a.active:not(.nav-gif){color:var(--accent);background:var(--accent-light);font-weight:800}
+.header-inner nav > a.nav-gif{font-weight:800}
+.header-inner nav > a::before{content:'';width:17px;height:17px;flex:none;background:var(--ic-c,currentColor);
+  -webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}
+.header-inner nav > a[href="/"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2017.75l-6.17%203.25%201.18-6.88-5-4.87%206.9-1L12%202l3.09%206.25%206.9%201-5%204.87%201.18%206.88z%27/%3E%3C/svg%3E");--ic-c:#E2A100}
+.header-inner nav > a[href="/fonts"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%273%27%20y%3D%273%27%20width%3D%277%27%20height%3D%277%27%20rx%3D%271%27/%3E%3Crect%20x%3D%2714%27%20y%3D%273%27%20width%3D%277%27%20height%3D%277%27%20rx%3D%271%27/%3E%3Crect%20x%3D%273%27%20y%3D%2714%27%20width%3D%277%27%20height%3D%277%27%20rx%3D%271%27/%3E%3Crect%20x%3D%2714%27%20y%3D%2714%27%20width%3D%277%27%20height%3D%277%27%20rx%3D%271%27/%3E%3C/svg%3E");--ic-c:var(--accent)}
+.header-inner nav > a[href="/find-font"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%273%27%20y%3D%274%27%20width%3D%2718%27%20height%3D%2716%27%20rx%3D%272%27/%3E%3Ccircle%20cx%3D%279%27%20cy%3D%2710%27%20r%3D%272%27/%3E%3Cpath%20d%3D%27M21%2016l-5-5-8%209%27/%3E%3C/svg%3E");--ic-c:#B8790A}
+.header-inner nav > a[href="/font-pair"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%2020h3%27/%3E%3Cpath%20d%3D%27M14%2020h7%27/%3E%3Cpath%20d%3D%27M6.9%2015h6.9%27/%3E%3Cpath%20d%3D%27M10.2%206.3l5.8%2013.7%27/%3E%3Cpath%20d%3D%27M5%2020l6-16h2l7%2016%27/%3E%3C/svg%3E");--ic-c:var(--accent)}
+.header-inner nav > a[href="/gif"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%273%27%20y%3D%275%27%20width%3D%2718%27%20height%3D%2714%27%20rx%3D%272%27/%3E%3Cpath%20d%3D%27M10%209.5v5l4.5-2.5z%27/%3E%3C/svg%3E");--ic-c:#E0457B}
+.header-inner nav > a[href="/font-convert"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M7%2010h14l-4-4%27/%3E%3Cpath%20d%3D%27M17%2014H3l4%204%27/%3E%3C/svg%3E");--ic-c:#1A8A3A}
+.header-inner nav > a[href="https://tdtd.io/apps.html"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%275%27%20y%3D%272%27%20width%3D%2714%27%20height%3D%2720%27%20rx%3D%272%27/%3E%3Cpath%20d%3D%27M11%2018h2%27/%3E%3C/svg%3E");--ic-c:var(--text-primary)}
+:root[data-theme="dark"] .header-inner nav > a[href="/"]{--ic-c:#F2C14E}
+:root[data-theme="dark"] .header-inner nav > a[href="/find-font"]{--ic-c:#E0AC4D}
+:root[data-theme="dark"] .header-inner nav > a[href="/font-convert"]{--ic-c:#5FCB85}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .header-inner nav > a[href="/"]{--ic-c:#F2C14E}
+  :root:not([data-theme="light"]) .header-inner nav > a[href="/find-font"]{--ic-c:#E0AC4D}
+  :root:not([data-theme="light"]) .header-inner nav > a[href="/font-convert"]{--ic-c:#5FCB85}
+}
 
 /* ── GIF 생성기 메뉴 ──────────────────────────────
    글자 자체에 그라데이션을 흘려 넣는다(background-clip:text).
@@ -87,17 +106,12 @@ nav a.nav-gif:hover{filter:saturate(1.25) brightness(1.05)}
 
 .search-wrap{position:relative;flex-shrink:0;margin-left:auto}
 .search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text-muted);pointer-events:none;display:block}
-.search-wrap input{width:280px;height:34px;border:1px solid var(--border);border-radius:18px;padding:0 14px 0 34px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s,width .2s}
+.search-wrap input{width:240px;height:34px;border:1px solid var(--border);border-radius:18px;padding:0 14px 0 34px;font-size:13px;background:var(--bg-secondary);color:var(--text-primary);outline:none;font-family:inherit;transition:border-color .15s,width .2s}
 .search-wrap input::placeholder{color:var(--text-muted)}
-.search-wrap input:focus{border-color:var(--accent);width:320px}
+.search-wrap input:focus{border-color:var(--accent);width:280px}
 
-.header-right{display:flex;align-items:center;gap:8px}
+.header-right{display:flex;align-items:center;gap:4px}
 
-/* 버튼 문구가 한글("타닥타닥 구독")이라 monospace 스택을 쓰면 안 된다.
-   그 스택에는 한글이 없어서 굴림체 계열로 떨어지고, 공용 헤더라 전 페이지에서
-   서체가 어긋나 보인다. 본문 폰트로 통일한다. */
-.btn-subscribe{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;font-size:13px;font-weight:500;letter-spacing:.2px;padding:8px 13px;border:1px solid var(--border);color:var(--text-secondary);border-radius:2px;white-space:nowrap;transition:all .15s;text-decoration:none;display:inline-block}
-.btn-subscribe:hover{border-color:var(--text-primary);color:var(--text-primary)}
 
 .theme-toggle{width:36px;height:36px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}
 .theme-toggle:hover{background:var(--bg-secondary)}
@@ -105,12 +119,28 @@ nav a.nav-gif:hover{filter:saturate(1.25) brightness(1.05)}
 :root[data-theme="dark"] .theme-toggle .ti-moon{display:none}
 :root[data-theme="dark"] .theme-toggle .ti-sun{display:block}
 
+/* ── 오른쪽 ☰ 더보기 — About 묶음(소개·공지사항·자주 묻는 질문·매거진), 2026-10-16 ──
+   사용자님 "About 메뉴를 야간모드 달 모양 옆에 햄버거 메뉴로". 누르면(초점) 또는 마우스를 올리면 펼친다 —
+   :focus-within 이라 스크립트가 없다. 1024px 이하에서는 원래 ☰(.hamburger-btn, 전체 메뉴)가 나오므로 숨긴다.
+   ::before 는 단추와 펼침 사이 틈을 메워 마우스가 내려가는 길에 닫히지 않게 한다. */
+.more-dd{position:relative;display:flex}
+.more-btn{width:36px;height:36px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;border-radius:8px}
+.more-btn:hover,.more-dd:focus-within .more-btn,.more-btn.on{background:var(--bg-secondary)}
+.more-menu{position:absolute;top:calc(100% + 8px);right:0;min-width:168px;padding:6px;background:var(--bg-card);
+  border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);display:none;flex-direction:column;gap:2px;z-index:210}
+.more-menu::before{content:'';position:absolute;left:0;right:0;top:-10px;height:10px}
+.more-dd:hover .more-menu,.more-dd:focus-within .more-menu{display:flex}
+.more-menu a{font-size:14px;font-weight:500;color:var(--text-primary);padding:9px 12px;border-radius:6px;text-decoration:none;white-space:nowrap}
+.more-menu a:hover{background:var(--bg-secondary)}
+.more-menu a.active{color:var(--accent);background:var(--accent-light);font-weight:700}
+
 .hamburger-btn{display:none;width:38px;height:38px;border:none;background:transparent;color:var(--text-primary);cursor:pointer;align-items:center;justify-content:center;border-radius:6px}
 .hamburger-btn:hover{background:var(--bg-secondary)}
 
 .mobile-nav{display:none;flex-direction:column;gap:2px;padding:8px 22px 14px;border-bottom:1px solid var(--border);background:var(--bg-card)}
 .mobile-nav.open{display:flex}
-.mobile-nav a,.mobile-nav button{font-size:14px;color:var(--text-primary);padding:11px 4px;font-weight:500;text-decoration:none}
+.mobile-nav a,.mobile-nav button{font-size:16px;color:var(--text-primary);padding:11px 4px;font-weight:600;text-decoration:none}
 .mobile-nav a.active{color:var(--accent);font-weight:700}
 
 @media(max-width:768px){
@@ -119,7 +149,32 @@ nav a.nav-gif:hover{filter:saturate(1.25) brightness(1.05)}
   .search-wrap{margin-left:12px;flex:1}
   .search-wrap input{width:100%}
   .search-wrap input:focus{width:100%}
-  .btn-subscribe{display:none}
+}
+/* 머리글 폭별 단계 (2026-10-16 실측: 1440 / 1366 / 1281 / 1181 / 1025px 에서 넘치지 않음을 확인) */
+@media(min-width:1025px) and (max-width:1439px){
+  .header-inner nav{gap:2px}
+  .header-inner nav > a{padding:8px 9px}
+  .search-wrap input{width:180px}
+  .search-wrap input:focus{width:230px}
+}
+@media(min-width:1025px) and (max-width:1280px){
+  .header-inner{gap:12px}
+  .header-inner nav > a{font-size:14px;padding:7px 7px;gap:5px}
+  .header-inner nav > a::before{width:15px;height:15px}
+  .search-wrap input{width:130px}
+  .search-wrap input:focus{width:200px}
+}
+@media(min-width:1025px) and (max-width:1180px){
+  .header-inner nav > a::before{display:none}   /* 좁은 노트북은 아이콘을 접는다 */
+  .search-wrap input{width:120px}
+}
+/* 1024px 이하는 메뉴가 한 줄에 안 들어간다 — 휴대폰처럼 ☰ 펼침 메뉴로 접는다 */
+@media(max-width:1024px){
+  .header-inner nav{display:none}
+  .hamburger-btn{display:flex}
+  .more-dd{display:none}
+  .search-wrap{margin-left:12px;flex:1}
+  .search-wrap input,.search-wrap input:focus{width:100%}
 }
 
 /* [제거 2026-09-22] 폰트 조합 찾기 띠(.pair-band*)와 --band-h.

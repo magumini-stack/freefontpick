@@ -28,17 +28,24 @@ from .site import SITE_URL, ORIGIN_MARKER
 #   Apps — 글씨사진관·움짤공방 소개(tdtd.io/apps.html), 새 창.
 #   About ▾ — 소개·공지사항·자주 묻는 질문·매거진을 한 묶음으로 접었다.
 #     읽는 페이지 넷을 메뉴 한 줄에 늘어놓으면 '고르고 만드는' 항목이 묻힌다.
+#
+# 2026-10-16 사용자님 머리글 개편(시안 B): 맨 앞에 '추천폰트'(메인으로), '전체 무료폰트 보기'→'전체 무료폰트',
+#   폰트 변환·GIF 생성기 자리 바꿈, [타닥타닥 구독] 단추는 뺐다. About 묶음은 메뉴줄에서 빼서
+#   오른쪽 달(야간모드) 단추 옆 ☰ 더보기로 옮겼다(render_header 의 more-dd). 메뉴 아이콘은 header.css.
+#   메인 라우트가 inject_header(html, "home") 로 부르므로 메인에서는 '추천폰트'에 활성 표시가 붙는다.
 NAV_ITEMS = [
-    ("fonts", "/fonts", "전체 무료폰트 보기", None, None),
+    ("home", "/", "추천폰트", None, None),
+    ("fonts", "/fonts", "전체 무료폰트", None, None),
     # '폰트 찾기'는 별도 페이지다(static/find-font.html, 2026-09-22 index.html 에서
     # 떼어 냄). 어느 페이지에서든 평범한 링크로 /find-font 를 연다.
     ("findfont", "/find-font", "폰트 찾기", "findFontMenuLink", "mFindFontMenuLink"),
     ("fontpair", "/font-pair", "폰트 조합 찾기", None, None),
+    # 폰트 변환(2026-10-06) — 파일을 브라우저 안에서 바꾸는 도구. 만드는 자리라 GIF 생성기 옆에 둔다.
+    # 10/16 사용자님: GIF 생성기와 자리를 바꿔 변환이 먼저 온다.
+    ("convert", "/font-convert", "폰트 변환", None, None),
     # gif 라우터가 inject_header(html, "gif")로 넘기는 키와 같아야 활성 표시가 붙는다.
     # 2026-08: 템플릿 목록(/gif/templates) 대신 편집기(/gif)로 바로 보낸다.
     ("gif", "/gif", "GIF 생성기", None, None),
-    # 폰트 변환(2026-10-06) — 파일을 브라우저 안에서 바꾸는 도구. 만드는 자리라 GIF 생성기 옆에 둔다.
-    ("convert", "/font-convert", "폰트 변환", None, None),
     ("apps", "https://tdtd.io/apps.html", "Apps", None, None),
 ]
 
@@ -98,21 +105,25 @@ def _nav_links(active: str, indent: str, mobile: bool) -> str:
     if mobile:
         # 모바일은 접을 자리가 없다 — About 안의 것도 같은 높이로 늘어놓는다.
         lines += [_nav_link(it, active, indent, True) for it in ABOUT_ITEMS]
-        return "\n".join(lines)
-    # 데스크톱 About ▾ — 마우스를 올리면 펼쳐진다(header.css .nav-dd).
-    # 부모 글자는 /about 으로 가는 진짜 링크라 키보드·크롤러도 막히지 않는다.
-    on = ' class="active"' if active in ABOUT_KEYS else ""
-    sub = "\n".join(_nav_link(it, active, indent + "    ", False) for it in ABOUT_ITEMS)
-    caret = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-             'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-             '<path d="M6 9l6 6 6-6"/></svg>')
-    lines.append(f'{indent}<div class="nav-dd">')
-    lines.append(f'{indent}  <a href="/about"{on}>About{caret}</a>')
-    lines.append(f'{indent}  <div class="nav-dd-menu">')
-    lines.append(sub)
-    lines.append(f'{indent}  </div>')
-    lines.append(f'{indent}</div>')
+    # 데스크톱 About 묶음은 메뉴줄에 두지 않는다 — 오른쪽 ☰ 더보기(_more_menu)로 옮겼다(2026-10-16).
     return "\n".join(lines)
+
+
+def _more_menu(active: str, indent: str) -> str:
+    """오른쪽 달(야간모드) 단추 옆 ☰ 더보기 — About 묶음(소개·공지사항·자주 묻는 질문·매거진).
+
+    2026-10-16 사용자님 "About 메뉴를 야간모드 달 모양 옆에 햄버거 메뉴로". 누르거나(초점) 마우스를
+    올리면 펼쳐진다(header.css .more-dd — :focus-within 이라 스크립트가 없다). 1024px 이하는
+    원래 ☰(휴대폰 펼침 메뉴)에 전부 들어 있으므로 숨긴다. 공지사항 링크의 id(noticeMenuLink)는
+    index.html 의 해시 라우팅이 활성 표시를 켜고 끄는 데 쓰므로 그대로 단다."""
+    on = " on" if active in ABOUT_KEYS else ""
+    sub = "".join(_nav_link(it, active, "", False) for it in ABOUT_ITEMS)
+    return (f'{indent}<div class="more-dd">'
+            f'<button type="button" class="more-btn{on}" aria-label="더보기 메뉴 (소개·공지사항·자주 묻는 질문·매거진)" aria-haspopup="true">'
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+            'width="21" height="21" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/>'
+            '<line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>'
+            f'<div class="more-menu">{sub}</div></div>')
 
 
 # 구글 애널리틱스(GA4) + 구글 애즈 태그.
@@ -276,6 +287,7 @@ AD_SLOTS = {
     "home_bottom": "4496927948",     # 메인 맨 아래
     "find_bottom": "4496927948",     # 폰트 찾기 '질문하기' 위
     "convert_bottom": "4496927948",  # 폰트 변환 안내·결과 아래
+    "vending_result": "4496927948",  # 추천 폰트 자판기 '오늘의 추천 폰트' 위 (2026-10-16, 전용 단위 만들면 번호만 바꾼다)
 }
 
 # 전면 광고(비네트)를 띄워도 되는 목적지. 비네트는 페이지마다 켜고 끌 수 없고,
@@ -485,7 +497,7 @@ def render_header(active: str = "") -> str:
         <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
         <svg class="ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg>
       </button>
-      <a class="btn-subscribe" href="https://tdtd.io" target="_blank" rel="noopener noreferrer">타닥타닥 구독</a>
+{_more_menu(active, "      ")}
       <button type="button" class="hamburger-btn" onclick="var n=document.getElementById('mnav');n.hidden=!n.hidden;n.classList.toggle('open')" aria-label="메뉴 열기">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="22" height="22"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
       </button>
@@ -493,7 +505,6 @@ def render_header(active: str = "") -> str:
   </div>
   <nav class="mobile-nav" id="mnav" hidden>
 {nav_mobile}
-    <a href="https://tdtd.io" target="_blank" rel="noopener noreferrer">타닥타닥 구독</a>
     <button type="button" onclick="toggleTheme()" style="width:100%;text-align:left;border:none;background:transparent;font-family:inherit;font-size:inherit;color:inherit;padding:inherit;cursor:pointer">
       <svg class="ti-moon" id="mThemeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg><svg class="ti-sun" id="mThemeIconSun" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34 4.93 4.93"/></svg> <span id="mThemeLabel">야간모드</span>
     </button>
