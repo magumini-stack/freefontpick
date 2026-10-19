@@ -95,10 +95,37 @@ def _embed(items):
     return out / np.maximum(np.linalg.norm(out, axis=1, keepdims=True), 1e-9)
 
 
-def query_text(glyphs, text):
-    """후보 폰트로 그릴 글자 — 다시 읽은 글자(띄어쓰기 있음)가 떼어 낸 글자와 같으면 그것, 아니면 떼어 낸 글자."""
+SPACE_ABS, SPACE_REL = 0.30, 0.15
+
+
+def query_text(glyphs, text=None):
+    """후보 폰트로 그릴 글자 — 떼어 낸 글자에 **사진 속 띄어쓰기를 되살려** 붙인다.
+
+    다시 읽은 글자는 띄어쓰기를 자주 빠뜨린다(정답 시험: 띄어쓰기 있는 줄 334 중 다시 읽은 글자에 남은 것 130).
+    그러면 질의 줄에는 낱말 사이 틈이 있는데 후보는 붙여 그려 견주게 되어, 원래 자간이 넓은 폰트가 유리해졌다.
+    그래서 글자 띠 사이 빈틈(잉크 높이로 나눔)이 SPACE_ABS(0.30)를 넘거나 그 줄의 보통 틈(중앙값)보다 SPACE_REL(0.15)
+    넘게 크면 띄어쓰기로 본다 — 정답 시험에서 한글 띄어쓰기 97% 찾음·보통 틈 2% 잘못, 영문 100%·0%."""
     chars = "".join(ch for ch, _ in glyphs)
-    return text if text and text.replace(" ", "") == chars else chars
+    ms = [np.asarray(m, bool) for _, m in glyphs]
+    if len(ms) < 2 or any(m.shape[0] != ms[0].shape[0] for m in ms):
+        return chars                          # 세로쓰기 등 — 띄어쓰기를 따지지 않는다
+    rows = np.flatnonzero(np.concatenate(ms, axis=1).any(axis=1))
+    if not len(rows):
+        return chars
+    hgt = float(rows[-1] - rows[0] + 1)
+    x, edges = 0, []
+    for m in ms:
+        cols = np.flatnonzero(m.any(axis=0))
+        edges.append((x + cols[0], x + cols[-1]) if len(cols) else (x, x))
+        x += m.shape[1]
+    gaps = np.array([(edges[i + 1][0] - edges[i][1]) / hgt for i in range(len(edges) - 1)])
+    med = float(np.median(gaps))
+    out = ""
+    for i, (ch, _) in enumerate(glyphs):
+        out += ch
+        if i < len(gaps) and (gaps[i] > SPACE_ABS or gaps[i] - med > SPACE_REL):
+            out += " "
+    return out
 
 
 def query_vec(glyphs, E):
