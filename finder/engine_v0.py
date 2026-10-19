@@ -1380,14 +1380,25 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
             exact = sorted([r for r in secs if r[0] <= PIN_ABS and r[0] <= RIX_EXACT_MARGIN * best_main], key=lambda r: r[0])[:1]
             secs = [r for r in secs if not exact or r[1] != exact[0][1]]
             info["rix_exact"] = [r[1] for r in exact]
+            eye = _eye_ctx(best)
+            if eye is not None:
+                near_ok = _near_pred(best["res"], sims, face_i)
+                info["eye"] = True
             # 줄 글자: 다시 읽은 글자가 없으면(OCR 없이 글자 위치만 받은 경우) 떼어 낸 글자들로 가른다
             if is_latin_text(best.get("text") or "".join(ch for ch, _ in best.get("glyphs") or [])):
                 # 영문 줄(2026-09-26 사용자님): 영어 폰트 중에서 먼저, 그다음 한글 폰트에 든 영문 — 각자 느낌 먼저 순서 그대로
                 en = [r for r in main if db.info[r[1]]["is_english"]]
                 ko = [r for r in main if not db.info[r[1]]["is_english"]]
+                if eye is not None:
+                    en = _eye_resort(db, en, eye, near_ok, sims, face_i, EYE_K)
+                    ko = _eye_resort(db, ko, eye, near_ok, sims, face_i, EYE_K_SEC)
+                    secs = _eye_resort(db, secs, eye, near_ok, sims, face_i, EYE_K_SEC)
                 res_all = en[:depth] + exact + ko[:depth] + secs[:depth]
                 info["latin"] = True
             else:
+                if eye is not None:
+                    main = _eye_resort(db, main, eye, near_ok, sims, face_i, EYE_K)
+                    secs = _eye_resort(db, secs, eye, near_ok, sims, face_i, EYE_K_SEC)
                 res_all = exact + main[:depth] + secs[:depth]
             g = _list_first(res_all, best["ratio"],
                             best_shape=min(r[0] for r in best["res"]) if best["res"] else None)
@@ -1490,6 +1501,65 @@ FEEL_TOPK = int(__import__("os").environ.get("FEEL_TOPK", "8"))      # 그 '느�
 FEEL_MODE = __import__("os").environ.get("FEEL_MODE", "add")
 FEEL_FIRST_K = float(__import__("os").environ.get("FEEL_FIRST_K", "50"))
 FEEL_SLACK_FIRST = float(__import__("os").environ.get("FEEL_SLACK_FIRST", "4"))
+# 글줄 '눈'(③, 2026-10-19, eyeline.py): 느낌 먼저 순서에서 '거의 같은 폰트' 무리 다음 EYE_K 개를, 질의 글자를 그 폰트로
+# 그려 본 줄과 질의 줄의 닮음(새 눈 코사인)을 느낌 코사인에 EYE_A 배로 더해 다시 세운다. 실험실(font3/, 모델 eye2 = 2,161벌
+# 글줄 26만 개로 학습): 판단 131줄 1위 비슷 44→54%(지금 느낌과 새 눈을 섞은 순서), 엔진 규칙 흉내(sim.py, 정답 시험 496장)
+# 정답 1위 폰트픽 95→97%·타닥타닥 89→93%·처음 보는 폰트 84→91%. K 는 10~40 이 거의 같아 서버 시간을 아끼려 작게 둔다
+# (후보 한 벌 그리기+벡터 ≈ 40ms).
+EYE_ON = __import__("os").environ.get("EYE", "1") == "1"
+EYE_K = int(__import__("os").environ.get("EYE_K", "12"))
+EYE_K_SEC = int(__import__("os").environ.get("EYE_K_SEC", "6"))
+EYE_A = float(__import__("os").environ.get("EYE_A", "1.0"))
+
+
+def _eye_ctx(best):
+    """(질의 줄 벡터, 그릴 글자) — 새 눈이 꺼졌거나 모델이 없으면 None."""
+    if not EYE_ON:
+        return None
+    try:
+        import sys as _sys
+        import eyeline
+        if not eyeline.available():
+            return None
+        glyphs = best.get("glyphs") or []
+        if not glyphs:
+            return None
+        q = eyeline.query_vec(glyphs, _sys.modules[__name__])
+        if q is None:
+            return None
+        return q, eyeline.query_text(glyphs, best.get("text"))
+    except Exception:
+        return None
+
+
+def _eye_resort(db, lst, ctx, near_ok, sims, face_i, k):
+    """lst(목록 순서) 앞의 '거의 같은 폰트' 무리는 그대로, 그다음 k 개를 느낌 + EYE_A × 새 눈 순으로."""
+    if ctx is None or not lst or k <= 1:
+        return lst
+    q, text = ctx
+    lead = 0
+    while lead < len(lst) and near_ok(lst[lead]):
+        lead += 1
+    head = lst[lead:lead + k]
+    if len(head) < 2:
+        return lst
+    try:
+        import sys as _sys
+        import eyeline
+        idx = [face_i.get((r[1], r[2])) for r in head]
+        V = eyeline.cand_vecs(db, [i for i in idx if i is not None], text, _sys.modules[__name__])
+    except Exception:
+        return lst
+    ev = {i: float(V[i] @ q) for i in V}
+    if not ev:
+        return lst
+    fill = float(np.mean(list(ev.values())))          # 글자가 모자라 못 그린 후보는 가운데 값으로(끌어올리지도 버리지도 않게)
+    def key(j):
+        i = idx[j]
+        f = float(sims[i]) if (i is not None and sims is not None) else 0.0
+        return -(f + EYE_A * ev.get(i, fill))
+    order = sorted(range(len(head)), key=lambda j: (key(j), j))
+    return lst[:lead] + [head[j] for j in order] + lst[lead + k:]
 
 
 def _feel_sims(db, glyphs):

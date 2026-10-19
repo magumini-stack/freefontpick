@@ -146,13 +146,22 @@ def _warm():
     threading.Thread(target=go, daemon=True).start()
 
 
+def _eye_ok():
+    try:
+        import eyeline
+        return eyeline.available()
+    except Exception:
+        return False
+
+
 @app.get("/find/health")
 def health():
     try:
         db, _ = _engine()
         return {"ok": True, "faces": len(db.items), "images": len(_images),
                 "feel": getattr(db, "_feel_refs", None) is not None,
-                "feel_lat": getattr(db, "_feel_refs_lat", None) is not None}
+                "feel_lat": getattr(db, "_feel_refs_lat", None) is not None,
+                "eye": bool(E.EYE_ON and _eye_ok())}
     except Exception as e:                                        # 목록이 아직 없으면
         return JSONResponse({"ok": False, "error": str(e)}, status_code=503)
 
