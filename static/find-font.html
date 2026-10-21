@@ -253,6 +253,21 @@ transition:border-color .15s;}
     .ff-fb .ff-like{margin-left:0}
     .ff-fb-note{font-size:12px;color:var(--text-muted)}
     .ff-group{font-size:13px;font-weight:800;color:var(--text-secondary);margin:6px 2px -2px}
+    /* 좁혀 가기(2026-10-21): 갈래 칩 · '이 느낌으로 더 보기' — 시안 폰트픽\폰트찾기_시안 */
+    .ff-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:14px}
+    .ff-chips .lab{font-size:12px;font-weight:800;color:var(--text-secondary);margin-right:2px}
+    .ff-chip{font-size:12px;font-weight:700;padding:5px 11px;border-radius:99px;border:1px solid var(--border-hover);background:var(--bg-card);color:var(--text-primary);cursor:pointer;font-family:inherit}
+    .ff-chip:hover{border-color:var(--accent);color:var(--accent)}
+    .ff-chip.is-on{background:var(--text-primary);color:var(--bg-card);border-color:var(--text-primary)}
+    .ff-more{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:800;padding:6px 10px;border-radius:8px;border:1px solid var(--accent);background:var(--bg-card);color:var(--accent);cursor:pointer;font-family:inherit}
+    .ff-more:hover{background:var(--accent-light)}
+    .ff-trail{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;margin-top:12px}
+    .ff-trail span{color:var(--text-muted)}
+    .ff-back{font-size:13px;font-weight:700;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;font-family:inherit}
+    .ff-back:hover{text-decoration:underline}
+    .ff-anchor{margin-top:10px;border:1px dashed var(--accent);border-radius:var(--radius-md);padding:10px 12px;background:var(--accent-light)}
+    .ff-anchor .t{font-size:12px;font-weight:800;color:var(--accent)}
+    .ff-anchor img{display:block;max-width:100%;height:auto;background:#fff;border-radius:6px;padding:4px 6px;margin-top:6px}
     .ff-loose{font-size:13px;color:var(--text-secondary);margin-top:12px}
     .ff-none{font-size:13px;color:var(--text-secondary);margin-top:12px;padding:12px;border:1px dashed var(--border-hover);border-radius:var(--radius-sm)}
     .ff-board-title{font-size:16px;font-weight:800;margin:26px 0 4px;letter-spacing:-.3px}
@@ -301,6 +316,9 @@ transition:border-color .15s;}
           </div>
         </div>
         <p class="ff-loose" id="ffLoose" hidden>똑같은 폰트는 찾지 못해서, 느낌이 비슷한 폰트를 골랐어요.</p>
+        <div class="ff-trail" id="ffTrail" hidden></div>
+        <div class="ff-anchor" id="ffAnchor" hidden></div>
+        <div class="ff-chips" id="ffChips" role="group" aria-label="갈래로 좁히기" hidden></div>
         <div class="ff-list" id="ffList"></div>
         <div class="ff-fb" id="ffFb" hidden>
           <button type="button" class="ff-like" id="ffNoLike" aria-pressed="false">비슷한 게 없어요</button>
@@ -731,14 +749,21 @@ document.addEventListener('keydown', function(e){
 <script>
 /* ── 이미지로 비슷한 폰트 찾기 ─────────────────────────────────────
    서버: POST /api/find/detect(이미지) → {image_id, width, height, lines[{i, quad, text}]}
-         POST /api/find/match {image_id, line, text?} → {text, read, verdict, results[{fid, w, name, maker, source, link, why}]}
+         POST /api/find/match {image_id, line, text?, style?} → {text, read, verdict, style, results[{fid, w, name, maker, source, link, why, group}]}
+         GET  /api/find/similar?fid&w&text&style?&image_id&line → {anchor, results} — '이 느낌으로 더 보기'(폰트끼리 견줌)
          GET  /api/find/render?fid&w&text → PNG
+   좁혀 가기(2026-10-21 사용자님): 결과 위 갈래 칩(전체·고딕·명조·손글씨·디스플레이 — 서버가 처음 결과를 기억해 거르기만 한다),
+   결과마다 '이 느낌으로 더 보기'(그 폰트와 닮은 폰트, 또 누르면 계속 좁혀 감), '← 처음 결과로'.
    finder 가 꺼져 있으면(503) 안내만 하고 게시판은 그대로 쓴다. */
 (function(){
   var $ = function(id){ return document.getElementById(id); };
   var drop = $('ffDrop'), file = $('ffFile'), stage = $('ffStage'), imgEl = $('ffImg'), boxes = $('ffBoxes');
   var status = $('ffStatus'), result = $('ffResult'), list = $('ffList'), none = $('ffNone'), textIn = $('ffText'), retry = $('ffRetry');
   var fb = $('ffFb'), noLike = $('ffNoLike'), fbCtx = null, loose = $('ffLoose');
+  var chips = $('ffChips'), trail = $('ffTrail'), anchorBox = $('ffAnchor');
+  var CHIPS = ['고딕','명조','손글씨','디스플레이'];
+  // 좁혀 가기 — mode 'first'(사진에서 찾은 결과) · 'more'(고른 폰트와 닮은 폰트). first 는 되돌아갈 처음 결과
+  var view = { mode:'first', style:null, text:'', textOverride:null, first:null, anchor:null };
   if(!drop) return;
   var state = { imageId:null, lines:[], w:0, h:0, line:-1, busy:false, bitmap:null };
 
@@ -818,17 +843,25 @@ document.addEventListener('keydown', function(e){
     c.getContext('2d').drawImage(state.bitmap, x0*scale, y0*scale, sw, sh, 0, 0, W, H);
   }
 
-  async function pick(k, textOverride){
+  // style 을 주면(갈래 칩) 같은 줄·같은 글자로 다시 묻는다 — 서버는 처음 찾은 결과를 기억해 두고 거르기만 해서 빠르다
+  async function pick(k, textOverride, style){
     if(state.busy || !state.imageId) return;
     var ln = state.lines[k]; if(!ln) return;
-    state.line = k; layoutBoxes(); drawCrop(ln);
-    result.hidden = false; list.innerHTML = ''; none.hidden = true; fb.hidden = true; fbCtx = null; loose.hidden = true;
-    if(textOverride === undefined) textIn.value = ln.text || '';
-    say('비슷한 폰트를 찾는 중', false, true);
+    var byChip = style !== undefined;
+    if(byChip){ view.style = style || null; textOverride = view.textOverride || undefined; }
+    else { view.style = null; view.textOverride = textOverride || null; }
+    view.mode = 'first'; view.anchor = null;
+    state.line = k; layoutBoxes(); if(!byChip) drawCrop(ln);
+    result.hidden = false; list.innerHTML = ''; none.hidden = true; fb.hidden = true; loose.hidden = true;
+    trail.hidden = true; anchorBox.hidden = true;
+    if(!byChip){ fbCtx = null; chips.hidden = true; }
+    if(textOverride === undefined && !byChip) textIn.value = ln.text || '';
+    say(byChip ? '‘' + (view.style || '전체') + '’ 갈래로 다시 고르는 중' : '비슷한 폰트를 찾는 중', false, true);
     state.busy = true; retry.disabled = true;
     try{
       var body = { image_id: state.imageId, line: k, top: 5 };
       if(textOverride) body.text = textOverride;
+      if(view.style) body.style = view.style;
       // 처음 보는 글자는 서버가 폰트 1,300벌의 글자 묶음을 만드느라 1분을 넘길 수 있고, 그러면 앞단 nginx 가 504 를 준다.
       // 서버는 그 사이에도 계속 만들어 캐시에 두므로, 몇 초 뒤 다시 물으면 바로 나온다 — 두 번까지 다시 묻는다.
       var r = null;
@@ -853,33 +886,106 @@ document.addEventListener('keydown', function(e){
   retry.addEventListener('click', function(){ var t = textIn.value.trim(); if(state.line >= 0 && t) pick(state.line, t); });
   textIn.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); retry.click(); } });
 
-  function render(j){
-    var text = j.text || '';
-    if(!j.results || !j.results.length){ none.hidden = false; list.innerHTML = ''; return; }
-    loose.hidden = j.verdict !== 'loose';        // 모양이 똑같은 폰트는 없고 느낌이 비슷한 것들(엔진 _list_first)
-    list.innerHTML = j.results.map(function(r, i){
-      var badge = r.source === 'tdtd' ? '<span class="ff-badge td">타닥타닥 · ' + esc(r.maker) + '</span>'
-        : r.source === 'rix' ? '<span class="ff-badge rix">RixFont</span>' : '<span class="ff-badge ffp">폰트픽 무료</span>';
-      var best = i === 0 ? '<span class="ff-best">가장 비슷해요</span>' : '';
-      var img = '/api/find/render?fid=' + encodeURIComponent(r.fid) + '&w=' + r.w + '&text=' + encodeURIComponent(text) + '&h=56';
-      var actions = r.source === 'tdtd'
-        ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">타닥타닥에서 보기</a>'
-        : r.source === 'rix' ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">RixFont에서 보기</a>'
-        // 새 창으로 연다(10/6 사용자님) — 같은 창이면 올린 이미지와 찾은 결과가 사라진다
-        : '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">폰트 보기</a><a class="primary" href="' + esc(r.link) + '/design" target="_blank" rel="noopener">이 폰트로 디자인하기</a>';
-      // 영문 줄은 두 묶음(엔진·서비스 2026-09-26): 영어 폰트 먼저, 그다음 영문이 비슷한 한글 폰트
-      var head = (r.group && (i === 0 || j.results[i - 1].group !== r.group))
+  function renderUrl(fid, w, text){
+    return '/api/find/render?fid=' + encodeURIComponent(fid) + '&w=' + w + '&text=' + encodeURIComponent(text) + '&h=56';
+  }
+
+  function cardHtml(r, i, text, best){
+    var badge = r.source === 'tdtd' ? '<span class="ff-badge td">타닥타닥 · ' + esc(r.maker) + '</span>'
+      : r.source === 'rix' ? '<span class="ff-badge rix">RixFont</span>' : '<span class="ff-badge ffp">폰트픽 무료</span>';
+    var bestTag = best ? '<span class="ff-best">가장 비슷해요</span>' : '';
+    var actions = r.source === 'tdtd'
+      ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">타닥타닥에서 보기</a>'
+      : r.source === 'rix' ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">RixFont에서 보기</a>'
+      // 새 창으로 연다(10/6 사용자님) — 같은 창이면 올린 이미지와 찾은 결과가 사라진다
+      : '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">폰트 보기</a><a class="primary" href="' + esc(r.link) + '/design" target="_blank" rel="noopener">이 폰트로 디자인하기</a>';
+    return '<div class="ff-cand' + (best ? ' is-best' : '') + '"><div class="ff-head">' + esc(r.name) + ' <small>' + r.w + '</small>' + badge + bestTag + '</div>'
+      + (r.why ? '<div class="ff-why">' + esc(r.why) + '</div>' : '')
+      + '<img src="' + renderUrl(r.fid, r.w, text) + '" alt="' + esc(r.name) + '로 쓴 ' + esc(text) + '" loading="lazy">'
+      + '<div class="ff-actions">' + actions
+      + '<button type="button" class="ff-more" data-fid="' + esc(r.fid) + '" data-w="' + r.w + '" data-name="' + esc(r.name) + '"><i class="ti ti-search" aria-hidden="true"></i>이 느낌으로 더 보기</button>'
+      + '<button type="button" class="ff-like" aria-pressed="false" data-fid="' + esc(r.fid) + '" data-w="' + r.w + '"><i class="ti ti-thumb-up" aria-hidden="true"></i>비슷해요</button>'
+      + '</div></div>';
+  }
+
+  // 영문 줄은 두 묶음(엔진·서비스 2026-09-26): 영어 폰트 먼저, 그다음 영문이 비슷한 한글 폰트 / RixFont 는 뒤 묶음
+  function listHtml(results, text, bestFirst){
+    return results.map(function(r, i){
+      var head = (r.group && (i === 0 || results[i - 1].group !== r.group))
         ? '<div class="ff-group">' + (r.group === 'en' ? '영문 폰트' : r.group === 'rix' ? 'RixFont에서 비슷한 폰트' : '영문이 비슷한 한글 폰트') + '</div>' : '';
-      return head + '<div class="ff-cand' + (i === 0 ? ' is-best' : '') + '"><div class="ff-head">' + esc(r.name) + ' <small>' + r.w + '</small>' + badge + best + '</div>'
-        + (r.why ? '<div class="ff-why">' + esc(r.why) + '</div>' : '')
-        + '<img src="' + img + '" alt="' + esc(r.name) + '로 쓴 ' + esc(text) + '" loading="lazy">'
-        + '<div class="ff-actions">' + actions
-        + '<button type="button" class="ff-like" aria-pressed="false" data-fid="' + esc(r.fid) + '" data-w="' + r.w + '"><i class="ti ti-thumb-up" aria-hidden="true"></i>비슷해요</button>'
-        + '</div></div>';
+      return head + cardHtml(r, i, text, bestFirst && i === 0);
     }).join('');
+  }
+
+  function renderChips(){
+    chips.innerHTML = '<span class="lab">갈래로 좁히기</span>' + ['전체'].concat(CHIPS).map(function(n){
+      var on = (n === '전체' ? !view.style : view.style === n);
+      return '<button type="button" class="ff-chip' + (on ? ' is-on' : '') + '" aria-pressed="' + (on ? 'true' : 'false') + '" data-style="' + (n === '전체' ? '' : esc(n)) + '">' + esc(n) + '</button>';
+    }).join('');
+    chips.hidden = false;
+  }
+
+  function render(j){
+    view.mode = 'first'; view.anchor = null; view.first = j; view.style = j.style || null;
+    view.text = j.text || textIn.value || '';
+    var text = view.text;
+    trail.hidden = true; anchorBox.hidden = true;
+    renderChips();
     fbCtx = { imageId: state.imageId, line: state.line };
+    if(!j.results || !j.results.length){
+      list.innerHTML = view.style ? '<p class="ff-none">‘' + esc(view.style) + '’ 갈래에서는 비슷한 폰트를 찾지 못했어요. 다른 갈래를 눌러 보세요.</p>' : '';
+      none.hidden = !!view.style; fb.hidden = true; return;
+    }
+    loose.hidden = j.verdict !== 'loose' || !!view.style;   // 모양이 똑같은 폰트는 없고 느낌이 비슷한 것들(엔진 _list_first)
+    list.innerHTML = listHtml(j.results, text, !view.style);
     setOn(noLike, false); fb.hidden = false;
   }
+
+  // '이 느낌으로 더 보기'(2026-10-21) — 사진이 아니라 고른 폰트와 닮은 폰트(서버가 폰트끼리 견준다). 또 누르면 계속 좁혀 간다.
+  async function more(fid, w, name, style){
+    if(state.busy || !view.text) return;
+    view.mode = 'more'; view.anchor = { fid: fid, w: w, name: name }; view.style = style || null;
+    state.busy = true; say('‘' + name + '’와 닮은 폰트를 찾는 중', false, true);
+    try{
+      var q = '/api/find/similar?fid=' + encodeURIComponent(fid) + '&w=' + w + '&text=' + encodeURIComponent(view.text) + '&top=5'
+        + (view.style ? '&style=' + encodeURIComponent(view.style) : '')
+        + (state.imageId && state.line >= 0 ? '&image_id=' + encodeURIComponent(state.imageId) + '&line=' + state.line : '');
+      var r = await fetch(q);
+      var j = await r.json().catch(function(){ return {}; });
+      if(!r.ok){ say(j.detail || '닮은 폰트를 찾지 못했어요.', true); }
+      else { say(''); renderMore(j); }
+    }catch(e){ say('연결에 문제가 있어요. 잠시 후 다시 해 주세요.', true); }
+    state.busy = false;
+    result.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+
+  function renderMore(j){
+    var text = view.text, a = j.anchor || view.anchor;
+    trail.innerHTML = '<button type="button" class="ff-back">← 처음 결과로</button><span aria-hidden="true">›</span><b>' + esc(a.name) + ' 느낌</b>';
+    trail.hidden = false;
+    anchorBox.innerHTML = '<div class="t">이 폰트와 닮은 폰트를 모았어요</div><img src="' + renderUrl(a.fid, a.w, text) + '" alt="' + esc(a.name) + '로 쓴 ' + esc(text) + '">';
+    anchorBox.hidden = false;
+    renderChips(); loose.hidden = true; none.hidden = true; fb.hidden = true;   // '비슷한 게 없어요'는 처음 결과에만
+    list.innerHTML = (j.results && j.results.length) ? listHtml(j.results, text, false)
+      : '<p class="ff-none">' + (view.style ? '‘' + esc(view.style) + '’ 갈래에서는 ' : '') + '닮은 폰트를 찾지 못했어요.</p>';
+  }
+
+  list.addEventListener('click', function(e){
+    var m = e.target.closest ? e.target.closest('.ff-more') : null; if(!m) return;
+    more(m.getAttribute('data-fid'), +m.getAttribute('data-w'), m.getAttribute('data-name'), null);
+  });
+  chips.addEventListener('click', function(e){
+    var c = e.target.closest ? e.target.closest('.ff-chip') : null; if(!c || state.busy) return;
+    var st = c.getAttribute('data-style') || null;
+    if(st === view.style) return;
+    if(view.mode === 'more' && view.anchor) more(view.anchor.fid, view.anchor.w, view.anchor.name, st);
+    else if(state.line >= 0) pick(state.line, undefined, st);
+  });
+  trail.addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('.ff-back') : null; if(!b || !view.first || state.busy) return;
+    render(view.first);
+    result.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  });
 
   /* '비슷해요'·'비슷한 게 없어요' (2026-09-23) — finder 가 이미지·글자 없이 느낌 수치와 누른 폰트만 남긴다.
      다시 누르면 취소(on:false). 둘은 서로 반대라 하나를 켜면 다른 쪽은 끈다. */

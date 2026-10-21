@@ -7,6 +7,8 @@
     POST /find/match    {image_id, line, text?} → {text, results:[{fid, w, name, maker, source, link, why}], verdict}
     GET  /find/render   ?fid=&w=&text=   → 그 폰트로 글자를 그린 PNG (타닥타닥 유료 폰트 파일은 안 나간다)
     POST /find/feedback {image_id, line, kind, fid?, w?, on} → 사용자가 누른 '비슷해요'·'비슷한 게 없어요'를 남긴다
+    GET  /find/similar  ?fid=&w=&text=&style=&image_id=&line= → 그 폰트와 닮은 폰트들('이 느낌으로 더 보기', 폰트끼리 비교)
+match 에 style(고딕·명조·손글씨·디스플레이)을 주면 처음 찾은 결과(15분 기억)를 그 갈래로 걸러 다시 세운다(갈래 칩).
 날짜별 사용 수는 /data/usage.json(한국 시각 날짜 → 항목별 수) — 숫자만, 이미지·글자·접속 주소는 남기지 않는다.
     GET  /find/health
 
@@ -53,6 +55,7 @@ FEEDBACK = os.environ.get("FINDER_FEEDBACK", os.path.join(DATA, "feedback", "fee
 #   detect 이미지 올림 · detect_nolines 그중 글자 줄을 못 찾음 · detect_sec 올림 처리 초 합
 #   match 줄 찾기 · match_sec 줄 찾기 초 합(앞 요청 기다린 시간 포함) · match_latin 영문 줄 · match_loose 똑같은 폰트 없이
 #   느낌이 비슷한 것만 · match_edit 읽은 글자를 고쳐서 다시 찾음 · similar/none '비슷해요'/'비슷한 게 없어요'(…_off 는 취소)
+#   match_style 갈래 칩 · more '이 느낌으로 더 보기'(more_sec 초 합, more_style 그 화면에서 갈래 칩)
 USAGE = os.environ.get("FINDER_USAGE", os.path.join(DATA, "usage.json"))
 KST = timezone(timedelta(hours=9))
 
@@ -143,6 +146,17 @@ def _warm():
                         print("느낌 기준 벡터(%s) 준비 끝: %d개 (%.0fs)" % (script, len(db.items), time.time() - t0), flush=True)
             except Exception as e:
                 print("느낌 기준 벡터 못 만듦:", e, flush=True)
+        # 새 눈 기준 벡터('이 느낌으로 더 보기' — 폰트끼리 견줌, 2026-10-21): 처음 한 번 10분 남짓, 다음부터 /data 캐시
+        if E.EYE_ON:
+            try:
+                import eyeline
+                if eyeline.available():
+                    for script in ("ko", "lat"):
+                        t0 = time.time()
+                        eyeline.refs(db, E, script=script, log=lambda m: print(m, flush=True))
+                        print("새 눈 기준 벡터(%s) 준비 끝: %d개 (%.0fs)" % (script, len(db.items), time.time() - t0), flush=True)
+            except Exception as e:
+                print("새 눈 기준 벡터 못 만듦:", e, flush=True)
     threading.Thread(target=go, daemon=True).start()
 
 
@@ -161,7 +175,8 @@ def health():
         return {"ok": True, "faces": len(db.items), "images": len(_images),
                 "feel": getattr(db, "_feel_refs", None) is not None,
                 "feel_lat": getattr(db, "_feel_refs_lat", None) is not None,
-                "eye": bool(E.EYE_ON and _eye_ok())}
+                "eye": bool(E.EYE_ON and _eye_ok()),
+                "eye_refs": getattr(db, "_eye_refs", None) is not None}
     except Exception as e:                                        # 목록이 아직 없으면
         return JSONResponse({"ok": False, "error": str(e)}, status_code=503)
 
@@ -203,6 +218,12 @@ class MatchReq(BaseModel):
     line: int
     text: str | None = None          # 사용자가 고친 글자(있으면 이 글자로 자르고 그린다)
     top: int = 8
+    style: str | None = None         # 갈래 칩(고딕·명조·손글씨·디스플레이) — 처음 찾은 결과를 그 갈래로 걸러 다시 세운다
+
+
+# 갈래 칩을 누를 때 엔진(글자 견주기)을 다시 돌리지 않도록 찾은 결과를 이미지 기록 옆에 둔다(이미지와 함께 15분 뒤 지워진다).
+# 다시 세우는 데 필요한 것만 — 글자 마스크·모든 굵기 순위·읽은 글자 등(줄 하나 0.5MB 안팎).
+RUN_KEYS = ("res_all", "shown", "glyphs", "text", "rix_exact", "latin", "verdict", "explain")
 
 
 @app.post("/find/match")
@@ -221,32 +242,69 @@ def match(req: MatchReq):
     if text_override:
         chars = _chars_for_text(ln, text_override)
         base_conf = 1.0                                   # 사람이 고친 글자는 다시 읽은 것보다 믿는다
+    style = req.style if req.style in E.STYLE_CHIPS else None
+    runs = rec.setdefault("runs", {})
+    key = (req.line, text_override or "")
     with _lock:
-        img = cv2.imdecode(np.frombuffer(rec["jpg"], np.uint8), cv2.IMREAD_COLOR)[:, :, ::-1]
-        r = E.rank_image_ex(db, img, ln["quad"], chars, top=max(3, min(12, req.top)),
-                            ocr=tf.recognize, base_conf=base_conf)
+        r = runs.get(key)
+        fresh = r is None
+        if fresh:
+            img = cv2.imdecode(np.frombuffer(rec["jpg"], np.uint8), cv2.IMREAD_COLOR)[:, :, ::-1]
+            r = E.rank_image_ex(db, img, ln["quad"], chars, top=max(3, min(12, req.top)),
+                                ocr=tf.recognize, base_conf=base_conf)
+            r = {k: r.get(k) for k in RUN_KEYS}
+            runs[key] = r
+        shown = E.relist(db, r, style) if style else (r.get("shown") or [])
         feel = _feel_of(db, r)
         ctx = _fb_context(db, r, feel)
     text = text_override or r.get("text") or ln["text"]
-    out = []
+    out, cut = _results(db, r, shown, req.top, feel)
+    ctx["shown"] = [[x["fid"], x["w"]] for x in out]
+    ctx["style"] = style
+    rec.setdefault("fb", {})[req.line] = ctx
+    inc = dict(match=1, match_sec=round(time.time() - t0, 1)) if fresh else dict(match_style=1)
+    if fresh and r.get("latin"):
+        inc["match_latin"] = 1
+    if fresh and r.get("verdict") == "loose":
+        inc["match_loose"] = 1
+    if fresh and text_override:
+        inc["match_edit"] = 1
+    if cut:
+        inc["tight_cut"] = cut                            # 느낌이 너무 멀어 뺀 후보 수(하루 합)
+    _count(**inc)
+    return {"text": text, "read": ln["text"], "verdict": r.get("verdict"), "style": style, "results": out}
+
+
+def _fid_of(db, fid):
+    """문자열 폰트 id → 목록의 id(폰트픽은 숫자, 타닥타닥·RixFont 는 글자)."""
+    m = getattr(db, "_fid_str", None)
+    if m is None:
+        m = db._fid_str = {str(k): k for k in db.info}
+    return m.get(str(fid))
+
+
+def _results(db, r, shown, top, feel):
+    """엔진 목록 → 화면 결과 [{fid, w, name, maker, source, link, why, group}], 조이기로 뺀 수.
+    RixFont(2026-10-14 사용자님): 완전 같은 것만 앞에(엔진이 맨 위에 둠), 비슷한 것은 무료·타닥타닥 뒤 'rix' 묶음으로."""
     face_of = {(it["fid"], it["weight"]): it for it in db.items}
-    # RixFont(2026-10-14 사용자님): 완전 같은 것만 앞에(엔진이 맨 위에 둠), 비슷한 것은 무료·타닥타닥 뒤 'rix' 묶음으로
     rix_exact = set(r.get("rix_exact") or [])
     is_rix = lambda x: db.info[x[1]]["source"] == "rix" and x[1] not in rix_exact
-    shown = [x for x in r["shown"] if not is_rix(x)]
-    rix = [x for x in r["shown"] if is_rix(x)][:RIX_SHOW]
-    if r.get("latin"):
+    main = [x for x in shown if not is_rix(x)]
+    rix = [x for x in shown if is_rix(x)][:RIX_SHOW]
+    latin = bool(r.get("latin"))
+    if latin:
         # 영문 줄(2026-09-26 사용자님): 영어 폰트 중에서 먼저, 그다음 한글 폰트에 든 영문 — 화면은 두 묶음으로
-        en = [x for x in shown if db.info[x[1]]["is_english"]][:req.top]
-        ko = [x for x in shown if not db.info[x[1]]["is_english"]][:LATIN_KO]
+        en = [x for x in main if db.info[x[1]]["is_english"]][:top]
+        ko = [x for x in main if not db.info[x[1]]["is_english"]][:LATIN_KO]
         picked = [(x, "en") for x in en] + [(x, "ko") for x in ko]
     else:
-        picked = [(x, None) for x in shown[:req.top]]
+        picked = [(x, None) for x in main[:top]]
     picked += [(x, "rix") for x in rix]
     n_all = len(picked)
-    if not r.get("latin"):
+    if not latin:
         # 영문 줄은 판단 자료가 없어 그대로 둔다 — 0.2 로 자르면 Pacifico 줄에서 Dancing Script·Lobster 같은 필기체까지 빠졌다
         picked = _tighten(picked, feel)
+    out = []
     for (score, fid, w, name), group in picked:
         info = db.info[fid]
         link = info["link"]
@@ -255,20 +313,38 @@ def match(req: MatchReq):
             # 타닥타닥 폰트정보 페이지(tdtd.io/fonts/about)의 그 폰트 카드로 바로 스크롤 — fontview.js 가 #f= 을 읽는다
             link = TDTD_ABOUT + "#f=" + it["h"]
         out.append(dict(fid=str(fid), w=int(w), name=name, maker=info["maker"], source=info["source"],
-                        link=link, why=E.explain_text(r.get("explain", {}).get(fid)), group=group))
-    ctx["shown"] = [[x["fid"], x["w"]] for x in out]
-    rec.setdefault("fb", {})[req.line] = ctx
-    inc = dict(match=1, match_sec=round(time.time() - t0, 1))
-    if r.get("latin"):
-        inc["match_latin"] = 1
-    if r.get("verdict") == "loose":
-        inc["match_loose"] = 1
-    if text_override:
-        inc["match_edit"] = 1
-    if n_all > len(picked):
-        inc["tight_cut"] = n_all - len(picked)            # 느낌이 너무 멀어 뺀 후보 수(하루 합)
-    _count(**inc)
-    return {"text": text, "read": ln["text"], "verdict": r["verdict"], "results": out}
+                        link=link, why=E.explain_text((r.get("explain") or {}).get(fid)), group=group))
+    return out, n_all - len(picked)
+
+
+@app.get("/find/similar")
+def similar(fid: str, w: int, text: str, style: str | None = None, image_id: str | None = None,
+            line: int | None = None, top: int = 5):
+    """'이 느낌으로 더 보기'(2026-10-21 사용자님 3번) — 사진이 아니라 고른 폰트와 닮은 폰트들. 무료·타닥타닥은 섞어 닮은 순,
+    RixFont 는 뒤 묶음(match 와 같은 모양). 새 눈 기준 벡터를 만드는 중(서버 뜬 직후)이면 느낌 기준만으로 잰다."""
+    t0 = time.time()
+    db, _ = _ready()
+    f = _fid_of(db, fid)
+    if f is None:
+        raise HTTPException(404, "없는 폰트입니다")
+    text = (text or "").strip()[:40]
+    style = style if style in E.STYLE_CHIPS else None
+    with _lock:
+        shown = E.similar(db, f, int(w), text, style=style)
+    out, _ = _results(db, dict(latin=E.is_latin_text(text)), shown, max(3, min(12, top)), (None, None, None))
+    # 이 화면에서 누른 '비슷해요'도 남길 수 있게 — 사진 줄 기록(fb)에 '더 보기'로 보여 준 폰트를 붙여 둔다
+    if image_id and line is not None:
+        ctx = (_images.get(image_id) or {}).get("fb", {}).get(int(line))
+        if ctx is not None:
+            more = ctx.setdefault("more", [])
+            for x in out:
+                if [x["fid"], x["w"]] not in more:
+                    more.append([x["fid"], x["w"]])
+    it = next((x for x in db.items if x["fid"] == f and x["weight"] == int(w)), None)
+    _count(more=1, more_sec=round(time.time() - t0, 1), **({"more_style": 1} if style else {}))
+    return {"anchor": dict(fid=str(f), w=int(w), name=it["name"] if it else db.info[f]["name"],
+                           source=db.info[f]["source"], maker=db.info[f]["maker"]),
+            "style": style, "results": out, "eye_refs": getattr(db, "_eye_refs", None) is not None}
 
 
 def _feel_of(db, r):
@@ -345,12 +421,16 @@ def feedback(req: FeedbackReq):
         raise HTTPException(410, "시간이 지나 남길 수 없어요")
     if req.kind not in ("similar", "none"):
         raise HTTPException(400, "kind 는 similar 나 none")
-    pos = None
+    pos, via = None, None
     if req.kind == "similar":
         pos = next((k for k, (f, w) in enumerate(ctx["shown"]) if f == req.fid and w == req.w), None)
         if pos is None:
-            raise HTTPException(400, "보여 준 후보가 아닙니다")
-    row = dict(t=time.strftime("%Y-%m-%d"), kind=req.kind, on=bool(req.on), fid=req.fid, w=req.w, pos=pos, **ctx)
+            if [req.fid, req.w] in ctx.get("more", []):
+                via = "more"                                  # '이 느낌으로 더 보기'에서 누름
+            else:
+                raise HTTPException(400, "보여 준 후보가 아닙니다")
+    row = dict(t=time.strftime("%Y-%m-%d"), kind=req.kind, on=bool(req.on), fid=req.fid, w=req.w, pos=pos, via=via,
+               **{k: v for k, v in ctx.items() if k != "more"})
     line = json.dumps(row, ensure_ascii=False, separators=(",", ":"))
     with _fb_lock:
         os.makedirs(os.path.dirname(FEEDBACK), exist_ok=True)

@@ -86,6 +86,27 @@ async def feedback(request: Request):
         return _off()
 
 
+@router.get("/similar")
+async def similar(fid: str, w: int, text: str, style: str | None = None, image_id: str | None = None,
+                  line: int | None = None, top: int = 5):
+    """'이 느낌으로 더 보기'(2026-10-21) — 고른 폰트와 닮은 폰트들(finder 가 폰트끼리 견준다)."""
+    if not FINDER_URL:
+        return _off()
+    params = {"fid": fid, "w": w, "text": text[:40], "top": max(3, min(12, top))}
+    if style:
+        params["style"] = style[:10]
+    if image_id and line is not None:
+        params.update(image_id=image_id[:40], line=line)
+    try:
+        async with httpx.AsyncClient(timeout=TIMEOUT) as c:
+            r = await c.get(FINDER_URL + "/find/similar", params=params)
+        return Response(r.content, status_code=r.status_code, media_type="application/json")
+    except httpx.TimeoutException:
+        return _busy()
+    except Exception:
+        return _off()
+
+
 @router.get("/render")
 async def render(fid: str, w: int, text: str, h: int = 56):
     if not FINDER_URL:
