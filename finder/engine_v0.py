@@ -1562,6 +1562,99 @@ def _eye_resort(db, lst, ctx, near_ok, sims, face_i, k):
     return lst[:lead] + [head[j] for j in order] + lst[lead + k:]
 
 
+# ── 좁혀 가기(2026-10-21 사용자님 '3번'): 갈래 칩 · '이 느낌으로 더 보기' ─────────────────────
+STYLE_CHIPS = ("고딕", "명조", "손글씨", "디스플레이")     # 화면 칩 — 손글씨 칩은 캘리도 함께(목록도 한 갈래로 본다)
+
+
+def style_ok(db, fid, style):
+    if not style:
+        return True
+    cats = db.cats.get(fid, set())
+    return bool(cats & {"손글씨", "캘리"}) if style == "손글씨" else style in cats
+
+
+def _dedupe(lst):
+    seen, out = set(), []
+    for r in lst:
+        if r[1] not in seen:
+            seen.add(r[1]); out.append(r)
+    return out
+
+
+def relist(db, r, style=None, depth=None):
+    """찾기 결과 r(rank_image_ex)에서 갈래(style)로 거른 목록을 다시 만든다 — 엔진(글자 견주기)은 다시 돌리지 않는다.
+    순서는 처음과 같은 규칙: '거의 같은 폰트' 무리 → 느낌 먼저, 그 앞 EYE_K 개는 느낌 + 새 눈. 결과는 폰트마다 한 번."""
+    depth = depth or GATE_DEPTH
+    res = r.get("res_all") or []
+    if not res:
+        return []
+    glyphs = r.get("glyphs") or []
+    qv, sims, face_i = _feel_sims(db, glyphs)
+    is_sec = lambda fid: db.info[fid]["source"] in SECONDARY_SOURCES
+    keep = lambda x: style_ok(db, x[1], style)
+    main = [x for x in res if not is_sec(x[1]) and keep(x)]
+    secs = [x for x in res if is_sec(x[1]) and keep(x)]
+    exact = [x for x in secs if x[1] in (r.get("rix_exact") or [])][:1]
+    secs = [x for x in secs if not exact or x[1] != exact[0][1]]
+    eye = _eye_ctx(dict(glyphs=glyphs, text=r.get("text"))) if sims is not None else None
+    near_ok = _near_pred(res, sims, face_i) if eye is not None else None
+    if r.get("latin"):
+        en = [x for x in main if db.info[x[1]]["is_english"]]
+        ko = [x for x in main if not db.info[x[1]]["is_english"]]
+        if eye is not None:
+            en = _eye_resort(db, en, eye, near_ok, sims, face_i, EYE_K)
+            ko = _eye_resort(db, ko, eye, near_ok, sims, face_i, EYE_K_SEC)
+            secs = _eye_resort(db, secs, eye, near_ok, sims, face_i, EYE_K_SEC)
+        return _dedupe(en[:depth] + exact + ko[:depth] + secs[:depth])
+    if eye is not None:
+        main = _eye_resort(db, main, eye, near_ok, sims, face_i, EYE_K)
+        secs = _eye_resort(db, secs, eye, near_ok, sims, face_i, EYE_K_SEC)
+    return _dedupe(exact + main[:depth] + secs[:depth])
+
+
+def similar(db, fid, w, text, style=None, depth=None):
+    """폰트끼리 닮은 순 — (fid, 굵기)와 닮은 다른 폰트들(폰트마다 가장 닮은 굵기 하나). 사진이 아니라 폰트끼리 견준다:
+    새 눈 기준 줄 벡터(eyeline.refs)와 느낌 기준 벡터(feel.refs)의 코사인 합. 질의 글자를 다 가진 폰트만(같은 글자로 그려 보여 주니까).
+    결과 칸 모양은 rank 와 같다: (점수, fid, 굵기, 이름) — 점수는 1 − 닮음(작을수록 닮음)."""
+    depth = depth or GATE_DEPTH
+    face_i = getattr(db, "_face_i", None)
+    if face_i is None:
+        face_i = db._face_i = {(it["fid"], it["weight"]): i for i, it in enumerate(db.items)}
+    i0 = face_i.get((fid, w))
+    if i0 is None:
+        return []
+    script = "lat" if is_latin_text(text or "") else "ko"
+    score = np.zeros(len(db.items), np.float32)
+    n = 0
+    E1 = getattr(db, "_eye_refs" if script == "ko" else "_eye_refs_lat", None)
+    F1 = getattr(db, "_feel_refs" if script == "ko" else "_feel_refs_lat", None)
+    for M in (E1, F1):
+        if M is not None and M[i0].any():
+            score += M @ M[i0]; n += 1
+    if not n:
+        return []
+    score /= n
+    chars = [c for c in (text or "") if usable(c)]
+    cand = []
+    for i, it in enumerate(db.items):
+        if it["fid"] == fid or db.excluded[i] or score[i] <= 0:
+            continue
+        if chars and not all(db.has(i, c) for c in chars):
+            continue
+        if not style_ok(db, it["fid"], style):
+            continue
+        cand.append((1.0 - float(score[i]), it["fid"], it["weight"], it["name"]))
+    cand.sort(key=lambda x: (x[0], str(x[1])))
+    is_sec = lambda f: db.info[f]["source"] in SECONDARY_SOURCES
+    main = [x for x in cand if not is_sec(x[1])]
+    secs = [x for x in cand if is_sec(x[1])]
+    if script == "lat":
+        en = [x for x in main if db.info[x[1]]["is_english"]]
+        ko = [x for x in main if not db.info[x[1]]["is_english"]]
+        return _dedupe(en[:depth * 3]) [:depth] + _dedupe(ko[:depth * 3])[:depth] + _dedupe(secs[:depth * 3])[:depth]
+    return _dedupe(main[:depth * 3])[:depth] + _dedupe(secs[:depth * 3])[:depth]
+
+
 def _feel_sims(db, glyphs):
     """(질의 벡터, 굵기별 코사인 배열, {(fid, 굵기): 번호}) — 끄거나 못 재면 (None, None, None).
 

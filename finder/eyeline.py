@@ -181,3 +181,76 @@ def cand_vecs(db, faces, text, E):
         while len(_cache) > CACHE_MAX:
             _cache.popitem(last=False)
     return out
+
+
+# ── 폰트끼리 닮음('이 느낌으로 더 보기', 2026-10-21) ───────────────────────────
+# 굵기마다 기준 문장들을 깨끗하게 그린 줄의 벡터 평균 — 사진이 아니라 폰트끼리 견주므로 훨씬 고르다.
+# 서버는 뜰 때 뒤에서 만들고(처음 한 번 몇 분) 목록 폴더 eye_refs_<태그>[_lat].npz 에 남긴다(feel.refs 와 같은 방식).
+KO_REFS = ["가나다라마바사", "아자차카타파하", "폰트 찾기 한글", "오늘도 우리 행복", "사랑 글씨 좋은 날"]
+LAT_REFS = ["ABDEGHKMNRS", "abdeghkmnprst", "Hamburgefonts", "Sale 2026"]
+
+
+def _model_tag():
+    import hashlib
+    st = os.stat(MODEL)
+    return hashlib.md5(("%d:%d" % (st.st_size, int(st.st_mtime))).encode()).hexdigest()[:8]
+
+
+def _ref_items(font, has, texts, E):
+    from PIL import Image, ImageDraw
+    f = font.font_variant(size=96)
+    out = []
+    for t in texts:
+        t2 = "".join(c for c in t if c == " " or has(c)).strip()
+        if len(t2.replace(" ", "")) < 4:
+            continue
+        bb = f.getbbox(t2)
+        img = Image.new("L", (max(8, int(bb[2] - bb[0] + 0.8 * 96) + 4), int(96 * 2.2)), 0)
+        ImageDraw.Draw(img).text((0.4 * 96 - bb[0], 96 * 1.5), t2, font=f, fill=255, anchor="ls")
+        arr, w = line_input(_repr(np.asarray(img) > 127, E))
+        if arr is not None:
+            out.append((arr, w))
+    return out
+
+
+def refs(db, E, script="ko", log=None):
+    """db.items 순서의 기준 벡터 (n, 128) — 목록 폴더 eye_refs_<태그>[_lat].npz 에 캐시. 못 만든 굵기는 0 벡터.
+    폰트는 db._load 로 따로 연다(뒤 스레드에서 돌려도 찾기 요청의 폰트 목록(LRU)과 엉키지 않게)."""
+    attr = "_eye_refs" if script == "ko" else "_eye_refs_lat"
+    cache = getattr(db, attr, None)
+    if cache is not None:
+        return cache
+    texts = KO_REFS if script == "ko" else LAT_REFS
+    tag = _model_tag()
+    path = os.path.join(os.path.dirname(os.path.dirname(db.stack_dir)), "eye_refs_%s%s.npz" % (tag, "" if script == "ko" else "_lat"))
+    have = {}
+    if os.path.exists(path):
+        z = np.load(path, allow_pickle=False)
+        have = dict(zip(z["keys"].tolist(), z["vecs"]))
+    out = np.zeros((len(db.items), 128), np.float32)
+    dirty = 0
+    excluded = getattr(db, "excluded", None)
+    for i, it in enumerate(db.items):
+        if excluded is not None and excluded[i]:
+            continue
+        key = "%s|%d" % (it["fn_key"], it["weight"])
+        v = have.get(key)
+        if v is None:
+            font = db._load(it["fn"])
+            items = _ref_items(font, lambda ch, i=i: db.has(i, ch), texts, E) if font is not None else []
+            v = _embed(items).mean(0) if items else np.zeros(128, np.float32)
+            n = float(np.linalg.norm(v))
+            v = (v / n if n > 0 else v).astype(np.float32)
+            have[key] = v
+            dirty += 1
+            if log and dirty % 200 == 0:
+                log("  새 눈 기준(%s) %d개 새로 만듦" % (script, dirty))
+            if dirty % 500 == 0:                       # 오래 걸리니 중간중간 남긴다(서버가 도중에 다시 떠도 이어서)
+                keys = list(have.keys())
+                np.savez(path, keys=np.array(keys), vecs=np.stack([have[k] for k in keys]))
+        out[i] = v
+    if dirty:
+        keys = list(have.keys())
+        np.savez(path, keys=np.array(keys), vecs=np.stack([have[k] for k in keys]))
+    setattr(db, attr, out)
+    return out
