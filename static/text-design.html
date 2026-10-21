@@ -230,7 +230,10 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
     .stage{min-height:200px;padding:18px}
     .stage canvas{max-height:200px}
     .h2{display:none}
-    .reclist{flex-direction:row;overflow-x:auto;margin:0 -16px;padding:2px 16px 4px;scroll-snap-type:x mandatory;scrollbar-width:none}
+    .reclist{flex-direction:row;overflow-x:auto;margin:0 -16px;padding:2px 16px 4px;scroll-snap-type:x mandatory;scrollbar-width:none;cursor:grab}
+    /* 마우스로 끄는 동안 — 붙기(snap)를 잠시 끄고 글자 선택이 안 되게. 놓으면 가까운 카드에 다시 붙는다 */
+    .reclist.dragging{cursor:grabbing;scroll-snap-type:none;user-select:none}
+    .reclist.dragging .rec{pointer-events:none}
     .reclist::-webkit-scrollbar{display:none}
     .reclist .rec{flex:none;width:44%;scroll-snap-align:start}
     .reclist .rec .pv{flex:none;height:64px}
