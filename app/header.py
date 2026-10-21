@@ -40,14 +40,29 @@ NAV_ITEMS = [
     # 떼어 냄). 어느 페이지에서든 평범한 링크로 /find-font 를 연다.
     ("findfont", "/find-font", "폰트 찾기", "findFontMenuLink", "mFindFontMenuLink"),
     ("fontpair", "/font-pair", "폰트 조합 찾기", None, None),
-    # 폰트 변환(2026-10-06) — 파일을 브라우저 안에서 바꾸는 도구. 만드는 자리라 GIF 생성기 옆에 둔다.
-    # 10/16 사용자님: GIF 생성기와 자리를 바꿔 변환이 먼저 온다.
-    ("convert", "/font-convert", "폰트 변환", None, None),
-    # gif 라우터가 inject_header(html, "gif")로 넘기는 키와 같아야 활성 표시가 붙는다.
-    # 2026-08: 템플릿 목록(/gif/templates) 대신 편집기(/gif)로 바로 보낸다.
-    ("gif", "/gif", "GIF 생성기", None, None),
+    # 추천 폰트 자판기(/font-vending, 2026-10-16) — 10/21 사용자님 "폰트 도구에서 꺼내 헤더에, 폰트 자판기로"
+    ("vending", "/font-vending", "폰트 자판기", None, None),
+    # '폰트 도구' 묶음 자리 — 펼침 안의 목록은 아래 TOOL_ITEMS (_tools_menu 가 그린다)
+    ("tools", "", "폰트 도구", None, None),
     ("apps", "https://tdtd.io/apps.html", "Apps", None, None),
 ]
+
+# '폰트 도구' 묶음 (2026-10-21) — 사용자님 "글자로 노는 앱을 제외하고 '폰트 도구' 메뉴를 만들어 그 안으로,
+# GIF 생성기도 여기에" → "폰트 찾기·폰트 조합 찾기는 밖으로" → "추천 폰트 자판기도 꺼내 헤더에".
+# 데스크톱은 마우스를 올리면 펼쳐지는 칸(아이콘·이름·한 줄 설명 — 메인 기능 칸과 같은 모양), 휴대폰은 소제목 아래 늘어놓는다.
+# (키, 주소, 이름, 한 줄 설명, 아이콘 svg 속, NEW 표시)
+# 키는 각 라우터가 inject_header(html, 키)로 넘기는 것과 같아야 활성 표시가 붙는다(gif·convert·tdesign).
+TOOL_ITEMS = [
+    ("tdesign", "/text-design", "텍스트 디자인", "썸네일·자막·스티커 글씨 바로 만들기",
+     '<path d="M5 7V5h14v2"/><path d="M12 5v14"/><path d="M9 19h6"/>', True),
+    # 폰트 변환(2026-10-06) — 파일을 브라우저 안에서 바꾸는 도구.
+    ("convert", "/font-convert", "폰트 변환", "웹폰트 만들기 · OTF↔TTF",
+     '<path d="M7 10h14l-4-4"/><path d="M17 14H3l4 4"/>', False),
+    # 2026-08: 템플릿 목록(/gif/templates) 대신 편집기(/gif)로 바로 보낸다.
+    ("gif", "/gif", "GIF 생성기", "움직이는 글씨 GIF·영상 만들기",
+     '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4.5-2.5z"/>', False),
+]
+TOOL_KEYS = {k for k, *_ in TOOL_ITEMS}
 
 # About 묶음 — 데스크톱은 마우스를 올리면 펼쳐지는 메뉴, 모바일은 그냥 늘어놓는다.
 # 이 안의 어느 페이지가 활성이면 'About' 글자에 활성 표시가 붙는다.
@@ -100,8 +115,36 @@ def _nav_link(item, active: str, indent: str, mobile: bool, extra_cls=()) -> str
     return f'{indent}<a href="{href}"{id_attr}{cls}{target}{onclick}>{label}</a>'
 
 
+def _tools_menu(active: str, indent: str) -> str:
+    """데스크톱 '폰트 도구' 펼침 (header.css .tools-dd — :focus-within 이라 스크립트가 없다)."""
+    rows = []
+    for key, href, label, desc, ico, new in TOOL_ITEMS:
+        cls = f"tm-{key}" + (" active" if key == active else "")
+        target = ' target="_blank" rel="noopener"' if key in _NEW_WINDOW else ""
+        badge = ' <span class="tm-new">NEW</span>' if new else ""
+        rows.append(f'<a class="{cls}" href="{href}"{target}><span class="tm-ico" aria-hidden="true"><svg viewBox="0 0 24 24">{ico}</svg></span>'
+                    f'<span class="tm-txt"><span class="tm-t">{label}{badge}</span><span class="tm-d">{desc}</span></span></a>')
+    on = " active" if active in TOOL_KEYS else ""
+    return (f'{indent}<div class="tools-dd"><button type="button" class="tools-btn{on}" aria-haspopup="true">폰트 도구'
+            '<svg class="tb-car" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>'
+            f'<div class="tools-menu">{"".join(rows)}</div></div>')
+
+
+def _tools_mobile(active: str, indent: str) -> str:
+    """휴대폰 펼침 메뉴의 '폰트 도구' — 소제목 아래 한 칸 들여 늘어놓는다(GIF 생성기는 무지개 글씨 그대로)."""
+    lines = [f'{indent}<div class="m-group">폰트 도구</div>']
+    for key, href, label, *_ in TOOL_ITEMS:
+        lines.append(_nav_link((key, href, label, None, None), active, indent, True, extra_cls=("m-sub",)))
+    return "\n".join(lines)
+
+
 def _nav_links(active: str, indent: str, mobile: bool) -> str:
-    lines = [_nav_link(it, active, indent, mobile) for it in NAV_ITEMS]
+    lines = []
+    for it in NAV_ITEMS:
+        if it[0] == "tools":
+            lines.append(_tools_mobile(active, indent) if mobile else _tools_menu(active, indent))
+        else:
+            lines.append(_nav_link(it, active, indent, mobile))
     if mobile:
         # 모바일은 접을 자리가 없다 — About 안의 것도 같은 높이로 늘어놓는다.
         lines += [_nav_link(it, active, indent, True) for it in ABOUT_ITEMS]
@@ -288,6 +331,8 @@ AD_SLOTS = {
     "find_bottom": "4496927948",     # 폰트 찾기 '질문하기' 위
     "convert_bottom": "4496927948",  # 폰트 변환 안내·결과 아래
     "vending_result": "4496927948",  # 추천 폰트 자판기 '오늘의 추천 폰트' 위 (2026-10-16, 전용 단위 만들면 번호만 바꾼다)
+    "text_design": "4496927948",     # 텍스트 디자인 저장 단추 아래 (2026-10-21, 전용 단위 만들면 번호만 바꾼다)
+    "font_side": "2981139057",       # 폰트 상세페이지 오른쪽 세로 칸 160×600 (2026-10-21, 애드센스 이름: 상세페이지 스카이)
 }
 
 # 전면 광고(비네트)를 띄워도 되는 목적지. 비네트는 페이지마다 켜고 끌 수 없고,

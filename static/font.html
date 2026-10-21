@@ -111,6 +111,18 @@
   body{-webkit-font-smoothing:antialiased}
 
   .wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+  /* 2026-10-21 사용자님 "상세페이지 왼쪽 끝이 메인과 같은 위치에서 시작하면 오른쪽이 빌 텐데, 거기에 스카이스크래퍼 광고 영역을"
+     → 메인과 같은 1400px·좌우 32px, 본문 오른쪽에 160×600 세로 광고(1300px 이상에서만, 스크롤해도 따라온다) */
+  .wrap.dwrap{max-width:1400px;padding:0 32px}
+  .dmain{min-width:0}
+  .sky{display:none}
+  @media(min-width:1300px){
+    .wrap.dwrap{display:grid;grid-template-columns:minmax(0,1fr) 160px;gap:28px;align-items:start}
+    .sky{display:block;position:sticky;top:84px;margin-top:118px}
+    .sky-ad{width:160px;min-height:600px}
+    .sky-ad ins.adsbygoogle{width:160px;height:600px}
+  }
+  @media(max-width:768px){ .wrap.dwrap{padding:0 16px} }
   .loading{padding:120px 0;text-align:center;color:var(--text-muted);font-family:var(--ui);font-size:14px}
   .hidden{display:none!important}
   .lbl{font-family:var(--ui);font-size:13px;letter-spacing:.2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;display:flex;align-items:center;gap:10px}
@@ -148,6 +160,30 @@
   .btn-dl:hover{background:var(--accent-hover)}
   .btn-design{background:none;color:var(--text-primary);font-size:14px;font-weight:600;padding:13px 20px;border-radius:3px;border:1px solid var(--border-hover);text-align:center;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
   .btn-design:hover{border-color:var(--text-primary)}
+  button.btn-design{font-family:inherit}
+  /* '이 폰트로 디자인하기' 아이콘 — 메인 기능 칸 '텍스트 디자인'과 같은 분홍 T(작게) */
+  .td-ico{flex:0 0 24px;width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;
+    background:#FFE9F0;color:#E0457B}
+  .td-ico svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  :root[data-theme="dark"] .td-ico{background:#3A1726;color:#FF7FA8}
+
+  /* 텍스트 디자인 모달(2026-10-21) — 안은 /text-design?font=ID&embed (글씨는 이 폰트로 고정) */
+  .tdm{position:fixed;inset:0;z-index:1000;background:rgba(15,18,25,.55);display:flex;align-items:center;justify-content:center;padding:20px}
+  .tdm[hidden]{display:none}
+  .tdm-box{width:min(860px,96vw);height:min(90vh,920px);background:var(--bg);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;
+    box-shadow:0 24px 60px rgba(0,0,0,.3)}
+  .tdm-head{display:flex;align-items:center;gap:12px;padding:12px 14px 12px 20px;border-bottom:1px solid var(--border)}
+  .tdm-head b{font-family:var(--ui);font-size:16px;font-weight:800;letter-spacing:-.3px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tdm-full{font-family:var(--ui);font-size:13px;color:var(--text-secondary);text-decoration:none;white-space:nowrap}
+  .tdm-full:hover{color:var(--accent)}
+  .tdm-x{width:36px;height:36px;border:0;background:transparent;font-size:26px;line-height:1;color:var(--text-primary);cursor:pointer;border-radius:8px}
+  .tdm-x:hover{background:var(--bg-secondary)}
+  .tdm-frame{flex:1;width:100%;border:0;background:var(--bg)}
+  @media(max-width:768px){
+    .tdm{padding:0}
+    .tdm-box{width:100vw;height:100%;border-radius:0}
+    .tdm-full{display:none}
+  }
 
   /* ── LAYOUT: 본문(좌) + 사이드바(우) ── */
   .layout{display:grid;grid-template-columns:1fr 340px;gap:48px;align-items:start}
@@ -568,7 +604,7 @@
 
 <!--FFP_HEADER-->
 
-<main class="wrap">
+<main class="wrap dwrap"><div class="dmain">
   <div class="loading" id="loading">폰트 정보를 불러오는 중…</div>
 
   <!-- 서버가 채우는 본문. JS가 뜨면 아래 #content가 대신하므로 감춘다.
@@ -593,7 +629,10 @@
       </div>
       <div class="title-actions">
         <button class="btn-dl" id="downloadBtn">⬇ 무료 다운로드</button>
-        <a class="btn-design" id="designBtnTop" href="#pairings">폰트 조합 찾기</a>
+        <!-- 2026-10-21 사용자님: '이 폰트로 디자인하기' 단추(누르면 텍스트 디자인 모달 — 아래 tdModal),
+             "폰트 조합 찾기는 빼 주고, 박스는 지금 모양 그대로", "왼쪽에 메인과 같은 아이콘".
+             조합은 오른쪽 칸 맨 위 '이 폰트와 어울리는 조합'과 머리글 메뉴로 들어간다. -->
+        <button type="button" class="btn-design" id="tdesignBtn" aria-haspopup="dialog"><span class="td-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7V5h14v2"/><path d="M12 5v14"/><path d="M9 19h6"/></svg></span>이 폰트로 디자인하기</button>
       </div>
     </div>
 
@@ -696,18 +735,14 @@
 
       <div class="col-side">
 
-        <!-- 오른쪽 칸 순서: 웹폰트로 쓰기 → 같은 계열 폰트 → 어울리는 조합
-             (2026-10-04 같은 계열·조합을 맞바꿈, 2026-10-06 웹폰트 칸을 맨 위에 — 사용자님 지시) -->
+        <!-- 오른쪽 칸 순서: 웹폰트로 쓰기 → 어울리는 조합 → 같은 계열 폰트
+             (2026-10-04 같은 계열·조합을 맞바꿈, 2026-10-06 웹폰트 칸을 맨 위에, 2026-10-21 제목 줄의 '폰트 조합 찾기'를 빼면서
+              조합을 다시 같은 계열 위로 — 사용자님 지시) -->
 
         <!-- ⑦-0 웹폰트로 쓰기 — 공식 배포처의 웹폰트 주소(app/webfont_sources.py)를 서버가 그린다
              (app/routers/design.py _webfont_block). 주소가 없거나 라이선스 '임베딩'이 가능·조건부가
              아니면 빈칸이다. 복사 단추는 아래 스크립트(.wf-copy). -->
         {{FFP_WEBFONT}}
-
-        <!-- ⑧ 같은 계열 폰트 — 서버가 목록을 먼저 그려 둔다(app/routers/design.py _related_block).
-             스크립트를 돌리지 않는 크롤러(네이버 등)도 폰트 페이지끼리의 링크를 보게 하려는 것이다.
-             JS(fetchRelated)는 같은 규칙으로 같은 목록을 그 폰트 모양으로 다시 그린다. -->
-        {{FFP_RELATED}}
 
         <!-- ⑦ 페어링 -->
         <section class="blk side-card hidden" id="pairingSec">
@@ -715,6 +750,12 @@
           <p class="sec-sub" id="pairingSub"></p>
           <div class="pairs" id="pairGrid"></div>
         </section>
+
+        <!-- ⑧ 같은 계열 폰트 — 서버가 목록을 먼저 그려 둔다(app/routers/design.py _related_block).
+             스크립트를 돌리지 않는 크롤러(네이버 등)도 폰트 페이지끼리의 링크를 보게 하려는 것이다.
+             JS(fetchRelated)는 같은 규칙으로 같은 목록을 그 폰트 모양으로 다시 그린다. -->
+        {{FFP_RELATED}}
+
 
       </div>
     </div>
@@ -736,6 +777,10 @@
     <!-- [2026-08] 저작권 안내 한 줄이 여기 있었다. 이 페이지에 푸터가 없던
          시절의 대체물인데, 공용 푸터가 붙으면서 같은 문장이 두 번 나왔다. -->
   </div>
+</div>
+  <!-- 오른쪽 세로 광고 160×600 (2026-10-21) — 화면 1300px 이상에서만 보인다(그보다 좁으면 숨기고 광고도 부르지 않는다:
+       숨긴 칸은 화면에 안 들어와 ffpLazyAds 가 채우지 않는다). 번호는 app/header.py AD_SLOTS['font_side'] -->
+  <aside class="sky" aria-label="광고"><div class="ffp-ad sky-ad" data-ad-key="font_side"><span class="ffp-ad-lbl">광고</span></div></aside>
 </main>
 
 <script>
@@ -1986,9 +2031,11 @@ function dsAdaptFont(f){
     weights: f.weights || null,
   };
 }
-/* 상세페이지 '디자인하기' 버튼에서 호출: 현재 폰트로 모달 오픈 (페이지 이동 없음) */
+/* 상세페이지 '디자인하기' 버튼에서 호출: 현재 폰트로 모달 오픈 (페이지 이동 없음)
+   2026-10-21 새 텍스트 디자인 모달(tdOpen — 아래 tdModal)로 바꿨다. 옛 편집기(openDesigner)는 정리 전까지 남겨 둔다. */
 function dsOpenFor(f){
   if(!f) return;
+  if (window.tdOpen) { window.tdOpen(); return; }
   FONTS = [dsAdaptFont(f)];
   openDesigner(f.id);
 }
@@ -2620,6 +2667,42 @@ function dsDownloadFile(){
 
 </script>
 
+<!-- 텍스트 디자인 모달 (2026-10-21) — 제목 줄 '이 폰트로 디자인하기', 조합 창의 '이 폰트로 텍스트 디자인 →',
+     /font/{id}/design 주소가 모두 이걸 연다(dsOpenFor). 안은 /text-design?font=ID&embed — 머리글·광고 없이 글씨를 이 폰트로 고정.
+     편집기는 처음 열 때 불러온다(상세페이지 첫 화면을 무겁게 하지 않게). 옛 디자인하기 모달 코드는 정리 전까지 남겨 둔다. -->
+<div class="tdm" id="tdModal" hidden role="dialog" aria-modal="true" aria-labelledby="tdmTitle">
+  <div class="tdm-box">
+    <div class="tdm-head">
+      <b id="tdmTitle">이 폰트로 텍스트 디자인</b>
+      <a class="tdm-full" href="/text-design" target="_blank" rel="noopener">다른 폰트로도 만들기 ↗</a>
+      <button type="button" class="tdm-x" id="tdmClose" aria-label="닫기">×</button>
+    </div>
+    <iframe class="tdm-frame" id="tdmFrame" title="텍스트 디자인"></iframe>
+  </div>
+</div>
+<script>
+(function(){
+  var m = document.getElementById('tdModal'), f = document.getElementById('tdmFrame');
+  function fontId(){ var x = location.pathname.match(/\/(?:font|design)\/(\d+)/); return x ? x[1] : ''; }
+  window.tdOpen = function(){
+    var id = fontId();
+    if (!id) return;
+    if (!f.src) f.src = '/text-design?font=' + id + '&embed';
+    var n = ((document.getElementById('fontName') || {}).textContent || '').trim();
+    if (n) {   // 받침이 있으면 '으로', 없거나 ㄹ 받침이면 '로'
+      var c = n.charCodeAt(n.length - 1) - 0xAC00, jong = (c >= 0 && c < 11172) ? c % 28 : 0;
+      document.getElementById('tdmTitle').textContent = n + (jong && jong !== 8 ? '으로' : '로') + ' 텍스트 디자인';
+    }
+    m.hidden = false; document.documentElement.style.overflow = 'hidden';
+  };
+  function close(){ m.hidden = true; document.documentElement.style.overflow = ''; }
+  var b = document.getElementById('tdesignBtn');
+  if (b) b.addEventListener('click', window.tdOpen);
+  document.getElementById('tdmClose').addEventListener('click', close);
+  m.addEventListener('click', function(e){ if (e.target === m) close(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !m.hidden) close(); });
+})();
+</script>
 <!--FFP_FOOTER-->
 
 </body>

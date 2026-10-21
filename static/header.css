@@ -33,35 +33,48 @@ nav a{font-size:13px;color:var(--text-secondary);padding:6px 11px;border-radius:
 nav a:hover{color:var(--text-primary);background:var(--bg-secondary)}
 nav a.active{color:var(--accent);background:var(--accent-light);font-weight:700}
 
-/* ── 데스크톱 메뉴 (2026-10-16 머리글 개편 B) ──
-   사용자님: "[타닥타닥 구독]을 빼고 다른 메뉴들을 눈에 잘 띄게" → B(글자 + 색 아이콘).
-   13px 회색 → 15px 검정·굵게, 칸 넓게. 아이콘은 메인 기능 칸과 같은 그림·색이고, 주소(href)로 고른다
-   (app/header.py NAV_ITEMS — 메뉴를 더하면 여기 한 줄도 더한다). 그림은 mask 라 색을 --ic-c 하나로 바꾼다.
-   ⚠ GIF 생성기(.nav-gif)는 글자에 그라데이션을 칠하므로(아래 .nav-gif 주석) 배경을 바꾸는 :hover·.active 에서 뺀다.
+/* ── 데스크톱 메뉴 ──
+   2026-10-16 머리글 개편 B: 13px 회색 → 15px 검정·굵게, 칸 넓게(글자 + 색 아이콘).
+   2026-10-21 사용자님: "헤더 메뉴 앞에 있는 아이콘들은 전부 제거하고 텍스트만" — 아이콘(::before mask)을 걷었다.
+   같은 날 메뉴를 다시 묶었다(app/header.py NAV_ITEMS·TOOL_ITEMS):
+     추천폰트 · 전체 무료폰트 · 폰트 찾기 · 폰트 조합 찾기 · 폰트 자판기 · 폰트 도구 ▾ · Apps
+     '폰트 도구' 펼침 = 텍스트 디자인(NEW) · 폰트 변환 · GIF 생성기 (아이콘·이름·한 줄 설명, 메인 기능 칸과 같은 모양)
    폭이 좁아지면 차례로 줄인다(맨 아래 @media). 휴대폰 펼침 메뉴(.mobile-nav)는 여기에 안 걸린다. */
-.header-inner nav{gap:4px}
-.header-inner nav > a{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:600;color:var(--text-primary);
-  padding:8px 14px;border-radius:8px;letter-spacing:-.2px}
-.header-inner nav > a:not(.nav-gif):hover{background:var(--bg-secondary)}
-.header-inner nav > a.active:not(.nav-gif){color:var(--accent);background:var(--accent-light);font-weight:800}
-.header-inner nav > a.nav-gif{font-weight:800}
-.header-inner nav > a::before{content:'';width:17px;height:17px;flex:none;background:var(--ic-c,currentColor);
-  -webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}
-.header-inner nav > a[href="/"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2017.75l-6.17%203.25%201.18-6.88-5-4.87%206.9-1L12%202l3.09%206.25%206.9%201-5%204.87%201.18%206.88z%27/%3E%3C/svg%3E");--ic-c:#E2A100}
-.header-inner nav > a[href="/fonts"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%273%27%20y%3D%273%27%20width%3D%277%27%20height%3D%277%27%20rx%3D%271%27/%3E%3Crect%20x%3D%2714%27%20y%3D%273%27%20width%3D%277%27%20height%3D%277%27%20rx%3D%271%27/%3E%3Crect%20x%3D%273%27%20y%3D%2714%27%20width%3D%277%27%20height%3D%277%27%20rx%3D%271%27/%3E%3Crect%20x%3D%2714%27%20y%3D%2714%27%20width%3D%277%27%20height%3D%277%27%20rx%3D%271%27/%3E%3C/svg%3E");--ic-c:var(--accent)}
-.header-inner nav > a[href="/find-font"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%273%27%20y%3D%274%27%20width%3D%2718%27%20height%3D%2716%27%20rx%3D%272%27/%3E%3Ccircle%20cx%3D%279%27%20cy%3D%2710%27%20r%3D%272%27/%3E%3Cpath%20d%3D%27M21%2016l-5-5-8%209%27/%3E%3C/svg%3E");--ic-c:#B8790A}
-.header-inner nav > a[href="/font-pair"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%2020h3%27/%3E%3Cpath%20d%3D%27M14%2020h7%27/%3E%3Cpath%20d%3D%27M6.9%2015h6.9%27/%3E%3Cpath%20d%3D%27M10.2%206.3l5.8%2013.7%27/%3E%3Cpath%20d%3D%27M5%2020l6-16h2l7%2016%27/%3E%3C/svg%3E");--ic-c:var(--accent)}
-.header-inner nav > a[href="/gif"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%273%27%20y%3D%275%27%20width%3D%2718%27%20height%3D%2714%27%20rx%3D%272%27/%3E%3Cpath%20d%3D%27M10%209.5v5l4.5-2.5z%27/%3E%3C/svg%3E");--ic-c:#E0457B}
-.header-inner nav > a[href="/font-convert"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M7%2010h14l-4-4%27/%3E%3Cpath%20d%3D%27M17%2014H3l4%204%27/%3E%3C/svg%3E");--ic-c:#1A8A3A}
-.header-inner nav > a[href="https://tdtd.io/apps.html"]{--ic:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%275%27%20y%3D%272%27%20width%3D%2714%27%20height%3D%2720%27%20rx%3D%272%27/%3E%3Cpath%20d%3D%27M11%2018h2%27/%3E%3C/svg%3E");--ic-c:var(--text-primary)}
-:root[data-theme="dark"] .header-inner nav > a[href="/"]{--ic-c:#F2C14E}
-:root[data-theme="dark"] .header-inner nav > a[href="/find-font"]{--ic-c:#E0AC4D}
-:root[data-theme="dark"] .header-inner nav > a[href="/font-convert"]{--ic-c:#5FCB85}
-@media(prefers-color-scheme:dark){
-  :root:not([data-theme="light"]) .header-inner nav > a[href="/"]{--ic-c:#F2C14E}
-  :root:not([data-theme="light"]) .header-inner nav > a[href="/find-font"]{--ic-c:#E0AC4D}
-  :root:not([data-theme="light"]) .header-inner nav > a[href="/font-convert"]{--ic-c:#5FCB85}
-}
+.header-inner nav{gap:4px;align-items:center}
+.header-inner nav > a{display:inline-flex;align-items:center;font-size:15px;font-weight:600;color:var(--text-primary);
+  padding:8px 13px;border-radius:8px;letter-spacing:-.2px;white-space:nowrap}
+.header-inner nav > a:hover{background:var(--bg-secondary)}
+.header-inner nav > a.active{color:var(--accent);background:var(--accent-light);font-weight:800}
+
+/* '폰트 도구' 펼침 — 마우스를 올리거나 누르면(초점) 연다. :focus-within 이라 스크립트가 없다(☰ 더보기와 같은 방식).
+   ::before 는 단추와 펼침 사이 틈을 메워 마우스가 내려가는 길에 닫히지 않게 한다. */
+.tools-dd{position:relative;display:flex;flex:none}
+.tools-btn{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:600;color:var(--text-primary);
+  padding:8px 11px 8px 13px;border-radius:8px;letter-spacing:-.2px;border:0;background:transparent;cursor:pointer;font-family:inherit;white-space:nowrap}
+.tools-btn .tb-car{width:14px;height:14px;fill:none;stroke:var(--text-muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;transition:transform .15s}
+.tools-dd:hover .tools-btn,.tools-dd:focus-within .tools-btn{background:var(--bg-secondary)}
+.tools-btn.active{color:var(--accent);background:var(--accent-light);font-weight:800}
+.tools-dd:hover .tb-car,.tools-dd:focus-within .tb-car{transform:rotate(180deg)}
+.tools-menu{position:absolute;top:calc(100% + 8px);left:0;width:330px;padding:6px;background:var(--bg-card);
+  border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.14);display:none;flex-direction:column;gap:2px;z-index:210}
+.tools-menu::before{content:'';position:absolute;left:0;right:0;top:-10px;height:10px}
+.tools-dd:hover .tools-menu,.tools-dd:focus-within .tools-menu{display:flex}
+.tools-menu a{display:flex;gap:11px;align-items:center;padding:9px 10px;border-radius:8px;text-decoration:none;color:var(--text-primary)}
+.tools-menu a:hover{background:var(--bg-secondary)}
+.tools-menu a.active{background:var(--accent-light)}
+.tm-ico{flex:0 0 32px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  background:var(--accent-light);color:var(--accent)}
+.tm-ico svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tm-tdesign .tm-ico{background:#FFE9F0;color:#E0457B}
+.tm-convert .tm-ico{background:#E8F7EE;color:#1A8A3A}
+.tm-gif .tm-ico{background:#F6E8FF;color:#9D2BD6}
+:root[data-theme="dark"] .tm-tdesign .tm-ico{background:#3A1726;color:#FF7FA8}
+:root[data-theme="dark"] .tm-convert .tm-ico{background:#0F2A18;color:#5FCB85}
+:root[data-theme="dark"] .tm-gif .tm-ico{background:#2A1538;color:#C77DFF}
+.tm-txt{min-width:0}
+.tm-t{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;letter-spacing:-.2px}
+.tm-d{display:block;font-size:12px;color:var(--text-secondary);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm-new{font-size:10px;font-weight:800;color:#fff;background:#FF4D6D;border-radius:4px;padding:1px 5px;letter-spacing:.3px}
 
 /* ── GIF 생성기 메뉴 ──────────────────────────────
    글자 자체에 그라데이션을 흘려 넣는다(background-clip:text).
@@ -142,6 +155,9 @@ nav a.nav-gif:hover{filter:saturate(1.25) brightness(1.05)}
 .mobile-nav.open{display:flex}
 .mobile-nav a,.mobile-nav button{font-size:16px;color:var(--text-primary);padding:11px 4px;font-weight:600;text-decoration:none}
 .mobile-nav a.active{color:var(--accent);font-weight:700}
+/* 휴대폰 펼침 메뉴의 '폰트 도구' 묶음(2026-10-21) — 소제목 아래 한 칸 들여 늘어놓는다 */
+.mobile-nav .m-group{font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.04em;padding:12px 4px 2px}
+.mobile-nav a.m-sub{padding-left:14px;font-size:15px}
 
 @media(max-width:768px){
   nav{display:none}
@@ -150,22 +166,25 @@ nav a.nav-gif:hover{filter:saturate(1.25) brightness(1.05)}
   .search-wrap input{width:100%}
   .search-wrap input:focus{width:100%}
 }
-/* 머리글 폭별 단계 (2026-10-16 실측: 1440 / 1366 / 1281 / 1181 / 1025px 에서 넘치지 않음을 확인) */
+/* 머리글 폭별 단계 (2026-10-21 메뉴 7칸·글자만: 1440 / 1366 / 1280 / 1180 / 1040px 에서 넘치지 않음을 확인) */
 @media(min-width:1025px) and (max-width:1439px){
   .header-inner nav{gap:2px}
-  .header-inner nav > a{padding:8px 9px}
-  .search-wrap input{width:180px}
-  .search-wrap input:focus{width:230px}
+  .header-inner nav > a{padding:8px 10px}
+  .tools-btn{padding:8px 8px 8px 10px}
+  .search-wrap input{width:200px}
+  .search-wrap input:focus{width:260px}
 }
 @media(min-width:1025px) and (max-width:1280px){
   .header-inner{gap:12px}
-  .header-inner nav > a{font-size:14px;padding:7px 7px;gap:5px}
-  .header-inner nav > a::before{width:15px;height:15px}
-  .search-wrap input{width:130px}
-  .search-wrap input:focus{width:200px}
+  .header-inner nav > a{font-size:14px;padding:7px 8px}
+  .tools-btn{font-size:14px;padding:7px 6px 7px 8px}
+  .search-wrap{min-width:0}
+  .search-wrap input{width:150px}
+  .search-wrap input:focus{width:210px}
 }
-@media(min-width:1025px) and (max-width:1180px){
-  .header-inner nav > a::before{display:none}   /* 좁은 노트북은 아이콘을 접는다 */
+@media(min-width:1025px) and (max-width:1120px){
+  .header-inner nav > a{padding:7px 6px}
+  .tools-btn{padding:7px 4px 7px 6px}
   .search-wrap input{width:120px}
 }
 /* 1024px 이하는 메뉴가 한 줄에 안 들어간다 — 휴대폰처럼 ☰ 펼침 메뉴로 접는다 */

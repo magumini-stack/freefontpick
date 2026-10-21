@@ -162,46 +162,36 @@
        같이 볼 것. 시안: 2026-09-22 채팅의 시안 K. */
     .wrap{max-width:1400px;margin:0 auto;padding:0 32px}
 
-    /* 히어로 — 왼쪽 제목 + 자판기 단추, 오른쪽 기능 입구 2×2.
-       2026-10-16 사용자님: 제목 위 '폰트픽 | 무료폰트 큐레이션…' 줄을 빼고, 여백을 넉넉하게(24→52·18→46·간격 32→56),
-       제목 아래 [추천 폰트 자판기](/font-vending) 단추를 둔다. */
-    .hero{padding:52px 0 46px;display:grid;grid-template-columns:1fr 640px;gap:56px;align-items:center}
+    /* 히어로 — 왼쪽 제목, 오른쪽 기능 입구 2열 × 3줄.
+       2026-10-16 사용자님: 제목 위 '폰트픽 | 무료폰트 큐레이션…' 줄을 빼고, 여백을 넉넉하게, 제목 아래 [추천 폰트 자판기] 단추.
+       2026-10-21: 자판기 단추를 오른쪽 칸으로 옮기고 텍스트 디자인을 더해 6칸 — 칸을 낮춰 첫머리 높이는 그대로(위아래 52·46 → 40·38). */
+    .hero{padding:40px 0 38px;display:grid;grid-template-columns:1fr 640px;gap:56px;align-items:center}
     /* 제목은 두 줄 고정(<br>). 화면이 좁아지면 br 을 무시하고 자연 줄바꿈. */
     .hero-title{font-size:clamp(24px,2.7vw,38px);font-weight:800;line-height:1.38;letter-spacing:-1px;margin:0;
       word-break:keep-all}
     .hero-title em{font-style:normal;box-shadow:inset 0 -.3em 0 var(--accent-light)}
-    .tools{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:14px}
-    .tool{display:flex;gap:12px;align-items:center;padding:14px 20px;min-height:78px;background:var(--bg-card);
+    /* 기능 입구 6칸(2026-10-21) — 칸 높이 78 → 62, 간격 14 → 10, 아이콘 38 → 34 로 낮춰 첫머리 높이는 4칸 때와 같게 */
+    .tools{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:10px}
+    .tool{display:flex;gap:11px;align-items:center;padding:10px 16px;min-height:62px;background:var(--bg-card);
       border:1px solid var(--border);border-radius:12px;text-decoration:none;color:inherit;transition:border-color .15s}
     .tool:hover{border-color:var(--accent)}
     .tool > span:last-of-type{min-width:0;flex:1}
-    .tool-ico{flex:0 0 38px;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    .tool-ico{flex:0 0 34px;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
       background:var(--accent-light);color:var(--accent)}
-    .tool-ico svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .tool-ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .tool.vend .tool-ico{background:var(--accent);color:#fff}
+    .tool.tdesign .tool-ico{background:#FFE9F0;color:#E0457B}
+    :root[data-theme="dark"] .tool.tdesign .tool-ico{background:#3A1726;color:#FF7FA8}
     .tool.convert .tool-ico{background:#E8F7EE;color:#1A8A3A}
     .tool.find .tool-ico{background:#FFF4E0;color:#B8790A}
     .tool.apps .tool-ico{background:var(--text-primary);color:var(--bg-card)}
     :root[data-theme="dark"] .tool.find .tool-ico{background:#2A2210}
     :root[data-theme="dark"] .tool.convert .tool-ico{background:#0F2A18;color:#5FCB85}
-    .tool-t{font-size:15px;font-weight:800;letter-spacing:-.3px;margin-bottom:2px;display:flex;align-items:center;gap:6px}
+    .tool-t{font-size:14.5px;font-weight:800;letter-spacing:-.3px;margin-bottom:1px;display:flex;align-items:center;gap:6px}
     /* 설명은 한 줄 고정 — 글자 수가 달라도 네 칸 높이가 같아야 한다 */
-    .tool-d{font-size:12.5px;color:var(--text-secondary);line-height:1.4;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tool-d{font-size:12px;color:var(--text-secondary);line-height:1.4;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .tool-new{font-size:10px;font-weight:800;color:#fff;background:#FF4D6D;border-radius:4px;padding:1px 5px;letter-spacing:.3px}
-    /* 추천 폰트 자판기 단추 (2026-10-16) — 메인 손대지 말 것 규칙의 예외는 이 단추 하나. 캔 3개는 자판기 페이지의 캔 색 */
-    .vend-row{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:30px}
-    .vend-cta{display:inline-flex;align-items:center;gap:11px;padding:12px 18px 12px 14px;border-radius:12px;
-      background:var(--accent);color:#fff;font-size:16px;font-weight:800;letter-spacing:-.3px;text-decoration:none;
-      box-shadow:0 8px 18px -8px rgba(30,58,138,.6);transition:background .15s,transform .15s}
-    .vend-cta:hover{background:var(--accent-hover);transform:translateY(-1px)}
-    .vend-cans{display:flex;gap:3px;align-items:flex-end}
-    .vend-cans i{position:relative;width:10px;height:17px;border-radius:3px/2px;background:var(--c);
-      box-shadow:inset -2px 0 0 rgba(0,0,0,.2),inset 2px 0 0 rgba(255,255,255,.28)}
-    .vend-cans i::before{content:'';position:absolute;left:1px;right:1px;top:-2px;height:3px;border-radius:50%;background:#E6E9EE}
-    .vend-cta:hover .vend-cans i{animation:vend-hop .45s ease both}
-    .vend-cta:hover .vend-cans i:nth-child(2){animation-delay:.07s}
-    .vend-cta:hover .vend-cans i:nth-child(3){animation-delay:.14s}
-    @keyframes vend-hop{40%{transform:translateY(-4px)}}
-    @media(prefers-reduced-motion:reduce){.vend-cta:hover .vend-cans i{animation:none}}
+    /* [제거 2026-10-21] 제목 아래 '추천 폰트 자판기' 단추(.vend-row·.vend-cta) — 오른쪽 기능 입구 6칸으로 옮겼다 */
 
     /* 쓰는 자리 점프 바 — 헤더 아래 붙어 따라다닌다 */
     .use-bar{position:sticky;top:60px;z-index:20;background:var(--bg);border-bottom:1px solid var(--border);
@@ -283,9 +273,14 @@
       .main{padding:14px 16px 60px}
       /* 좁은 화면에서는 한 줄에 하나씩 — 2칸으로 두면 제목이 접히며 칸 높이가 달라진다 */
       .hero{gap:26px;padding:30px 0 26px}
-      .vend-row{margin-top:22px}
-      .tools{grid-template-columns:1fr;gap:10px}
-      .tool{padding:12px 16px;min-height:66px}
+      /* 휴대폰: 한 줄에 하나씩이면 6칸이 너무 길다 — 2열 × 3줄, 설명·NEW 는 빼고 이름만 */
+      .tools{grid-template-columns:1fr 1fr;gap:8px}
+      .tool{padding:9px 11px;min-height:54px;gap:9px}
+      .tool-ico{flex:0 0 30px;width:30px;height:30px}
+      .tool-ico svg{width:16px;height:16px}
+      .tool-t{font-size:13.5px}
+      .tool-t .tool-new{display:none}
+      .tool-d{display:none}
       .use-head{flex-direction:column;align-items:flex-start;gap:8px}
       .font-grid{grid-template-columns:repeat(2,1fr);gap:10px}
       .font-card{padding:16px 30px 18px 16px;min-height:190px}
@@ -349,18 +344,11 @@
 <div id="homeView">
 <div class="wrap">
 
-  <!-- 히어로: 왼쪽 제목 · 오른쪽 기능 입구 4칸 -->
+  <!-- 히어로: 왼쪽 제목 · 오른쪽 기능 입구 6칸(2열 × 3줄, 2026-10-21) -->
   <section class="hero">
     <div>
       <!-- ? 뒤의 칸은 좁은 화면에서 br 이 숨을 때 두 문장이 붙지 않게 하는 것이다 -->
       <h1 class="hero-title">어디에 쓰실 건가요? <br><em>딱 맞는 무료폰트</em> 추천해드릴게요!</h1>
-      <!-- 추천 폰트 자판기 (2026-10-16) — 클릭은 아래 '메인 4칸 메뉴 클릭 기록'이 tool=vending 으로 함께 센다 -->
-      <div class="vend-row">
-        <a class="vend-cta" data-track="vending" href="/font-vending">
-          <span class="vend-cans" aria-hidden="true"><i style="--c:#E8604C"></i><i style="--c:#EFA02B"></i><i style="--c:#2BAE8F"></i></span>
-          추천 폰트 자판기 <span class="tool-new">NEW</span> <span aria-hidden="true">→</span>
-        </a>
-      </div>
     </div>
     <nav class="tools" aria-label="폰트픽 기능">
       <a class="tool pair" data-track="pair" href="/font-pair" target="_blank" rel="noopener">
@@ -369,12 +357,22 @@
       </a>
       <a class="tool find" data-track="find" href="/find-font">
         <span class="tool-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 9"/></svg></span>
-        <span><span class="tool-t">이미지로 폰트 찾기 <span class="tool-new">NEW</span></span><span class="tool-d">비슷한 무료폰트를 우선 추천</span></span>
+        <span><span class="tool-t">이미지로 폰트 찾기</span><span class="tool-d">비슷한 무료폰트를 우선 추천</span></span>
       </a>
       <!-- 셋째 칸: GIF 만들기 → 폰트 변환 (2026-10-06 사용자님). GIF 생성기는 머리글 메뉴에 그대로 있다. -->
       <a class="tool convert" data-track="convert" href="/font-convert" target="_blank" rel="noopener">
         <span class="tool-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 10h14l-4-4"/><path d="M17 14H3l4 4"/></svg></span>
-        <span><span class="tool-t">폰트 변환 <span class="tool-new">NEW</span></span><span class="tool-d">웹폰트 만들기 · OTF↔TTF</span></span>
+        <span><span class="tool-t">폰트 변환</span><span class="tool-d">웹폰트 만들기 · OTF↔TTF</span></span>
+      </a>
+      <!-- 2026-10-21 사용자님: "폰트 자판기와 텍스트 디자인을 오른쪽 4칸 아래로, 6개 메뉴의 세로폭을 줄여서 깔끔하게"
+           → "NEW 는 텍스트 디자인에만" → "글자로 노는 앱과 텍스트 디자인 위치 바꾸기". 클릭은 tool=tdesign·vending 으로 센다. -->
+      <a class="tool tdesign" data-track="tdesign" href="/text-design">
+        <span class="tool-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7V5h14v2"/><path d="M12 5v14"/><path d="M9 19h6"/></svg></span>
+        <span><span class="tool-t">텍스트 디자인 <span class="tool-new">NEW</span></span><span class="tool-d">썸네일·자막·스티커 글씨 바로 만들기</span></span>
+      </a>
+      <a class="tool vend" data-track="vending" href="/font-vending">
+        <span class="tool-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M5 8h14"/><path d="M5 16.5h14"/><path d="M9 12h2"/><path d="M13 12h2"/></svg></span>
+        <span><span class="tool-t">추천 폰트 자판기</span><span class="tool-d">질문 3개로 딱 맞는 폰트 뽑기</span></span>
       </a>
       <a class="tool apps" data-track="apps" href="https://tdtd.io/apps.html" target="_blank" rel="noopener">
         <span class="tool-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M11 18h2"/></svg></span>
@@ -676,7 +674,7 @@ function showToast(msg){
     try { navigator.sendBeacon('/api/track/home-tool?tool=' + encodeURIComponent(tool)); } catch(e){}
     try { if (typeof window.gtag === 'function') window.gtag('event', 'home_tool_click', { tool: tool }); } catch(e){}
   }
-  document.querySelectorAll('a.tool[data-track], a.vend-cta[data-track]').forEach(function(a){
+  document.querySelectorAll('a.tool[data-track]').forEach(function(a){
     var tool = a.getAttribute('data-track');
     a.addEventListener('click', function(){ send(tool); });
     a.addEventListener('auxclick', function(e){ if (e.button === 1) send(tool); });
