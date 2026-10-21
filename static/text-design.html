@@ -914,6 +914,37 @@ function wire(){
 let tt = 0;
 function toast(m){ $('toast').textContent = m; clearTimeout(tt); tt = setTimeout(() => { $('toast').textContent = ''; }, 3500); }
 
+/* 추천 꾸밈 가로 줄을 마우스로 끌어 넘기기(2026-10-21 사용자님 "모달에서 템플릿 옆 이동이 키보드로만 된다").
+   좁은 화면(모달 안·휴대폰)에서만 줄이 가로로 넘친다. 손가락은 원래 밀리므로 마우스만 다룬다.
+   끌었으면 놓을 때의 클릭은 버린다(카드가 눌리지 않게). 세로 휠도 줄 끝에 닿기 전까지는 옆으로 넘긴다. */
+(function(){
+  const el = $('recs');
+  let down = false, moved = false, sx = 0, sl = 0;
+  el.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse' || e.button !== 0 || el.scrollWidth <= el.clientWidth + 1) return;
+    down = true; moved = false; sx = e.clientX; sl = el.scrollLeft;
+  });
+  window.addEventListener('pointermove', e => {
+    if (!down) return;
+    const dx = e.clientX - sx;
+    if (!moved && Math.abs(dx) > 5) { moved = true; el.classList.add('dragging'); }
+    if (moved) { el.scrollLeft = sl - dx; e.preventDefault(); }
+  });
+  window.addEventListener('pointerup', () => {
+    if (!down) return;
+    down = false;
+    el.classList.remove('dragging');
+    if (moved) setTimeout(() => { moved = false; }, 0);
+  });
+  el.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); } }, true);
+  el.addEventListener('wheel', e => {
+    if (el.scrollWidth <= el.clientWidth + 1 || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    const max = el.scrollWidth - el.clientWidth;
+    if ((e.deltaY < 0 && el.scrollLeft <= 0) || (e.deltaY > 0 && el.scrollLeft >= max - 1)) return;   // 끝이면 페이지가 내려가게
+    el.scrollLeft += e.deltaY; e.preventDefault();
+  }, { passive: false });
+})();
+
 wire();
 buildUses();
 // 주소 끝 #0~#4 로 쓸 곳을 골라 열 수 있다(예: /text-design#3 → 스티커·굿즈). PC 에서는 더 꾸미기를 펼쳐 둔다
