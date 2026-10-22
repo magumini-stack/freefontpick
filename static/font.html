@@ -1567,8 +1567,15 @@
 
       /* /font/{id}/design으로 직접 접속(또는 검색엔진 유입)한 경우: 상세페이지
          콘텐츠 위에 텍스트 디자인 모달을 자동으로 연다. 구 URL(/design/{id})은
-         서버에서 301로 이 경로로 리다이렉트되므로 도착 시점엔 이미 새 경로다. */
-      if (/\/design\/?$/.test(location.pathname)) { dsOpenFor(f); }
+         서버에서 301로 이 경로로 리다이렉트되므로 도착 시점엔 이미 새 경로다.
+         dsOpenFor·tdOpen 은 아래쪽 <script> 에 있다 — 폰트 자료가 페이지에 실려 와(boot) 여기가 문서를 다 읽기 전에
+         돌면 아직 없어서 ReferenceError 로 모달도 안 뜨고 조합 그리기까지 멈췄다(10/22 폰트 찾기 '이 폰트로 디자인하기'에서
+         확인). 문서를 다 읽은 뒤 연다. */
+      if (/\/design\/?$/.test(location.pathname)) {
+        var _dsAuto = function(){ if (typeof dsOpenFor === 'function') dsOpenFor(f); };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _dsAuto);
+        else _dsAuto();
+      }
 
       return bootOr('pairings', '/api/fonts/' + fid + '/pairings').catch(function(){ return []; });
     })
