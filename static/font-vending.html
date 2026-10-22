@@ -201,7 +201,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   @keyframes bang{0%{opacity:0;transform:scale(.4) rotate(-20deg)}30%{opacity:1;transform:scale(1.15) rotate(-6deg)}70%{opacity:1}100%{opacity:0;transform:scale(1) rotate(-8deg)}}
 
   /* ── 결과: 사이트 카드 그대로, 색은 작은 캔에만 ─────────────── */
-  .result{margin-top:34px}
+  .result{margin-top:34px;scroll-margin-top:76px}   /* 결과로 내려갈 때 고정 머리글(60px)에 가리지 않게 */
   /* 광고 칸 (10/16 사용자님: '오늘의 추천 폰트' 위) — 번호는 app/header.py AD_SLOTS['vending_result'].
      광고가 안 오면 header.css 규칙이 칸째 접는다. 결과 칸(#result)이 숨어 있는 동안은 받지 않는다 */
   .vend-ad{max-width:970px;margin:0 auto 30px}
@@ -585,6 +585,15 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
     });
   }
 
+  // 결과로 부드럽게 내려간다. 부드러운 스크롤이 안 도는 환경(일부 웹뷰·절전 탭)이면 0.9초 뒤 바로 옮긴다
+  function goResult() {
+    var el = $('result'), y0 = window.scrollY;
+    el.scrollIntoView({behavior: 'smooth', block: 'start'});
+    setTimeout(function () {
+      if (Math.abs(window.scrollY - y0) < 2 && el.getBoundingClientRect().top > 90) el.scrollIntoView({block: 'start'});
+    }, 900);
+  }
+
   function pull(opts) {
     opts = opts || {};
     if (!(sel.use && sel.mood && sel.pop)) return;
@@ -620,7 +629,8 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
       $('notice').textContent = !rows.length ? '이 조합에 맞는 폰트가 아직 없어요. 3번을 ‘상관없어요’로 바꿔 보세요.' : '이 조건의 폰트를 다 봤어요. 처음부터 다시 섞었어요.';
       $('again').hidden = !rows.length;
       $('count').textContent = rows.length ? '조건에 맞는 후보 ' + rows.length + '종 중에서 뽑았어요 · ' + state.n + '번째 뽑기' : '';
-      if (!opts.still && window.innerWidth < 820) $('result').scrollIntoView({behavior: 'smooth', block: 'start'});
+      // 캔이 다 떨어지면 결과로 내려간다 — PC 도(10/22 사용자님 "캔이 떨어지면 자동으로 결과 화면으로"). 마지막 캔은 뽑고 약 0.9초에 닿는다
+      if (!opts.still) setTimeout(goResult, 480);
     }, opts.still ? 0 : 520);
   }
 
