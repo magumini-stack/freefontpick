@@ -51,6 +51,7 @@ def init_db():
         _patch_luxury_hub_title(db)
         _migrate_impact_curated_only(db)
         _migrate_hub_reshape_2026_09(db)
+        _migrate_tag_hubs_curated_only(db)
         _migrate_fancy_intros(db)
         _migrate_curator_intros(db)
         _migrate_summaries(db)
@@ -711,6 +712,33 @@ def _migrate_impact_curated_only(db: Session):
         print("[migrate] 임팩트 허브: 태그 자동 목록을 뗐습니다 (큐레이션만 노출)")
     if done is None:
         db.add(AppMeta(key=IMPACT_CURATED_ONLY_KEY, value="1"))
+    else:
+        done.value = "1"
+    db.commit()
+
+
+TAG_HUBS_CURATED_ONLY_KEY = "tag_hubs_curated_only_20261022"
+
+
+def _migrate_tag_hubs_curated_only(db: Session):
+    """유튜브 썸네일·브이로그 자막·카드뉴스 허브에서도 태그 자동 목록을 떼고, 고른 30종만 보이게 한다.
+
+    2026-10-22 사용자님: "모든 용도 허브에 폰트를 50종씩" → "30종으로 맞추자, 2번 방식으로"(모자라면 채우고 넘으면 점수 낮은 것부터 뺀다).
+    이 세 허브는 태그 폰트가 뒤에 저절로 붙어 40종이 넘었다. 같은 날 어드민에서 허브마다 30종(1~4위 그대로, 점수 낮은 것부터 뺌)을
+    직접 고른 목록으로 넣었고(Desktop/projects/폰트픽/허브순위_2026-10-15/fill30.py), 여기서 태그 자동 목록만 뗀다.
+    9/28 강렬한 제목 허브(_migrate_impact_curated_only)와 같은 방식 — 태그 자체는 전체 폰트 보기의 필터로 그대로 쓴다.
+    """
+    from .models import UseCase
+
+    done = db.query(AppMeta).filter(AppMeta.key == TAG_HUBS_CURATED_ONLY_KEY).first()
+    if done and done.value == "1":
+        return
+    for uc in db.query(UseCase).filter(UseCase.slug.in_(["thumbnail", "vlog", "card"])).all():
+        if uc.tag_id is not None:
+            uc.tag_id = None
+            print(f"[migrate] {uc.slug} 허브: 태그 자동 목록을 뗐습니다 (고른 목록만 노출)")
+    if done is None:
+        db.add(AppMeta(key=TAG_HUBS_CURATED_ONLY_KEY, value="1"))
     else:
         done.value = "1"
     db.commit()
