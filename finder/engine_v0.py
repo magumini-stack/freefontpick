@@ -1207,6 +1207,14 @@ def rank_image_ex(db, img, quad, char_boxes, top=10, pick="best", ocr=None, base
       · 잘 읽힌 벌은 그 글자·글자 위치로 자른다(사진에서 읽은 것보다 정확하다) → 오독도 고쳐진다
     text: 고른 벌에서 다시 읽은 글자(원래 읽은 것보다 확신이 높을 때만, 아니면 None).
     """
+    tried, need, base_ink = _collect_tried(db, img, quad, char_boxes, top, pick, ocr, base_conf)
+    if not tried:
+        return dict(res=[], why="", text=None, conf=0.0, tried=[])
+    return _finish(db, tried, need, top, pick, ocr, info_extra={}, base_ink=base_ink)
+
+
+def _collect_tried(db, img, quad, char_boxes, top, pick, ocr, base_conf):
+    """rank_image_ex 의 앞 절반 — 줄을 펴고 마스크 벌마다 글자를 떼어 순위를 낸다. (tried, need, base_ink)."""
     line, M, pad = rectify(img, quad)
     # 속도: 줄을 높이 LINE_H(160px)로 줄여서 마스크·다시 읽기·자르기를 한다. 견주기는 어차피 48칸,
     # 활자 특징은 128px 에서 재므로 잃는 게 없다. 1440px 썸네일 제목(높이 400~600)은 이걸로 5~10배 빨라진다.
@@ -1252,13 +1260,126 @@ def rank_image_ex(db, img, quad, char_boxes, top=10, pick="best", ocr=None, base
                 continue                              # 두 방법이 거의 같은 자리(4px 안)에서 잘랐으면 한 번만
             seen_cuts.add(sig)
             _try(name if how == "dp" else name + "·중간", glyphs, text_h, conf_h, use_h)
-    if not tried:
-        return dict(res=[], why="", text=None, conf=0.0, tried=[])
-    if ocr is not None:
+    if tried and ocr is not None:
         cmax = max(t["conf"] for t in tried)
         if cmax >= 0.5:
             tried = [t for t in tried if t["conf"] >= 0.5 * cmax]
-    return _finish(db, tried, need, top, pick, ocr, info_extra={}, base_ink=base_ink)
+    return tried, need, base_ink
+
+
+# ── 긴 줄 쪼개기(2026-10-22 사용자님 "7자 ~ 9자 이내로 쪼개서 하자") ─────────────────────
+# 옛 정답 시험에서 7~9자 줄이 가장 잘 맞아 보였다(1~4자 79%·5~6자 91%·7~9자 96%). 쓸 글자가 CHUNK_MAX 를 넘는 가로줄은
+# 7~9자 조각으로 나눠 조각마다 따로 펴고(rectify) 마스크 벌을 고르고 글자를 뗀다 — 기울어진 긴 줄은 한 사각형으로
+# 펴면 끝으로 갈수록 찌그러지고, 밝기가 고르지 않으면 한 벌이 줄 전체에 안 맞는다.
+#   CHUNK=fuse : 조각마다 고른 벌의 폰트별 점수를 글자 수만큼 무게 두어 합치고, 뗀 글자는 이어 붙여 뒤 단계(느낌·새 눈·
+#                활자 특징·RixFont)를 줄 하나처럼 돌린다
+#   CHUNK=best : 가장 또렷한 조각 하나(벌 고르는 잣대 crit 가 가장 좋은 것)만으로 찾는다
+#   CHUNK=0    : 쪼개지 않는다(기본)
+# 긴 한글 문장 정답 시험(bench_long 120장 — 장면 72·썸네일 48, 10~16자, bench_long_build.py)에서 **쪼개면 나빠져 끔**:
+#   쪼개지 않음 정답 1위 92%·3위 안 96%(장면 89%·썸네일 98%) · fuse 85%·89%(1위 된 2장·밀린 11장) · best 89%·96%(4장·8장,
+#   시간은 16.4→13.3초). 글자가 많을수록 견줄 증거가 많아 줄 통째가 낫다 — 예전 '7~9자 96%'는 짧은 한글 문구와 긴 영어 문장이
+#   섞인 탓이었다(옛 bench 의 10자 이상 12장은 모두 영어). 시험: BENCH_DIR=bench_long 으로 bench_eval.py, 견주기 font3/long_cmp.py.
+CHUNK = os.environ.get("CHUNK", "0")
+CHUNK_MIN, CHUNK_MAX = 7, 9
+
+
+def _chunk_spans(n):
+    """쓸 글자 n 개를 7~9자 조각으로 — [(시작, 끝)](끝 미포함). 고르게 나누되 7자보다 짧아지면 조금씩 겹친다.
+    예: 10자 → 0~6·3~9, 14자 → 0~6·7~13, 16자 → 0~7·8~15, 19자 → 0~6·6~12·12~18."""
+    if n <= CHUNK_MAX:
+        return [(0, n)]
+    k = -(-n // CHUNK_MAX)
+    size = max(CHUNK_MIN, -(-n // k))
+    starts = [round(j * (n - size) / (k - 1)) for j in range(k)]
+    return [(s, s + size) for s in starts]
+
+
+def _line_frame(quad):
+    """rectify 와 같은 셈으로 (M, pad, w, h) — 줄 그림은 만들지 않는다."""
+    q = np.array(quad, np.float32)
+    w = int(max(np.linalg.norm(q[1] - q[0]), np.linalg.norm(q[2] - q[3])))
+    h = int(max(np.linalg.norm(q[3] - q[0]), np.linalg.norm(q[2] - q[1])))
+    pad = int(h * 0.12)
+    dst = np.array([[pad, pad], [pad + w, pad], [pad + w, pad + h], [pad, pad + h]], np.float32)
+    return cv2.getPerspectiveTransform(q, dst), pad, w, h
+
+
+def _chunk_plan(quad, char_boxes):
+    """[(조각 사각형(원본 좌표), 조각 글자 상자, (시작, 끝))] — 쪼갤 필요가 없으면(짧은 줄·세로쓰기·상자 이상) None.
+    조각 경계는 줄 좌표에서 이웃한 두 글자 가운데의 한가운데, 위아래는 원래 사각형 그대로."""
+    use = [k for k, (c, _) in enumerate(char_boxes) if usable(c)]
+    if len(use) <= CHUNK_MAX:
+        return None
+    M, pad, w, h = _line_frame(quad)
+    cx, cy = [], []
+    for k in use:
+        pts = cv2.perspectiveTransform(np.array([char_boxes[k][1]], np.float32), M.astype(np.float32))[0]
+        cx.append(float(pts[:, 0].mean())); cy.append(float(pts[:, 1].mean()))
+    if np.ptp(cy) > np.ptp(cx) or any(b <= a for a, b in zip(cx, cx[1:])):
+        return None                           # 세로쓰기이거나 글자 가운데가 차례대로가 아니면 쪼개지 않는다
+    Minv = np.linalg.inv(M).astype(np.float32)
+    plan = []
+    for a, b in _chunk_spans(len(use)):
+        x0 = pad if a == 0 else (cx[a - 1] + cx[a]) / 2
+        x1 = pad + w if b == len(use) else (cx[b - 1] + cx[b]) / 2
+        pts = np.array([[[x0, pad], [x1, pad], [x1, pad + h], [x0, pad + h]]], np.float32)
+        q = cv2.perspectiveTransform(pts, Minv)[0].tolist()
+        plan.append((q, char_boxes[use[a]:use[b - 1] + 1], (a, b)))
+    return plan
+
+
+def _best_of(tried):
+    """_finish 와 같은 잣대로 벌 하나."""
+    pool = [t for t in tried if t["ok"]] or [t for t in tried if t["n"] == max(x["n"] for x in tried)]
+    return min(pool, key=lambda t: t["crit"])
+
+
+def rank_line(db, img, quad, char_boxes, top=10, pick="best", ocr=None, base_conf=0.0):
+    """서비스·정답 시험이 부르는 입구 — 긴 줄이면 CHUNK 방식으로 쪼개 찾고, 아니면 rank_image_ex 그대로."""
+    plan = _chunk_plan(quad, char_boxes) if CHUNK in ("fuse", "best") and pick == "best" else None
+    if not plan:
+        return rank_image_ex(db, img, quad, char_boxes, top=top, pick=pick, ocr=ocr, base_conf=base_conf)
+    parts = []
+    for q, boxes, span in plan:
+        tried, need, base_ink = _collect_tried(db, img, q, boxes, top, pick, ocr, base_conf)
+        if tried:
+            parts.append((tried, need, base_ink, span))
+    if len(parts) < len(plan):                # 조각 하나라도 못 읽으면 예전처럼 줄 통째로
+        return rank_image_ex(db, img, quad, char_boxes, top=top, pick=pick, ocr=ocr, base_conf=base_conf)
+    if CHUNK == "best":
+        tried, need, base_ink, _ = min(parts, key=lambda p: _best_of(p[0])["crit"])
+        return dict(_finish(db, tried, need, top, pick, ocr, info_extra={}, base_ink=base_ink), chunks=len(parts))
+    bests = [_best_of(p[0]) for p in parts]
+    wts = [max(1, len([c for c, _ in b["glyphs"] if usable(c)])) for b in bests]
+    score, keep = {}, None
+    for b, wt in zip(bests, wts):
+        sc = {(r[1], r[2]): r for r in b["res"]}
+        keep = set(sc) if keep is None else keep & set(sc)       # 모든 조각에 점수가 있는 굵기만
+        for k, r in sc.items():
+            s = score.setdefault(k, [0.0, r[3]])
+            s[0] += wt * r[0]
+    tot = float(sum(wts))
+    res = sorted(((score[k][0] / tot, k[0], k[1], score[k][1]) for k in keep), key=lambda r: (r[0], str(r[1])))
+    if not res:
+        return rank_image_ex(db, img, quad, char_boxes, top=top, pick=pick, ocr=ocr, base_conf=base_conf)
+    med = max(1e-6, float(np.median([r[0] for r in res[:30]])))
+    # 뗀 글자는 이어 붙인다 — 겹친 조각(10~13자 등)은 앞 조각과 겹친 글자를 한 번만(조각의 글자 수가 맞을 때)
+    glyphs, prev_end = [], 0
+    for b, p in zip(bests, parts):
+        a, e = p[3]
+        g = b["glyphs"]
+        u = [i for i, (c, _) in enumerate(g) if usable(c)]
+        drop = max(0, prev_end - a)
+        if drop and len(u) == e - a:
+            g = g[u[drop - 1] + 1:]
+        glyphs += g
+        prev_end = e
+    fused = dict(ok=True, n=len(glyphs), crit=res[0][0] * res[0][0] / med, res=res,
+                 name="조각%d(%s)" % (len(bests), "+".join(b["name"] for b in bests)), med=med,
+                 conf=float(np.mean([b["conf"] for b in bests])), text=None, top1=res[0][0], ratio=res[0][0] / med,
+                 glyphs=glyphs, ink=sum(b["ink"] for b in bests))
+    need = max(1, len([c for c, _ in glyphs if usable(c)]) // 2)
+    return dict(_finish(db, [fused], need, top, pick, ocr, info_extra={}, base_ink=sum(p[2] for p in parts)), chunks=len(parts))
 
 
 def _rank_try(db, tried, need, top, pick, ocr, name, glyphs, text_h, conf_h, use_h):

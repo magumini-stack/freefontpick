@@ -55,7 +55,8 @@ FEEDBACK = os.environ.get("FINDER_FEEDBACK", os.path.join(DATA, "feedback", "fee
 #   detect 이미지 올림 · detect_nolines 그중 글자 줄을 못 찾음 · detect_sec 올림 처리 초 합
 #   match 줄 찾기 · match_sec 줄 찾기 초 합(앞 요청 기다린 시간 포함) · match_latin 영문 줄 · match_loose 똑같은 폰트 없이
 #   느낌이 비슷한 것만 · match_edit 읽은 글자를 고쳐서 다시 찾음 · similar/none '비슷해요'/'비슷한 게 없어요'(…_off 는 취소)
-#   match_style 갈래 칩 · more '이 느낌으로 더 보기'(more_sec 초 합, more_style 그 화면에서 갈래 칩)
+#   match_style 갈래 칩(10/22 화면에서 뺌) · more '이 느낌으로 더 보기'(more_sec 초 합, more_style 그 화면에서 갈래 칩)
+#   match_chunked 긴 줄(10자 넘게)을 7~9자 조각으로 쪼개 찾은 수(엔진 rank_line, 10/22)
 USAGE = os.environ.get("FINDER_USAGE", os.path.join(DATA, "usage.json"))
 KST = timezone(timedelta(hours=9))
 
@@ -223,7 +224,7 @@ class MatchReq(BaseModel):
 
 # 갈래 칩을 누를 때 엔진(글자 견주기)을 다시 돌리지 않도록 찾은 결과를 이미지 기록 옆에 둔다(이미지와 함께 15분 뒤 지워진다).
 # 다시 세우는 데 필요한 것만 — 글자 마스크·모든 굵기 순위·읽은 글자 등(줄 하나 0.5MB 안팎).
-RUN_KEYS = ("res_all", "shown", "glyphs", "text", "rix_exact", "latin", "verdict", "explain")
+RUN_KEYS = ("res_all", "shown", "glyphs", "text", "rix_exact", "latin", "verdict", "explain", "chunks")
 
 
 @app.post("/find/match")
@@ -250,7 +251,7 @@ def match(req: MatchReq):
         fresh = r is None
         if fresh:
             img = cv2.imdecode(np.frombuffer(rec["jpg"], np.uint8), cv2.IMREAD_COLOR)[:, :, ::-1]
-            r = E.rank_image_ex(db, img, ln["quad"], chars, top=max(3, min(12, req.top)),
+            r = E.rank_line(db, img, ln["quad"], chars, top=max(3, min(12, req.top)),
                                 ocr=tf.recognize, base_conf=base_conf)
             r = {k: r.get(k) for k in RUN_KEYS}
             runs[key] = r
@@ -269,6 +270,8 @@ def match(req: MatchReq):
         inc["match_loose"] = 1
     if fresh and text_override:
         inc["match_edit"] = 1
+    if fresh and (r.get("chunks") or 1) > 1:
+        inc["match_chunked"] = 1                          # 긴 줄을 7~9자 조각으로 쪼개 찾은 수(10/22)
     if cut:
         inc["tight_cut"] = cut                            # 느낌이 너무 멀어 뺀 후보 수(하루 합)
     _count(**inc)
