@@ -349,8 +349,10 @@ const PairingStore = {
     return await apiFetch(`/pairings/regenerate-all?top_n=${topN || 6}`, {method: 'POST'});
   },
   /** 조합이 하나도 없는 폰트에만 만들어 덧붙인다 (기존 조합은 그대로) */
-  async fillMissing(topN) {
-    return await apiFetch(`/pairings/fill-missing?top_n=${topN || 6}`, {method: 'POST'});
+  async fillMissing(topN, ids) {
+    // ids: 폰트 번호 배열을 주면 그 폰트만(새 폰트를 많이 올렸을 때 나눠 부른다 — 2026-10-23)
+    const q = ids && ids.length ? `&ids=${ids.join(',')}` : '';
+    return await apiFetch(`/pairings/fill-missing?top_n=${topN || 6}${q}`, {method: 'POST'});
   },
 };
 

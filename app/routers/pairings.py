@@ -9,7 +9,7 @@
 - DELETE /api/pairings/{id}         : 페어링 삭제 — 관리자
 - POST /api/pairings/purge-orphans  : orphan 정리 — 관리자
 - POST /api/pairings/regenerate-all : 전체 재생성·교체 — 관리자
-- POST /api/pairings/fill-missing   : 조합이 없는 폰트에만 만들어 덧붙임 — 관리자
+- POST /api/pairings/fill-missing   : 조합이 없는 폰트에만 만들어 덧붙임 — 관리자 (ids=… 로 나눠 부르기)
 """
 import math
 import random
@@ -1105,6 +1105,7 @@ def regenerate_all_pairings(
 @router.post("/pairings/fill-missing")
 def fill_missing_pairings(
     top_n: int = 6,
+    ids: str = "",
     db: Session = Depends(get_db),
     _admin = Depends(require_password_changed),
 ):
@@ -1140,11 +1141,16 @@ def fill_missing_pairings(
     for (a, b) in db.query(FontPairing.title_font_id, FontPairing.body_font_id).all():
         used.add(a)
         used.add(b)
-    targets = sorted((f for f in ctx.fonts if f.id not in used), key=lambda f: f.id)
+    empty = sorted((f for f in ctx.fonts if f.id not in used), key=lambda f: f.id)
+    # ids="776,777,…" 를 주면 그 가운데 조합이 없는 폰트만 만든다(2026-10-23 — 231종을 한 번에 돌리다
+    # 서버가 응답을 못 해 다시 시작됐다. 나눠 부르면 한 번의 요청이 짧다). ①의 보정은 아직 조합이
+    # 없는 폰트 전부에 그대로 건다 — 다음 묶음에서 만들 폰트끼리 짝으로 몰리지 않게.
+    want = {int(x) for x in ids.split(",") if x.strip().isdigit()} if ids else None
+    targets = [f for f in empty if want is None or f.id in want]
     if not targets:
         return {"created": 0, "fonts": [], "themes": {}}
 
-    for f in targets:                                   # ①
+    for f in empty:                                     # ①
         ctx.usage_counts[f.id] = max(ctx.usage_counts.get(f.id, 0), top_n)
 
     rows, per_font = [], []
