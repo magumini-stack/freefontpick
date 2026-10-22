@@ -818,9 +818,9 @@ SECONDARY_SOURCES = {"rix"}   # 뒤 칸 — 고른 벌에서만 견주고, 완�
 # '완전 같음' = 모양 점수 ≤ PIN_ABS 이고 앞 칸 최고의 이 배수 아래(10/14 시험: RixFont 정답 글줄 72 중 51 맨 위, 정답 뺀 견본에서
 # 잘못 맨 위 5/49 → 2/49, 무료폰트 견본 1/47 → 0/47 — 앞 칸보다 '조금' 나은 것은 닮은 폰트였다)
 RIX_EXACT_MARGIN = 0.85
-# 찾기에서 아예 권하지 않는 제작사(쉼표로). RakFont 는 비싼 유료 폰트라 무료 폰트를 찾으러 온 사람에게 맞지 않는다
-# (2026-09-23 사용자님 — 서비스 컨셉). build_catalog.py 도 다음 목록부터 뺀다.
-EXCLUDE_MAKERS = {m.strip() for m in os.environ.get("FINDER_EXCLUDE_MAKERS", "RakFont").split(",") if m.strip()}
+# 찾기에서 아예 권하지 않는 제작사(쉼표로, env FINDER_EXCLUDE_MAKERS). 9/23 에는 RakFont 를 뺐다(비싼 유료 폰트라
+# 무료 폰트를 찾으러 온 사람에게 맞지 않는다 — 서비스 컨셉). 10/22 사용자님 "RakFont도 결과 값에 넣어주고" → 기본은 비움.
+EXCLUDE_MAKERS = {m.strip() for m in os.environ.get("FINDER_EXCLUDE_MAKERS", "").split(",") if m.strip()}
 
 
 def stroke_variants(m, height=96):
@@ -1397,7 +1397,7 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
                 info["latin"] = True
             else:
                 if eye is not None:
-                    main = _eye_resort(db, main, eye, near_ok, sims, face_i, EYE_K)
+                    main = _eye_resort(db, main, eye, near_ok, sims, face_i, EYE_K, pair=True)
                     secs = _eye_resort(db, secs, eye, near_ok, sims, face_i, EYE_K_SEC)
                 res_all = exact + main[:depth] + secs[:depth]
             g = _list_first(res_all, best["ratio"],
@@ -1510,6 +1510,36 @@ EYE_ON = __import__("os").environ.get("EYE", "1") == "1"
 EYE_K = int(__import__("os").environ.get("EYE_K", "12"))
 EYE_K_SEC = int(__import__("os").environ.get("EYE_K_SEC", "6"))
 EYE_A = float(__import__("os").environ.get("EYE_A", "1.0"))
+# 사용자님 폰트끼리 판단(2026-10-22, 기준 120개 × 후보 12개 → models/pair_labels.json, 실험실 font3/pairjudge):
+# 사진 결과는 '거의 같은 폰트' 무리 1위와 사람이 닮았다(비슷 이상) 한 폰트를 새 눈 다시 세우기 안에서 PAIR_UP 만큼 올리고,
+# 아니라고 한 폰트는 PAIR_DOWN 만큼 내린다 — 사진 판단 131줄 nDCG5 0.588→0.614·상위3 43→45%(판단이 겹친 63줄 0.605→0.657).
+# 더 세게 내리면 오히려 나빠졌다(내림 0.3 → 0.605, 1.0 → 0.597): 같은 사람도 사진 앞에서는 폰트끼리 '아님'의 22%를 비슷하다고
+# 했고, 대신 올라오는 폰트가 더 낫지도 않았다. '더 보기'(폰트끼리)는 판단한 폰트를 그대로 앞에(아주 비슷 → 비슷), 아님은 맨 뒤로.
+PAIR_ON = os.environ.get("PAIR", "1") == "1"
+PAIR_UP = float(os.environ.get("PAIR_UP", "0.20"))
+PAIR_DOWN = float(os.environ.get("PAIR_DOWN", "0.10"))
+_pair_cache = None
+
+
+def pair_labels():
+    """{fid 문자열: {fid 문자열: 0 아님 · 1 비슷 · 2 아주 비슷}} — 양쪽으로 찾되, 같은 두 폰트를 두 번 판단했으면
+    '기준으로 놓고 본 판단'이 이긴다. 파일이 없거나 PAIR=0 이면 빈 표."""
+    global _pair_cache
+    if _pair_cache is None:
+        out = {}
+        if PAIR_ON:
+            try:
+                p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "pair_labels.json")
+                with open(p, encoding="utf-8") as f:
+                    edges = json.load(f)["edges"]
+                for a, c, y in edges:
+                    out.setdefault(str(a), {})[str(c)] = int(y)
+                for a, c, y in edges:
+                    out.setdefault(str(c), {}).setdefault(str(a), int(y))
+            except Exception:
+                out = {}
+        _pair_cache = out
+    return _pair_cache
 
 
 def _eye_ctx(best):
@@ -1532,15 +1562,28 @@ def _eye_ctx(best):
         return None
 
 
-def _eye_resort(db, lst, ctx, near_ok, sims, face_i, k):
-    """lst(목록 순서) 앞의 '거의 같은 폰트' 무리는 그대로, 그다음 k 개를 느낌 + EYE_A × 새 눈 순으로."""
+def _eye_resort(db, lst, ctx, near_ok, sims, face_i, k, pair=False):
+    """lst(목록 순서) 앞의 '거의 같은 폰트' 무리는 그대로, 그다음 k 개를 느낌 + EYE_A × 새 눈 순으로.
+    pair: 무리 1위와 사용자님이 폰트끼리 판단한 폰트를 올리고(비슷 이상 PAIR_UP) 내린다(아님 PAIR_DOWN) — 닮았다고 한 폰트가
+    k 개 밖에 있으면 끌어와 함께 센다. 한글 목록에만(판단은 한글 문장으로 했다)."""
     if ctx is None or not lst or k <= 1:
         return lst
     q, text = ctx
     lead = 0
     while lead < len(lst) and near_ok(lst[lead]):
         lead += 1
-    head = lst[lead:lead + k]
+    head, tail = lst[lead:lead + k], lst[lead + k:]
+    lab = pair_labels().get(str(lst[0][1]), {}) if (pair and lead) else {}
+    if lab:
+        have = {r[1] for r in head}
+        pulled = []
+        for r in tail:
+            if r[1] not in have and lab.get(str(r[1]), 0) >= 1:
+                have.add(r[1]); pulled.append(r)
+        if pulled:
+            got = set(map(id, pulled))
+            head = head + pulled
+            tail = [r for r in tail if id(r) not in got]
     if len(head) < 2:
         return lst
     try:
@@ -1557,9 +1600,11 @@ def _eye_resort(db, lst, ctx, near_ok, sims, face_i, k):
     def key(j):
         i = idx[j]
         f = float(sims[i]) if (i is not None and sims is not None) else 0.0
-        return -(f + EYE_A * ev.get(i, fill))
+        y = lab.get(str(head[j][1]))
+        b = 0.0 if y is None else (PAIR_UP if y >= 1 else -PAIR_DOWN)
+        return -(f + EYE_A * ev.get(i, fill) + b)
     order = sorted(range(len(head)), key=lambda j: (key(j), j))
-    return lst[:lead] + [head[j] for j in order] + lst[lead + k:]
+    return lst[:lead] + [head[j] for j in order] + tail
 
 
 # ── 좁혀 가기(2026-10-21 사용자님 '3번'): 갈래 칩 · '이 느낌으로 더 보기' ─────────────────────
@@ -1607,7 +1652,7 @@ def relist(db, r, style=None, depth=None):
             secs = _eye_resort(db, secs, eye, near_ok, sims, face_i, EYE_K_SEC)
         return _dedupe(en[:depth] + exact + ko[:depth] + secs[:depth])
     if eye is not None:
-        main = _eye_resort(db, main, eye, near_ok, sims, face_i, EYE_K)
+        main = _eye_resort(db, main, eye, near_ok, sims, face_i, EYE_K, pair=True)
         secs = _eye_resort(db, secs, eye, near_ok, sims, face_i, EYE_K_SEC)
     return _dedupe(exact + main[:depth] + secs[:depth])
 
@@ -1652,7 +1697,62 @@ def similar(db, fid, w, text, style=None, depth=None):
         en = [x for x in main if db.info[x[1]]["is_english"]]
         ko = [x for x in main if not db.info[x[1]]["is_english"]]
         return _dedupe(en[:depth * 3]) [:depth] + _dedupe(ko[:depth * 3])[:depth] + _dedupe(secs[:depth * 3])[:depth]
-    return _dedupe(main[:depth * 3])[:depth] + _dedupe(secs[:depth * 3])[:depth]
+    main = _similar_refine(db, fid, i0, _dedupe(main), text, E1, F1, face_i)
+    return main[:depth] + _dedupe(secs[:depth * 3])[:depth]
+
+
+# '더 보기' 다듬기(2026-10-22 사용자님 폰트끼리 판단 120개로, 실험실 font3/pairjudge):
+# ① 앞 SIM_K 폰트를 보여 줄 글자로 그려 새 눈으로 다시 견준다(같은 글자 S + 기준 줄 R + 느낌) — 판단 120개에서
+#    지금 식(R + 느낌) 1위 비슷 58%·nDCG5 0.630 → 보여 준 문장 그대로 59%·0.660, 그 일부('좋은 하루') 65%·0.683,
+#    전혀 다른 문장이어도 61~64%·0.632~0.655 로 나빠지지 않았다(text_check.py). R 을 함께 더해 짧은 글자에도 버틴다.
+#    12개면 ≈ 0.5~1초(24개는 1~2초라 줄임).
+# ② 사용자님이 이 폰트와 닮았다고 고른 폰트를 맨 앞에(아주 비슷 → 비슷), 아니라고 한 폰트는 맨 뒤로.
+SIM_EYE = os.environ.get("SIM_EYE", "1") == "1"
+SIM_K = int(os.environ.get("SIM_K", "12"))
+
+
+def _similar_refine(db, fid, i0, lst, text, E1, F1, face_i):
+    """lst = 폰트마다 한 벌, 닮은 순(similar 의 한글 목록) → 다듬은 순서."""
+    lab = pair_labels().get(str(fid), {})
+    up = [x for x in lst if lab.get(str(x[1]), 0) >= 1]
+    down = [x for x in lst if lab.get(str(x[1])) == 0]
+    mid = [x for x in lst if str(x[1]) not in lab]
+    sc = _sim_eye_scores(db, i0, up + mid[:SIM_K], text, E1, F1, face_i)
+    if sc:
+        key = lambda x: -sc.get((x[1], x[2]), -9.0)
+        mid = sorted(mid[:SIM_K], key=key) + mid[SIM_K:]
+        up.sort(key=lambda x: (-lab[str(x[1])], key(x)))
+    else:
+        up.sort(key=lambda x: -lab[str(x[1])])             # 같은 판단 안에서는 원래 닮은 순(안정 정렬)
+    return up + mid + down
+
+
+def _sim_eye_scores(db, i0, lst, text, E1, F1, face_i):
+    """{(fid, 굵기): 같은 글자 새 눈 + 기준 줄 새 눈 + 느낌} — 새 눈을 못 쓰면 빈 표(원래 순서 그대로).
+    글자가 모자라 못 그린 후보는 같은 글자 칸을 기준 줄 값으로 채운다."""
+    if not SIM_EYE or E1 is None or not E1[i0].any() or not (text or "").strip() or not lst:
+        return {}
+    try:
+        import sys as _sys
+        import eyeline
+        if not eyeline.available():
+            return {}
+        idx = [face_i.get((x[1], x[2])) for x in lst]
+        V = eyeline.cand_vecs(db, [i0] + [i for i in idx if i is not None], text, _sys.modules[__name__])
+    except Exception:
+        return {}
+    a = V.get(i0)
+    if a is None:
+        return {}
+    use_f = F1 is not None and F1[i0].any()
+    out = {}
+    for x, i in zip(lst, idx):
+        if i is None:
+            continue
+        r = float(E1[i] @ E1[i0])
+        s = float(V[i] @ a) if i in V else r
+        out[(x[1], x[2])] = s + r + (float(F1[i] @ F1[i0]) if use_f else 0.0)
+    return out
 
 
 def _feel_sims(db, glyphs):
