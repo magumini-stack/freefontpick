@@ -118,7 +118,8 @@ def record_view(request, font_id: int, db) -> bool:
 #     w   = 0.9 (2026-10-15) → 0.3 (2027-04-15) 까지 날마다 조금씩 줄고, 그 뒤로는 0.3
 #
 # 시간이 갈수록 우리 조회수가 순위를 넘겨받으므로 바탕 점수를 다시 만들 필요가 없다.
-# 바탕 점수가 없는 폰트(이후 새로 등록한 폰트 등)는 바탕 점수 40% 지점 값으로 시작한다.
+# 바탕 점수가 없는 폰트(이후 새로 등록한 폰트 등)는 바탕 점수 가운데 값(중앙값)으로 시작한다
+# (처음엔 40% 지점이었다 → 2026-10-22 사용자님 "새로 등록한 폰트는 인기순 중간 값에").
 # 숫자는 여전히 화면에 내보내지 않는다 — 순서만 쓴다.
 _BASE_PATH = Path(__file__).resolve().parent / "base_popularity.json"
 _BASE_FROM, _BASE_TO = date(2026, 10, 15), date(2027, 4, 15)
@@ -134,7 +135,7 @@ def _base():
             raw = json.loads(_BASE_PATH.read_text(encoding="utf-8"))["base"]
             base = {int(k): float(v) for k, v in raw.items()}
             vals = sorted(base.values())
-            default = vals[int(len(vals) * 0.4)] if vals else 0.0
+            default = vals[len(vals) // 2] if vals else 0.0   # 중앙값
             _base_cache = (base, default)
         except Exception:
             _base_cache = ({}, 0.0)
