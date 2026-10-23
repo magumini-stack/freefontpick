@@ -447,7 +447,8 @@
   .rel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
   .rel-card{border:1px solid var(--border);border-radius:3px;padding:16px 14px;transition:.18s;height:118px;min-width:0;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center}
   .rel-card:hover{border-color:var(--border-hover);transform:translateY(-2px);background:var(--bg-card)}
-  .rel-spec{font-size:24px;line-height:1.3;letter-spacing:-.2px;color:var(--text-primary);word-break:break-word;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+  /* 이름은 늘 한 줄 — 칸보다 길면 JS(fitRelated)가 글자 크기를 줄여 맞춘다(10/23, 같은 크기로 두니 줄바꿈이 생겼다) */
+  .rel-spec{font-size:24px;line-height:1.3;letter-spacing:-.2px;color:var(--text-primary);white-space:nowrap;overflow:hidden;max-width:100%}
 
   /* ── CTA ── */
   .cta{background:var(--text-primary);color:var(--bg);border-radius:4px;padding:36px 34px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;margin:42px 0 70px}
@@ -912,6 +913,28 @@
         '<div class="rel-spec" style="font-family:' + stk + '">' + esc(rf.name) + '</div></a>';
     }).join('');
     sec.classList.remove('hidden');
+    fitRelated();
+    // 폰트 파일이 늦게 오면 글자 폭이 바뀐다 — 받을 때마다, 칸 너비가 바뀔 때마다 다시 맞춘다
+    if (!renderRelated.hooked){
+      renderRelated.hooked = true;
+      try{ document.fonts.addEventListener('loadingdone', fitRelated); document.fonts.ready.then(fitRelated); }catch(e){}
+      if (window.ResizeObserver) new ResizeObserver(fitRelated).observe(grid);
+    }
+  }
+  /* 같은 계열 이름을 한 줄에 맞춘다 — 기본 크기(CSS 24px)에서 넘치는 만큼만 줄이고, 9px 아래로는 안 줄인다(PC 칸이 112px 라 '원스토어 모바일고딕 제목체'가 9.6px 쯤) */
+  function fitRelated(){
+    var specs = document.querySelectorAll('#relatedGrid .rel-spec');
+    for (var i = 0; i < specs.length; i++){
+      var el = specs[i], card = el.parentNode;
+      el.style.fontSize = '';
+      var cs = getComputedStyle(card);
+      var room = card.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      var w = el.scrollWidth;
+      if (room > 0 && w > room){
+        var base = parseFloat(getComputedStyle(el).fontSize);
+        el.style.fontSize = Math.max(9, Math.floor(base * room / w * 10) / 10) + 'px';
+      }
+    }
   }
 
   // 메인페이지에서 넘어온 미리보기 문구 (sessionStorage)
