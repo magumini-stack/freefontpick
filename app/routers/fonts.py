@@ -355,17 +355,23 @@ def popular_fonts(days: int = 7, limit: int = 10, mode: str = "mixed",
     """
     days = max(1, min(int(days or 7), 90))
     limit = max(1, min(int(limit or 10), 50))
-    try:
-        from ..font_views import mixed_top, top_fonts, trending_fonts
-        if mode == "total":
-            ids = top_fonts(db, days=days, limit=limit)
-        elif mode == "trending":
-            ids = trending_fonts(db, limit=limit)
-        else:
-            ids = mixed_top(db, days=days, limit=limit)
-    except Exception:
-        ids = []
-    return [{"id": fid, "rank": i + 1} for i, fid in enumerate(ids)]
+
+    def build():
+        try:
+            from ..font_views import mixed_top, top_fonts, trending_fonts
+            if mode == "total":
+                ids = top_fonts(db, days=days, limit=limit)
+            elif mode == "trending":
+                ids = trending_fonts(db, limit=limit)
+            else:
+                ids = mixed_top(db, days=days, limit=limit)
+        except Exception:
+            ids = []
+        return [{"id": fid, "rank": i + 1} for i, fid in enumerate(ids)]
+
+    # 폰트 1,000종의 바탕 점수·조회수를 섞어 매번 계산하던 것을 5분 캐시한다(2026-10-23 — 서치콘솔
+    # 평균 응답 508ms, 101바이트 답에 0.3~0.5초). 순위는 조회수라 판(content_cache 버전)이 아니라 TTL 로 낡는다.
+    return content_cache.get(f"fonts:popular:{mode}:{days}:{limit}", ttl=300, build=build)
 
 
 @router.get("/popular-order")

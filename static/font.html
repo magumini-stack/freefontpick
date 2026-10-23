@@ -884,6 +884,8 @@
   function esc(s){ var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
   function fetchRelated(f){
+    // 서버가 고른 같은 계열 8종이 페이지에 실려 오면 그대로 그린다(2026-10-23 — 전체 목록을 받지 않게)
+    if (BOOT && Array.isArray(BOOT.related)) { renderRelated(BOOT.related); return; }
     fetch('/api/fonts').then(function(r){ return r.ok ? r.json() : []; }).then(function(all){
       var mine = f.tags || [];
       if (!mine.length) return;

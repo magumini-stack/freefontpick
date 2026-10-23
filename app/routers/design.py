@@ -741,6 +741,14 @@ def _font_boot_block(font: Font, db: Session) -> str:
             # 통째로 실으면 162KB 가 붙으므로 그 6개만 싣는다 — 순서는 API 와 같다.
             "pairings": jsonable_encoder(font_pairings(font.id, db)[:6]),
         }
+        # 같은 계열 8종(2026-10-23) — 화면은 이 폰트들을 그 폰트 모양으로 다시 그리려고 전체 목록
+        # /api/fonts(압축 116KB)를 받아 다시 골랐다. 서치콘솔 크롤링에서 JSON 이 HTML 보다 많던
+        # 주된 까닭이라, 서버가 고른 같은 8종을 실어 두고 화면은 이걸로 그린다(없으면 예전처럼).
+        # 화면(renderRelated·stackOf)이 쓰는 칸만 — 통째로 실으면 소개글·라이선스까지 붙어 수십 KB 가 된다
+        keep = ("id", "name", "has_file", "stack", "webfont_family", "webfont_css_url", "file_source", "file_version")
+        paired = _paired_font_ids(db)
+        data["related"] = [{k: v for k, v in jsonable_encoder(_to_out(r, paired)).items() if k in keep}
+                           for r in _related_fonts(font, db)]
     except Exception:
         return ""
     txt = _json.dumps(data, ensure_ascii=False, separators=(",", ":"))
@@ -980,6 +988,33 @@ def _commercial_status(font: Font):
     return "yes" if all(v == "y" for v in vals) else "partial"
 
 
+def _related_fonts(font: Font, db: Session) -> list:
+    """같은 계열 8종 — 태그가 겹친 수 → 좋아요 수 → 갤러리 순서. 서버 그림(_related_block)과
+    화면 다시 그리기용 boot 자료(_font_boot_block 'related')가 같은 목록을 쓴다. 한 요청 안에서
+    두 번 부르므로 font 객체에 붙여 둔다."""
+    cached = getattr(font, "_ffp_related", None)
+    if cached is not None:
+        return cached
+    tag_ids = [t.id for t in (font.tags or [])]
+    rows = []
+    if tag_ids:
+        from sqlalchemy import func as _f
+        rows = (
+            db.query(Font)
+            .join(FontTag, FontTag.font_id == Font.id)
+            .filter(FontTag.tag_id.in_(tag_ids), Font.id != font.id)
+            .group_by(Font.id)
+            .order_by(_f.count(FontTag.tag_id).desc(), Font.like_count.desc(), Font.sort_order, Font.id)
+            .limit(8)
+            .all()
+        )
+    try:
+        font._ffp_related = rows
+    except Exception:
+        pass
+    return rows
+
+
 def _related_block(font: Font, db: Session) -> str:
     """같은 계열 폰트 — 상세페이지 오른쪽 칸. 서버가 먼저 그린다 (2026-10-04).
 
@@ -996,19 +1031,7 @@ def _related_block(font: Font, db: Session) -> str:
     """
     empty = ('<section class="blk side-card hidden" id="relatedSec">'
              '<div class="lbl">같은 계열 폰트</div><div class="rel-grid" id="relatedGrid"></div></section>')
-    tag_ids = [t.id for t in (font.tags or [])]
-    if not tag_ids:
-        return empty
-    from sqlalchemy import func as _f
-    rows = (
-        db.query(Font)
-        .join(FontTag, FontTag.font_id == Font.id)
-        .filter(FontTag.tag_id.in_(tag_ids), Font.id != font.id)
-        .group_by(Font.id)
-        .order_by(_f.count(FontTag.tag_id).desc(), Font.like_count.desc(), Font.sort_order, Font.id)
-        .limit(8)
-        .all()
-    )
+    rows = _related_fonts(font, db)
     if not rows:
         return empty
     cards = "".join(

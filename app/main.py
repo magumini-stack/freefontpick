@@ -142,6 +142,13 @@ _CACHE_EXEMPT_SUFFIXES = ("/og-image.png", "/file", "/sample-image", "/webfont.c
 # 홈 48개·전체 폰트 296개 파일이 매번 새로 내려갔다). 경로에 /file/ 이 있으면 손대지 않는다.
 _CACHE_EXEMPT_PARTS = ("/file/", "/webfont/", "/piece/")
 
+# 누구에게나 같은 읽기 전용 목록은 5분 동안 다시 받지 않게 한다(2026-10-23).
+# 서치콘솔 크롤링 통계에서 JSON 이 47%(HTML 37%)였고 그 대부분이 이 목록들이었다 — 구글봇과 방문자가
+# 페이지마다 같은 116KB 목록을 새로 받아 갔다. 서버 쪽은 이미 content_cache 로 굽는다.
+# 관리자 화면은 api-client.js 의 FFP_API_NO_CACHE 로 늘 새로 받는다(고친 직후 옛 목록이 보이지 않게).
+_SHORT_CACHE_PATHS = frozenset({"/api/fonts", "/api/fonts/popular", "/api/fonts/popular-order", "/api/font-pair/shapes"})
+_SHORT_CACHE = "public, max-age=300"
+
 # 읽기 캐시(app/content_cache.py) — 내용 표에 커밋이 나면 캐시가 낡는다.
 content_cache.install(_SessionLocal)
 
@@ -410,7 +417,9 @@ async def stamp_static_assets(request: Request, call_next):
 async def no_store_for_api(request: Request, call_next):
     response = await call_next(request)
     path = request.url.path
-    if (path.startswith("/api/") and not path.endswith(_CACHE_EXEMPT_SUFFIXES)
+    if path in _SHORT_CACHE_PATHS and request.method == "GET" and response.status_code == 200:
+        response.headers["Cache-Control"] = _SHORT_CACHE
+    elif (path.startswith("/api/") and not path.endswith(_CACHE_EXEMPT_SUFFIXES)
             and not any(part in path for part in _CACHE_EXEMPT_PARTS)):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"

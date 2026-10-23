@@ -10,6 +10,9 @@ const API_BASE = '/api';
 async function apiFetch(path, options = {}) {
   const init = {
     credentials: 'same-origin',
+    // 관리자 화면은 브라우저 캐시를 쓰지 않는다 — /api/fonts 등은 5분 캐시로 나가는데(2026-10-23),
+    // 등록·수정 직후 옛 목록을 받으면 중복 검사 등이 틀린다. admin*.html 이 FFP_API_NO_CACHE 를 켠다.
+    ...(typeof window !== 'undefined' && window.FFP_API_NO_CACHE ? {cache: 'no-store'} : {}),
     ...options,
     headers: {
       'Accept': 'application/json',
