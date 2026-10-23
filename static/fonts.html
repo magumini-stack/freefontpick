@@ -2618,7 +2618,7 @@ function renderFonts(){
       + '<span class="ffp-ad-lbl">광고</span></div>'
     : '';
 
-  const cards = list.map((f,idx)=>{
+  const cardHtml = (f,idx)=>{
     // [2026-08] 카드에서 태그 알약 제거 — 폰트 형태보다 알약이 먼저 눈에 들어왔다.
     //           카테고리 필터는 상단 레일이, 태그 확인은 상세페이지가 담당한다.
       // [2026-08] 조합추천 알약 제거 — 카드에는 견본과 이름만 남긴다.
@@ -2662,9 +2662,21 @@ function renderFonts(){
       </div>
       </div>
     </article>`;
-  });
+  };
 
-  grid.innerHTML = adCell + cards.join('');
+  /* 카드를 나눠 그린다(2026-10-23 사용자님 "모든 폰트를 다 불러오지 말고 위에서부터, 스크롤하면 다음 폰트").
+     1,000장을 한꺼번에 그리면 화면 요소가 2만 개 가까이 되고 PC 에서도 배치 계산만 0.3초가 넘었다.
+     처음 GALLERY_CHUNK 장만 그리고, 목록 끝의 표지(.gallery-more)가 화면에 가까워지면 다음 묶음을 붙인다.
+     검색·필터·정렬은 그대로 전체(list)에서 하고, 보여 주는 것만 나눈다.
+     뒤로 가기로 돌아오면 떠날 때 보던 장수만큼 먼저 그려 둔다(스크롤 위치가 맞게). */
+  _gallery = { list, cardHtml, shown: 0 };
+  grid.innerHTML = adCell;
+  let first = GALLERY_CHUNK;
+  if (_galleryRestore) {
+    first = Math.max(first, _galleryRestore);
+    _galleryRestore = 0;
+  }
+  appendGalleryCards(isRecommendMode ? list.length : first);
 
   // 추천 모드일 때 더보기 버튼 추가
   if(isRecommendMode){
@@ -2685,6 +2697,46 @@ function renderFonts(){
   observeFontCards(document.getElementById('fontGrid'));
   // 광고도 같은 식으로 — 화면에 가까워진 칸만 채운다
   if(lazyAds) lazyAds(grid, true);
+}
+
+/* ── 나눠 그리기 (renderFonts 가 쓴다) ── */
+const GALLERY_CHUNK = 60;
+let _gallery = null;
+let _galleryRestore = 0;
+try {
+  const nav = performance.getEntriesByType('navigation')[0];
+  if (nav && nav.type === 'back_forward') _galleryRestore = parseInt(sessionStorage.getItem('ffp_gallery_shown') || '0', 10) || 0;
+} catch (e) {}
+window.addEventListener('pagehide', () => {
+  try { if (_gallery) sessionStorage.setItem('ffp_gallery_shown', String(_gallery.shown)); } catch (e) {}
+});
+const _galleryMoreObserver = ('IntersectionObserver' in window) ? new IntersectionObserver((entries) => {
+  entries.forEach(entry => { if (entry.isIntersecting) appendGalleryCards(GALLERY_CHUNK); });
+}, { rootMargin: '900px 0px' }) : null;
+
+function appendGalleryCards(n){
+  const grid = document.getElementById('fontGrid');
+  if (!_gallery || !grid) return;
+  const old = grid.querySelector('.gallery-more');
+  if (old) { if (_galleryMoreObserver) _galleryMoreObserver.unobserve(old); old.remove(); }
+  const { list, cardHtml } = _gallery;
+  const start = _gallery.shown, end = Math.min(list.length, start + n);
+  if (end > start) {
+    let html = '';
+    for (let i = start; i < end; i++) html += cardHtml(list[i], i - start);
+    grid.insertAdjacentHTML('beforeend', html);
+    _gallery.shown = end;
+  }
+  if (_gallery.shown < list.length) {
+    // 남은 카드가 있으면 끝에 표지를 둔다. 표지가 화면에 가까워지면 다음 묶음(observer).
+    // 관찰이 안 되는 브라우저를 위해 '더 보기' 단추도 같이 둔다.
+    grid.insertAdjacentHTML('beforeend',
+      `<div class="gallery-more" style="grid-column:1/-1;display:flex;justify-content:center;padding:18px 0">
+         <button type="button" class="recommend-more-btn" onclick="appendGalleryCards(GALLERY_CHUNK)">폰트 더 보기 <small>(${list.length - _gallery.shown}개 더)</small></button>
+       </div>`);
+    if (_galleryMoreObserver) _galleryMoreObserver.observe(grid.querySelector('.gallery-more'));
+  }
+  observeFontCards(grid);
 }
 
 /* 추천 더보기: show count를 3씩 증가시키고 다시 렌더 */
@@ -2868,8 +2920,10 @@ const _fontObserver = new IntersectionObserver((entries) => {
     if(!isNaN(id)) ensureFontLoaded(id);
     _fontObserver.unobserve(entry.target);
   });
-}, { rootMargin: '1200px 0px' });
-/* 200px에서 1200px로 넓혔다. 카드 높이가 176~200px이라 200px은 겨우 한 줄 앞이고,
+}, { rootMargin: '400px 0px' });
+/* 2026-10-23 1200px → 400px: 카드를 나눠 그리게 되면서(appendGalleryCards) 첫 화면에서 수십 개를 한꺼번에
+   받느라 정작 맨 위 카드가 늦게 뜨던 것을 줄인다 — 화면에 보이는 것 + 두어 줄 앞만 먼저 받는다.
+   (옛 설명) 200px에서 1200px로 넓혔다. 카드 높이가 176~200px이라 200px은 겨우 한 줄 앞이고,
    평균 308KB짜리 폰트를 받는 동안 카드가 이미 화면에 들어와 있다. 그래서
    대체 폰트로 그려졌다가 교체되는 순간(FOUT)이 사용자 눈에 그대로 보였다.
    6줄쯤 앞서 받기 시작하면 교체가 화면 밖에서 끝난다. */
