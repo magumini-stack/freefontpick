@@ -741,7 +741,7 @@ def _font_boot_block(font: Font, db: Session) -> str:
             # 통째로 실으면 162KB 가 붙으므로 그 6개만 싣는다 — 순서는 API 와 같다.
             "pairings": jsonable_encoder(font_pairings(font.id, db)[:6]),
         }
-        # 같은 계열 8종(2026-10-23) — 화면은 이 폰트들을 그 폰트 모양으로 다시 그리려고 전체 목록
+        # 같은 계열 10종(2026-10-23) — 화면은 이 폰트들을 그 폰트 모양으로 다시 그리려고 전체 목록
         # /api/fonts(압축 116KB)를 받아 다시 골랐다. 서치콘솔 크롤링에서 JSON 이 HTML 보다 많던
         # 주된 까닭이라, 서버가 고른 같은 8종을 실어 두고 화면은 이걸로 그린다(없으면 예전처럼).
         # 화면(renderRelated·stackOf)이 쓰는 칸만 — 통째로 실으면 소개글·라이선스까지 붙어 수십 KB 가 된다
@@ -989,7 +989,7 @@ def _commercial_status(font: Font):
 
 
 def _related_fonts(font: Font, db: Session) -> list:
-    """같은 계열 8종 — 태그가 겹친 수 → 좋아요 수 → 갤러리 순서. 서버 그림(_related_block)과
+    """같은 계열 10종(10/23 8 → 10, 한 칸씩 낮게 바꾸면서) — 태그가 겹친 수 → 좋아요 수 → 갤러리 순서. 서버 그림(_related_block)과
     화면 다시 그리기용 boot 자료(_font_boot_block 'related')가 같은 목록을 쓴다. 한 요청 안에서
     두 번 부르므로 font 객체에 붙여 둔다."""
     cached = getattr(font, "_ffp_related", None)
@@ -1005,7 +1005,7 @@ def _related_fonts(font: Font, db: Session) -> list:
             .filter(FontTag.tag_id.in_(tag_ids), Font.id != font.id)
             .group_by(Font.id)
             .order_by(_f.count(FontTag.tag_id).desc(), Font.like_count.desc(), Font.sort_order, Font.id)
-            .limit(8)
+            .limit(10)
             .all()
         )
     try:
@@ -1024,7 +1024,7 @@ def _related_block(font: Font, db: Session) -> str:
     JS 는 뜨면 같은 목록을 그 폰트 모양으로 다시 그린다.
 
     규칙은 JS 와 같아야 한다: 태그가 하나라도 겹치는 폰트를 겹친 수 → 좋아요 수 → 갤러리
-    순서로 8개. 둘이 다르면 화면이 뜨는 순간 목록이 바뀌어 보인다.
+    순서로 10개. 둘이 다르면 화면이 뜨는 순간 목록이 바뀌어 보인다.
 
     (같은 날 처음에는 아래쪽에 '비슷한 모양의 무료폰트' 섹션을 따로 붙였다가, 오른쪽의 이
     칸과 겹친다는 지적(사용자님)을 받고 이 칸을 서버가 그리는 쪽으로 바꿨다.)
