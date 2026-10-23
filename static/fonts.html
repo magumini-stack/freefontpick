@@ -2674,10 +2674,14 @@ function renderFonts(){
      1,000장을 한꺼번에 그리면 화면 요소가 2만 개 가까이 되고 PC 에서도 배치 계산만 0.3초가 넘었다.
      처음 GALLERY_CHUNK 장만 그리고, 목록 끝의 표지(.gallery-more)가 화면에 가까워지면 다음 묶음을 붙인다.
      검색·필터·정렬은 그대로 전체(list)에서 하고, 보여 주는 것만 나눈다.
-     뒤로 가기로 돌아오면 떠날 때 보던 장수만큼 먼저 그려 둔다(스크롤 위치가 맞게). */
-  _gallery = { list, cardHtml, shown: 0 };
+     뒤로 가기로 돌아오면 떠날 때 보던 장수만큼 먼저 그려 둔다(스크롤 위치가 맞게).
+     같은 목록(분류·검색어·문구 추천이 그대로)을 다시 그릴 때는 지금 보이는 장수를 지킨다 —
+     인기 순위가 늦게 와서 다시 그리거나 route() 가 한 번 더 그릴 때 60장으로 줄어 보던 자리가 날아갔다(10/23). */
+  const galleryKey = currentTag + '|' + (document.getElementById('globalSearch')?.value || '').trim() + '|' + activePhraseId;
+  const keep = (_gallery && _gallery.key === galleryKey) ? _gallery.shown : 0;
+  _gallery = { list, cardHtml, shown: 0, key: galleryKey };
   grid.innerHTML = adCell;
-  let first = GALLERY_CHUNK;
+  let first = Math.max(GALLERY_CHUNK, keep);
   if (_galleryRestore) {
     first = Math.max(first, _galleryRestore);
     _galleryRestore = 0;
@@ -2709,13 +2713,31 @@ function renderFonts(){
 const GALLERY_CHUNK = 60;
 let _gallery = null;
 let _galleryRestore = 0;
+/* 뒤로 가기로 돌아왔을 때 갈 스크롤 위치. 카드는 목록을 받은 뒤에야 그려지므로 브라우저가 스스로
+   자리를 찾아갈 때는 페이지가 아직 짧아서 맨 위 근처에 멈췄다 — 그린 뒤에 직접 옮긴다(restoreGalleryScroll). */
+let _galleryScrollY = 0;
 try {
   const nav = performance.getEntriesByType('navigation')[0];
-  if (nav && nav.type === 'back_forward') _galleryRestore = parseInt(sessionStorage.getItem('ffp_gallery_shown') || '0', 10) || 0;
+  if (nav && nav.type === 'back_forward') {
+    const saved = JSON.parse(sessionStorage.getItem('ffp_gallery_back') || 'null');
+    if (saved && saved.href === location.href) { _galleryRestore = saved.shown || 0; _galleryScrollY = saved.y || 0; }
+  }
 } catch (e) {}
 window.addEventListener('pagehide', () => {
-  try { if (_gallery) sessionStorage.setItem('ffp_gallery_shown', String(_gallery.shown)); } catch (e) {}
+  try {
+    if (_gallery) sessionStorage.setItem('ffp_gallery_back',
+      JSON.stringify({ href: location.href, shown: _gallery.shown, y: Math.round(window.scrollY) }));
+  } catch (e) {}
 });
+/* 사용자가 먼저 움직였으면 끌어가지 않는다 */
+let _userScrolled = false;
+['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(t =>
+  window.addEventListener(t, () => { _userScrolled = true; }, { once: true, passive: true }));
+function restoreGalleryScroll(){
+  const y = _galleryScrollY; _galleryScrollY = 0;
+  if (!y || _userScrolled || Math.abs(window.scrollY - y) < 40) return;
+  window.scrollTo(0, y);
+}
 const _galleryMoreObserver = ('IntersectionObserver' in window) ? new IntersectionObserver((entries) => {
   entries.forEach(entry => { if (entry.isIntersecting) appendGalleryCards(GALLERY_CHUNK); });
 }, { rootMargin: '900px 0px' }) : null;
@@ -3108,12 +3130,14 @@ async function init(){
   const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
   await renderTagsBar(await tagsP);
   await registerUploadedFonts();
-  renderFonts();
   applyGalleryView();
   // loadPreviewPhrases();  // [비활성 2026-08] 문구 프리셋 추천 — 용도 그리드로 대체
 
-  // 라우팅 처리 (해시 기반)
+  // 라우팅 처리 (해시 기반). 갤러리는 여기서 처음 그린다 — route() 의 모든 갈래가 renderFonts 를 부른다.
+  // (예전엔 바로 위에서 한 번 그리고 route() 가 또 그려서, 첫 화면에 1,000장 목록을 두 번 정렬·그렸다 — 10/23)
   await route();
+  // route() 가 검색 주소면 다음 프레임에 필터 아래로 스크롤한다 — 그보다 뒤에 옮겨야 보던 자리가 이긴다
+  requestAnimationFrame(() => requestAnimationFrame(restoreGalleryScroll));
   /* 애드센스 전면 광고가 주소에 #google_vignette 만 붙인 경우에는 다시 그리지 않는다
      (route 첫머리 주석 참고). */
   const onNavigate = () => { if(location.hash !== '#google_vignette') route(); };
