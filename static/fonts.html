@@ -408,7 +408,8 @@
     .fonts-sub-ad[hidden]{display:none}
     .font-card{cursor:pointer;background:none;border:none;border-bottom:1px solid var(--border);
       border-radius:0;padding:24px 2px 20px;transition:background-color .15s;position:relative;
-      display:flex;flex-direction:column;min-width:0;animation:fadeUp .25s ease both}
+      display:flex;flex-direction:column;min-width:0}
+    /* 카드 떠오르기(fadeUp·차례 지연 최대 0.3초)는 뺐다 — 다시 그릴 때마다 처음부터 돌아 '늦게 뜬다'로 보였다(10/23) */
     @media(max-width:980px){ .font-grid{grid-template-columns:repeat(3,1fr)} }
     @media(max-width:720px){ .font-grid{grid-template-columns:repeat(2,1fr);gap:0 20px} }
     @media(max-width:460px){ .font-grid{grid-template-columns:1fr} }
@@ -531,7 +532,7 @@
        좌우 여백은 0 이다. 카드처럼 2px 씩 두면 1280px 화면에서 칸이 298px 이 되어
        300×250 광고가 못 들어온다(열 폭 302px). */
     .ad-cell{border-bottom:1px solid var(--border);padding:16px 0 18px;
-      display:flex;flex-direction:column;justify-content:center;animation:fadeUp .25s ease both}
+      display:flex;flex-direction:column;justify-content:center}
     .ad-cell ins.adsbygoogle{width:100%;height:250px}
     /* 격자 보기 광고는 카드 한 칸(2026-09-22). 카드 높이(240)에 맞춰 상자 안쪽을 200px 로. */
     .font-grid[data-view="grid"] .ad-cell ins.adsbygoogle{height:200px}
@@ -2637,7 +2638,7 @@ function renderFonts(){
       ? ''
       : '';
     return `
-    <article class="font-card" role="listitem" data-font-id="${f.id}" style="animation-delay:${Math.min(idx*20,300)}ms" onclick="cardNavigate(event, ${f.id})">
+    <article class="font-card" role="listitem" data-font-id="${f.id}" onclick="cardNavigate(event, ${f.id})">
       ${matchBadge}
       <div class="font-preview">
         <div class="font-preview-text" data-english="${f.isEnglish?'1':'0'}" style="font-family:${getEffectiveStack(f)};font-size:${previewSizeFor()}px">${previewTxt}</div>
@@ -3083,7 +3084,7 @@ async function init(){
   const popP = fetch('/api/fonts/popular?days=7&limit=10')
     .then(r => r.json()).catch(() => []);
   /* 인기순 — 배지 열 자리 뒤를 줄 세울 30일 조회 순서. 늦게 오면 그때 다시 그린다. */
-  fetch('/api/fonts/popular-order?days=30')
+  const orderP = fetch('/api/fonts/popular-order?days=30')
     .then(r => r.json())
     .then(d => {
       VIEW_ORDER = {};
@@ -3092,13 +3093,18 @@ async function init(){
     })
     .catch(() => {});
 
-  popP.then(list => {
+  const popDone = popP.then(list => {
     POPULAR = {};
     (list || []).forEach(x => { POPULAR[x.id] = x.rank; });
     if(FONTS.length) renderFonts();     // 목록이 이미 그려졌으면 다시 얹는다
   });
 
-  FONTS = await fontsP;
+  /* 기본 정렬이 인기순이라, 순위가 목록보다 늦게 오면 카드를 그렸다가 순서를 바꿔 한 번 더 그렸다
+     (10/23 '한 텀 쉬었다가 올라온다'). 둘 다 가벼운 요청이니 목록과 같이 기다린다 — 다만 1.5초를 넘기면 먼저 그린다. */
+  const ranksP = Promise.race([Promise.all([popDone, orderP]), new Promise(r => setTimeout(r, 1500))]);
+  const fontsList = await fontsP;
+  await ranksP;
+  FONTS = fontsList;
   const totalCountEl = document.getElementById('totalCount'); if(totalCountEl) totalCountEl.textContent = FONTS.length;
   await renderTagsBar(await tagsP);
   await registerUploadedFonts();
