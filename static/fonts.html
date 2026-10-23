@@ -2,6 +2,10 @@
 <html lang="ko">
 <head>
   <script>
+    /* JS 가 도는 브라우저에서는 서버가 그린 1,000줄 목록(#homeSsr)을 처음부터 그리지 않는다.
+       init() 에서 감추면 그 전에 목록을 다 배치·칠하느라 갤러리가 1초 넘게 늦게 떴다(10/23 실측 2.2초 → 0.9초).
+       크롤러와 JS 차단 환경은 이 클래스가 없으니 그대로 본다. 초기화 실패 땐 init().catch 가 되살린다. */
+    document.documentElement.classList.add('ffp-js');
     (function(){
       try{
         var t = localStorage.getItem('ffp-theme');
@@ -13,6 +17,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>전체 무료폰트 보기 - 상업용 무료 한글폰트 | 폰트픽</title>
+  <style>html.ffp-js #homeSsr{display:none}</style>
   <link rel="stylesheet" href="/header.css">
 
   <!-- 구글 태그(gtag.js)는 app/header.py가 헤더 마커 자리에 함께 넣는다.
@@ -3349,7 +3354,7 @@ function showToast(msg){
 init().catch(function(err){
   console.error('[init] 초기화 실패', err);
   var ssr = document.getElementById('homeSsr');
-  if(ssr) ssr.style.display = '';
+  if(ssr) ssr.style.display = 'block';   // 머리의 html.ffp-js #homeSsr{display:none} 을 이긴다
 });
 </script>
 
