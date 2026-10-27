@@ -772,9 +772,13 @@
   <div class="sort-tools">
     <select id="wtSel" class="gsel" onchange="setGalleryWt(this.value)" aria-label="굵기 개수" title="굵기 개수">
       <option value="all">굵기 개수 전체</option>
-      <option value="2">굵기 2개 이상</option>
-      <option value="4">굵기 4개 이상</option>
-      <option value="6">굵기 6개 이상</option>
+      <option value="1">굵기 1개</option>
+      <option value="2">굵기 2개</option>
+      <option value="3">굵기 3개</option>
+      <option value="4">굵기 4개</option>
+      <option value="5">굵기 5개</option>
+      <option value="6">굵기 6개</option>
+      <option value="7">굵기 7개 이상</option>
     </select>
     <select id="licSel" class="gsel" onchange="setGalleryLic(this.value)" aria-label="허용 범위" title="허용 범위">
       <option value="all">허용 범위 전체</option>
@@ -1470,7 +1474,10 @@ function getFilteredFonts(){
   if(currentLic!=='all' && LIC_FILTERS[currentLic]){
     list=list.filter(f=>{ const c=licCode(f); return !!c && LIC_FILTERS[currentLic](c); });
   }
-  if(currentWt!=='all') list=list.filter(f=>weightCount(f)>=parseInt(currentWt,10));
+  if(currentWt!=='all'){
+    const w=parseInt(currentWt,10);
+    list=list.filter(f=>w>=7 ? weightCount(f)>=7 : weightCount(f)===w);
+  }
 
   if(q){
     // 1단계: 일반 텍스트 검색 (폰트명/제작자/카테고리)
@@ -1519,7 +1526,7 @@ function getFilteredFonts(){
 /* ── 정렬 · 라이선스 조건 (2026-10-27) ──
    고른 값은 탭 안에서만 기억한다(sessionStorage) — 상세에 갔다 돌아와도 그대로, 새로 온 사람은 인기순. */
 const SORTS = ['popular', 'recommend', 'new'];
-const WTS = ['2', '4', '6'];   // 굵기 개수 '이상'
+const WTS = ['1', '2', '3', '4', '5', '6', '7'];   // 1~6 은 그 개수만, 7 은 7개 이상 (10/27 사용자님)
 /* meta.lic 8글자 자리: 0 인쇄 · 1 웹사이트 · 2 포장지 · 3 영상 · 4 임베딩 · 5 BI/CI · 6 수정 · 7 재배포 */
 const LIC_FILTERS = {
   commercial: c => c[0] === 'y' && c[1] === 'y' && c[2] === 'y' && c[3] === 'y',   // 상세페이지 '상업적 이용 가능'과 같은 기준
