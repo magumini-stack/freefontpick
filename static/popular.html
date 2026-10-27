@@ -130,6 +130,7 @@ a{color:inherit}
 .go svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .row:hover .go{color:var(--accent);background:var(--accent-light)}
 .empty{font-size:14px;color:var(--text-muted);padding:32px 0}
+.pop-ad{padding:14px 0 16px;border-bottom:1px solid var(--border)}
 @media(max-width:560px){
   .row{grid-template-columns:44px minmax(0,1fr) 22px;gap:0 10px;padding:14px 0}
   .rk b{font-size:18px}.row.top .rk b{font-size:21px}
@@ -183,6 +184,9 @@ a{color:inherit}
   </div>
 
   <div class="list" id="list">
+    <!-- 광고 — 순위 목록 첫 칸 (2026-10-27 사용자님). 순위는 그대로 1위부터 아래로 이어진다.
+         번호는 app/header.py AD_SLOTS['popular_top'], 비면 칸째 걷힌다(ffpLazyAds). -->
+    <div class="ffp-ad pop-ad" data-ad-key="popular_top" data-ad-format="horizontal"><span class="ffp-ad-lbl">광고</span></div>
     {{P_ROWS}}
   </div>
 
