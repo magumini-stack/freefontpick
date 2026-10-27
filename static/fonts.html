@@ -163,7 +163,7 @@
     .preview-divider{width:1px;height:20px;background:var(--border);flex-shrink:0}
     .size-wrap{display:flex;align-items:center;gap:7px;flex-shrink:0}
     .size-wrap label{font-size:12px;color:var(--text-muted)}
-    .size-wrap input[type=range]{width:110px;accent-color:var(--accent);cursor:pointer}
+    .size-wrap input[type=range]{width:90px;accent-color:var(--accent);cursor:pointer}
     .size-val{font-size:12px;color:var(--text-secondary);min-width:36px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
     @media(max-width:560px){
       .preview-bar{padding:11px 13px;gap:9px}
@@ -357,14 +357,18 @@
     /* 태그와 보기 버튼 사이. 태그 스크롤 오른쪽 끝이 마스크로 흐려지므로
        이 선이 없으면 흐려진 태그가 버튼 쪽으로 흘러든 것처럼 보인다. */
     .tags-sep{width:1px;height:18px;background:var(--border);flex:0 0 auto;margin:0 2px}
-    /* 정렬 · 라이선스 조건 — 칩과 같은 알약 모양. 기본값이 아니면 강조색으로 '걸려 있음'을 보인다 */
-    .sort-tools{display:flex;gap:6px;flex:0 0 auto;margin-left:2px}
-    .gsel{appearance:none;-webkit-appearance:none;font:inherit;font-size:13px;font-weight:500;color:var(--text-secondary);
-      padding:6px 30px 6px 13px;border-radius:14px;min-width:96px;border:1px solid var(--border);cursor:pointer;
-      background:var(--bg-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239A9A9A' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 9px center/12px}
+    /* 미리 써보기(반) + 굵기 개수 · 허용 범위 · 정렬 세 칸 (2026-10-27). 기본값이 아니면 강조색으로 '걸려 있음'을 보인다 */
+    .gtools{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
+    .gtools .preview-bar{min-width:0}
+    .sort-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0}
+    .gsel{appearance:none;-webkit-appearance:none;width:100%;min-width:0;min-height:44px;font:inherit;font-size:14px;font-weight:500;
+      color:var(--text-secondary);padding:0 32px 0 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      background:var(--bg-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239A9A9A' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 12px center/13px}
     .gsel:hover{border-color:var(--text-primary);color:var(--text-primary)}
     .gsel.on{color:var(--accent);border-color:var(--accent);font-weight:700}
-    @media(max-width:520px){ .gsel{font-size:12.5px;padding:5px 22px 5px 9px;background-position:right 7px center} }
+    @media(max-width:980px){ .gtools{grid-template-columns:1fr} }
+    @media(max-width:560px){ .sort-tools{gap:6px} .gsel{font-size:12.5px;min-height:38px;padding:0 24px 0 10px;background-position:right 8px center;background-size:11px} }
     /* 형태 카테고리는 항상 한 줄로 둔다.
        줄바꿈을 허용하면 태그가 늘 때마다 바 높이가 들쭉날쭉해지고,
        고정 바라서 그 변화가 갤러리 전체를 흔든다. 대신 넘치면 가로 스크롤. */
@@ -735,38 +739,20 @@
   <div class="tags-bar" id="tagsBar">
     <span class="tags-label">모양으로 찾기</span>
     <div class="tags-scroll" id="tagsScroll" role="group" aria-label="폰트 모양 카테고리 필터"></div>
-    <!-- [이동 2026-08] 보기 방식은 아이콘 두 개짜리 전용 줄을 따로 쓰고 있었다.
-         둘 다 갤러리를 다루는 도구라 같은 줄에 둔다 — 줄 하나(40px)가 사라진다. -->
-    <span class="tags-sep" aria-hidden="true"></span>
-    <!-- 정렬 · 라이선스 조건 (2026-10-27 사용자님) — 모양 칩과 함께 고정 줄에 둔다.
-         라이선스 값은 목록 API 의 meta.lic(8글자, app/routers/fonts.py _license_code)에서 온다. -->
-    <div class="sort-tools">
-      <select id="sortSel" class="gsel" onchange="setGallerySort(this.value)" aria-label="정렬" title="정렬">
-        <option value="popular">인기순</option>
-        <option value="recommend">추천순</option>
-        <option value="new">최근 추가순</option>
-        <option value="weights">다양한 굵기순</option>
-      </select>
-      <select id="licSel" class="gsel" onchange="setGalleryLic(this.value)" aria-label="라이선스 조건" title="라이선스 조건">
-        <option value="all">라이선스 전체</option>
-        <option value="commercial">상업용 모두 가능</option>
-        <option value="bici">로고·브랜드(BI/CI) 가능</option>
-        <option value="video">영상 가능</option>
-        <option value="embed">웹 임베딩 가능</option>
-        <option value="modify">수정·재배포 가능</option>
-      </select>
-    </div>
   </div>
 
   <!-- 미리 써보기 · 크기 — 상세페이지(font.html)의 미리보기 바와 같은 모양.
        [2026-08] 에 갤러리에서 상세페이지로 옮겼던 것을, 갤러리가 /fonts 로 독립하면서
        (2026-09-22) 다시 가져왔다. 문구를 치면 모든 카드가 그 문구로 바뀌고,
        비우면 폰트마다 배정된 문구로 돌아간다. -->
+  <!-- 미리 써보기(왼쪽 반) + 굵기 개수 | 허용 범위 | 정렬(오른쪽 반) — 2026-10-27 사용자님.
+       허용 범위 값은 목록 API 의 meta.lic(8글자, app/routers/fonts.py _license_code)에서 온다. -->
+  <div class="gtools">
   <div class="preview-bar" id="previewBar">
     <span class="preview-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> 미리 써보기</span>
     <div class="try-wrap">
       <input class="preview-input" type="text" id="tryInput" maxlength="60" autocomplete="off"
-             placeholder="원하는 문구를 입력하면 모든 폰트에 바로 적용돼요" aria-label="미리보기 문구"
+             placeholder="문구를 입력하면 모든 폰트에 적용돼요" aria-label="미리보기 문구"
              aria-controls="trySamples" aria-expanded="false"
              oninput="setCustomPreview(this.value); closeTrySamples()"
              onfocus="openTrySamples()" onclick="openTrySamples()">
@@ -782,6 +768,28 @@
       <input type="range" id="trySize" min="14" max="80" step="1" value="26" aria-label="미리보기 글자 크기" oninput="setPreviewSize(this.value)">
       <span class="size-val" id="trySizeVal">26px</span>
     </div>
+  </div>
+  <div class="sort-tools">
+    <select id="wtSel" class="gsel" onchange="setGalleryWt(this.value)" aria-label="굵기 개수" title="굵기 개수">
+      <option value="all">굵기 개수 전체</option>
+      <option value="2">굵기 2개 이상</option>
+      <option value="4">굵기 4개 이상</option>
+      <option value="6">굵기 6개 이상</option>
+    </select>
+    <select id="licSel" class="gsel" onchange="setGalleryLic(this.value)" aria-label="허용 범위" title="허용 범위">
+      <option value="all">허용 범위 전체</option>
+      <option value="commercial">상업용 모두 가능</option>
+      <option value="bici">로고·브랜드(BI/CI) 가능</option>
+      <option value="video">영상 가능</option>
+      <option value="embed">웹 임베딩 가능</option>
+      <option value="modify">수정·재배포 가능</option>
+    </select>
+    <select id="sortSel" class="gsel" onchange="setGallerySort(this.value)" aria-label="정렬" title="정렬">
+      <option value="popular">인기순</option>
+      <option value="recommend">추천순</option>
+      <option value="new">최근 추가순</option>
+    </select>
+  </div>
   </div>
   </div><!-- /gallery-sticky -->
 
@@ -1462,6 +1470,7 @@ function getFilteredFonts(){
   if(currentLic!=='all' && LIC_FILTERS[currentLic]){
     list=list.filter(f=>{ const c=licCode(f); return !!c && LIC_FILTERS[currentLic](c); });
   }
+  if(currentWt!=='all') list=list.filter(f=>weightCount(f)>=parseInt(currentWt,10));
 
   if(q){
     // 1단계: 일반 텍스트 검색 (폰트명/제작자/카테고리)
@@ -1509,7 +1518,8 @@ function getFilteredFonts(){
 
 /* ── 정렬 · 라이선스 조건 (2026-10-27) ──
    고른 값은 탭 안에서만 기억한다(sessionStorage) — 상세에 갔다 돌아와도 그대로, 새로 온 사람은 인기순. */
-const SORTS = ['popular', 'recommend', 'new', 'weights'];
+const SORTS = ['popular', 'recommend', 'new'];
+const WTS = ['2', '4', '6'];   // 굵기 개수 '이상'
 /* meta.lic 8글자 자리: 0 인쇄 · 1 웹사이트 · 2 포장지 · 3 영상 · 4 임베딩 · 5 BI/CI · 6 수정 · 7 재배포 */
 const LIC_FILTERS = {
   commercial: c => c[0] === 'y' && c[1] === 'y' && c[2] === 'y' && c[3] === 'y',   // 상세페이지 '상업적 이용 가능'과 같은 기준
@@ -1518,23 +1528,23 @@ const LIC_FILTERS = {
   embed:      c => c[4] === 'y',
   modify:     c => c[6] === 'y' && c[7] === 'y',
 };
-let currentSort = 'popular', currentLic = 'all';
+let currentSort = 'popular', currentLic = 'all', currentWt = 'all';
 try {
   const s = sessionStorage.getItem('ffp_gallery_sort'), l = sessionStorage.getItem('ffp_gallery_lic');
   if (SORTS.includes(s)) currentSort = s;
   if (l && LIC_FILTERS[l]) currentLic = l;
+  const w = sessionStorage.getItem('ffp_gallery_wt'); if (WTS.includes(w)) currentWt = w;
 } catch (e) {}
 function licCode(f){ return (f.meta && typeof f.meta.lic === 'string') ? f.meta.lic : ''; }
 function popularKey(f){
   return POPULAR[f.id] ? POPULAR[f.id] - 100000 : (VIEW_ORDER[f.id] !== undefined ? VIEW_ORDER[f.id] : 1e9);
 }
-/* 굵기 수 — '9종' 같은 글에서 숫자만. 같으면 인기순 */
+/* 굵기 수 — '9종' 같은 글에서 숫자만 */
 function weightCount(f){ const n = parseInt(String(f.weights || ''), 10); return isNaN(n) ? 1 : n; }
 function sortGallery(list){
   switch (currentSort) {
     case 'recommend': list.sort((a, b) => (a.sort_order - b.sort_order) || (a.id - b.id)); break;   // 어드민이 정한 저장 순서
     case 'new':       list.sort((a, b) => b.id - a.id); break;                                       // 번호가 곧 등록 순서
-    case 'weights':   list.sort((a, b) => (weightCount(b) - weightCount(a)) || (popularKey(a) - popularKey(b))); break;
     default:          list.sort((a, b) => popularKey(a) - popularKey(b));
   }
 }
@@ -1542,10 +1552,17 @@ function syncSortUI(){
   const s = document.getElementById('sortSel'), l = document.getElementById('licSel');
   if (s) { s.value = currentSort; s.classList.toggle('on', currentSort !== 'popular'); }
   if (l) { l.value = currentLic;  l.classList.toggle('on', currentLic !== 'all'); }
+  const w = document.getElementById('wtSel');
+  if (w) { w.value = currentWt;   w.classList.toggle('on', currentWt !== 'all'); }
 }
 function setGallerySort(v){
   currentSort = SORTS.includes(v) ? v : 'popular';
   try { sessionStorage.setItem('ffp_gallery_sort', currentSort); } catch (e) {}
+  syncSortUI(); renderFonts();
+}
+function setGalleryWt(v){
+  currentWt = WTS.includes(v) ? v : 'all';
+  try { sessionStorage.setItem('ffp_gallery_wt', currentWt); } catch (e) {}
   syncSortUI(); renderFonts();
 }
 function setGalleryLic(v){
@@ -2743,7 +2760,7 @@ function renderFonts(){
      뒤로 가기로 돌아오면 떠날 때 보던 장수만큼 먼저 그려 둔다(스크롤 위치가 맞게).
      같은 목록(분류·검색어·문구 추천이 그대로)을 다시 그릴 때는 지금 보이는 장수를 지킨다 —
      인기 순위가 늦게 와서 다시 그리거나 route() 가 한 번 더 그릴 때 60장으로 줄어 보던 자리가 날아갔다(10/23). */
-  const galleryKey = currentTag + '|' + (document.getElementById('globalSearch')?.value || '').trim() + '|' + activePhraseId + '|' + currentSort + '|' + currentLic;
+  const galleryKey = currentTag + '|' + (document.getElementById('globalSearch')?.value || '').trim() + '|' + activePhraseId + '|' + currentSort + '|' + currentLic + '|' + currentWt;
   const keep = (_gallery && _gallery.key === galleryKey) ? _gallery.shown : 0;
   _gallery = { list, cardHtml, shown: 0, key: galleryKey };
   grid.innerHTML = adCell;
