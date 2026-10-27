@@ -357,6 +357,14 @@
     /* 태그와 보기 버튼 사이. 태그 스크롤 오른쪽 끝이 마스크로 흐려지므로
        이 선이 없으면 흐려진 태그가 버튼 쪽으로 흘러든 것처럼 보인다. */
     .tags-sep{width:1px;height:18px;background:var(--border);flex:0 0 auto;margin:0 2px}
+    /* 정렬 · 라이선스 조건 — 칩과 같은 알약 모양. 기본값이 아니면 강조색으로 '걸려 있음'을 보인다 */
+    .sort-tools{display:flex;gap:6px;flex:0 0 auto;margin-left:2px}
+    .gsel{appearance:none;-webkit-appearance:none;font:inherit;font-size:13px;font-weight:500;color:var(--text-secondary);
+      padding:6px 30px 6px 13px;border-radius:14px;min-width:96px;border:1px solid var(--border);cursor:pointer;
+      background:var(--bg-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239A9A9A' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 9px center/12px}
+    .gsel:hover{border-color:var(--text-primary);color:var(--text-primary)}
+    .gsel.on{color:var(--accent);border-color:var(--accent);font-weight:700}
+    @media(max-width:520px){ .gsel{font-size:12.5px;padding:5px 22px 5px 9px;background-position:right 7px center} }
     /* 형태 카테고리는 항상 한 줄로 둔다.
        줄바꿈을 허용하면 태그가 늘 때마다 바 높이가 들쭉날쭉해지고,
        고정 바라서 그 변화가 갤러리 전체를 흔든다. 대신 넘치면 가로 스크롤. */
@@ -730,13 +738,23 @@
     <!-- [이동 2026-08] 보기 방식은 아이콘 두 개짜리 전용 줄을 따로 쓰고 있었다.
          둘 다 갤러리를 다루는 도구라 같은 줄에 둔다 — 줄 하나(40px)가 사라진다. -->
     <span class="tags-sep" aria-hidden="true"></span>
-    <div class="view-toolbar" role="group" aria-label="갤러리 보기 방식">
-      <button type="button" class="view-btn" id="viewBtnList" onclick="setGalleryView('list')" aria-pressed="false" title="한 줄 보기" aria-label="한 줄 보기">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
-      <button type="button" class="view-btn on" id="viewBtnGrid" onclick="setGalleryView('grid')" aria-pressed="true" title="격자 보기" aria-label="격자 보기">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      </button>
+    <!-- 정렬 · 라이선스 조건 (2026-10-27 사용자님) — 모양 칩과 함께 고정 줄에 둔다.
+         라이선스 값은 목록 API 의 meta.lic(8글자, app/routers/fonts.py _license_code)에서 온다. -->
+    <div class="sort-tools">
+      <select id="sortSel" class="gsel" onchange="setGallerySort(this.value)" aria-label="정렬" title="정렬">
+        <option value="popular">인기순</option>
+        <option value="recommend">추천순</option>
+        <option value="new">최근 추가순</option>
+        <option value="weights">다양한 굵기순</option>
+      </select>
+      <select id="licSel" class="gsel" onchange="setGalleryLic(this.value)" aria-label="라이선스 조건" title="라이선스 조건">
+        <option value="all">라이선스 전체</option>
+        <option value="commercial">상업용 모두 가능</option>
+        <option value="bici">로고·브랜드(BI/CI) 가능</option>
+        <option value="video">영상 가능</option>
+        <option value="embed">웹 임베딩 가능</option>
+        <option value="modify">수정·재배포 가능</option>
+      </select>
     </div>
   </div>
 
@@ -964,7 +982,8 @@ try {
   if (window.matchMedia && window.matchMedia('(max-width:720px)').matches) currentView = 'grid';
 } catch(e){}
 /* 사람이 직접 고른 적이 있으면 그게 이긴다 — 화면 크기로 덮어쓰지 않는다. */
-try { const v = localStorage.getItem('ffp-gallery-view2'); if(v==='list'||v==='grid') currentView = v; } catch(e){}
+/* [제거 2026-10-27] 격자·한 줄 보기 단추를 걷고 그 자리에 정렬·라이선스 조건을 넣었다(사용자님).
+   예전에 한 줄 보기를 고른 사람이 되돌릴 길이 없어지므로 저장값은 읽지 않고 늘 격자로 연다. */
 /* 한 줄 보기는 화면 폭과 무관하게 1줄이라, 글자가 크면 그만큼 덜 보인다.
    데스크톱은 폭이 넓어 42px에서도 23자가 들어가지만 모바일은 10자에서 끊긴다.
    좁은 화면에서만 배율을 낮춰 18자까지 보이게 한다 (26px 기준 24px). */
@@ -1436,10 +1455,13 @@ function getFilteredFonts(){
     return _lastRecommended.slice(0, _recommendShowCount).map(s => ({...s.font, _matches: s.matches, _isRecommend: true}));
   }
 
-  // 정렬 드롭다운 제거 — 항상 어드민이 정한 저장 순서(추천순)를 따른다
   const q=(document.getElementById('globalSearch').value||'').trim().toLowerCase();
   let list=[...FONTS];
   if(currentTag!=='all') list=list.filter(f=>f.tags.includes(currentTag));
+  // 라이선스 조건 — 확인된 폰트 중 그 쓰임이 '가능'(y)인 것만. 조건부·확인 전은 넣지 않는다(틀린 '가능'이 가장 나쁘다)
+  if(currentLic!=='all' && LIC_FILTERS[currentLic]){
+    list=list.filter(f=>{ const c=licCode(f); return !!c && LIC_FILTERS[currentLic](c); });
+  }
 
   if(q){
     // 1단계: 일반 텍스트 검색 (폰트명/제작자/카테고리)
@@ -1478,14 +1500,58 @@ function getFilteredFonts(){
 
      2026-09-23 인기순: 배지 열 자리 뒤도 최근 30일 조회 순서(VIEW_ORDER)로
      줄 세운다. 조회가 없는 폰트는 맨 뒤에 어드민 저장 순서 그대로 둔다.
-     sort 는 안정 정렬이라 같은 자리끼리는 저장 순서가 유지된다. */
-  if(!q){
-    const rest = 1e9;
-    const key = f => POPULAR[f.id] ? POPULAR[f.id] - 100000
-                   : (VIEW_ORDER[f.id] !== undefined ? VIEW_ORDER[f.id] : rest);
-    list.sort((a, b) => key(a) - key(b));
-  }
+     sort 는 안정 정렬이라 같은 자리끼리는 저장 순서가 유지된다.
+
+     2026-10-27 정렬 칸: 인기순이 기본이고, 사용자가 다른 정렬을 고르면 검색 중에도 그 순서를 따른다. */
+  if(!q || currentSort !== 'popular') sortGallery(list);
   return list;
+}
+
+/* ── 정렬 · 라이선스 조건 (2026-10-27) ──
+   고른 값은 탭 안에서만 기억한다(sessionStorage) — 상세에 갔다 돌아와도 그대로, 새로 온 사람은 인기순. */
+const SORTS = ['popular', 'recommend', 'new', 'weights'];
+/* meta.lic 8글자 자리: 0 인쇄 · 1 웹사이트 · 2 포장지 · 3 영상 · 4 임베딩 · 5 BI/CI · 6 수정 · 7 재배포 */
+const LIC_FILTERS = {
+  commercial: c => c[0] === 'y' && c[1] === 'y' && c[2] === 'y' && c[3] === 'y',   // 상세페이지 '상업적 이용 가능'과 같은 기준
+  bici:       c => c[5] === 'y',
+  video:      c => c[3] === 'y',
+  embed:      c => c[4] === 'y',
+  modify:     c => c[6] === 'y' && c[7] === 'y',
+};
+let currentSort = 'popular', currentLic = 'all';
+try {
+  const s = sessionStorage.getItem('ffp_gallery_sort'), l = sessionStorage.getItem('ffp_gallery_lic');
+  if (SORTS.includes(s)) currentSort = s;
+  if (l && LIC_FILTERS[l]) currentLic = l;
+} catch (e) {}
+function licCode(f){ return (f.meta && typeof f.meta.lic === 'string') ? f.meta.lic : ''; }
+function popularKey(f){
+  return POPULAR[f.id] ? POPULAR[f.id] - 100000 : (VIEW_ORDER[f.id] !== undefined ? VIEW_ORDER[f.id] : 1e9);
+}
+/* 굵기 수 — '9종' 같은 글에서 숫자만. 같으면 인기순 */
+function weightCount(f){ const n = parseInt(String(f.weights || ''), 10); return isNaN(n) ? 1 : n; }
+function sortGallery(list){
+  switch (currentSort) {
+    case 'recommend': list.sort((a, b) => (a.sort_order - b.sort_order) || (a.id - b.id)); break;   // 어드민이 정한 저장 순서
+    case 'new':       list.sort((a, b) => b.id - a.id); break;                                       // 번호가 곧 등록 순서
+    case 'weights':   list.sort((a, b) => (weightCount(b) - weightCount(a)) || (popularKey(a) - popularKey(b))); break;
+    default:          list.sort((a, b) => popularKey(a) - popularKey(b));
+  }
+}
+function syncSortUI(){
+  const s = document.getElementById('sortSel'), l = document.getElementById('licSel');
+  if (s) { s.value = currentSort; s.classList.toggle('on', currentSort !== 'popular'); }
+  if (l) { l.value = currentLic;  l.classList.toggle('on', currentLic !== 'all'); }
+}
+function setGallerySort(v){
+  currentSort = SORTS.includes(v) ? v : 'popular';
+  try { sessionStorage.setItem('ffp_gallery_sort', currentSort); } catch (e) {}
+  syncSortUI(); renderFonts();
+}
+function setGalleryLic(v){
+  currentLic = LIC_FILTERS[v] ? v : 'all';
+  try { sessionStorage.setItem('ffp_gallery_lic', currentLic); } catch (e) {}
+  syncSortUI(); renderFonts();
 }
 
 /* ════════════════════════════════════════════════════
@@ -2677,7 +2743,7 @@ function renderFonts(){
      뒤로 가기로 돌아오면 떠날 때 보던 장수만큼 먼저 그려 둔다(스크롤 위치가 맞게).
      같은 목록(분류·검색어·문구 추천이 그대로)을 다시 그릴 때는 지금 보이는 장수를 지킨다 —
      인기 순위가 늦게 와서 다시 그리거나 route() 가 한 번 더 그릴 때 60장으로 줄어 보던 자리가 날아갔다(10/23). */
-  const galleryKey = currentTag + '|' + (document.getElementById('globalSearch')?.value || '').trim() + '|' + activePhraseId;
+  const galleryKey = currentTag + '|' + (document.getElementById('globalSearch')?.value || '').trim() + '|' + activePhraseId + '|' + currentSort + '|' + currentLic;
   const keep = (_gallery && _gallery.key === galleryKey) ? _gallery.shown : 0;
   _gallery = { list, cardHtml, shown: 0, key: galleryKey };
   grid.innerHTML = adCell;
@@ -3131,6 +3197,7 @@ async function init(){
   await renderTagsBar(await tagsP);
   await registerUploadedFonts();
   applyGalleryView();
+  syncSortUI();   // 탭에서 고른 정렬·라이선스 조건을 칸에 되살린다
   // loadPreviewPhrases();  // [비활성 2026-08] 문구 프리셋 추천 — 용도 그리드로 대체
 
   // 라우팅 처리 (해시 기반). 갤러리는 여기서 처음 그린다 — route() 의 모든 갈래가 renderFonts 를 부른다.

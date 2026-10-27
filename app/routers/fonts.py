@@ -203,6 +203,22 @@ def _resolve_tags(db: Session, tag_names: list) -> List[Tag]:
 # 목록에는 싣지 않는 meta 칸 — 상세페이지(GET /api/fonts/{id})가 따로 내려준다.
 _META_DETAIL_ONLY = frozenset({"license", "intro"})
 
+# 목록에는 약관 원문 대신 허용 여부만 8글자로 싣는다(2026-10-27, 전체 무료폰트 '라이선스 조건' 거르기·정렬용).
+# 자리 순서: 인쇄·웹사이트·포장지·영상·임베딩·BI/CI·수정·재배포. 글자: y 가능 · c 조건부 · n 불가 · q 확인 필요.
+# 확인(verified)한 폰트만 싣는다 — 확인 전 값을 '가능'으로 보여 주면 안 된다(상세페이지와 같은 원칙).
+_LIC_KEYS = ("print", "web", "package", "video", "embed", "bici", "modify", "redist")
+
+
+def _license_code(lic) -> str:
+    if not isinstance(lic, dict) or not lic.get("verified"):
+        return ""
+    perms = lic.get("perms") if isinstance(lic.get("perms"), dict) else {}
+    out = ""
+    for k in _LIC_KEYS:
+        v = str(perms.get(k) or "q").lower()[:1]
+        out += v if v in "ycnq" else "q"
+    return out
+
 
 # 공개 API
 @router.get("", response_model=List[FontOut])
@@ -240,8 +256,11 @@ def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
             if item.meta and _META_DETAIL_ONLY & item.meta.keys():
                 # font.meta를 직접 지우면 SQLAlchemy가 변경으로 보고 DB에 반영한다.
                 # 반드시 복사본에서 뺀다.
+                lic8 = _license_code(item.meta.get("license"))
                 item.meta = {k: v for k, v in item.meta.items()
                              if k not in _META_DETAIL_ONLY}
+                if lic8:
+                    item.meta["lic"] = lic8
             out.append(item)
         return _json.dumps(jsonable_encoder(out), ensure_ascii=False).encode("utf-8")
 
