@@ -1565,17 +1565,22 @@ function syncSortUI(){
 function setGallerySort(v){
   currentSort = SORTS.includes(v) ? v : 'popular';
   try { sessionStorage.setItem('ffp_gallery_sort', currentSort); } catch (e) {}
-  syncSortUI(); renderFonts();
+  syncSortUI(); renderFonts(); toGalleryTop();
+}
+/* 굵기·허용 범위·정렬을 바꾸면 '모양으로 찾기'처럼 새 목록 맨 위로 데려간다(10/27 사용자님) —
+   고정 바라 어디서든 바꿀 수 있는데, 그대로 두면 바뀐 목록의 중간을 보게 된다. 계산은 setTag 와 같은 함수 */
+function toGalleryTop(){
+  requestAnimationFrame(() => scrollBelowFilter(document.getElementById('fontGrid')));
 }
 function setGalleryWt(v){
   currentWt = WTS.includes(v) ? v : 'all';
   try { sessionStorage.setItem('ffp_gallery_wt', currentWt); } catch (e) {}
-  syncSortUI(); renderFonts();
+  syncSortUI(); renderFonts(); toGalleryTop();
 }
 function setGalleryLic(v){
   currentLic = LIC_FILTERS[v] ? v : 'all';
   try { sessionStorage.setItem('ffp_gallery_lic', currentLic); } catch (e) {}
-  syncSortUI(); renderFonts();
+  syncSortUI(); renderFonts(); toGalleryTop();
 }
 
 /* ════════════════════════════════════════════════════
