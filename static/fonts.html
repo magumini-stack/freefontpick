@@ -1559,7 +1559,8 @@ function newerFirst(a, b){
 }
 function sortGallery(list){
   switch (currentSort) {
-    case 'recommend': list.sort((a, b) => (a.sort_order - b.sort_order) || (a.id - b.id)); break;   // 어드민이 정한 저장 순서
+    // 추천순 — 서버가 매긴 점수(meta.rec: 허브 선정 60 · 라이선스 폭 25 · 굵기 수 15, app/routers/fonts.py _rec_score). 같으면 인기순
+    case 'recommend': list.sort((a, b) => (((b.meta && b.meta.rec) || 0) - ((a.meta && a.meta.rec) || 0)) || (popularKey(a) - popularKey(b))); break;
     case 'new':       list.sort(newerFirst); break;
     default:          list.sort((a, b) => popularKey(a) - popularKey(b));
   }

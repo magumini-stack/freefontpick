@@ -239,14 +239,36 @@ def _release_dates() -> dict:
     return _RELEASE_DATES
 
 
-def _new_hub_ranks(db: Session) -> dict:
-    """신상폰트 칸(용도 허브 slug 'new')의 순서 {font_id: 1부터}. 어드민이 칸을 고치면
-    use_case_fonts 가 바뀌어 목록 캐시 판도 오른다(content_cache._CONTENT_TABLES)."""
+def _hub_picks(db: Session):
+    """용도 허브에서 뽑힌 자리 → (신상폰트 순서 {font_id: 1부터}, 허브 점수 {font_id: 0~2}).
+
+    허브 점수(2026-10-27 '추천순'): 공개 중인 허브(신상폰트 빼고)마다 그 칸에 들었으면
+    맨 위 1.0 ~ 맨 아래 0.5 를 더하고 2 에서 자른다 — 여러 쓰임에 두루 뽑힌 폰트가 앞선다.
+    어드민이 칸을 고치면 use_case_fonts 가 바뀌어 목록 캐시 판도 오른다(content_cache._CONTENT_TABLES)."""
     from ..models import UseCase
-    uc = db.query(UseCase).filter(UseCase.slug == "new").first()
-    if not uc:
-        return {}
-    return {x.font_id: i + 1 for i, x in enumerate(uc.fonts)}
+    new_rank, hub = {}, {}
+    for uc in db.query(UseCase).all():
+        picks = list(uc.fonts)
+        if uc.slug == "new":
+            new_rank = {x.font_id: i + 1 for i, x in enumerate(picks)}
+            continue
+        if not uc.is_active or not picks:
+            continue
+        n = len(picks)
+        for i, x in enumerate(picks):
+            hub[x.font_id] = hub.get(x.font_id, 0) + 1.0 - 0.5 * i / max(1, n - 1)
+    return new_rank, {k: min(2.0, v) for k, v in hub.items()}
+
+
+def _rec_score(hub: float, lic8: str, weights: str) -> int:
+    """'추천순' 점수 0~1000 (2026-10-27, 사용자님이 (나) 자동 추천 점수로 정함).
+    허브 선정 60% · 라이선스 폭 25%(가능 1·조건부 0.5, 확인 전 0) · 굵기 수 15%(9개에서 가득).
+    인기(조회수)는 넣지 않는다 — 그건 '인기순'이 맡는다. 한글 글자 수는 1,000종 중 295종만 재 두어 뺐다."""
+    import re as _re
+    lic = sum(1.0 if c == "y" else 0.5 if c == "c" else 0.0 for c in (lic8 or "")) / 8
+    m = _re.match(r"\d+", str(weights or ""))
+    wt = min(int(m.group()) if m else 1, 9) / 9
+    return round(1000 * (0.6 * hub / 2 + 0.25 * lic + 0.15 * wt))
 
 
 # 공개 API
@@ -279,7 +301,7 @@ def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
         from fastapi.encoders import jsonable_encoder
         fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
         paired = _paired_font_ids(db)
-        new_rank = _new_hub_ranks(db)
+        new_rank, hub = _hub_picks(db)
         rel = _release_dates()
         out = []
         for f in fonts:
@@ -299,6 +321,7 @@ def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
                 meta["rel"] = d
             if f.id in new_rank:
                 meta["new"] = new_rank[f.id]
+            meta["rec"] = _rec_score(hub.get(f.id, 0.0), lic8, f.weights)
             item.meta = meta
             out.append(item)
         return _json.dumps(jsonable_encoder(out), ensure_ascii=False).encode("utf-8")
