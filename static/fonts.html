@@ -1557,10 +1557,30 @@ function newerFirst(a, b){
   if (ra !== rb) return ra < rb ? 1 : -1;
   return b.id - a.id;
 }
+/* 추천순 위쪽 섞기(10/27 사용자님) — 점수만으로 줄 세우면 여러 허브에 겹쳐 뽑힌 본문용 고딕이 위를 다 차지했다.
+   첫 묶음(GALLERY_CHUNK 장)은 '모양으로 찾기' 갈래마다 점수 높은 것부터 한 장씩 돌아가며 채우고, 나머지는 점수 순.
+   갈래 차례는 그 갈래의 1등 점수 순. 모양 칩을 하나 고른 상태면 갈래가 하나라 점수 순 그대로다. */
+let SHAPE_TAGS = [];
+function mixShapesOnTop(list){
+  const shapeOf = f => (f.tags || []).find(t => SHAPE_TAGS.includes(t)) || '';
+  const groups = new Map();
+  for (const f of list) { const s = shapeOf(f); if (!groups.has(s)) groups.set(s, []); groups.get(s).push(f); }
+  if (groups.size < 2) return;
+  const queues = [...groups.values()], top = [];
+  for (let i = 0; top.length < GALLERY_CHUNK && queues.some(q => q.length); i++) {
+    const q = queues[i % queues.length];
+    if (q.length) top.push(q.shift());
+  }
+  const used = new Set(top);
+  list.splice(0, list.length, ...top, ...list.filter(f => !used.has(f)));
+}
 function sortGallery(list){
   switch (currentSort) {
     // 추천순 — 서버가 매긴 점수(meta.rec: 허브 선정 60 · 라이선스 폭 25 · 굵기 수 15, app/routers/fonts.py _rec_score). 같으면 인기순
-    case 'recommend': list.sort((a, b) => (((b.meta && b.meta.rec) || 0) - ((a.meta && a.meta.rec) || 0)) || (popularKey(a) - popularKey(b))); break;
+    case 'recommend':
+      list.sort((a, b) => (((b.meta && b.meta.rec) || 0) - ((a.meta && a.meta.rec) || 0)) || (popularKey(a) - popularKey(b)));
+      mixShapesOnTop(list);
+      break;
     case 'new':       list.sort(newerFirst); break;
     default:          list.sort((a, b) => popularKey(a) - popularKey(b));
   }
@@ -3149,6 +3169,7 @@ async function renderTagsBar(prefetched){
     const shaped = rows.filter(t => t.axis === 'shape');
     // axis가 아직 하나도 없는 DB(구버전)에서는 전체를 보여주는 쪽이 안전하다.
     tags = (shaped.length ? shaped : rows).map(t => t.name);
+    SHAPE_TAGS = shaped.map(t => t.name);   // 추천순 섞기(mixShapesOnTop)가 쓴다
   } catch(e){
     console.warn('태그 로딩 실패 — 전체 태그로 폴백', e);
     tags = await TagStore.getAll();
