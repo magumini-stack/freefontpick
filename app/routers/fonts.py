@@ -220,6 +220,35 @@ def _license_code(lic) -> str:
     return out
 
 
+_RELEASE_DATES = None
+
+
+def _release_dates() -> dict:
+    """폰트별 출시일 {id: 'YYYY-MM-DD'} — app/release_dates.json (2026-10-27).
+    폰트 파일 안 날짜(head.created)를 모아 말이 안 되는 값을 손본 표다. 만든 도구·기준은
+    projects/폰트픽/출시일_2026-10-27. 표에 없는 폰트(새로 등록한 것)는 등록한 날을 쓴다."""
+    global _RELEASE_DATES
+    if _RELEASE_DATES is None:
+        import json as _json
+        from pathlib import Path as _Path
+        p = _Path(__file__).resolve().parent.parent / "release_dates.json"
+        try:
+            _RELEASE_DATES = {int(k): v for k, v in _json.loads(p.read_text(encoding="utf-8")).items() if v}
+        except Exception:
+            _RELEASE_DATES = {}
+    return _RELEASE_DATES
+
+
+def _new_hub_ranks(db: Session) -> dict:
+    """신상폰트 칸(용도 허브 slug 'new')의 순서 {font_id: 1부터}. 어드민이 칸을 고치면
+    use_case_fonts 가 바뀌어 목록 캐시 판도 오른다(content_cache._CONTENT_TABLES)."""
+    from ..models import UseCase
+    uc = db.query(UseCase).filter(UseCase.slug == "new").first()
+    if not uc:
+        return {}
+    return {x.font_id: i + 1 for i, x in enumerate(uc.fonts)}
+
+
 # 공개 API
 @router.get("", response_model=List[FontOut])
 def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
@@ -250,17 +279,27 @@ def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
         from fastapi.encoders import jsonable_encoder
         fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
         paired = _paired_font_ids(db)
+        new_rank = _new_hub_ranks(db)
+        rel = _release_dates()
         out = []
         for f in fonts:
             item = _to_out(f, paired, with_weights=bool(weights))
-            if item.meta and _META_DETAIL_ONLY & item.meta.keys():
-                # font.meta를 직접 지우면 SQLAlchemy가 변경으로 보고 DB에 반영한다.
-                # 반드시 복사본에서 뺀다.
-                lic8 = _license_code(item.meta.get("license"))
-                item.meta = {k: v for k, v in item.meta.items()
-                             if k not in _META_DETAIL_ONLY}
-                if lic8:
-                    item.meta["lic"] = lic8
+            # font.meta를 직접 지우면 SQLAlchemy가 변경으로 보고 DB에 반영한다.
+            # 반드시 복사본에서 빼고 더한다.
+            meta = dict(item.meta or {})
+            lic8 = _license_code(meta.get("license"))
+            for k in _META_DETAIL_ONLY:
+                meta.pop(k, None)
+            if lic8:
+                meta["lic"] = lic8
+            # '최근 추가순'(전체 무료폰트, 2026-10-27): 신상폰트 칸 순서 → 출시일(rel) 내림차순.
+            # 출시일은 폰트 파일 안 날짜를 손본 표(app/release_dates.json), 없으면 등록한 날.
+            d = rel.get(f.id) or (f.created_at.strftime("%Y-%m-%d") if f.created_at else "")
+            if d:
+                meta["rel"] = d
+            if f.id in new_rank:
+                meta["new"] = new_rank[f.id]
+            item.meta = meta
             out.append(item)
         return _json.dumps(jsonable_encoder(out), ensure_ascii=False).encode("utf-8")
 

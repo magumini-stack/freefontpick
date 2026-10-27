@@ -1548,10 +1548,19 @@ function popularKey(f){
 }
 /* 굵기 수 — '9종' 같은 글에서 숫자만 */
 function weightCount(f){ const n = parseInt(String(f.weights || ''), 10); return isNaN(n) ? 1 : n; }
+/* 최근 추가순(10/27 사용자님) — 신상폰트 칸에 든 폰트를 그 칸 순서대로 먼저, 나머지는 출시일(meta.rel) 최신부터.
+   출시일은 서버가 폰트 파일 안 날짜를 손본 표로 채우고, 없으면 등록한 날을 넣는다(app/routers/fonts.py). */
+function newerFirst(a, b){
+  const na = (a.meta && a.meta.new) || 1e9, nb = (b.meta && b.meta.new) || 1e9;
+  if (na !== nb) return na - nb;
+  const ra = (a.meta && a.meta.rel) || '', rb = (b.meta && b.meta.rel) || '';
+  if (ra !== rb) return ra < rb ? 1 : -1;
+  return b.id - a.id;
+}
 function sortGallery(list){
   switch (currentSort) {
     case 'recommend': list.sort((a, b) => (a.sort_order - b.sort_order) || (a.id - b.id)); break;   // 어드민이 정한 저장 순서
-    case 'new':       list.sort((a, b) => b.id - a.id); break;                                       // 번호가 곧 등록 순서
+    case 'new':       list.sort(newerFirst); break;
     default:          list.sort((a, b) => popularKey(a) - popularKey(b));
   }
 }
