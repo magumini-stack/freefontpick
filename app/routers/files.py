@@ -369,7 +369,32 @@ def file_source_of(font_id: int) -> str:
     return r[1] if r else ""
 
 
-def file_version_of(font_id: int) -> int:
+_WEIGHT_FILE_RE = _re2.compile(r"font-(\d+)-w.*\.woff2$")
+
+
+def weight_file_mtimes() -> dict:
+    """FONTS_DIR 의 굵기 파일을 한 번만 훑어 {font_id: 가장 최근 수정 시각} 으로 돌려준다.
+
+    목록(/api/fonts)은 폰트마다 file_version_of 를 부르는데, 그때마다 폴더 전체를
+    glob 하면 1,000종 × 폴더 파일 수만큼 이름을 맞춰 보느라 몇 초가 걸렸다(2026-10-29).
+    """
+    out = {}
+    try:
+        with os.scandir(FONTS_DIR) as it:
+            for e in it:
+                m = _WEIGHT_FILE_RE.match(e.name)
+                if m:
+                    try:
+                        k = int(m.group(1))
+                        out[k] = max(out.get(k, 0), int(e.stat().st_mtime))
+                    except OSError:
+                        pass
+    except OSError:
+        pass
+    return out
+
+
+def file_version_of(font_id: int, weight_mtimes: dict = None) -> int:
     """이 폰트 파일들의 '판'. 대표 파일과 굵기 파일 중 가장 최근 수정 시각이다.
 
     주소에 ?v= 로 붙여 캐시를 가른다. 어느 파일이든 바꾸면 값이 달라져 주소가
@@ -377,6 +402,8 @@ def file_version_of(font_id: int) -> int:
 
     굵기 파일 하나만 바꿔도 대표 파일 주소까지 같이 바뀐다 — 필요 이상으로
     한 번 더 받게 되지만, 폰트 하나 분량이고 어드민이 파일을 바꿀 때만이다.
+
+    weight_mtimes: 여러 폰트를 한꺼번에 볼 때 weight_file_mtimes() 결과를 넘기면 폴더를 다시 훑지 않는다.
     """
     ts = 0
     for p in (font_path(font_id), bundled_font_path(font_id)):
@@ -391,11 +418,14 @@ def file_version_of(font_id: int) -> int:
             ts = max(ts, int(Path(r[0]).stat().st_mtime))
         except OSError:
             pass
-    try:
-        for wp in FONTS_DIR.glob(f"font-{font_id:03d}-w*.woff2"):
-            ts = max(ts, int(wp.stat().st_mtime))
-    except OSError:
-        pass
+    if weight_mtimes is not None:
+        ts = max(ts, weight_mtimes.get(font_id, 0))
+    else:
+        try:
+            for wp in FONTS_DIR.glob(f"font-{font_id:03d}-w*.woff2"):
+                ts = max(ts, int(wp.stat().st_mtime))
+        except OSError:
+            pass
     for w in WEIGHT_RESOLUTION.get(font_id, []):
         try:
             ts = max(ts, int(Path(w["path"]).stat().st_mtime))

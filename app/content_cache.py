@@ -47,7 +47,7 @@ def bump() -> None:
 _key_locks: dict = {}
 
 
-def get(key: str, ttl: float, build):
+def get(key: str, ttl: float, build, background: bool = False):
     """key 의 값을 돌려준다. 없거나 낡았으면 build() 로 만들어 넣는다.
 
     build 는 DB 세션을 닫힌 뒤에도 쓸 수 있는 순수 값(dict·list·str·bytes)을
@@ -60,6 +60,10 @@ def get(key: str, ttl: float, build):
     됐다. 이제 TTL 만 지난 값은 누가 새로 만드는 동안 옛 값을 그대로 주고, 값이 아예
     없을 때(첫 요청·내용 판이 오른 뒤)만 만드는 요청 하나를 기다린다. 기다리는 요청은
     아직 쿼리를 안 했으므로 DB 연결을 쥐지 않는다.
+
+    background=True 면 TTL 만 지난 값을 새로 만드는 요청도 기다리지 않는다 — 옛 값으로 바로 답하고
+    새 값은 스레드에서 만든다(2026-10-29, 폰트 목록). 그때 build 는 요청의 DB 세션을 쓰면 안 된다
+    (요청이 끝나며 닫힌다) — 제 세션을 여는 함수를 넘긴다.
     """
     now = time.monotonic()
     full = (_version, key)
@@ -71,6 +75,20 @@ def get(key: str, ttl: float, build):
     if hit is not None:
         if not kl.acquire(blocking=False):
             return hit[1]          # 다른 요청이 새로 만드는 중 — 조금 낡은 값으로 답한다
+        if background:
+            ver = _version
+
+            def _refresh():
+                try:
+                    value = build()
+                    with _lock:
+                        _store[(ver, key)] = (time.monotonic() + ttl, value)
+                except Exception as e:  # noqa: BLE001 — 옛 값이 남아 있으니 다음 만료 때 다시 시도한다
+                    print(f"[content_cache] {key} 뒤에서 굽기 실패: {e}", flush=True)
+                finally:
+                    kl.release()
+            threading.Thread(target=_refresh, daemon=True).start()
+            return hit[1]
     else:
         kl.acquire()
     try:

@@ -78,11 +78,11 @@ def _file_source(font_id: int) -> str:
         return ""
 
 
-def _file_version(font_id: int) -> int:
-    """파일의 판. 프론트가 주소에 ?v= 로 붙여 캐시를 가른다."""
+def _file_version(font_id: int, wmt: dict = None) -> int:
+    """파일의 판. 프론트가 주소에 ?v= 로 붙여 캐시를 가른다. wmt: files.weight_file_mtimes() 결과(목록용)."""
     try:
         from .files import file_version_of
-        return file_version_of(font_id)
+        return file_version_of(font_id, wmt)
     except Exception:
         return 0
 
@@ -129,7 +129,7 @@ def _safe_meta(font: Font) -> dict:
 
 
 def _to_out(font: Font, paired_ids: set = frozenset(),
-            with_weights: bool = False) -> FontOut:
+            with_weights: bool = False, wmt: dict = None) -> FontOut:
     return FontOut(
         has_pairing=font.id in paired_ids,
         id=font.id,
@@ -159,7 +159,7 @@ def _to_out(font: Font, paired_ids: set = frozenset(),
         has_zip=(font.id not in NO_REDISTRIBUTE) and _has_zip(font.id),
         available_weights=_available_weights(font) if with_weights else [],
         file_source=_file_source(font.id),
-        file_version=_file_version(font.id),
+        file_version=_file_version(font.id, wmt),
     )
 
 
@@ -273,7 +273,7 @@ def _rec_score(hub: float, lic8: str, weights: str) -> int:
 
 # 공개 API
 @router.get("", response_model=List[FontOut])
-def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
+def list_fonts(weights: int = 0):
     """모든 방문자가 호출. sort_order 순으로 정렬.
 
     weights=1 이면 폰트마다 쓸 수 있는 굵기(available_weights)를 함께 싣는다.
@@ -291,21 +291,47 @@ def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
                목록 응답의 38% 였다. 홈 갤러리는 이 글을 쓰지 않는다
                (쓰는 것은 meta.preview_text 와 추천용 태그뿐)
     """
-    # 응답을 JSON 바이트째 캐시한다(app/content_cache.py). 296종을 매번 검증·
-    # 직렬화하면 0.7~2.2초가 걸렸다(2026-09-22 실측). 어드민이 폰트·태그를
+    # 응답을 JSON 바이트째 캐시한다(app/content_cache.py). 어드민이 폰트·태그를
     # 고치면 판이 올라 다음 요청이 새로 굽고, 파일만 바뀌는 경우는 TTL 이 받는다.
     # Response 를 직접 돌려주므로 response_model 검증도 건너뛴다 — 만들 때 이미
     # FontOut 으로 검증한 값이다.
-    def build() -> bytes:
-        import json as _json
-        from fastapi.encoders import jsonable_encoder
-        fonts = db.query(Font).order_by(Font.sort_order, Font.id).all()
+    # TTL 이 지나면 옛 목록으로 바로 답하고 새 목록은 뒤에서 굽는다(background) — 예전에는 2분이 지난 뒤
+    # 처음 들어온 사람이 굽는 몇 초를 그대로 기다려 '처음 들어가면 카드가 1초 넘게 안 나왔다'(2026-10-29).
+    w = int(bool(weights))
+    body = content_cache.get(f"fonts:list:{w}", ttl=_LIST_TTL[w], build=lambda: _build_list(bool(w)), background=True)
+    return Response(content=body, media_type="application/json")
+
+
+# weights=1 은 조합 찾기 '폰트 고르기' 창 하나만 쓰는데, 굽는 데 2초가 걸린다(2026-10-07 실측, 528종).
+# 방문이 드물면 2분 TTL 이 늘 지나 있어서 창을 여는 사람마다 기다렸다 → 30분으로 늘린다.
+# 폰트·태그·파일을 고치면 판이 올라 곧바로 새로 구우므로(content_cache.bump) 낡은 값이 남지 않는다.
+_LIST_TTL = {0: 120, 1: 1800}
+
+
+def warm_list() -> None:
+    """기동 직후 목록을 미리 굽는다(app/main.py) — 배포 뒤 첫 방문자가 굽는 시간을 기다리지 않게."""
+    content_cache.get("fonts:list:0", ttl=_LIST_TTL[0], build=lambda: _build_list(False))
+
+
+def _build_list(weights: bool) -> bytes:
+    """목록 JSON 을 굽는다. 뒤에서(스레드) 구울 때도 쓰므로 요청의 DB 세션 대신 제 세션을 연다.
+
+    폰트마다 태그를 따로 묻고(지연 로딩) 굵기 파일 폴더를 따로 훑던 것을 한 번씩으로 줄였다(2026-10-29)."""
+    import json as _json
+    from fastapi.encoders import jsonable_encoder
+    from sqlalchemy.orm import selectinload
+    from ..database import SessionLocal
+    from .files import weight_file_mtimes
+    db = SessionLocal()
+    try:
+        fonts = db.query(Font).options(selectinload(Font.tags)).order_by(Font.sort_order, Font.id).all()
         paired = _paired_font_ids(db)
         new_rank, hub = _hub_picks(db)
         rel = _release_dates()
+        wmt = weight_file_mtimes()
         out = []
         for f in fonts:
-            item = _to_out(f, paired, with_weights=bool(weights))
+            item = _to_out(f, paired, with_weights=weights, wmt=wmt)
             # font.meta를 직접 지우면 SQLAlchemy가 변경으로 보고 DB에 반영한다.
             # 반드시 복사본에서 빼고 더한다.
             meta = dict(item.meta or {})
@@ -325,13 +351,8 @@ def list_fonts(weights: int = 0, db: Session = Depends(get_db)):
             item.meta = meta
             out.append(item)
         return _json.dumps(jsonable_encoder(out), ensure_ascii=False).encode("utf-8")
-
-    # weights=1 은 조합 찾기 '폰트 고르기' 창 하나만 쓰는데, 굽는 데 2초가 걸린다(2026-10-07 실측, 528종).
-    # 방문이 드물면 2분 TTL 이 늘 지나 있어서 창을 여는 사람마다 기다렸다 → 30분으로 늘린다.
-    # 폰트·태그·파일을 고치면 판이 올라 곧바로 새로 구우므로(content_cache.bump) 낡은 값이 남지 않는다.
-    # 메인이 쓰는 weights=0 은 그대로 둔다.
-    body = content_cache.get(f"fonts:list:{int(bool(weights))}", ttl=1800 if weights else 120, build=build)
-    return Response(content=body, media_type="application/json")
+    finally:
+        db.close()
 
 
 # ⚠️ 아래 두 경로는 반드시 `/{font_id}` 보다 먼저 선언해야 한다.

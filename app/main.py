@@ -83,6 +83,13 @@ async def lifespan(app: FastAPI):
     except Exception:
         pass
 
+    # 폰트 목록을 미리 굽는다 — 배포 직후 첫 방문자가 굽는 몇 초를 기다리지 않게(2026-10-29). 기동은 막지 않는다.
+    try:
+        import threading
+        threading.Thread(target=fonts.warm_list, daemon=True).start()
+    except Exception:
+        pass
+
     yield
 
 
