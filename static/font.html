@@ -3,6 +3,7 @@
 <head>
 <script>
   (function(){
+    document.documentElement.classList.add('js');  /* 서버 본문(#fontSsr)을 첫 그림부터 감춘다 */
     try{
       var t = localStorage.getItem('ffp-theme');
       if(t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
@@ -117,6 +118,9 @@
   @media(max-width:768px){ .wrap.dwrap{padding:0 16px} }
   .loading{padding:120px 0;text-align:center;color:var(--text-muted);font-family:var(--ui);font-size:14px}
   .hidden{display:none!important}
+  /* JS 가 있으면 서버 본문은 처음부터 감추고, 없으면 '불러오는 중'을 감춘다 */
+  .js #fontSsr{display:none}
+  html:not(.js) #loading{display:none}
   .lbl{font-family:var(--ui);font-size:13px;letter-spacing:.2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;display:flex;align-items:center;gap:10px}
   .lbl::before{content:"";width:22px;height:1px;background:var(--text-secondary)}
 
@@ -1246,7 +1250,7 @@
       try { console.error('[font] 상세페이지를 그리지 못함', err); } catch (e) {}
       var _ld = document.getElementById('loading'), _ct = document.getElementById('content');
       if (_ld) _ld.classList.add('hidden');
-      if ((!_ct || _ct.classList.contains('hidden')) && _ssrEl) _ssrEl.style.display = '';
+      if ((!_ct || _ct.classList.contains('hidden')) && _ssrEl) _ssrEl.style.display = 'block';
     });
 
   /* 조합 찾기로 넘길 주소 — 자리는 폰트의 결로 정하고, lock= 으로 그 폰트를 고정한다. */
