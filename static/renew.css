@@ -65,10 +65,12 @@ html.d-edge .use-bar{box-shadow:0 1px 0 var(--border)}
 .use-bar-label{color:var(--text-muted);font-weight:600;letter-spacing:.02em}
 .use-bar-scroll{cursor:grab;will-change:transform}
 .use-bar-scroll.d-drag{cursor:grabbing}
-.use-chip{border:0!important;border-radius:999px;background:transparent;color:var(--text-primary);font-weight:500;font-size:13px;opacity:.78}
-.use-chip:hover{background:rgba(0,0,0,.05);color:var(--text-primary);border-color:transparent;opacity:1}   /* 원래 사이트 hover 가 글자를 흰색(--bg-card)으로 바꿔서, 옅은 회색 위에 흰 글자가 됐다(10/30) */
-[data-theme="dark"] .use-chip:hover{background:rgba(255,255,255,.1)}
-.use-chip.on,.use-chip.active{background:var(--text-primary);color:var(--bg-card);opacity:1}
+/* 칩은 /fonts '모양으로 찾기'(.tag)와 같은 모양으로 맞춘다(10/30) — 흰 알약 + 가는 테, 올리면 테·글자가 진해지고,
+   고른 것은 남색 테·남색 글자. 원래 사이트 hover 가 바탕 검정·글자 흰색이라 그것도 여기서 덮는다 */
+.use-chip{font-size:13px;font-weight:500;padding:6px 11px;border-radius:999px;border:1px solid var(--border)!important;
+  background:var(--bg-card);color:var(--text-secondary);opacity:1;transition:border-color .15s,color .15s}
+.use-chip:hover{background:var(--bg-card);color:var(--text-primary);border-color:var(--text-primary)!important}
+.use-chip.on,.use-chip.active{background:var(--bg-card);color:var(--accent);border-color:var(--accent)!important;font-weight:700}
 
 /* 타닥타닥 띠 그림 — 모서리만 맞춘다 */
 .home-sub-ad img{border-radius:20px}
