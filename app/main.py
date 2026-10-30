@@ -26,6 +26,7 @@ from .compress import SelectiveGZipMiddleware
 from . import content_cache
 from .database import SessionLocal as _SessionLocal
 from .header import inject_header, not_found_page
+from . import renew
 from .seed import init_db
 from .site import SITE_URL
 from .routers import auth, fonts, tags, notices, files as files_router, likes, seo, submissions, design, pairings, og_image, piece_image, preview_phrases, wisefont, use_cases, use_cases_admin, use_case_route, magazine, magazine_links, sample_image, db_migrate, gif_templates, gif, font_pair, stats, find, track, popular, convert, vending, text_design
@@ -406,7 +407,8 @@ async def stamp_static_assets(request: Request, call_next):
     async for chunk in response.body_iterator:
         body += chunk
     try:
-        body = _stamp_assets(body.decode("utf-8")).encode("utf-8")
+        # 리뉴얼 D 가 켜져 있으면 renew.css·js 를 먼저 끼운다 — 그래야 아래 판 찍기가 그 주소도 잡는다
+        body = _stamp_assets(renew.inject(body.decode("utf-8"), request.url.path)).encode("utf-8")
     except UnicodeDecodeError:
         pass                                  # HTML이 아니면 손대지 않고 그대로 돌려준다
 

@@ -1,0 +1,265 @@
+/* 정본: projects\폰트픽\리뉴얼_시안\themes\d.css — 여기를 직접 고치지 말고 그쪽에서 고쳐 publish.py 로 옮긴다 */
+/* 시안 D — 애플 디자인 (apple-design 스킬, 2026-10-30)
+   ① 재질: 머리글·쓰는 자리 막대는 반투명 유리판(흐림+채도), 아래로 글이 비쳐 지나간다. 선 대신 스크롤했을 때만 생기는 가장자리 그림자.
+   ② 깊이: 바탕은 연회색(#F5F5F7), 카드는 흰 판 + 아주 옅은 그림자. 테두리 없이 면과 그림자로만 나눈다.
+   ③ 글자: 크기마다 자간을 따로 — 큰 제목은 좁게(-0.035em), 작은 글은 살짝 넓게(+0.01em). 행간도 큰 글은 촘촘하게.
+   ④ 반응: 누르는 순간(pointer-down) 0.97 로 줄어든다. 손을 떼기 전에 이미 눌린 느낌.
+   ⑤ 강조색은 로고 남색 한 가지(#12318B, 10/30) — 링크·순위·주 단추만. 나머지는 회색 단계.
+      야간은 같은 색상(225°)을 밝힌 #7C97F0 — 검정 바탕에서 남색은 묻힌다. 그 위 글자는 --on-accent. */
+
+:root{
+  --bg:#F5F5F7;--bg-card:#FFFFFF;--bg-secondary:#EDEDF0;
+  --text-primary:#1D1D1F;--text-secondary:#6E6E73;--text-muted:#86868B;
+  --border:rgba(0,0,0,.08);--border-hover:rgba(0,0,0,.12);
+  --accent:#12318B;--accent-light:#E8ECF7;--accent-hover:#1A3FA8;--on-accent:#FFFFFF;--focus-ring:rgba(18,49,139,.22);
+  --radius-sm:10px;--radius-md:14px;--radius-lg:20px;
+  --shadow-card:0 1px 1px rgba(0,0,0,.03),0 6px 20px rgba(0,0,0,.04);
+  --shadow-hover:0 2px 4px rgba(0,0,0,.04),0 18px 40px rgba(0,0,0,.09);
+  --ui:-apple-system,BlinkMacSystemFont,'SF Pro Text','Apple SD Gothic Neo','Pretendard Variable',Pretendard,sans-serif;
+  --d-glass:rgba(250,250,252,.72);
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+:root[data-theme="dark"]{   /* 사이트가 :root[data-theme] 로 적어 두어 같은 무게로 맞춘다 */
+  --bg:#000;--bg-card:#1C1C1E;--bg-secondary:#2C2C2E;
+  --text-primary:#F5F5F7;--text-secondary:#A1A1A6;--text-muted:#86868B;
+  --border:rgba(255,255,255,.1);--border-hover:rgba(255,255,255,.18);
+  --accent:#7C97F0;--accent-light:rgba(124,151,240,.16);--accent-hover:#96ACF4;--on-accent:#0B1640;--focus-ring:rgba(124,151,240,.35);
+  --shadow-card:0 0 0 1px rgba(255,255,255,.06);
+  --shadow-hover:0 0 0 1px rgba(255,255,255,.12),0 18px 40px rgba(0,0,0,.6);
+  --d-glass:rgba(22,22,23,.72);
+}
+body{font-family:var(--ui);background:var(--bg);color:var(--text-primary);-webkit-font-smoothing:antialiased;letter-spacing:-.005em}
+
+/* ① 머리글 — 유리판. 테두리는 없애고, 스크롤하면(.d-edge) 가장자리 그림자만 */
+.header{background:var(--d-glass)!important;backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:0!important;box-shadow:none;transition:box-shadow .3s var(--ease-out)}
+html.d-edge .header{box-shadow:0 1px 0 var(--border),0 8px 24px -12px rgba(0,0,0,.12)}
+.header nav a{font-weight:500;font-size:13px;letter-spacing:.005em;color:var(--text-primary);opacity:.8;background:none!important;border-radius:999px}
+.header nav a:hover{opacity:1}
+.header nav a.active{opacity:1;font-weight:600;background:rgba(0,0,0,.05)!important}
+[data-theme="dark"] .header nav a.active{background:rgba(255,255,255,.1)!important}
+.search-wrap input{border-radius:999px;background:rgba(118,118,128,.12);border-color:transparent;font-size:13px}
+.search-wrap input:focus{background:var(--bg-card);box-shadow:0 0 0 4px var(--focus-ring);border-color:var(--accent)}
+
+/* ③ 첫머리 — 큰 글은 좁은 자간·촘촘한 행간 */
+.hero-title{font-size:clamp(32px,3.6vw,54px);font-weight:700;letter-spacing:-.035em;line-height:1.12}
+.hero-title em{box-shadow:none;color:var(--accent)}
+
+/* 도구 6칸 — 흰 판, 둥근 사각 아이콘 */
+.tool{background:var(--bg-card);border:0!important;border-radius:18px;box-shadow:var(--shadow-card);
+  transition:transform .45s var(--ease-out),box-shadow .45s var(--ease-out)}
+.tool:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px)}
+.tool .tool-ico{border-radius:10px}
+.tool-t{font-weight:600;letter-spacing:-.01em}
+.tool-d{color:var(--text-secondary);letter-spacing:.005em}
+.tool-new{border-radius:999px;background:var(--accent)!important}
+
+/* ① 쓰는 자리 막대 — 머리글 아래 붙는 두 번째 유리판, 칩은 분절 컨트롤처럼 */
+.use-bar{background:var(--d-glass)!important;backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:0!important}
+html.d-edge .use-bar{box-shadow:0 1px 0 var(--border)}
+.use-bar-label{color:var(--text-muted);font-weight:600;letter-spacing:.02em}
+.use-bar-scroll{cursor:grab;will-change:transform}
+.use-bar-scroll.d-drag{cursor:grabbing}
+.use-chip{border:0!important;border-radius:999px;background:transparent;color:var(--text-primary);font-weight:500;font-size:13px;opacity:.78}
+.use-chip:hover{background:rgba(0,0,0,.05);opacity:1}
+[data-theme="dark"] .use-chip:hover{background:rgba(255,255,255,.1)}
+.use-chip.on,.use-chip.active{background:var(--text-primary);color:var(--bg-card);opacity:1}
+
+/* 타닥타닥 띠 그림 — 모서리만 맞춘다 */
+.home-sub-ad img{border-radius:20px}
+
+/* 섹션 머리 — 링크는 파란 글자 링크(›) */
+.use-sec{border-bottom:0!important;padding-top:48px}
+.use-head h2{font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.15}
+.use-head p{color:var(--text-secondary);font-size:15px;letter-spacing:-.005em}
+.use-head .more{background:none!important;border:0!important;color:var(--accent);font-size:15px;font-weight:500;padding:0}
+.use-head .more:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* ② 카드 — 흰 판 + 옅은 그림자, 테두리 없음 */
+.font-grid{gap:20px}
+.font-card{background:var(--bg-card)!important;border:0!important;border-radius:20px!important;box-shadow:var(--shadow-card)!important;
+  transition:transform .45s var(--ease-out),box-shadow .45s var(--ease-out)!important}
+.font-card:hover{box-shadow:var(--shadow-hover)!important;transform:translateY(-3px)!important}
+.font-name{font-weight:600;letter-spacing:-.01em}
+.font-weights,.font-maker{color:var(--text-muted)}
+.font-tag{border:0!important;background:none!important;color:var(--text-muted);padding:0 6px 0 0;font-size:11px;letter-spacing:.01em}
+.font-tag.rank{background:var(--accent)!important;color:var(--on-accent);padding:2px 7px!important;border-radius:999px;font-weight:600}
+.btn-download{background:var(--bg-secondary)!important;border:0!important;border-radius:999px;color:var(--text-primary)}
+.font-card:hover .btn-download{background:var(--accent)!important;color:var(--on-accent)}
+.font-preview-text{letter-spacing:-.02em}
+
+/* ④ 누르는 순간 반응 — 떼기 전에 이미 줄어든다 */
+.tool:active,.font-card:active,.use-chip:active,.use-head .more:active,.header nav a:active{
+  transform:scale(.97)!important;transition:transform .1s ease-out!important}
+
+/* 접근성 — 움직임 줄이기·투명도 줄이기·대비 높이기 */
+@media (prefers-reduced-motion:reduce){
+  .tool,.font-card{transition:box-shadow .2s ease,opacity .2s ease!important}
+  .tool:hover,.font-card:hover,.tool:active,.font-card:active,.use-chip:active{transform:none!important}
+}
+@media (prefers-reduced-transparency:reduce){
+  .header,.use-bar{background:var(--bg-card)!important;backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+@media (prefers-contrast:more){
+  .font-card,.tool{box-shadow:0 0 0 1px var(--text-muted)!important}
+}
+
+/* ───────── 도구 페이지 (10/30) — 폰트 찾기·조합 찾기·자판기·텍스트 디자인·폰트 변환 ─────────
+   페이지마다 class 이름이 겹치므로(.wrap·.btn·.seg·.card) 그 페이지에만 있는 요소로 범위를 묶는다.
+   .ff-* = 폰트 찾기, .fp-* = 조합 찾기, .vm = 자판기, :has(.txtbox) = 텍스트 디자인, :has(.g-drop) = 폰트 변환 */
+
+/* 머리글 '폰트 도구' 단추를 다른 메뉴와 같은 무게로, 펼침 메뉴는 유리판 */
+.tools-btn{font-size:13px;font-weight:500;letter-spacing:.005em;opacity:.8;border-radius:999px}
+.tools-btn:hover,.tools-dd:hover .tools-btn{opacity:1}
+.tools-btn.active{opacity:1;font-weight:600;color:var(--text-primary);background:rgba(0,0,0,.05)}
+[data-theme="dark"] .tools-btn.active{background:rgba(255,255,255,.1)}
+.tools-menu{background:var(--d-glass);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);
+  border:0!important;border-radius:16px;box-shadow:0 0 0 .5px var(--border),0 20px 50px rgba(0,0,0,.14)}
+
+/* 첫머리 — 눈썹 글은 파랑 작은 글, 제목은 크고 좁게, 설명은 회색 큰 글 */
+.notice-hero{padding-top:56px}
+.hero-eyebrow,.intro .eyebrow{color:var(--accent);font-size:15px;font-weight:600;letter-spacing:.01em}
+.notice-hero .hero-title,.intro .hero-title{font-size:clamp(32px,3.4vw,48px);font-weight:700;letter-spacing:-.035em;line-height:1.1;margin-top:6px}
+.notice-hero-sub,.intro .lead{font-size:19px;line-height:1.5;letter-spacing:-.01em;color:var(--text-secondary);margin-top:12px}
+
+/* 공통 — 주 단추는 알약 모양 파랑, 카드는 테두리 없는 흰 판 */
+.btn-primary,.fp-btn.primary,body:has(.txtbox) .btn.primary,body:has(.g-drop) .btn:not(.ghost){
+  border-radius:999px!important;font-weight:600;letter-spacing:-.005em;box-shadow:none}
+.btn-primary:hover{transform:none}
+.fp-btn{border-radius:999px;border:0;background:rgba(118,118,128,.12)}
+.fp-btn.primary{background:var(--accent)}
+.ff-card,body:has(.g-drop) .card,body:has(.txtbox) .more,.fp-slot,.fp-score,.submit-card,body:has(.g-drop) .how{
+  border:0!important;box-shadow:var(--shadow-card)}
+.ff-card,body:has(.g-drop) .card,body:has(.txtbox) .more{border-radius:20px;background:var(--bg-card)}
+.ff-card{padding:28px 28px 24px}
+.ff-card h2{font-size:21px;font-weight:700;letter-spacing:-.02em}
+.ff-beta{font-weight:600}
+
+/* 끌어다 놓는 자리 — 굵은 점선 대신 옅은 회색 면 + 가는 점선, 아이콘은 흰 원 위에 */
+.ff-drop,body:has(.g-drop) .drop{border:1.5px dashed rgba(0,0,0,.14)!important;background:var(--bg)!important;border-radius:18px;
+  transition:background-color .3s var(--ease-out),border-color .3s var(--ease-out)}
+[data-theme="dark"] .ff-drop,[data-theme="dark"] body:has(.g-drop) .drop{border-color:rgba(255,255,255,.18)!important}
+.ff-drop:hover,.ff-drop.is-over,body:has(.g-drop) .drop:hover,body:has(.g-drop) .drop.over{background:var(--accent-light)!important;border-color:var(--accent)!important}
+.ff-drop{padding:44px 16px;font-size:15px}
+.ff-drop i{display:block!important;margin:0 auto 14px;font-size:40px}   /* 아이콘은 마스크라 배경을 깔면 아이콘이 그 색이 된다 — 원판 없이 크게만 */
+body:has(.g-drop) .drop .ic{border:0;border-radius:50%;width:56px;height:56px;box-shadow:var(--shadow-card)}
+body:has(.g-drop) .fmts em{border:0;background:var(--bg-card);border-radius:999px;padding:3px 10px;box-shadow:0 0 0 .5px var(--border)}
+
+/* 폰트 찾기 — 질문 카드 */
+.submit-card{border-radius:20px}
+.submit-card:hover{transform:translateY(-3px)}
+.submit-card-name{font-weight:600;letter-spacing:-.01em}
+.submit-card-status{border-radius:999px;font-weight:600;letter-spacing:0}
+.ff-text input,.form-row input[type=text],.form-row textarea{border:0!important;background:rgba(118,118,128,.12);border-radius:12px}
+.ff-text input:focus,.form-row input[type=text]:focus,.form-row textarea:focus{background:var(--bg-card);box-shadow:0 0 0 4px var(--focus-ring)}
+.ff-like{border:0;border-radius:999px;background:rgba(118,118,128,.12)}
+
+/* 조합 찾기 — 칩은 메인과 같은 알약(고른 것은 검정), 무대·옆 칸은 테두리 없는 판 */
+.fp-chip{border:0!important;background:transparent;color:var(--text-primary);font-size:13px;font-weight:500;opacity:.78;padding:7px 13px}
+.fp-chip:hover{background:rgba(0,0,0,.05);opacity:1}
+[data-theme="dark"] .fp-chip:hover{background:rgba(255,255,255,.1)}
+.fp-chip.on{background:var(--text-primary)!important;color:var(--bg-card)!important;opacity:1;font-weight:600}
+.fp-seg{background:rgba(118,118,128,.12)}
+.fp-seg button.on{box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04)}
+.fp-stage{border:0!important;border-radius:20px;box-shadow:0 2px 6px rgba(0,0,0,.04),0 24px 60px rgba(0,0,0,.10)}
+.fp-slot,.fp-score{border-radius:16px}
+.fp-slot.locked{box-shadow:0 0 0 2px var(--accent)}
+.fp-slot-font{font-weight:600;letter-spacing:-.01em}
+.fp-swap{border:0!important;background:rgba(118,118,128,.12);border-radius:999px}
+.fp-score-num{font-weight:700;letter-spacing:-.02em}
+.fp-score-bar{height:6px;border-radius:999px}
+.fp-score-bar span{border-radius:999px}
+.fp-about{border-radius:16px;-webkit-mask-image:linear-gradient(#000 calc(100% - 28px),transparent);mask-image:linear-gradient(#000 calc(100% - 28px),transparent)}   /* 넘친 줄은 잘린 채 보이지 않게 가장자리를 흐린다 */
+.fp-guide{border-top:0;padding-top:56px}
+.fp-guide h1{font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.15;margin-bottom:10px}
+.fp-guide .lead{font-size:15px}
+.fp-guide-grid{border:0;border-radius:20px;overflow:hidden;box-shadow:var(--shadow-card)}
+.fp-guide-cell{padding:22px 24px}
+.fp-guide-cell h3{font-weight:700;letter-spacing:-.015em}
+.fp-guide-picks a{border-bottom:0;color:var(--accent)}
+.fp-guide-note h3{font-size:19px;font-weight:700;letter-spacing:-.02em}
+
+/* 자판기 — 기계는 이 페이지의 얼굴이라 그대로 두고, 둘레와 판만 다듬는다 */
+.vm{border-radius:32px;box-shadow:0 2px 6px rgba(0,0,0,.05),0 40px 80px -20px rgba(0,0,0,.25)}
+.vm .panel{border:0;border-radius:20px;box-shadow:var(--shadow-card)}
+.vm .key{border-radius:12px}
+.vm .qlabel{font-weight:600;letter-spacing:-.01em}
+.vm .pull{font-weight:700;letter-spacing:.02em}
+
+/* 텍스트 디자인 — 글 상자·무대는 흰 판, 쓰임 칩은 알약, 꾸미기 단추 줄은 분절 컨트롤 */
+body:has(.txtbox) .use{border:0!important;background:rgba(118,118,128,.12);font-weight:500;font-size:14px}
+body:has(.txtbox) .use[aria-pressed="true"]{background:var(--text-primary);color:var(--bg-card)}
+body:has(.txtbox) .txt{border:0!important;border-radius:16px;box-shadow:var(--shadow-card);font-size:19px;letter-spacing:-.015em}
+body:has(.txtbox) .txt:focus{box-shadow:0 0 0 4px var(--focus-ring)}
+body:has(.txtbox) .stage{border:0!important;border-radius:20px;box-shadow:var(--shadow-card)}
+body:has(.txtbox) .btn{border:0;border-radius:999px;background:rgba(118,118,128,.12)}
+body:has(.txtbox) .btn.primary{background:var(--accent)}
+body:has(.txtbox) .h2{font-size:17px;font-weight:700;letter-spacing:-.02em}
+body:has(.txtbox) .more summary{font-size:17px;font-weight:700;letter-spacing:-.02em;padding:18px 18px 12px}
+body:has(.txtbox) .ctl{padding:0 18px 20px;gap:18px}
+body:has(.txtbox) .row label{font-size:12px;font-weight:600;letter-spacing:0;color:var(--text-secondary)}
+body:has(.txtbox) .seg{gap:0;background:rgba(118,118,128,.12);border-radius:9px;padding:2px}
+body:has(.txtbox) .seg button{border:0!important;border-radius:7px;background:transparent;color:var(--text-primary);font-weight:500;
+  transition:background-color .2s var(--ease-out),box-shadow .2s var(--ease-out)}
+body:has(.txtbox) .seg button[aria-pressed="true"]{background:var(--bg-card);font-weight:600;
+  box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04)}
+[data-theme="dark"] body:has(.txtbox) .seg button[aria-pressed="true"]{background:#636366}
+body:has(.txtbox) input[type=range]{accent-color:var(--accent)}
+body:has(.txtbox) .sw button,body:has(.txtbox) .sw .pal{border-color:rgba(0,0,0,.1)}
+body:has(.txtbox) .morebtn,body:has(.txtbox) .fmore{border:0;background:rgba(118,118,128,.12);border-radius:12px}
+body:has(.txtbox) .reset{color:var(--accent);text-decoration:none}
+
+/* 폰트 변환 — 고르는 줄은 옅은 회색 줄, 고른 줄은 파란 테 */
+body:has(.g-drop) .card h2{font-size:13px;font-weight:600;color:var(--text-secondary);letter-spacing:0}
+body:has(.g-drop) .opt label{border:0!important;background:var(--bg);border-radius:12px;
+  transition:background-color .2s var(--ease-out),box-shadow .2s var(--ease-out)}
+body:has(.g-drop) .opt label:has(input:checked){background:var(--accent-light);box-shadow:inset 0 0 0 2px var(--accent)}
+body:has(.g-drop) .opt .t{font-weight:600}
+body:has(.g-drop) .opt .t em{border-radius:999px;padding:1px 7px;font-weight:600}
+body:has(.g-drop) .how{border-radius:18px}
+body:has(.g-drop) .chip{border-radius:999px}
+body:has(.g-drop) .note{border-radius:12px}
+
+/* 누르는 순간 반응 — 도구 페이지 단추들 */
+.btn-primary:active,.fp-btn:active,.fp-chip:active,.fp-swap:active,.submit-card:active,.ff-like:active,.tools-btn:active,
+body:has(.txtbox) .use:active,body:has(.txtbox) .btn:active,body:has(.txtbox) .seg button:active,
+body:has(.g-drop) .btn:active,body:has(.g-drop) .opt label:active{
+  transform:scale(.97)!important;transition:transform .1s ease-out!important}
+
+@media (prefers-reduced-motion:reduce){
+  .submit-card:hover,.submit-card:active,.btn-primary:active,.fp-btn:active,.fp-chip:active,
+  body:has(.txtbox) .btn:active,body:has(.g-drop) .btn:active{transform:none!important}
+}
+@media (prefers-reduced-transparency:reduce){
+  .tools-menu{background:var(--bg-card);backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+@media (prefers-contrast:more){
+  .ff-card,.submit-card,.fp-slot,.fp-score,.fp-stage,body:has(.g-drop) .card,body:has(.txtbox) .more,
+  body:has(.txtbox) .txt,body:has(.g-drop) .opt label{box-shadow:0 0 0 1px var(--text-muted)!important}
+}
+
+/* ───────── 폰트 상세 (10/30) — 각진 3px 단추·선 칸을 둥근 판으로 ───────── */
+.title-block{border-bottom:0}
+.btn-dl,.cta .btn{border-radius:999px;font-weight:600;letter-spacing:-.005em}
+.btn-design{border:0;border-radius:999px;background:rgba(118,118,128,.12)}
+.btn-design:hover{background:rgba(118,118,128,.2)}
+.preview-bar{border:0;border-radius:999px;box-shadow:var(--shadow-card)}
+.preview-bar:focus-within{box-shadow:0 0 0 4px var(--focus-ring)}
+.blk.side-card{border:0;border-radius:20px;box-shadow:var(--shadow-card)}
+.pair-card,.rel-card{border:0;border-radius:14px;background:var(--bg);transition:transform .45s var(--ease-out),box-shadow .45s var(--ease-out),background-color .3s}
+.pair-card:hover,.rel-card:hover{background:var(--bg-card);box-shadow:var(--shadow-hover)}
+.pair-meta{border-top-color:var(--border)}
+.pair-teaser{border-radius:14px}
+.sample-img{border:0;border-radius:16px;box-shadow:var(--shadow-card)}
+.wf-code{border:0;border-radius:12px}
+.lic-badge{font-weight:600}
+.cta{border-radius:24px}
+.btn-dl:active,.btn-design:active,.cta .btn:active,.pair-card:active,.rel-card:active{transform:scale(.97)!important;transition:transform .1s ease-out!important}
+
+/* 강조색 위 글자 — 페이지 CSS 가 #fff 로 박아 둔 것을 야간에도 읽히게(야간 강조색은 밝은 남색) */
+[data-theme="dark"] :is(.btn-primary,.fp-btn.primary,.btn-dl,.cta .btn,.tool-new,.pull,.qlabel b,.opt .t em,
+  .pair-teaser-go,.font-tag.rank,.btn.primary){color:var(--on-accent)!important}
+[data-theme="dark"] body:has(.g-drop) .btn:not(.ghost){color:var(--on-accent)!important}
+@media (prefers-reduced-motion:reduce){
+  .pair-card:hover,.rel-card:hover,.btn-dl:active,.btn-design:active,.pair-card:active,.rel-card:active{transform:none!important}
+}
