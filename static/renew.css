@@ -60,17 +60,21 @@ html.d-edge .header{box-shadow:0 1px 0 var(--border),0 8px 24px -12px rgba(0,0,0
 .tool-new{border-radius:999px;background:var(--accent)!important}
 
 /* ① 쓰는 자리 막대 — 머리글 아래 붙는 두 번째 유리판, 칩은 분절 컨트롤처럼 */
-.use-bar{background:var(--d-glass)!important;backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:0!important}
-html.d-edge .use-bar{box-shadow:0 1px 0 var(--border)}
-.use-bar-label{color:var(--text-muted);font-weight:600;letter-spacing:.02em}
-.use-bar-scroll{cursor:grab;will-change:transform}
+/* 쓰는 자리 막대 = /fonts '모양으로 찾기' 막대와 똑같이(10/30 사용자님: "완전 똑같아야지").
+   막대: 불투명 바탕 + 아래 가는 선, 이름표 13px 굵게 회색. 칩: 흰 알약 + 가는 테(.tag 와 같은 값).
+   유리판·가장자리 그림자는 뺐다 — 저쪽 막대에 없어서. 끌기(d.js)는 모양이 아니라 손맛이라 남긴다. */
+.use-bar{background:var(--bg)!important;backdrop-filter:none;-webkit-backdrop-filter:none;
+  border-bottom:1px solid var(--border)!important;gap:10px;padding:10px 0 8px}
+.use-bar-label{font-size:13px;font-weight:700;color:var(--text-secondary);letter-spacing:-.02em}
+.use-bar-scroll{gap:4px;padding-bottom:2px;will-change:transform;
+  -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);
+  mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent 100%);-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .use-bar-scroll.d-drag{cursor:grabbing}
-/* 칩은 /fonts '모양으로 찾기'(.tag)와 같은 모양으로 맞춘다(10/30) — 흰 알약 + 가는 테, 올리면 테·글자가 진해지고,
-   고른 것은 남색 테·남색 글자. 원래 사이트 hover 가 바탕 검정·글자 흰색이라 그것도 여기서 덮는다 */
-.use-chip{font-size:13px;font-weight:500;padding:6px 11px;border-radius:999px;border:1px solid var(--border)!important;
-  background:var(--bg-card);color:var(--text-secondary);opacity:1;transition:border-color .15s,color .15s}
+.use-chip{font-size:13px;font-weight:500;padding:6px 11px;border-radius:14px;border:1px solid var(--border)!important;
+  background:var(--bg-card);color:var(--text-secondary);opacity:1;transition:all .15s;white-space:nowrap;flex:0 0 auto}
 .use-chip:hover{background:var(--bg-card);color:var(--text-primary);border-color:var(--text-primary)!important}
 .use-chip.on,.use-chip.active{background:var(--bg-card);color:var(--accent);border-color:var(--accent)!important;font-weight:700}
+@media(max-width:520px){.use-bar-label{display:none}.use-bar{gap:0;padding:8px 0}.use-chip{font-size:12.5px;padding:5px 10px}}
 
 /* 타닥타닥 띠 그림 — 모서리만 맞춘다 */
 .home-sub-ad img{border-radius:20px}
@@ -96,16 +100,16 @@ html.d-edge .use-bar{box-shadow:0 1px 0 var(--border)}
 .font-preview-text{letter-spacing:-.02em}
 
 /* ④ 누르는 순간 반응 — 떼기 전에 이미 줄어든다 */
-.tool:active,.font-card:active,.use-chip:active,.use-head .more:active,.header nav a:active{
+.tool:active,.font-card:active,.use-head .more:active,.header nav a:active{
   transform:scale(.97)!important;transition:transform .1s ease-out!important}
 
 /* 접근성 — 움직임 줄이기·투명도 줄이기·대비 높이기 */
 @media (prefers-reduced-motion:reduce){
   .tool,.font-card{transition:box-shadow .2s ease,opacity .2s ease!important}
-  .tool:hover,.font-card:hover,.tool:active,.font-card:active,.use-chip:active{transform:none!important}
+  .tool:hover,.font-card:hover,.tool:active,.font-card:active{transform:none!important}
 }
 @media (prefers-reduced-transparency:reduce){
-  .header,.use-bar{background:var(--bg-card)!important;backdrop-filter:none;-webkit-backdrop-filter:none}
+  .header{background:var(--bg-card)!important;backdrop-filter:none;-webkit-backdrop-filter:none}
 }
 @media (prefers-contrast:more){
   .font-card,.tool{box-shadow:0 0 0 1px var(--text-muted)!important}
