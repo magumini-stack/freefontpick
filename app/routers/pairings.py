@@ -30,7 +30,8 @@ from ..schemas import PairingCreate, PairingUpdate
 router = APIRouter(prefix="/api", tags=["pairings"])
 
 
-def _font_brief(f: Font) -> dict:
+def _font_brief(f: Font, weight_mtimes: dict = None) -> dict:
+    """weight_mtimes: 여러 폰트를 한꺼번에 만들 때 files.weight_file_mtimes() 결과를 넘긴다(file_version_of 참고)."""
     from .files import _merged_weights, file_source_of, file_version_of
     weights = _merged_weights(f)
     return {
@@ -46,12 +47,12 @@ def _font_brief(f: Font) -> dict:
         # 우선"을 판단한다. 없으면 undefined !== 'user'가 항상 참이 되어
         # 업로드된 파일을 두고 CDN 웹폰트로 렌더한다.
         "file_source": file_source_of(f.id),
-        "file_version": file_version_of(f.id),
+        "file_version": file_version_of(f.id, weight_mtimes),
         "available_weights": [w["weight"] for w in weights],
     }
 
 
-def _to_out(p: FontPairing):
+def _to_out(p: FontPairing, brief=_font_brief):
     # 참조하던 폰트가 삭제/재등록으로 사라진 orphan 페어링은 응답에서 제외.
     # (없으면 /api/pairings가 500을 뱉어 어드민 전체가 로딩 실패했다.)
     if p.title_font is None or p.body_font is None:
@@ -65,8 +66,8 @@ def _to_out(p: FontPairing):
         "title_weight": int(getattr(p, "title_weight", 700) or 700),
         "body_weight": int(getattr(p, "body_weight", 400) or 400),
         "sort_order": p.sort_order,
-        "title_font": _font_brief(p.title_font),
-        "body_font": _font_brief(p.body_font),
+        "title_font": brief(p.title_font),
+        "body_font": brief(p.body_font),
     }
 
 
@@ -83,7 +84,19 @@ def list_pairings(db: Session = Depends(get_db)) -> List[dict]:
         .order_by(FontPairing.sort_order, FontPairing.id)
         .all()
     )
-    return [d for d in (_to_out(p) for p in rows) if d]
+    # 폰트 요약은 폰트마다 한 번만 만들고, 굵기 파일 폴더도 한 번만 훑는다.
+    # 예전에는 조합 칸(1,500건 × 제목·본문)마다 file_version_of 가 폴더를 통째로
+    # glob 해서, 디스크를 비운 뒤에도 60초를 넘겨 504 가 났다(2026-10-30).
+    from .files import weight_file_mtimes
+    wmt = weight_file_mtimes()
+    briefs: dict = {}
+
+    def brief(f: Font) -> dict:
+        if f.id not in briefs:
+            briefs[f.id] = _font_brief(f, wmt)
+        return briefs[f.id]
+
+    return [d for d in (_to_out(p, brief) for p in rows) if d]
 
 
 @router.get("/pairings/themes")
