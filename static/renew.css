@@ -78,7 +78,7 @@ html.d-edge .use-bar{box-shadow:0 1px 0 var(--border)}
 .use-head h2{font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.15}
 .use-head p{color:var(--text-secondary);font-size:15px;letter-spacing:-.005em}
 .use-head .more{background:none!important;border:0!important;color:var(--accent);font-size:15px;font-weight:500;padding:0}
-.use-head .more:hover{text-decoration:underline;text-underline-offset:3px}
+.use-head .more:hover{color:var(--accent);text-decoration:underline;text-underline-offset:3px}   /* 원래 hover 가 흰 글자라 배경을 뺀 지금은 사라졌다 */
 
 /* ② 카드 — 흰 판 + 옅은 그림자, 테두리 없음 */
 .font-grid{gap:20px}
