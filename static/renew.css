@@ -17,7 +17,7 @@
   --shadow-hover:0 2px 4px rgba(0,0,0,.04),0 18px 40px rgba(0,0,0,.09);
   --ui:-apple-system,BlinkMacSystemFont,'SF Pro Text','Apple SD Gothic Neo','Pretendard Variable',Pretendard,sans-serif;
   --d-glass:rgba(250,250,252,.72);
-  --d-page:#FFFFFF;--d-tile:#F5F5F7;--d-on-tile:#FFFFFF;
+  --d-inset:#F5F5F7;
   --ease-out:cubic-bezier(.2,.8,.2,1);
 }
 :root[data-theme="dark"]{   /* 사이트가 :root[data-theme] 로 적어 두어 같은 무게로 맞춘다 */
@@ -28,7 +28,7 @@
   --shadow-card:0 0 0 1px rgba(255,255,255,.06);
   --shadow-hover:0 0 0 1px rgba(255,255,255,.12),0 18px 40px rgba(0,0,0,.6);
   --d-glass:rgba(22,22,23,.72);
-  --d-page:#000000;--d-tile:#1C1C1E;--d-on-tile:#2C2C2E;
+  --d-inset:#2C2C2E;
 }
 body{font-family:var(--ui);background:var(--bg);color:var(--text-primary);-webkit-font-smoothing:antialiased;letter-spacing:-.005em}
 
@@ -240,27 +240,30 @@ body:has(.g-drop) .btn:active,body:has(.g-drop) .opt label:active{
 }
 @media (prefers-contrast:more){
   .ff-card,.submit-card,.fp-slot,.fp-score,.fp-stage,body:has(.g-drop) .card,body:has(.txtbox) .more,
-  body:has(.txtbox) .txt,body:has(.g-drop) .opt label{box-shadow:0 0 0 1px var(--text-muted)!important}
+  body:has(.txtbox) .txt,body:has(.g-drop) .opt label,.col-main section.blk,.blk.side-card{box-shadow:0 0 0 1px var(--text-muted)!important}
 }
 
 /* ───────── 폰트 상세 (10/30) — 각진 3px 단추·선 칸을 둥근 판으로 ───────── */
-.title-block{border-bottom:0}
-/* 상세는 읽는 페이지라 바탕을 흰색으로 — 회색 바탕에 글이 떠 있으면 흰 부분이 옆 칸뿐이라 어색했다(10/30).
-   대신 옆 칸·미리보기 막대는 연회색 타일, 그 안 카드는 흰 판으로 뒤집는다 */
-body:has(.title-block){background:var(--d-page)}
-body:has(.title-block) .header{background:rgba(255,255,255,.72)!important}
-:root[data-theme="dark"] body:has(.title-block) .header{background:var(--d-glass)!important}
+.title-block{border-bottom:0;padding-bottom:30px}
+/* 상세는 '섹션 카드'(10/30 대안 1 채택) — 바탕은 다른 페이지처럼 연회색, 왼쪽 본문의 마디(굵기별 보기·사용 예시·
+   글자 견본·라이선스)마다 흰 카드 한 장, 옆 칸도 같은 흰 카드. 카드 안의 막대·작은 카드는 한 단 낮은 --d-inset */
+.layout{gap:24px}
+.col-main section.blk{background:var(--bg-card);border:0!important;border-radius:24px;padding:34px 36px!important;
+  margin-bottom:16px;box-shadow:var(--shadow-card)}
+.col-main section.blk:first-child{padding-top:30px!important}
+.col-main section.blk.hidden{display:none}
 .btn-dl,.cta .btn{border-radius:999px;font-weight:600;letter-spacing:-.005em}
 .btn-design{border:0;border-radius:999px;background:rgba(118,118,128,.12)}
 .btn-design:hover{background:rgba(118,118,128,.2)}
-.preview-bar{border:0;border-radius:999px;background:var(--d-tile)}
+.preview-bar{border:0;border-radius:999px;background:var(--d-inset)}
 .preview-bar:focus-within{background:var(--bg-card);box-shadow:0 0 0 4px var(--focus-ring)}
-.blk.side-card{border:0;border-radius:20px;background:var(--d-tile);box-shadow:none}
-.pair-card,.rel-card{border:0;border-radius:14px;background:var(--d-on-tile);transition:transform .45s var(--ease-out),box-shadow .45s var(--ease-out),background-color .3s}
-.pair-card:hover,.rel-card:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px)}
+.blk.side-card{border:0;border-radius:24px;background:var(--bg-card);box-shadow:var(--shadow-card);padding:26px 24px}
+.pair-card,.rel-card{border:0;border-radius:14px;background:var(--d-inset);transition:transform .45s var(--ease-out),box-shadow .45s var(--ease-out),background-color .3s}
+.pair-card:hover,.rel-card:hover{background:var(--bg-card);box-shadow:var(--shadow-hover);transform:translateY(-2px)}
 .pair-meta{border-top-color:var(--border)}
 .pair-teaser{border-radius:14px}
-.sample-img{border:0;border-radius:16px;background:var(--d-tile)}
+.sample-img{border:0;border-radius:16px;background:var(--d-inset)}
+@media (max-width:640px){.col-main section.blk{padding:24px 20px!important;border-radius:20px}}
 .wf-code{border:0;border-radius:12px}
 .lic-badge{font-weight:600}
 .cta{border-radius:24px}

@@ -15,7 +15,7 @@ renew.css·renew.js 의 정본은 projects\\폰트픽\\리뉴얼_시안\\themes\
 """
 import os
 
-ON = False
+ON = True    # 2026-10-30 사용자님 지시로 켬
 
 # 관리자 화면은 일 보는 곳이라 바꾸지 않는다.
 SKIP_PREFIXES = ("/admin",)
