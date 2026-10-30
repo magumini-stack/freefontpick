@@ -66,7 +66,7 @@ html.d-edge .use-bar{box-shadow:0 1px 0 var(--border)}
 .use-bar-scroll{cursor:grab;will-change:transform}
 .use-bar-scroll.d-drag{cursor:grabbing}
 .use-chip{border:0!important;border-radius:999px;background:transparent;color:var(--text-primary);font-weight:500;font-size:13px;opacity:.78}
-.use-chip:hover{background:rgba(0,0,0,.05);opacity:1}
+.use-chip:hover{background:rgba(0,0,0,.05);color:var(--text-primary);border-color:transparent;opacity:1}   /* 원래 사이트 hover 가 글자를 흰색(--bg-card)으로 바꿔서, 옅은 회색 위에 흰 글자가 됐다(10/30) */
 [data-theme="dark"] .use-chip:hover{background:rgba(255,255,255,.1)}
 .use-chip.on,.use-chip.active{background:var(--text-primary);color:var(--bg-card);opacity:1}
 
