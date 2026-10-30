@@ -18,7 +18,7 @@ from collections import Counter
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from ..database import get_db
 from ..font_metrics import metrics_of
@@ -72,8 +72,14 @@ def _to_out(p: FontPairing):
 
 @router.get("/pairings")
 def list_pairings(db: Session = Depends(get_db)) -> List[dict]:
+    # 폰트는 따로 한 번에 받는다(selectinload). 모델 기본값(lazy="joined")대로 두면
+    # 조합 하나에 제목·본문 폰트와 그 태그·굵기가 전부 붙은 넓은 줄 수천 개를 통째로
+    # 정렬하게 되고, SQLite 는 그 정렬을 임시 파일로 내려 쓴다. 2026-10-30 서버 디스크가
+    # 100% 차자 이 요청만 "database or disk is full" 로 500 이 났다(조합 1,500건+).
+    # 이렇게 하면 정렬은 조합 표의 좁은 줄만 한다.
     rows = (
         db.query(FontPairing)
+        .options(selectinload(FontPairing.title_font), selectinload(FontPairing.body_font))
         .order_by(FontPairing.sort_order, FontPairing.id)
         .all()
     )
