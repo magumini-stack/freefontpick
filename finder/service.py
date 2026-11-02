@@ -147,11 +147,12 @@ def _warm():
                         print("느낌 기준 벡터(%s) 준비 끝: %d개 (%.0fs)" % (script, len(db.items), time.time() - t0), flush=True)
             except Exception as e:
                 print("느낌 기준 벡터 못 만듦:", e, flush=True)
-        # 새 눈 기준 벡터('이 느낌으로 더 보기' — 폰트끼리 견줌, 2026-10-21): 처음 한 번 10분 남짓, 다음부터 /data 캐시
+        # 새 눈 기준 벡터('이 느낌으로 더 보기' — 폰트끼리 견줌, 2026-10-21): 처음 한 번 10분 남짓, 다음부터 /data 캐시.
+        # 2026-11-02 부터 '더 보기'는 새 눈 3(eyeline.sim) — 모델이 바뀌면 처음부터 다시 만든다(그동안 '더 보기'는 느낌만으로).
         if E.EYE_ON:
             try:
                 import eyeline
-                if eyeline.available():
+                if eyeline.sim.available():
                     for script in ("ko", "lat"):
                         t0 = time.time()
                         eyeline.refs(db, E, script=script, log=lambda m: print(m, flush=True))
@@ -169,6 +170,15 @@ def _eye_ok():
         return False
 
 
+def _eye_sim():
+    """'더 보기'·꼭지 머리를 맡은 눈의 크기 판(새 눈 3 = 'g128'), 따로 없으면 False."""
+    try:
+        import eyeline
+        return eyeline.sim.geom if eyeline.sim is not eyeline.main else False
+    except Exception:
+        return False
+
+
 @app.get("/find/health")
 def health():
     try:
@@ -177,6 +187,7 @@ def health():
                 "feel": getattr(db, "_feel_refs", None) is not None,
                 "feel_lat": getattr(db, "_feel_refs_lat", None) is not None,
                 "eye": bool(E.EYE_ON and _eye_ok()),
+                "eye_sim": _eye_sim(),
                 "eye_refs": getattr(db, "_eye_refs", None) is not None}
     except Exception as e:                                        # 목록이 아직 없으면
         return JSONResponse({"ok": False, "error": str(e)}, status_code=503)

@@ -1647,6 +1647,8 @@ EYE_A = float(__import__("os").environ.get("EYE_A", "1.0"))
 #               (규칙 흉내 font3/sim_kk.py: 정답 1위 94% 그대로 — 1.0 으로 세게 하면 93%).
 KK_ON = os.environ.get("KK", "1") == "1"
 KK_PEN = float(os.environ.get("KK_PEN", "0.3"))
+KK_HEAD = os.environ.get("KK_HEAD", "1") == "1"
+KK_HEAD_P = float(os.environ.get("KK_HEAD_P", "0.8"))
 _kk_cache = collections.OrderedDict()
 
 
@@ -1675,9 +1677,20 @@ def _kk_face(db, i, ch):
 
 
 def _kk_query(glyphs):
-    """사진 글자 [(글자, 마스크)] → [(글자, '서'·'누')] — 확실히 잰 것만."""
+    """사진 글자 [(글자, 마스크)] → [(글자, '서'·'누')] — 확실히 잰 것만.
+    새 눈 3 의 꼭지 머리(eyeline.kk_prob)가 확신하면 그것으로(정답 시험 고딕 ㅎ·ㅊ 줄 22개: 머리 95% 맞음·모두 판정,
+    규칙 75%·91% 판정), 머리가 없거나(새 눈 2) 망설이면 규칙(design.py)으로."""
     if not KK_ON:
         return []
+    if KK_HEAD and EYE_ON:
+        try:
+            import sys as _sys
+            import eyeline
+            r = eyeline.kk_prob(glyphs, _sys.modules[__name__])
+        except Exception:
+            r = None
+        if r is not None and (r[1] >= KK_HEAD_P or r[1] <= 1 - KK_HEAD_P):
+            return [(ch, "서" if r[1] >= 0.5 else "누") for ch in r[0]]
     try:
         import design
     except Exception:
@@ -1957,16 +1970,17 @@ def _kk_more(db, fid, i0, lst, text, face_i):
 
 def _sim_eye_scores(db, i0, lst, text, E1, F1, face_i):
     """{(fid, 굵기): 같은 글자 새 눈 + 기준 줄 새 눈 + 느낌} — 새 눈을 못 쓰면 빈 표(원래 순서 그대로).
-    글자가 모자라 못 그린 후보는 같은 글자 칸을 기준 줄 값으로 채운다."""
+    글자가 모자라 못 그린 후보는 같은 글자 칸을 기준 줄 값으로 채운다. 기준 줄(eyeline.refs)과 같은 눈(eyeline.sim)으로 —
+    2026-11-02 부터 '더 보기'는 새 눈 3(eye_sim.onnx), 사진 결과는 새 눈 2."""
     if not SIM_EYE or E1 is None or not E1[i0].any() or not (text or "").strip() or not lst:
         return {}
     try:
         import sys as _sys
         import eyeline
-        if not eyeline.available():
+        if not eyeline.sim.available():
             return {}
         idx = [face_i.get((x[1], x[2])) for x in lst]
-        V = eyeline.cand_vecs(db, [i0] + [i for i in idx if i is not None], text, _sys.modules[__name__])
+        V = eyeline.sim.cand_vecs(db, [i0] + [i for i in idx if i is not None], text, _sys.modules[__name__])
     except Exception:
         return {}
     a = V.get(i0)
