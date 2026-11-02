@@ -1518,7 +1518,8 @@ def _finish(db, tried, need, top, pick, ocr, info_extra=None, base_ink=0):
                 info["latin"] = True
             else:
                 if eye is not None:
-                    main = _eye_resort(db, main, eye, near_ok, sims, face_i, EYE_K, pair=True)
+                    kkq = _kk_query(best["glyphs"]) if main and _is_gothic(db, main[0][1]) else None   # ㅎ·ㅊ 꼭지(고딕만)
+                    main = _eye_resort(db, main, eye, near_ok, sims, face_i, EYE_K, pair=True, kk=kkq)
                     secs = _eye_resort(db, secs, eye, near_ok, sims, face_i, EYE_K_SEC)
                 res_all = exact + main[:depth] + secs[:depth]
             g = _list_first(res_all, best["ratio"],
@@ -1636,6 +1637,73 @@ EYE_A = float(__import__("os").environ.get("EYE_A", "1.0"))
 # 아니라고 한 폰트는 PAIR_DOWN 만큼 내린다 — 사진 판단 131줄 nDCG5 0.588→0.614·상위3 43→45%(판단이 겹친 63줄 0.605→0.657).
 # 더 세게 내리면 오히려 나빠졌다(내림 0.3 → 0.605, 1.0 → 0.597): 같은 사람도 사진 앞에서는 폰트끼리 '아님'의 22%를 비슷하다고
 # 했고, 대신 올라오는 폰트가 더 낫지도 않았다. '더 보기'(폰트끼리)는 판단한 폰트를 그대로 앞에(아주 비슷 → 비슷), 아님은 맨 뒤로.
+# 한글 디자인 요소 — ㅎ·ㅊ 꼭지(2026-11-02 사용자님 "고딕인데 ㅎ의 꼭지가 서 있는 것과 누워 있는 것은 아예 구분을 안 한다",
+# design.py). 고딕일 때만 — 손글씨·디스플레이는 꼭지 모양이 제각각이라 판단 120개 전체에 넣으면 nDCG5 0.630→0.586 으로 나빠졌다.
+# 보이는 글자에 ㅎ·ㅊ 가 있을 때만.
+#   '더 보기' : 기준 폰트와 꼭지가 다른 후보는 앞 36개 안에서 맨 뒤로 — 폰트끼리 판단 고딕 30개 상위3 63→68%·nDCG5 0.721→0.745
+#               (사용자님은 꼭지가 다른 고딕 후보 72개 중 99%를 '아님'이라 하셨다). 폰트 쪽 꼭지는 '흐'·'츠'로 잰 값(가장 깨끗).
+#   사진 결과 : 사진 글자에서 확실히 잰 꼭지(정답 시험에서 정답 폰트와 88% 같음)와 후보 폰트로 같은 글자를 그려 잰 꼭지가 어긋난
+#               비율 × KK_PEN 만큼 새 눈 다시 세우기에서 내리고, '거의 같은 폰트' 무리 안에서는 꼭지 맞는 것을 앞으로
+#               (규칙 흉내 font3/sim_kk.py: 정답 1위 94% 그대로 — 1.0 으로 세게 하면 93%).
+KK_ON = os.environ.get("KK", "1") == "1"
+KK_PEN = float(os.environ.get("KK_PEN", "0.3"))
+_kk_cache = collections.OrderedDict()
+
+
+def _is_gothic(db, fid):
+    c = db.cats.get(fid, set())
+    return "고딕" in c and not (c & {"손글씨", "캘리"})
+
+
+def _kk_face(db, i, ch):
+    """굵기 i 로 글자 ch 를 깨끗하게 그려 잰 꼭지 '서'·'누'·None(캐시)."""
+    v = _kk_cache.get((i, ch), False)
+    if v is False:
+        v = None
+        try:
+            import design
+            font = db.font(i)
+            if font is not None and db.has(i, ch):
+                r = design.kkokji_of_mask(design.render_mask(font, ch, 160), ch)
+                v = design.kind_of(r[0]) if r is not None else None
+        except Exception:
+            v = None
+        _kk_cache[(i, ch)] = v
+        if len(_kk_cache) > 60000:
+            _kk_cache.popitem(last=False)
+    return v
+
+
+def _kk_query(glyphs):
+    """사진 글자 [(글자, 마스크)] → [(글자, '서'·'누')] — 확실히 잰 것만."""
+    if not KK_ON:
+        return []
+    try:
+        import design
+    except Exception:
+        return []
+    out = []
+    for ch, m in glyphs or []:
+        r = design.kkokji_of_mask(m, ch)
+        k = design.kind_of(r[0], sure=True) if r is not None else None
+        if k:
+            out.append((ch, k))
+    return out
+
+
+def _kk_mismatch(db, i, q):
+    """사진에서 잰 [(글자, 꼭지)] 중 굵기 i 와 꼭지가 다른 비율(못 잰 글자는 뺌, 없으면 0)."""
+    if i is None or not q:
+        return 0.0
+    d = n = 0
+    for ch, k in q:
+        kc = _kk_face(db, i, ch)
+        if kc is not None:
+            n += 1
+            d += kc != k
+    return d / n if n else 0.0
+
+
 PAIR_ON = os.environ.get("PAIR", "1") == "1"
 PAIR_UP = float(os.environ.get("PAIR_UP", "0.20"))
 PAIR_DOWN = float(os.environ.get("PAIR_DOWN", "0.10"))
@@ -1683,16 +1751,21 @@ def _eye_ctx(best):
         return None
 
 
-def _eye_resort(db, lst, ctx, near_ok, sims, face_i, k, pair=False):
+def _eye_resort(db, lst, ctx, near_ok, sims, face_i, k, pair=False, kk=None):
     """lst(목록 순서) 앞의 '거의 같은 폰트' 무리는 그대로, 그다음 k 개를 느낌 + EYE_A × 새 눈 순으로.
     pair: 무리 1위와 사용자님이 폰트끼리 판단한 폰트를 올리고(비슷 이상 PAIR_UP) 내린다(아님 PAIR_DOWN) — 닮았다고 한 폰트가
-    k 개 밖에 있으면 끌어와 함께 센다. 한글 목록에만(판단은 한글 문장으로 했다)."""
+    k 개 밖에 있으면 끌어와 함께 센다. 한글 목록에만(판단은 한글 문장으로 했다).
+    kk: 사진에서 잰 ㅎ·ㅊ 꼭지 [(글자, '서'·'누')] — 주면(고딕일 때) 무리 안에서는 꼭지 맞는 것을 앞으로, 다시 세울 때는
+    어긋난 비율 × KK_PEN 만큼 내린다."""
     if ctx is None or not lst or k <= 1:
         return lst
     q, text = ctx
     lead = 0
     while lead < len(lst) and near_ok(lst[lead]):
         lead += 1
+    mmx = (lambda r: _kk_mismatch(db, face_i.get((r[1], r[2])), kk)) if kk else (lambda r: 0.0)
+    if kk and lead > 1:
+        lst = sorted(lst[:lead], key=lambda r: mmx(r) > 0.5) + lst[lead:]    # 안정 정렬 — 맞는 것끼리는 모양 순 그대로
     head, tail = lst[lead:lead + k], lst[lead + k:]
     lab = pair_labels().get(str(lst[0][1]), {}) if (pair and lead) else {}
     if lab:
@@ -1723,7 +1796,7 @@ def _eye_resort(db, lst, ctx, near_ok, sims, face_i, k, pair=False):
         f = float(sims[i]) if (i is not None and sims is not None) else 0.0
         y = lab.get(str(head[j][1]))
         b = 0.0 if y is None else (PAIR_UP if y >= 1 else -PAIR_DOWN)
-        return -(f + EYE_A * ev.get(i, fill) + b)
+        return -(f + EYE_A * ev.get(i, fill) + b - KK_PEN * mmx(head[j]))
     order = sorted(range(len(head)), key=lambda j: (key(j), j))
     return lst[:lead] + [head[j] for j in order] + tail
 
@@ -1773,7 +1846,8 @@ def relist(db, r, style=None, depth=None):
             secs = _eye_resort(db, secs, eye, near_ok, sims, face_i, EYE_K_SEC)
         return _dedupe(en[:depth] + exact + ko[:depth] + secs[:depth])
     if eye is not None:
-        main = _eye_resort(db, main, eye, near_ok, sims, face_i, EYE_K, pair=True)
+        kkq = _kk_query(glyphs) if main and _is_gothic(db, main[0][1]) else None
+        main = _eye_resort(db, main, eye, near_ok, sims, face_i, EYE_K, pair=True, kk=kkq)
         secs = _eye_resort(db, secs, eye, near_ok, sims, face_i, EYE_K_SEC)
     return _dedupe(exact + main[:depth] + secs[:depth])
 
@@ -1838,14 +1912,47 @@ def _similar_refine(db, fid, i0, lst, text, E1, F1, face_i):
     up = [x for x in lst if lab.get(str(x[1]), 0) >= 1]
     down = [x for x in lst if lab.get(str(x[1])) == 0]
     mid = [x for x in lst if str(x[1]) not in lab]
+    mid, kk_bad = _kk_more(db, fid, i0, mid, text, face_i)
     sc = _sim_eye_scores(db, i0, up + mid[:SIM_K], text, E1, F1, face_i)
     if sc:
-        key = lambda x: -sc.get((x[1], x[2]), -9.0)
+        key = lambda x: (x[1] in kk_bad, -sc.get((x[1], x[2]), -9.0))     # 꼭지 다른 폰트는 다시 세워도 뒤
         mid = sorted(mid[:SIM_K], key=key) + mid[SIM_K:]
         up.sort(key=lambda x: (-lab[str(x[1])], key(x)))
     else:
         up.sort(key=lambda x: -lab[str(x[1])])             # 같은 판단 안에서는 원래 닮은 순(안정 정렬)
     return up + mid + down
+
+
+def _kk_more(db, fid, i0, lst, text, face_i):
+    """'더 보기' — 기준 폰트가 고딕이고 보이는 글자에 초성 ㅎ·ㅊ 가 있으면, 앞 SIM_K×3 개 안에서 기준과 꼭지가 다른 폰트를
+    맨 뒤로 보낸다(폰트 쪽 꼭지는 '흐'·'츠'로 잰 값). (새 순서, 꼭지 다른 fid 집합) — 해당 없으면 (그대로, 빈 집합)."""
+    if not KK_ON or not _is_gothic(db, fid):
+        return lst, set()
+    try:
+        import design
+    except Exception:
+        return lst, set()
+    syl = set()
+    for ch in text or "":
+        p = design.parts(ch)
+        if p and p[0] in design.CHO_KK:
+            syl.add("흐" if p[0] == 18 else "츠")
+    ref = {s: _kk_face(db, i0, s) for s in syl}
+    ref = {s: k for s, k in ref.items() if k}
+    if not ref:
+        return lst, set()
+
+    def bad(x):
+        i = face_i.get((x[1], x[2]))
+        if i is None:
+            return False
+        ks = [(_kk_face(db, i, s), k) for s, k in ref.items()]
+        ks = [(a, b) for a, b in ks if a is not None]
+        return bool(ks) and sum(a != b for a, b in ks) * 2 > len(ks)
+    pool = lst[:SIM_K * 3]
+    flags = [bad(x) for x in pool]
+    return ([x for x, f in zip(pool, flags) if not f] + [x for x, f in zip(pool, flags) if f] + lst[SIM_K * 3:],
+            {x[1] for x, f in zip(pool, flags) if f})
 
 
 def _sim_eye_scores(db, i0, lst, text, E1, F1, face_i):
