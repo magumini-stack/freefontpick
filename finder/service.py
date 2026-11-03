@@ -6,7 +6,8 @@
     POST /find/detect   multipart image → {image_id, width, height, lines:[{i, quad, text, conf}]}
     POST /find/match    {image_id, line, text?} → {text, results:[{fid, w, name, maker, source, link, why}], verdict}
     GET  /find/render   ?fid=&w=&text=   → 그 폰트로 글자를 그린 PNG (타닥타닥 유료 폰트 파일은 안 나간다)
-    POST /find/feedback {image_id, line, kind, fid?, w?, on} → 사용자가 누른 '비슷해요'·'비슷한 게 없어요'를 남긴다
+    POST /find/feedback {image_id, line, kind, fid?, w?, on, act?} → 사용자가 누른 '비슷해요'·'비슷한 게 없어요'와
+                        결과를 눌러 본 것(kind=click, act=open 폰트 보기·design 디자인하기·more 이 느낌으로 더 보기)을 남긴다
     GET  /find/similar  ?fid=&w=&text=&style=&image_id=&line= → 그 폰트와 닮은 폰트들('이 느낌으로 더 보기', 폰트끼리 비교)
 match 에 style(고딕·명조·손글씨·디스플레이)을 주면 처음 찾은 결과(15분 기억)를 그 갈래로 걸러 다시 세운다(갈래 칩).
 날짜별 사용 수는 /data/usage.json(한국 시각 날짜 → 항목별 수) — 숫자만, 이미지·글자·접속 주소는 남기지 않는다.
@@ -57,7 +58,14 @@ FEEDBACK = os.environ.get("FINDER_FEEDBACK", os.path.join(DATA, "feedback", "fee
 #   느낌이 비슷한 것만 · match_edit 읽은 글자를 고쳐서 다시 찾음 · similar/none '비슷해요'/'비슷한 게 없어요'(…_off 는 취소)
 #   match_style 갈래 칩(10/22 화면에서 뺌) · more '이 느낌으로 더 보기'(more_sec 초 합, more_style 그 화면에서 갈래 칩)
 #   match_chunked 긴 줄(10자 넘게)을 7~9자 조각으로 쪼개 찾은 수(엔진 rank_line, 10/22)
+#   match_hand 손글씨 사진으로 보고 사진 글자와 나란히 보여 준 수 · click_open/click_design/click_more 결과를 눌러 본 수(11/3)
 USAGE = os.environ.get("FINDER_USAGE", os.path.join(DATA, "usage.json"))
+# 손글씨 사진(2026-11-03 사용자님 2번 "손글씨는 고르기 쉽게") — 결과 위 5개 중 갈래를 아는 폰트의 60% 이상이 손글씨·캘리면
+# 화면이 후보마다 사진 글자와 나란히 크게 보여 준다(_is_hand). 순서는 그대로 — 위 5개를 결이 겹치지 않게 섞는 것도
+# 실험실에서 재 봤지만(판단 손글씨 33줄) 위 3개·5개 안에 비슷한 게 드는 비율이 85%·91% 그대로였다.
+HAND = {"손글씨", "캘리"}
+# 결과를 눌러 본 것(2026-11-03 사용자님 1번 "방문자들의 선택으로 배우기") — '비슷해요'와 같은 기록 파일에 kind=click 으로
+CLICK_ACTS = ("open", "design", "more")
 KST = timezone(timedelta(hours=9))
 
 app = FastAPI(title="freefontpick finder")
@@ -269,10 +277,13 @@ def match(req: MatchReq):
         shown = E.relist(db, r, style) if style else (r.get("shown") or [])
         feel = _feel_of(db, r)
         ctx = _fb_context(db, r, feel)
+        out, cut = _results(db, r, shown, req.top, feel)
+        ctx["eye"] = _eye_scores(db, r, [_face_index(db, x["fid"], x["w"]) for x in out])
     text = text_override or r.get("text") or ln["text"]
-    out, cut = _results(db, r, shown, req.top, feel)
+    hand = not r.get("latin") and _is_hand(db, out)
     ctx["shown"] = [[x["fid"], x["w"]] for x in out]
     ctx["style"] = style
+    ctx["hand"] = hand
     rec.setdefault("fb", {})[req.line] = ctx
     inc = dict(match=1, match_sec=round(time.time() - t0, 1)) if fresh else dict(match_style=1)
     if fresh and r.get("latin"):
@@ -285,8 +296,42 @@ def match(req: MatchReq):
         inc["match_chunked"] = 1                          # 긴 줄을 7~9자 조각으로 쪼개 찾은 수(10/22)
     if cut:
         inc["tight_cut"] = cut                            # 느낌이 너무 멀어 뺀 후보 수(하루 합)
+    if fresh and hand:
+        inc["match_hand"] = 1
     _count(**inc)
-    return {"text": text, "read": ln["text"], "verdict": r.get("verdict"), "style": style, "results": out}
+    return {"text": text, "read": ln["text"], "verdict": r.get("verdict"), "style": style, "results": out, "hand": hand}
+
+
+def _face_index(db, fid, w):
+    """화면 결과의 (폰트 id 글자, 굵기) → 목록 굵기 번호 또는 None."""
+    m = getattr(db, "_face_i", None)
+    if m is None:
+        m = db._face_i = {(it["fid"], it["weight"]): i for i, it in enumerate(db.items)}
+    return m.get((_fid_of(db, fid), int(w)))
+
+
+def _is_hand(db, out):
+    """손글씨 사진인가 — 결과 위 5개(RixFont·영문 묶음 빼고) 중 갈래를 아는 폰트가 둘 이상이고 그 60% 이상이 손글씨·캘리.
+    갈래 표가 없는 타닥타닥·RixFont 는 세지 않는다. 실험실 판단 113줄(정답 갈래를 앎)에서 손글씨 사진 33장 중 19장을 잡고
+    손글씨가 아닌 80장 중 3장을 잘못 잡았다 — 틀려도 화면 모양만 달라진다."""
+    top = [x for x in out if x.get("group") is None][:5]
+    known = [c for c in (db.cats.get(_fid_of(db, x["fid"]), set()) for x in top) if c]
+    return len(known) >= 2 and sum(bool(c & HAND) for c in known) / len(known) >= 0.6
+
+
+def _eye_scores(db, r, faces):
+    """보여 준 후보마다 사진 결과에 쓰는 눈(새 눈 2)의 코사인 — 눌러 본 기록으로 나중에 느낌·눈 섞는 무게를 맞추려고.
+    엔진이 방금 같은 글자로 그린 후보 벡터가 캐시에 있어 질의 벡터 한 번 값이다. 못 재면 None."""
+    try:
+        ctx = E._eye_ctx(dict(glyphs=r.get("glyphs") or [], text=r.get("text")))
+        if ctx is None:
+            return None
+        import eyeline
+        q, text = ctx
+        V = eyeline.cand_vecs(db, [i for i in faces if i is not None], text, E)
+        return [None if i is None or i not in V else round(float(V[i] @ q), 4) for i in faces]
+    except Exception:
+        return None
 
 
 def _fid_of(db, fid):
@@ -421,10 +466,11 @@ def _fb_context(db, r, feel=None):
 class FeedbackReq(BaseModel):
     image_id: str
     line: int
-    kind: str                        # "similar"(이 후보가 비슷해요) · "none"(비슷한 게 없어요)
+    kind: str                        # "similar"(이 후보가 비슷해요) · "none"(비슷한 게 없어요) · "click"(결과를 눌러 봄)
     fid: str | None = None
     w: int | None = None
     on: bool = True                  # 다시 누르면 취소 — false 로 한 줄 더 남긴다
+    act: str | None = None           # click 일 때 — open(폰트 보기) · design(이 폰트로 디자인하기) · more(이 느낌으로 더 보기)
 
 
 @app.post("/find/feedback")
@@ -433,10 +479,12 @@ def feedback(req: FeedbackReq):
     ctx = (rec or {}).get("fb", {}).get(req.line)
     if ctx is None:
         raise HTTPException(410, "시간이 지나 남길 수 없어요")
-    if req.kind not in ("similar", "none"):
-        raise HTTPException(400, "kind 는 similar 나 none")
+    if req.kind not in ("similar", "none", "click"):
+        raise HTTPException(400, "kind 는 similar·none·click")
+    if req.kind == "click" and req.act not in CLICK_ACTS:
+        raise HTTPException(400, "act 는 open·design·more")
     pos, via = None, None
-    if req.kind == "similar":
+    if req.kind in ("similar", "click"):
         pos = next((k for k, (f, w) in enumerate(ctx["shown"]) if f == req.fid and w == req.w), None)
         if pos is None:
             if [req.fid, req.w] in ctx.get("more", []):
@@ -444,13 +492,13 @@ def feedback(req: FeedbackReq):
             else:
                 raise HTTPException(400, "보여 준 후보가 아닙니다")
     row = dict(t=time.strftime("%Y-%m-%d"), kind=req.kind, on=bool(req.on), fid=req.fid, w=req.w, pos=pos, via=via,
-               **{k: v for k, v in ctx.items() if k != "more"})
+               **({"act": req.act} if req.kind == "click" else {}), **{k: v for k, v in ctx.items() if k != "more"})
     line = json.dumps(row, ensure_ascii=False, separators=(",", ":"))
     with _fb_lock:
         os.makedirs(os.path.dirname(FEEDBACK), exist_ok=True)
         with open(FEEDBACK, "a", encoding="utf-8") as f:
             f.write(line + "\n")
-    _count(**{req.kind + ("" if req.on else "_off"): 1})
+    _count(**{("click_" + req.act) if req.kind == "click" else (req.kind + ("" if req.on else "_off")): 1})
     return {"ok": True}
 
 

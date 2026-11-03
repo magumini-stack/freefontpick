@@ -243,6 +243,12 @@ transition:border-color .15s;}
     .ff-best{font-size:11px;font-weight:700;background:var(--text-primary);color:var(--bg-card);border-radius:99px;padding:2px 8px}
     .ff-why{font-size:11px;color:var(--text-muted);margin:3px 0 4px}
     .ff-cand img{display:block;max-width:100%;height:auto;background:#fff;border-radius:6px;padding:4px 6px}
+    /* 손글씨 사진(2026-11-03 사용자님 2번 "손글씨는 고르기 쉽게") — 후보마다 사진 글자와 나란히, 조금 크게(서버 hand) */
+    .ff-hand-note{font-size:13px;color:var(--text-secondary);margin:0;line-height:1.6;word-break:keep-all}
+    .ff-cmp{display:grid;gap:6px;margin:8px 0 2px}
+    .ff-cmp-row{display:flex;align-items:center;gap:10px;min-width:0}
+    .ff-cmp-k{flex:none;width:40px;font-size:11px;font-weight:700;color:var(--text-muted)}
+    .ff-cand .ff-cmp-row img{height:64px;width:auto;max-width:calc(100% - 50px);object-fit:contain;object-position:left center}
     .ff-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
     .ff-actions a{font-size:12px;font-weight:700;text-decoration:none;padding:6px 10px;border-radius:8px;border:1px solid var(--border-hover);color:var(--text-primary)}
     .ff-actions a.primary{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -761,7 +767,7 @@ document.addEventListener('keydown', function(e){
   // 좁혀 가기 — mode 'first'(사진에서 찾은 결과) · 'more'(고른 폰트와 닮은 폰트). first 는 되돌아갈 처음 결과
   var view = { mode:'first', text:'', first:null, anchor:null };
   if(!drop) return;
-  var state = { imageId:null, lines:[], w:0, h:0, line:-1, busy:false, bitmap:null };
+  var state = { imageId:null, lines:[], w:0, h:0, line:-1, busy:false, bitmap:null, cropUrl:null };   // cropUrl: 고른 줄 그림(손글씨 나란히 보기)
 
   function say(msg, err, busy){
     if(busy){ status.innerHTML = '<span class="ff-spin" aria-hidden="true"></span><span>' + esc(msg) + '</span>'; }
@@ -787,7 +793,7 @@ document.addEventListener('keydown', function(e){
     state.busy = true; result.hidden = true; list.innerHTML = ''; none.hidden = true; boxes.innerHTML = '';
     // 앞 이미지의 글자 줄을 잊는다(10/14 사용자님) — 안 그러면 새 이미지가 뜨는 순간(onload → layoutBoxes)
     // 앞 이미지의 글줄 박스가 새 이미지 위에 다시 그려져, 새 글줄을 찾을 때까지 남아 있었다
-    state.imageId = null; state.lines = []; state.line = -1; state.bitmap = null;
+    state.imageId = null; state.lines = []; state.line = -1; state.bitmap = null; state.cropUrl = null;
     $('ffHint').textContent = '찾을 글자 줄을 누르세요';
     say('글자 줄을 찾는 중', false, true);
     var url = URL.createObjectURL(f);
@@ -831,7 +837,8 @@ document.addEventListener('keydown', function(e){
   }
 
   function drawCrop(ln){
-    var c = $('ffCrop'); if(!state.bitmap) { c.hidden = true; return; }
+    var c = $('ffCrop'); state.cropUrl = null;
+    if(!state.bitmap) { c.hidden = true; return; }
     var xs = ln.quad.map(function(p){ return p[0]; }), ys = ln.quad.map(function(p){ return p[1]; });
     var x0 = Math.max(0, Math.min.apply(null, xs)-6), x1 = Math.min(state.w, Math.max.apply(null, xs)+6);
     var y0 = Math.max(0, Math.min.apply(null, ys)-6), y1 = Math.min(state.h, Math.max.apply(null, ys)+6);
@@ -839,6 +846,7 @@ document.addEventListener('keydown', function(e){
     var sw = (x1-x0)*scale, sh = (y1-y0)*scale, H = Math.min(120, sh), W = Math.round(sw * H / sh);
     c.width = W; c.height = H; c.hidden = false;
     c.getContext('2d').drawImage(state.bitmap, x0*scale, y0*scale, sw, sh, 0, 0, W, H);
+    try{ state.cropUrl = c.toDataURL('image/png'); }catch(e){ state.cropUrl = null; }   // 손글씨면 후보마다 나란히 다시 쓴다
   }
 
   async function pick(k, textOverride){
@@ -879,22 +887,27 @@ document.addEventListener('keydown', function(e){
   retry.addEventListener('click', function(){ var t = textIn.value.trim(); if(state.line >= 0 && t) pick(state.line, t); });
   textIn.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); retry.click(); } });
 
-  function renderUrl(fid, w, text){
-    return '/api/find/render?fid=' + encodeURIComponent(fid) + '&w=' + w + '&text=' + encodeURIComponent(text) + '&h=56';
+  function renderUrl(fid, w, text, h){
+    return '/api/find/render?fid=' + encodeURIComponent(fid) + '&w=' + w + '&text=' + encodeURIComponent(text) + '&h=' + (h || 56);
   }
 
-  function cardHtml(r, i, text, best){
+  // hand: 손글씨 사진(서버 hand) — 후보마다 사진 글자(고른 줄 그림)와 나란히, 후보 글자도 조금 크게(11/3)
+  function cardHtml(r, i, text, best, hand){
     var badge = r.source === 'tdtd' ? '<span class="ff-badge td">타닥타닥 · ' + esc(r.maker) + '</span>'
       : r.source === 'rix' ? '<span class="ff-badge rix">RixFont</span>' : '<span class="ff-badge ffp">폰트픽 무료</span>';
     var bestTag = best ? '<span class="ff-best">가장 비슷해요</span>' : '';
+    // data-act: 눌러 본 기록(sendClick) — open 폰트 보기 · design 이 폰트로 디자인하기
     var actions = r.source === 'tdtd'
-      ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">타닥타닥에서 보기</a>'
-      : r.source === 'rix' ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">RixFont에서 보기</a>'
+      ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener" data-act="open">타닥타닥에서 보기</a>'
+      : r.source === 'rix' ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener" data-act="open">RixFont에서 보기</a>'
       // 새 창으로 연다(10/6 사용자님) — 같은 창이면 올린 이미지와 찾은 결과가 사라진다
-      : '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">폰트 보기</a><a class="primary" href="' + esc(r.link) + '/design" target="_blank" rel="noopener">이 폰트로 디자인하기</a>';
-    return '<div class="ff-cand' + (best ? ' is-best' : '') + '"><div class="ff-head">' + esc(r.name) + ' <small>' + r.w + '</small>' + badge + bestTag + '</div>'
+      : '<a href="' + esc(r.link) + '" target="_blank" rel="noopener" data-act="open">폰트 보기</a><a class="primary" href="' + esc(r.link) + '/design" target="_blank" rel="noopener" data-act="design">이 폰트로 디자인하기</a>';
+    var img = '<img src="' + renderUrl(r.fid, r.w, text, hand ? 72 : 56) + '" alt="' + esc(r.name) + '로 쓴 ' + esc(text) + '" loading="lazy">';
+    if(hand) img = '<div class="ff-cmp"><div class="ff-cmp-row"><span class="ff-cmp-k">사진</span><img src="' + state.cropUrl + '" alt="사진 속 글자"></div>'
+      + '<div class="ff-cmp-row"><span class="ff-cmp-k">이 폰트</span>' + img + '</div></div>';
+    return '<div class="ff-cand' + (best ? ' is-best' : '') + '" data-fid="' + esc(r.fid) + '" data-w="' + r.w + '"><div class="ff-head">' + esc(r.name) + ' <small>' + r.w + '</small>' + badge + bestTag + '</div>'
       + (r.why ? '<div class="ff-why">' + esc(r.why) + '</div>' : '')
-      + '<img src="' + renderUrl(r.fid, r.w, text) + '" alt="' + esc(r.name) + '로 쓴 ' + esc(text) + '" loading="lazy">'
+      + img
       + '<div class="ff-actions">' + actions
       + '<button type="button" class="ff-more" data-fid="' + esc(r.fid) + '" data-w="' + r.w + '" data-name="' + esc(r.name) + '"><i class="ti ti-search" aria-hidden="true"></i>이 느낌으로 더 보기</button>'
       // 엄지 아이콘(ti-thumb-up)은 사이트 아이콘 모음(ti-icons.css)에 없어 검은 네모로 보였다 — 글자만(10/21)
@@ -903,11 +916,11 @@ document.addEventListener('keydown', function(e){
   }
 
   // 영문 줄은 두 묶음(엔진·서비스 2026-09-26): 영어 폰트 먼저, 그다음 영문이 비슷한 한글 폰트 / RixFont 는 뒤 묶음
-  function listHtml(results, text, bestFirst){
+  function listHtml(results, text, bestFirst, hand){
     return results.map(function(r, i){
       var head = (r.group && (i === 0 || results[i - 1].group !== r.group))
         ? '<div class="ff-group">' + (r.group === 'en' ? '영문 폰트' : r.group === 'rix' ? 'RixFont에서 비슷한 폰트' : '영문이 비슷한 한글 폰트') + '</div>' : '';
-      return head + cardHtml(r, i, text, bestFirst && i === 0);
+      return head + cardHtml(r, i, text, bestFirst && i === 0, hand);
     }).join('');
   }
 
@@ -919,7 +932,9 @@ document.addEventListener('keydown', function(e){
     fbCtx = { imageId: state.imageId, line: state.line };
     if(!j.results || !j.results.length){ list.innerHTML = ''; none.hidden = false; fb.hidden = true; return; }
     loose.hidden = j.verdict !== 'loose';   // 모양이 똑같은 폰트는 없고 느낌이 비슷한 것들(엔진 _list_first)
-    list.innerHTML = listHtml(j.results, text, true);
+    var hand = !!(j.hand && state.cropUrl);
+    list.innerHTML = (hand ? '<p class="ff-hand-note">손글씨는 사람마다 결이 달라 똑같은 폰트가 없을 수 있어요. 사진 글자와 나란히 놓고 골라 보세요.</p>' : '')
+      + listHtml(j.results, text, true, hand);
     setOn(noLike, false); fb.hidden = false;
   }
 
@@ -953,7 +968,15 @@ document.addEventListener('keydown', function(e){
 
   list.addEventListener('click', function(e){
     var m = e.target.closest ? e.target.closest('.ff-more') : null; if(!m) return;
+    sendClick('more', m.getAttribute('data-fid'), +m.getAttribute('data-w'));
     more(m.getAttribute('data-fid'), +m.getAttribute('data-w'), m.getAttribute('data-name'));
+  });
+  // 결과를 눌러 본 기록(2026-11-03 사용자님 1번 "방문자들의 선택으로 배우기") — 폰트 보기·디자인하기 링크.
+  // 새 창으로 열리므로 sendBeacon 으로 보낸다(페이지를 떠나도 끝까지 간다). '비슷해요'처럼 이미지·글자는 남기지 않는다.
+  list.addEventListener('click', function(e){
+    var a = e.target.closest ? e.target.closest('a[data-act]') : null; if(!a) return;
+    var card = a.closest('.ff-cand'); if(!card) return;
+    sendClick(a.getAttribute('data-act'), card.getAttribute('data-fid'), +card.getAttribute('data-w'));
   });
   trail.addEventListener('click', function(e){
     var b = e.target.closest ? e.target.closest('.ff-back') : null; if(!b || !view.first || state.busy) return;
@@ -968,6 +991,12 @@ document.addEventListener('keydown', function(e){
     if(!fbCtx) return;
     body.image_id = fbCtx.imageId; body.line = fbCtx.line;
     fetch('/api/find/feedback', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).catch(function(){});
+  }
+  function sendClick(act, fid, w){
+    if(!fbCtx || !fid) return;
+    var body = JSON.stringify({ image_id: fbCtx.imageId, line: fbCtx.line, kind:'click', act: act, fid: fid, w: w });
+    try{ if(navigator.sendBeacon && navigator.sendBeacon('/api/find/feedback', new Blob([body], { type:'application/json' }))) return; }catch(e){}
+    fetch('/api/find/feedback', { method:'POST', headers:{'Content-Type':'application/json'}, body: body, keepalive: true }).catch(function(){});
   }
   list.addEventListener('click', function(e){
     var b = e.target.closest ? e.target.closest('.ff-like') : null; if(!b || !fbCtx) return;
