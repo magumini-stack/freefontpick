@@ -11,3 +11,5 @@ brotli==1.1.0
 Pillow==11.0.0
 python-dotenv==1.0.1
 httpx==0.27.2
+# 추천 폰트 자판기 '사진으로 뽑기'(2026-11-03, app/routers/vending.py). httpx2 를 따로 끌고 온다 — 위 httpx 와 겹치지 않는다
+anthropic==2.4.0

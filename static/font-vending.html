@@ -177,6 +177,29 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   .key.pop b{display:block;font-size:16px;font-weight:900;white-space:nowrap}
   .key.pop[aria-pressed="true"] small{color:var(--accent)}
 
+  /* 질문으로 / 사진으로 (11/3 사용자님 "질문 말고 내 이미지 올려서 추천받기") — 사진 칸은 서버에 API 키가 있을 때만(window.VENDING_PHOTO) */
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--bg-secondary);border-radius:11px;padding:4px}
+  .mode{border:0;background:transparent;border-radius:8px;padding:9px 6px;cursor:pointer;font-size:14px;font-weight:700;color:var(--text-secondary);
+    display:flex;align-items:center;justify-content:center;gap:6px}
+  .mode svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .mode[aria-selected="true"]{background:var(--bg-card);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .mode .new{font-size:10px;font-weight:900;color:#fff;background:var(--accent);border-radius:4px;padding:0 4px;line-height:15px}
+  .pmode{display:flex;flex-direction:column;gap:10px;flex:1}
+  .drop{position:relative;flex:1;min-height:250px;border:2px dashed var(--border-hover);border-radius:14px;background:var(--bg-sunk);cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:18px;overflow:hidden;transition:border-color .15s,background .15s}
+  .drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-light)}
+  .drop svg{width:38px;height:38px;fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .drop b{font-size:16px;font-weight:900}
+  .drop span{font-size:13px;color:var(--text-secondary);line-height:1.5;word-break:keep-all}
+  .drop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .drop.has{border-style:solid;border-color:var(--border)}
+  .drop.has > :not(img):not(.reading){display:none}
+  .drop.busy img{filter:brightness(.55) saturate(.8)}
+  .drop.busy::after{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,transparent,#fff,transparent);animation:scan 1.4s ease-in-out infinite}
+  @keyframes scan{0%{transform:translateY(0)}50%{transform:translateY(240px)}100%{transform:translateY(0)}}
+  .drop .reading{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(17,24,39,.78);color:#fff;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:700;line-height:1.45;word-break:keep-all}
+  .pnote{margin:0;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.5}
+  .perr{margin:0;font-size:13px;color:#C2410C;text-align:center;font-weight:700;word-break:keep-all}
   .payrow{display:flex;align-items:center;gap:12px;margin-top:2px}
   .pull{flex:1;border:0;border-radius:999px;cursor:pointer;color:#fff;font-weight:900;font-size:21px;letter-spacing:.04em;padding:15px 10px;
     background:var(--accent);box-shadow:inset 0 -5px 0 color-mix(in srgb,var(--accent) 70%,#000),0 6px 14px -8px rgba(20,40,110,.7);
@@ -242,6 +265,10 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   .chips .hot,.chips .gem{background:var(--accent-light);color:var(--accent);font-weight:700}
   .go{display:block;text-align:center;font-weight:700;font-size:14px;text-decoration:none;color:var(--accent);border:1.5px solid var(--accent);border-radius:10px;padding:9px;margin-top:4px}
   .go:hover{background:var(--accent);color:#fff}
+  /* 사진으로 뽑았을 땐 견본을 그 사진 위에 얹는다 */
+  .cards.onphoto .stage{background:linear-gradient(rgba(0,0,0,.22),rgba(0,0,0,.42)),var(--photo) center/cover no-repeat;min-height:200px;display:flex;flex-direction:column}
+  .cards.onphoto .role{background:rgba(255,255,255,.9)}
+  .cards.onphoto .sample{flex:1;justify-content:center;text-align:center;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35),0 2px 14px rgba(0,0,0,.35)}
   .card.none{background:transparent;border:2px dashed var(--border);align-items:center;justify-content:center;min-height:260px;color:var(--text-muted);font-weight:900;font-size:20px}
 
   .actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:22px}
@@ -267,11 +294,12 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
     .cards{grid-template-columns:1fr}
     .bin{height:104px}
     .key.pop b{font-size:15px}
+    .drop{min-height:200px}
   }
   /* 주소 #q=…&still (점검·캡처용) — 나타나는 효과 없이 바로 그린다 */
   .still .sample,.still .can .g{transition:none}
   @media (prefers-reduced-motion: reduce){
-    .ticker,.vm.shake,.can.pop,.bin-cans .can.fall,.card.rise,.bang.show,.pull.ready,.led.blink{animation:none}
+    .drop.busy::after,.ticker,.vm.shake,.can.pop,.bin-cans .can.fall,.card.rise,.bang.show,.pull.ready,.led.blink{animation:none}
   }
 </style>
 </head>
@@ -297,6 +325,21 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
       </div>
       <div class="panel">
         <div class="led" id="led">질문 3개만 골라 주세요</div>
+        <div class="modes" id="modes" role="tablist" aria-label="뽑는 방법" hidden>
+          <button type="button" class="mode" role="tab" id="tabQ" aria-selected="true">질문으로 뽑기</button>
+          <button type="button" class="mode" role="tab" id="tabP" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>사진으로 뽑기 <span class="new">NEW</span></button>
+        </div>
+        <div class="pmode" id="pMode" hidden>
+          <label class="drop" id="drop" for="photo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>
+            <b>사진 한 장 올리기</b>
+            <span>쓸 사진이나 분위기가 비슷한 사진을 올리면<br>어디에·어떤 느낌인지 읽고 어울리는 폰트를 뽑아요</span>
+          </label>
+          <input type="file" id="photo" accept="image/*" hidden>
+          <p class="perr" id="perr" hidden></p>
+          <p class="pnote">사진은 폰트를 고르는 데만 쓰고 저장하지 않아요</p>
+        </div>
+        <div class="qmode" id="qMode" style="display:contents">
         <div>
           <div class="qlabel"><b>1</b>어디에 쓸 거예요?</div>
           <div class="keys use" id="opt-use"></div>
@@ -308,6 +351,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
         <div>
           <div class="qlabel"><b>3</b>남들 다 쓰는 거? 나만 아는 거?</div>
           <div class="keys pop" id="opt-pop"></div>
+        </div>
         </div>
         <div class="payrow">
           <button class="pull" id="pull" type="button" disabled>뽑기</button>
@@ -356,6 +400,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
 <!--FFP_FOOTER-->
 
 <script>
+/*PHOTO*/
 (function () {
   'use strict';
   // 사이트(http·https)에선 같은 주소, 파일로 열거나 미리보기(data:)에선 폰트픽 서버에서 받는다
@@ -396,6 +441,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   var PSET = {}, mine = '';   // 미리보기 판(.p)에 든 글자 · 사용자가 친 문구
   var sel = {use: null, mood: null, pop: null};
   var state = {key: null, seen: {}, n: 0};
+  var photo = {on: false, url: '', reading: '', busy: false};   // 사진으로 뽑기 — on: 지금 사진 칸, url: 줄인 사진(blob)
 
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]; }); }
@@ -474,6 +520,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
     sel[k] = v;
     document.querySelectorAll('.key[data-k="' + k + '"]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.v === v ? 'true' : 'false'); });
     var ready = !!(sel.use && sel.mood && sel.pop);
+    if (photo.on) { syncPull(); return; }
     $('pull').disabled = !ready;
     $('pull').classList.toggle('ready', ready);
     led(LED_STEP[!sel.use ? 0 : !sel.mood ? 1 : !sel.pop ? 2 : 3], ready);
@@ -619,8 +666,13 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
     setTimeout(function () {
       $('result').hidden = false;
       var lab = function (list, v) { return list.filter(function (x) { return x[0] === v; })[0]; };
-      $('resultSub').textContent = lab(USES, sel.use)[1] + ' · ' + lab(MOODS, sel.mood)[1] + ' · ' + lab(MODES, sel.pop)[1];
+      var picked = lab(USES, sel.use)[1] + ' · ' + lab(MOODS, sel.mood)[1];
+      $('resultSub').textContent = photo.on && photo.url ? '사진에서 읽었어요: ' + photo.reading + ' → ' + picked : picked + ' · ' + lab(MODES, sel.pop)[1];
       $('cards').innerHTML = slots.map(function (c, i) { return cardHtml(i, c, text, sel.use); }).join('');
+      var onp = photo.on && !!photo.url;
+      $('cards').classList.toggle('onphoto', onp);
+      $('cards').style.setProperty('--photo', onp ? 'url("' + photo.url + '")' : 'none');
+      $('change').textContent = photo.on ? '사진 바꾸기' : '질문 바꾸기';
       if (opts.still) document.querySelectorAll('.card').forEach(function (c) { c.classList.remove('rise'); });
       $('mine').placeholder = PH[sel.use] || '내 문구를 넣어 보세요';
       if (mine) applyMine();   // 다시 뽑아도 내 문구는 그대로
@@ -632,6 +684,86 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
       // 캔이 다 떨어지면 결과로 내려간다 — PC 도(10/22 사용자님 "캔이 떨어지면 자동으로 결과 화면으로"). 마지막 캔은 뽑고 약 0.9초에 닿는다
       if (!opts.still) setTimeout(goResult, 480);
     }, opts.still ? 0 : 520);
+  }
+
+  // ── 사진으로 뽑기 (11/3) ───────────────────────────────────────
+  // 사진을 긴 변 1024px JPEG 로 줄여 /api/vending/photo 에 보내면 Claude 가 질문 1·2번 답(쓰임·느낌)과 어울리는 문구를 돌려준다.
+  // 폰트는 질문으로 뽑을 때와 똑같이 이 화면의 엔진이 고른다(3번은 '상관없어요'). 문구는 '내 문구' 칸에 넣어 사진 위 견본으로 쓴다.
+  function setupPhoto() {
+    $('modes').hidden = false;
+    $('tabQ').addEventListener('click', function () { setMode(false); });
+    $('tabP').addEventListener('click', function () { setMode(true); });
+    $('photo').addEventListener('change', function () { if (this.files[0]) readPhoto(this.files[0]); this.value = ''; });
+    var drop = $('drop');
+    ['dragenter', 'dragover'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+    ['dragleave', 'drop'].forEach(function (t) { drop.addEventListener(t, function () { drop.classList.remove('over'); }); });
+    drop.addEventListener('drop', function (e) { e.preventDefault(); var f = e.dataTransfer.files[0]; if (f) readPhoto(f); });
+  }
+  function setMode(on) {
+    photo.on = on;
+    $('tabQ').setAttribute('aria-selected', on ? 'false' : 'true');
+    $('tabP').setAttribute('aria-selected', on ? 'true' : 'false');
+    $('pMode').hidden = !on;
+    $('qMode').style.display = on ? 'none' : 'contents';
+    if (on) { syncPull(); led(photo.url ? '이 사진으로 또 뽑을 수 있어요' : '사진 한 장 올려 주세요'); }
+    else { $('pull').textContent = '뽑기'; if (sel.use) choose('use', sel.use); else { $('pull').disabled = true; led(LED_STEP[0]); } }
+  }
+  function syncPull() {
+    var ok = !!photo.url && !photo.busy && !!(sel.use && sel.mood);
+    $('pull').textContent = photo.url ? '이 사진으로 다시 뽑기' : '뽑기';
+    $('pull').disabled = !ok;
+    $('pull').classList.toggle('ready', false);
+  }
+  function shrink(file) {
+    return new Promise(function (res, rej) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var k = Math.min(1, 1024 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+        var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(function (b) { b ? res(b) : rej(); }, 'image/jpeg', 0.85);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); rej(); };
+      img.src = url;
+    });
+  }
+  function perr(msg) { $('perr').textContent = msg || ''; $('perr').hidden = !msg; }
+  function readPhoto(file) {
+    if (photo.busy) return;
+    if (file.type && file.type.indexOf('image/') !== 0) { perr('사진 파일만 올릴 수 있어요.'); return; }
+    perr('');
+    photo.busy = true; syncPull();
+    var drop = $('drop');
+    // 브라우저가 못 푸는 형식(HEIC 등)이면 원본 그대로 보내 서버가 판단한다
+    shrink(file).then(function (b) { return {blob: b, shown: true}; }, function () { return {blob: file, shown: false}; }).then(function (r) {
+      if (photo.url) URL.revokeObjectURL(photo.url);
+      photo.url = r.shown ? URL.createObjectURL(r.blob) : '';
+      var old = drop.querySelector('img'); if (old) old.remove();
+      var rd = drop.querySelector('.reading'); if (rd) rd.remove();
+      if (photo.url) { var im = new Image(); im.alt = ''; im.src = photo.url; drop.insertBefore(im, drop.firstChild); drop.classList.add('has'); }
+      drop.classList.add('busy');
+      led('사진 읽는 중…', true);
+      var fd = new FormData(); fd.append('file', r.blob, 'photo.jpg');
+      return fetch(ORIGIN + '/api/vending/photo', {method: 'POST', body: fd}).then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (j) { if (!res.ok) throw j; return j; });
+      });
+    }).then(function (j) {
+      photo.busy = false; drop.classList.remove('busy');
+      photo.reading = j.reading || '';
+      var rd = document.createElement('div'); rd.className = 'reading'; rd.textContent = '“' + photo.reading + '”'; drop.appendChild(rd);
+      if (j.phrase) { mine = j.phrase; $('mine').value = mine; $('mineX').hidden = false; }
+      choose('use', j.use); choose('mood', j.mood); choose('pop', 'any');
+      state.key = null;   // 같은 답이어도 새 사진이면 처음부터
+      pull();
+      syncPull();
+    }).catch(function (e) {
+      photo.busy = false; drop.classList.remove('busy');
+      if (!photo.url) drop.classList.remove('has');
+      perr((e && e.message) || '사진을 읽지 못했어요. 잠시 뒤 다시 해 주세요.');
+      led('앗, 다시 해 볼까요?');
+      syncPull();
+    });
   }
 
   // 꼭대기 전광판 (간판 뗀 자리) — 인기 순위(pr) 10위까지 이름이 흐른다. 같은 글을 두 번 이어 붙여 끊김 없이 돈다
@@ -662,7 +794,11 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
     stock(FILE_IDS, '오늘 들어온 무료폰트');
     $('pull').addEventListener('click', function () { pull(); });
     $('again').addEventListener('click', function () { pull(); });
-    $('change').addEventListener('click', function () { $('vm').scrollIntoView({behavior: 'smooth', block: 'start'}); });
+    $('change').addEventListener('click', function () {
+      $('vm').scrollIntoView({behavior: 'smooth', block: 'start'});
+      if (photo.on) $('photo').click();
+    });
+    if (window.VENDING_PHOTO) setupPhoto();
     // 주소 끝 #q=썸네일,강렬한,hidden 이면 그 답으로 바로 한 번 뽑는다(공유·점검용, 3번은 hot·hidden·any)
     // 끝에 &t=문구 를 붙이면 '내 문구'까지 채운 채로 뽑는다
     var m = decodeURIComponent(location.hash).match(/^#q=([^,]+),([^,]+),([^,&]+)(&still)?(?:&t=(.+))?/);
