@@ -880,7 +880,7 @@
       var pick = usageWeights(local);
       if (!pick) return;
       var rest = (f.stack || "sans-serif")
-        .replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
+        .replace(/'?FFP-\d+'?\s*,?\s*/, '');
       [['.u-h1', pick.head], ['.u-h2', pick.sub], ['.u-body', pick.body]]
         .forEach(function(p){
           var el = document.querySelector(p[0]);
@@ -898,7 +898,7 @@
     var cdnFam = null;
     if (cdnW.length > 1 && f.webfont_family) {
       cdnFam = "'" + f.webfont_family + "'," +
-               (f.stack || "sans-serif").replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
+               (f.stack || "sans-serif").replace(/'?FFP-\d+'?\s*,?\s*/, '');
     } else if (wf && wf.weights.length > 1) {
       cdnFam = wf.family + ',' + stackOf(f);
     }
@@ -931,7 +931,7 @@
       // 서버에 굵기 파일이 2개 이상 개별 등록된 경우 최우선 (어드민 실제 업로드)
       // 줄마다 그 굵기 전용 family를 쓰고 font-weight는 normal로 둔다.
       // CSS로 굵기를 요구하면 브라우저가 파일을 고르거나 가짜 볼드를 합성한다.
-      var _rest = (FONT.stack || "sans-serif").replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
+      var _rest = (FONT.stack || "sans-serif").replace(/'?FFP-\d+'?\s*,?\s*/, '');
       rows = localW.map(function(w){
         return { label: w.label, sub: String(w.weight),
                  family: "'" + weightFamily(FONT.id, w.weight) + "'," + _rest, weight: 400 };
@@ -941,7 +941,7 @@
     } else if (cdnW.length > 1 && FONT.webfont_family){
       /* CDN 웹폰트 굵기 — 업로드 대표 파일은 굵기가 하나라 여기서는 안 쓴다. */
       var famC = "'" + FONT.webfont_family + "'," +
-                 (FONT.stack || "sans-serif").replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
+                 (FONT.stack || "sans-serif").replace(/'?FFP-\d+'?\s*,?\s*/, '');
       rows = cdnW.map(function(w){
         return { label: w.label, sub: String(w.weight), family: famC, weight: w.weight };
       });

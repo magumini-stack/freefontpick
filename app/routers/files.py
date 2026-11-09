@@ -307,7 +307,10 @@ def build_font_resolution(db) -> dict:
                 font.weights = want_weights_label
                 healed += 1
         raw = font.stack or "'Nanum Gothic',sans-serif"
-        cleaned = _re2.sub(r"'?FFP-\d{3}'?\s*,?\s*", "", raw).strip().strip(",").strip()
+        # FFP-{id} 는 4자리일 수도 있다(#1000~). 예전 규칙(\d{3})은 'FFP-100 까지만 떼어 "0'" 찌꺼기를 남겼고
+        # 재시작마다 하나씩 쌓였다(2026-11-09 발견) — 앞머리에 남은 숫자뿐인 찌꺼기(0',0',…)도 함께 걷어 낸다.
+        cleaned = _re2.sub(r"'?FFP-\d+'?\s*,?\s*", "", raw)
+        cleaned = _re2.sub(r"^(?:'?\d+'?\s*,\s*)+", "", cleaned).strip().strip(",").strip()
         if not cleaned:
             cleaned = "'Nanum Gothic',sans-serif"
         new_stack = f"'{_ffp_family(font.id)}',{cleaned}" if want_has_file else cleaned

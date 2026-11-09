@@ -64,7 +64,7 @@
      중복되면 브라우저가 엉뚱한 걸 먼저 찾는다. */
   function baseStack(f) {
     return (f && f.stack || "sans-serif")
-      .replace(/'?FFP-\d{3}'?\s*,?\s*/, '');
+      .replace(/'?FFP-\d+'?\s*,?\s*/, '');
   }
 
   // ── 웹폰트(CDN) ────────────────────────────────────────────────
