@@ -10,7 +10,7 @@
   올린 그림은 /app/user_data/banners 에 두고 /media/banners/<이름> 으로 낸다(이름에 시각이 들어가 오래 캐시해도 된다).
 - 클릭은 track.py 가 'tdtd_ad' 로 센다. 자리 이름 = spot(+ '_' + track). 처음 옮겨 온 구독 배너는 track 'sub'
   → 옛 기록 이름(home·fonts)을 그대로 잇는다. 새 배너는 'b<id>'.
-- 처음 시작할 때 지금 걸려 있던 배너 세 장(구독 · 오늘의기록 · 글자로 노는 앱)을 표로 옮긴다(seed_defaults).
+- 처음 시작할 때 배너 세 장을 표로 옮긴다(seed_defaults): 구독(메인·전체) · 오늘의기록(메인·전체) · 글자로 노는 앱(꺼 둠).
 """
 import io
 import os
@@ -106,12 +106,14 @@ def seed_defaults(db: Session):
             SiteBanner(name="타닥타닥 구독", link="https://tdtd.io/", spots="home,fonts", track="sub", sort_order=1,
                        pc_url="/static/ads/tdtd-sub-pc-slim-v3.webp", m_url="/static/ads/tdtd-sub-m-slim-v3.webp",
                        alt="타닥타닥 폰트 구독 서비스 — 월 6,600원으로 타닥타닥 폰트 전종을 라이선스 제한 없이 사용하세요. 구독 알아보기"),
-            SiteBanner(name="오늘의기록 출시", link="https://tdtd.io/todaystamp.html", spots="home", track="todaystamp",
+            SiteBanner(name="오늘의기록 출시", link="https://tdtd.io/todaystamp.html", spots="home,fonts", track="todaystamp",
                        sort_order=2, pc_url="/static/ads/tdtd-todaystamp-pc-v3.webp",
                        m_url="/static/ads/tdtd-todaystamp-m-v3.webp",
                        alt="와이즈폰트 새 앱 오늘의기록 — 감성 카메라로 찍고, 사진을 오늘의 기록으로 남겨요. "
                            "타임스탬프 카메라와 포토 다이어리를 하나로. 앱 다운로드"),
+            # 11/10 사용자님 "전체 무료폰트도 오늘의 기록으로" — 앱 배너는 꺼 둔 채로 남긴다(관리자에서 다시 켤 수 있게)
             SiteBanner(name="글자로 노는 앱", link="https://tdtd.io/apps.html", spots="fonts", track="apps", sort_order=3,
+                       is_active=False,
                        pc_url="/static/ads/tdtd-apps-pc-slim-v3.webp", m_url="/static/ads/tdtd-apps-m-slim-v3.webp",
                        alt="글자로 노는 앱, 지금 다운 받으세요 — 와이즈폰트 무료 앱 5종: 캘리공방 · 글씨사진관 · 움짤공방 · "
                            "폰트박스 · 흐어어 메모장. 앱 다운로드"),
