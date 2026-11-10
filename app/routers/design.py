@@ -250,8 +250,9 @@ _AD_ROLL_SCRIPT = (
 )
 
 
-def render_home_sections(sections: list) -> str:
-    """섹션 자료 → 홈 본문 HTML. 카드 마크업은 fonts.html 격자 보기와 같은 이름을 쓴다."""
+def render_home_sections(sections: list, banner_items: str = "") -> str:
+    """섹션 자료 → 홈 본문 HTML. 카드 마크업은 fonts.html 격자 보기와 같은 이름을 쓴다.
+    banner_items: 쓰는 자리 바 아래 배너 <a> 들(banners.roll_items(db, 'home'))."""
     if not sections:
         return ""
     chips = "".join(
@@ -270,23 +271,9 @@ def render_home_sections(sections: list) -> str:
         # 번갈아 보인다. 그림은 같은 폴더의 build_apps.py. 넘기는 방식은 _AD_ROLL_SCRIPT.
         # 10/16 사용자님: 세로 30% 줄인 판으로(PC 1200×140 · 휴대폰 720×364, 같은 폴더 build_slim.py → *-slim.webp).
         # 이름을 바꿔 둔 건 옛 그림이 브라우저·CDN 캐시에 남아 새 크기와 섞이지 않게 하려는 것이다.
-        '<div class="home-sub-ad ad-roll">'
-        '<a class="on" data-tdtd-ad="home" href="https://tdtd.io/" target="_blank" rel="noopener">'
-        '<picture>'
-        '<source media="(max-width:640px)" srcset="/static/ads/tdtd-sub-m-slim-v3.webp" width="720" height="364">'
-        '<img src="/static/ads/tdtd-sub-pc-slim-v3.webp" width="1200" height="140" decoding="async" '
-        'alt="타닥타닥 폰트 구독 서비스 — 월 6,600원으로 타닥타닥 폰트 전종을 라이선스 제한 없이 사용하세요. 구독 알아보기">'
-        '</picture></a>'
-        # 11/10 사용자님: 두 장 중 앱 다운로드 배너를 그날 출시한 '오늘의기록' 배너(→ tdtd.io/todaystamp.html)로.
-        # 그림은 같은 폴더의 build_todaystamp.py(크기·글 시작 자리는 앱 배너와 같다). 옛 앱 배너 그림은 static/ads 에 남겨 둠.
-        # 같은 날 문구를 사용자님 지정(감성 카메라로 찍고, 사진을 일기로. / 타임스탬프 카메라와 포토 다이어리를 하나로.)으로 → -v2
-        '<a data-tdtd-ad="home_todaystamp" href="https://tdtd.io/todaystamp.html" target="_blank" rel="noopener">'
-        '<picture>'
-        '<source media="(max-width:640px)" srcset="/static/ads/tdtd-todaystamp-m-v2.webp" width="720" height="364">'
-        '<img src="/static/ads/tdtd-todaystamp-pc-v2.webp" width="1200" height="140" decoding="async" '
-        'alt="와이즈폰트 새 앱 오늘의기록 — 감성 카메라로 찍고, 사진을 일기로. 타임스탬프 카메라와 포토 다이어리를 하나로. 앱 다운로드">'
-        '</picture></a>'
-        '</div>' + _AD_ROLL_SCRIPT,
+        # 11/10 사용자님: "관리자 페이지에서 배너 바꿀 수 있게" — 그림·링크는 이제 관리자 '배너 관리' 탭(app/routers/banners.py)이
+        # 정한다. 여기서는 자리(home)만 정해 그린다. 11/10 까지의 두 장(구독·오늘의기록)은 처음 시작할 때 표로 옮겨진다.
+        ('<div class="home-sub-ad ad-roll">' + banner_items + '</div>' + _AD_ROLL_SCRIPT if banner_items else ''),
     ]
     for s in sections:
         cards = []
@@ -1304,7 +1291,8 @@ def home_page(request: Request, db: Session = Depends(get_db)):
     # 판이 올라 바로 새로 만들고, 인기 배지(조회수 기반)는 5분 안에 따라온다.
     sections = content_cache.get("home:sections", ttl=300,
                                  build=lambda: _home_sections_data(db))
-    html = html.replace("{{FFP_HOME_SECTIONS}}", render_home_sections(sections), 1)
+    from .banners import roll_items
+    html = html.replace("{{FFP_HOME_SECTIONS}}", render_home_sections(sections, roll_items(db, "home")), 1)
     html = html.replace("{{FFP_HOME_FONTS}}", home_fonts_json(sections), 1)
     return HTMLResponse(html)
 
@@ -1323,6 +1311,8 @@ def fonts_page(db: Session = Depends(get_db)):
     html = inject_header(html, "fonts", anchor=True)
     ssr = content_cache.get("fonts:ssr", ttl=300, build=lambda: _home_ssr_block(db))
     html = html.replace("{{FFP_HOME_SSR}}", ssr, 1)
+    from .banners import roll_items   # 목록 위 배너 — 관리자 '배너 관리' 탭이 정한다(11/10)
+    html = html.replace("{{FFP_TDTD_ADS}}", roll_items(db, "fonts"), 1)
     return HTMLResponse(html)
 
 

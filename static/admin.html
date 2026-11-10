@@ -449,6 +449,7 @@
     <button class="tab-btn" onclick="switchTab('phrases',this)">문구 관리</button>
     <button class="tab-btn" onclick="switchTab('usecases',this)">용도 관리</button>
     <button class="tab-btn" onclick="switchTab('magazine',this)">매거진</button>
+    <button class="tab-btn" onclick="switchTab('banners',this)">배너 관리</button>
     <button class="tab-btn" onclick="switchTab('stats',this)">통계</button>
   </div>
 
@@ -616,6 +617,69 @@
         <i class="ti ti-layout-grid" aria-hidden="true"></i>등록된 용도 허브가 없어요
       </div>
     </div>
+  </div>
+
+  <!-- BANNERS TAB (2026-11-10) — 메인(쓰는 자리 바 아래)·전체 무료폰트(목록 위) 타닥타닥 배너. app/routers/banners.py -->
+  <div class="tab-panel" id="tab-banners">
+    <style>
+      .bn-help{font-size:12px;color:var(--text-muted);margin:2px 0 14px;line-height:1.7}
+      .bn-list{display:flex;flex-direction:column;gap:12px}
+      .bn-row{display:grid;grid-template-columns:minmax(0,1fr) 150px 220px;gap:16px;align-items:center;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px}
+      .bn-row.off{opacity:.5}
+      .bn-pc{display:block;width:100%;aspect-ratio:1200/140;object-fit:cover;border-radius:4px;background:var(--bg-secondary)}
+      .bn-m{display:block;width:150px;aspect-ratio:720/364;object-fit:cover;border-radius:4px;background:var(--bg-secondary)}
+      .bn-meta{display:flex;flex-direction:column;gap:6px;font-size:12.5px;min-width:0}
+      .bn-meta b{font-size:14px}
+      .bn-meta a{color:var(--text-secondary);word-break:break-all}
+      .bn-chip{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 9px;margin-right:4px;background:var(--bg-secondary);color:var(--text-secondary)}
+      .bn-chip.on{background:var(--accent);color:#fff}
+      .bn-acts{display:flex;gap:6px;flex-wrap:wrap}
+      .bn-acts button{height:30px;padding:0 10px;font-size:12px}
+      .bn-form{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:16px;display:grid;gap:12px}
+      .bn-form[hidden]{display:none}
+      .bn-form label{display:grid;gap:5px;font-size:12.5px;font-weight:700}
+      .bn-form input[type=text]{height:36px;padding:0 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text-primary);font:inherit;font-weight:400}
+      .bn-form .bn-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+      .bn-form small{font-weight:400;color:var(--text-muted)}
+      .bn-form .bn-checks{display:flex;gap:16px;align-items:center}
+      .bn-form .bn-checks label{display:flex;align-items:center;gap:6px;font-weight:400}
+      .bn-prev{display:block;max-width:100%;margin-top:4px;border-radius:4px}
+      .bn-prev[hidden]{display:none}
+      @media(max-width:900px){.bn-row{grid-template-columns:1fr}.bn-form .bn-two{grid-template-columns:1fr}}
+    </style>
+    <p class="bn-help">
+      메인 <b>쓰는 자리 바 아래</b>와 <b>전체 무료폰트 목록 위</b>에서 6초마다 번갈아 나오는 배너예요. 여기서 바꾸면 <b>배포 없이 바로</b> 사이트에 반영돼요.<br>
+      그림은 두 장 — <b>PC 1200×140</b>, <b>휴대폰 720×364</b> 비율(2배인 2400×280 · 1440×728 로 만들면 선명해요). 비율이 다르면 올라가지 않아요.
+      클릭 수는 '통계' 탭 '타닥타닥 배너 클릭'에서 배너별로 볼 수 있어요.
+    </p>
+    <div class="toolbar">
+      <button class="btn-primary" type="button" onclick="openBannerForm()"><i class="ti ti-plus" aria-hidden="true"></i> 새 배너 올리기</button>
+    </div>
+    <form class="bn-form" id="bnForm" hidden onsubmit="saveBanner(event)">
+      <input type="hidden" id="bnId">
+      <div class="bn-two">
+        <label>이름 <small>관리용 · 통계에 보이는 이름</small><input type="text" id="bnName" maxlength="60" required placeholder="예: 오늘의기록 출시"></label>
+        <label>누르면 갈 주소<input type="text" id="bnLink" maxlength="500" required placeholder="https://tdtd.io/..."></label>
+      </div>
+      <label>그림 설명(alt) <small>그림 속 문구를 그대로 — 화면 읽기·검색용</small><input type="text" id="bnAlt" maxlength="300"></label>
+      <div class="bn-checks">
+        <b style="font-size:12.5px">보일 자리</b>
+        <label><input type="checkbox" id="bnSpotHome" checked> 메인</label>
+        <label><input type="checkbox" id="bnSpotFonts"> 전체 무료폰트</label>
+        <label style="margin-left:auto"><input type="checkbox" id="bnActive" checked> 켜기</label>
+      </div>
+      <div class="bn-two">
+        <label>PC 그림 <small>1200×140 비율 · PNG·JPG·WebP</small><input type="file" id="bnPc" accept="image/png,image/jpeg,image/webp" onchange="bnPreview(this,'bnPcPrev')"><img class="bn-prev" id="bnPcPrev" hidden alt=""></label>
+        <label>휴대폰 그림 <small>720×364 비율</small><input type="file" id="bnM" accept="image/png,image/jpeg,image/webp" onchange="bnPreview(this,'bnMPrev')"><img class="bn-prev" id="bnMPrev" hidden alt="" style="max-width:300px"></label>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-primary" type="submit" id="bnSave">저장</button>
+        <button class="btn-secondary" type="button" onclick="closeBannerForm()">취소</button>
+        <span id="bnMsg" style="align-self:center;font-size:12.5px;color:var(--text-muted)"></span>
+      </div>
+    </form>
+    <div class="bn-list" id="bnList"></div>
+    <div id="bnEmpty" class="empty" style="display:none"><i class="ti ti-photo" aria-hidden="true"></i>걸린 배너가 없어요</div>
   </div>
 
   <!-- MAGAZINE TAB (티스토리 글 걸기, 2026-09-29) -->
@@ -1939,7 +2003,111 @@ function switchTab(tab, btn){
   if(tab === 'phrases') refreshPhrases();
   if(tab === 'usecases') refreshUseCases();
   if(tab === 'stats') refreshStats();
+  if(tab === 'banners') refreshBanners();
   if(tab === 'magazine') refreshMagazine();
+}
+
+/* ════════════════════════════════════════
+   배너 관리 (2026-11-10) — app/routers/banners.py
+════════════════════════════════════════ */
+let BANNERS = [], BN_SPOTS = {home: '메인', fonts: '전체 무료폰트'};
+function bnEsc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+async function refreshBanners(){
+  try {
+    const d = await apiFetch('/admin/banners');
+    BANNERS = d.banners || []; BN_SPOTS = d.spots || BN_SPOTS;
+  } catch(e){ showToast('배너를 불러오지 못했어요: ' + e.message); return; }
+  renderBanners();
+}
+function renderBanners(){
+  const box = document.getElementById('bnList');
+  document.getElementById('bnEmpty').style.display = BANNERS.length ? 'none' : '';
+  box.innerHTML = BANNERS.map((b, i) => `
+    <div class="bn-row${b.is_active ? '' : ' off'}">
+      <div class="bn-meta">
+        <img class="bn-pc" src="${bnEsc(b.pc_url)}" alt="">
+        <div><b>${bnEsc(b.name)}</b> ${b.is_active ? '' : '<span class="bn-chip">꺼 둠</span>'}</div>
+        <div>${Object.keys(BN_SPOTS).map(k => `<span class="bn-chip${b.spots.includes(k) ? ' on' : ''}">${bnEsc(BN_SPOTS[k])}</span>`).join('')}</div>
+        <a href="${bnEsc(b.link)}" target="_blank" rel="noopener">${bnEsc(b.link)}</a>
+      </div>
+      <img class="bn-m" src="${bnEsc(b.m_url)}" alt="">
+      <div class="bn-acts">
+        <button class="btn-secondary" type="button" onclick="moveBanner(${i},-1)" ${i ? '' : 'disabled'} title="앞으로">↑</button>
+        <button class="btn-secondary" type="button" onclick="moveBanner(${i},1)" ${i < BANNERS.length - 1 ? '' : 'disabled'} title="뒤로">↓</button>
+        <button class="btn-secondary" type="button" onclick="toggleBanner(${b.id})">${b.is_active ? '끄기' : '켜기'}</button>
+        <button class="btn-secondary" type="button" onclick="openBannerForm(${b.id})">수정</button>
+        <button class="btn-secondary" type="button" onclick="deleteBanner(${b.id})" style="color:#d33">삭제</button>
+      </div>
+    </div>`).join('');
+}
+function bnPreview(inp, imgId){
+  const img = document.getElementById(imgId), f = inp.files && inp.files[0];
+  if (!f){ img.hidden = true; return; }
+  img.src = URL.createObjectURL(f); img.hidden = false;
+}
+function openBannerForm(id){
+  const b = BANNERS.find(x => x.id === id) || null, f = document.getElementById('bnForm');
+  f.hidden = false; f.reset();
+  document.getElementById('bnId').value = b ? b.id : '';
+  document.getElementById('bnName').value = b ? b.name : '';
+  document.getElementById('bnLink').value = b ? b.link : '';
+  document.getElementById('bnAlt').value = b ? b.alt : '';
+  document.getElementById('bnSpotHome').checked = b ? b.spots.includes('home') : true;
+  document.getElementById('bnSpotFonts').checked = b ? b.spots.includes('fonts') : false;
+  document.getElementById('bnActive').checked = b ? b.is_active : true;
+  ['bnPcPrev', 'bnMPrev'].forEach((k, n) => {
+    const img = document.getElementById(k);
+    img.hidden = !b; if (b) img.src = n ? b.m_url : b.pc_url;
+  });
+  document.getElementById('bnMsg').textContent = b ? '그림을 바꿀 때만 파일을 고르세요' : '';
+  f.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+function closeBannerForm(){ document.getElementById('bnForm').hidden = true; }
+function bnFormData(b, pc, m){
+  const fd = new FormData();
+  fd.append('name', b.name); fd.append('link', b.link); fd.append('alt', b.alt || '');
+  fd.append('spots', b.spots.join(',')); fd.append('is_active', b.is_active ? 'true' : 'false');
+  if (pc) fd.append('pc', pc);
+  if (m) fd.append('m', m);
+  return fd;
+}
+async function saveBanner(ev){
+  ev.preventDefault();
+  const id = document.getElementById('bnId').value;
+  const spots = [];
+  if (document.getElementById('bnSpotHome').checked) spots.push('home');
+  if (document.getElementById('bnSpotFonts').checked) spots.push('fonts');
+  if (!spots.length){ showToast('보일 자리를 하나 이상 골라 주세요'); return; }
+  const pc = document.getElementById('bnPc').files[0], m = document.getElementById('bnM').files[0];
+  if (!id && (!pc || !m)){ showToast('PC 그림과 휴대폰 그림을 모두 골라 주세요'); return; }
+  const b = {name: document.getElementById('bnName').value.trim(), link: document.getElementById('bnLink').value.trim(),
+             alt: document.getElementById('bnAlt').value.trim(), spots, is_active: document.getElementById('bnActive').checked};
+  const btn = document.getElementById('bnSave'); btn.disabled = true;
+  try {
+    await apiFetch(id ? '/admin/banners/' + id : '/admin/banners', {method: id ? 'PUT' : 'POST', body: bnFormData(b, pc, m)});
+    showToast(id ? '배너를 고쳤어요 — 사이트에 바로 반영돼요' : '배너를 올렸어요 — 사이트에 바로 반영돼요');
+    closeBannerForm(); await refreshBanners();
+  } catch(e){ showToast(e.message); }
+  finally { btn.disabled = false; }
+}
+async function toggleBanner(id){
+  const b = BANNERS.find(x => x.id === id); if (!b) return;
+  try {
+    await apiFetch('/admin/banners/' + id, {method: 'PUT', body: bnFormData({...b, is_active: !b.is_active})});
+    await refreshBanners();
+  } catch(e){ showToast(e.message); }
+}
+async function moveBanner(i, d){
+  const j = i + d; if (j < 0 || j >= BANNERS.length) return;
+  const ids = BANNERS.map(b => b.id); [ids[i], ids[j]] = [ids[j], ids[i]];
+  try { await apiFetch('/admin/banners/reorder', {method: 'POST', body: ids}); await refreshBanners(); }
+  catch(e){ showToast(e.message); }
+}
+async function deleteBanner(id){
+  const b = BANNERS.find(x => x.id === id); if (!b) return;
+  if (!confirm(`'${b.name}' 배너를 지울까요? 잠깐 내리기만 하려면 '끄기'를 누르세요.`)) return;
+  try { await apiFetch('/admin/banners/' + id, {method: 'DELETE'}); showToast('지웠어요'); await refreshBanners(); }
+  catch(e){ showToast(e.message); }
 }
 
 /* ════════════════════════════════════════

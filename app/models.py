@@ -310,6 +310,30 @@ class MagazineLink(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
+class SiteBanner(Base):
+    """타닥타닥 배너 — 메인(쓰는 자리 바 아래)·전체 무료폰트(목록 위)에서 6초마다 번갈아 나오는 그림 (2026-11-10).
+
+    사용자님: "관리자 페이지에서 배너 바꿀 수 있게" — 전에는 그림·링크가 코드(design.py·fonts.html)에 박혀
+    있어 바꿀 때마다 배포해야 했다. app/routers/banners.py 가 관리·그리기를 맡는다.
+    spots: 보일 자리 쉼표 이음(home·fonts). track: 클릭을 셀 때 자리 이름 뒤에 붙는 말(track.py, 옛 기록을
+    잇느라 구독 배너는 'sub' → 자리 이름 그대로). pc_url·m_url: 올린 그림은 /media/banners/…, 처음 옮겨 온
+    그림은 /static/ads/… 그대로.
+    """
+    __tablename__ = "site_banners"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(60), nullable=False, default="")
+    link = Column(String(500), nullable=False, default="")
+    alt = Column(String(300), nullable=False, default="")
+    pc_url = Column(String(300), nullable=False, default="")
+    m_url = Column(String(300), nullable=False, default="")
+    spots = Column(String(50), nullable=False, default="home,fonts")
+    track = Column(String(30), nullable=False, default="")
+    sort_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True, server_default="1")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
 class AppMeta(Base):
     """앱 내부 메타 (시드 버전 등 키-값 저장)"""
     __tablename__ = "app_meta"

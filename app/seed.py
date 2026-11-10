@@ -63,6 +63,9 @@ def init_db():
         _migrate_pairing_josa(db)
         _seed_gif_use_cases(db)
         _seed_gif_templates(db)
+        # 11/10 까지 코드에 박혀 있던 타닥타닥 배너를 표로 옮긴다(한 번만) — 이제 관리자 '배너 관리' 탭이 정본
+        from .routers.banners import seed_defaults
+        seed_defaults(db)
         # 폰트 파일 이름 기반 해석 + has_file/stack 자가치유
         from .routers.files import build_font_resolution
         build_font_resolution(db)

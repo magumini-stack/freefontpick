@@ -814,21 +814,9 @@
   <!-- 10/13 사용자님: 같은 자리에 '글자로 노는 앱' 다운로드 배너(→ tdtd.io/apps.html, 그림은 같은 폴더의
        build_apps.py)를 더해 두 장을 번갈아 보인다. 바로 뒤 스크립트는 app/routers/design.py _AD_ROLL_SCRIPT 와 같다.
        10/16 사용자님 "원래대로, 줄인 사이즈" — 세로 30% 줄인 판(PC 1200×140 · 휴대폰 720×364, build_slim.py 의 *-slim.webp). -->
-  <div class="fonts-sub-ad ad-roll" id="subAd">
-    <a class="on" data-tdtd-ad="fonts" href="https://tdtd.io/" target="_blank" rel="noopener">
-      <picture>
-        <source media="(max-width:640px)" srcset="/static/ads/tdtd-sub-m-slim-v3.webp" width="720" height="364">
-        <img src="/static/ads/tdtd-sub-pc-slim-v3.webp" width="1200" height="140" decoding="async"
-             alt="타닥타닥 폰트 구독 서비스 — 월 6,600원으로 타닥타닥 폰트 전종을 라이선스 제한 없이 사용하세요. 구독 알아보기">
-      </picture>
-    </a>
-    <a data-tdtd-ad="fonts_apps" href="https://tdtd.io/apps.html" target="_blank" rel="noopener">
-      <picture>
-        <source media="(max-width:640px)" srcset="/static/ads/tdtd-apps-m-slim-v3.webp" width="720" height="364">
-        <img src="/static/ads/tdtd-apps-pc-slim-v3.webp" width="1200" height="140" decoding="async"
-             alt="글자로 노는 앱, 지금 다운 받으세요 — 와이즈폰트 무료 앱 5종: 캘리공방 · 글씨사진관 · 움짤공방 · 폰트박스 · 흐어어 메모장. 앱 다운로드">
-      </picture>
-    </a>
+  <!-- 11/10 사용자님 "관리자 페이지에서 배너 바꿀 수 있게" — 그림·링크는 관리자 '배너 관리' 탭(app/routers/banners.py)이
+       정하고, 서버(design.fonts_page)가 아래 표시 자리에 그 자리(fonts)의 배너들을 채운다. -->
+  <div class="fonts-sub-ad ad-roll" id="subAd">{{FFP_TDTD_ADS}}
   </div>
   <script>(function(roll){
     if(!roll)return;var s=roll.querySelectorAll('a'),i=Math.floor(Math.random()*s.length),hold=false;
@@ -3521,7 +3509,7 @@ init().catch(function(err){
   (function(){
     var ad = document.getElementById('subAd'), q = document.getElementById('globalSearch');
     if (!ad) return;
-    function sync(){ ad.hidden = !!(q && q.value.trim()); }
+    function sync(){ ad.hidden = !ad.querySelector('a') || !!(q && q.value.trim()); }   // 걸린 배너가 없으면 늘 감춤(11/10)
     if (q) q.addEventListener('input', sync);
     window.addEventListener('hashchange', function(){ setTimeout(sync, 0); });
     setTimeout(sync, 0);

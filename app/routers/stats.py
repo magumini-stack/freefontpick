@@ -200,5 +200,13 @@ def tdtd_ad_stats(days: int = 30, _admin=Depends(require_password_changed),
         total[str(key)] = total.get(str(key), 0) + int(n or 0)
         if day == today:
             on_today[str(key)] = int(n or 0)
+    # 11/10 부터 배너는 관리자 '배너 관리' 탭이 정한다 — 이름은 그 표에서(지금 걸린 것 먼저), 옛 자리 이름은 뒤에.
+    # 기간 안에 눌렸지만 지금 표에 없는 이름(지운 배너·자리를 뺀 배너)도 그대로 보인다.
+    from .banners import known_keys
+    labels = dict(known_keys(db))
+    for k, label in TDTD_AD_SPOTS.items():
+        labels.setdefault(k, label)
+    for k in total:
+        labels.setdefault(k, k + " (지금은 안 걸린 자리·지운 배너)")
     return [{"key": k, "label": label, "clicks": total.get(k, 0), "today": on_today.get(k, 0)}
-            for k, label in TDTD_AD_SPOTS.items()]
+            for k, label in labels.items()]

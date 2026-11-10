@@ -15,6 +15,7 @@
 화면(static/index.html)은 navigator.sendBeacon 으로 보낸다 — 페이지를 떠나는 순간에도
 요청이 끝까지 가고, 이동을 기다리게 하지 않는다. 그래서 본문 없이 주소에 칸 이름만 싣는다.
 """
+import re
 from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.orm import Session
 
@@ -69,6 +70,7 @@ def track_convert(request: Request, fmt: str = "", r: str = "", db: Session = De
 # 세는 규칙은 위와 같다(봇 제외, 같은 사람이 30분 안에 다시 누르면 한 번). 어드민 통계가 이 순서·이름으로 보여 준다.
 # 10/13 같은 두 자리에 '글자로 노는 앱' 다운로드 배너(→ tdtd.io/apps.html)를 더해 번갈아 보인다 — 그림마다 따로 센다.
 # 두 장이 반씩 나뉘어 보이므로, 그림끼리는 클릭 수를 그대로 견주면 된다.
+_SPOT_RE = re.compile(r"(home|fonts)(_[a-z0-9]{1,20})?")
 TDTD_AD_SPOTS = {
     "home": "메인 · 구독 배너 (→ tdtd.io)",
     "home_apps": "메인 · 앱 다운로드 배너 (→ 앱 소개, 10/13~11/10)",
@@ -80,7 +82,9 @@ TDTD_AD_SPOTS = {
 
 @router.post("/api/track/tdtd-ad", include_in_schema=False)
 def track_tdtd_ad(request: Request, spot: str = "", db: Session = Depends(get_db)):
-    if spot in TDTD_AD_SPOTS:
+    # 11/10 부터 배너는 관리자 '배너 관리' 탭에서 늘고 준다(app/routers/banners.py) — 자리 이름은 home·fonts 뒤에
+    # '_<track>' 이 붙는 모양이라, 정해진 목록 대신 모양으로 받는다(통계 이름은 stats.tdtd_ad_stats 가 표에서 붙인다).
+    if spot in TDTD_AD_SPOTS or _SPOT_RE.fullmatch(spot or ""):
         try:
             record_page(request, "tdtd_ad", spot, db)
         except Exception:
