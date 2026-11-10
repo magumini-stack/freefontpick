@@ -683,7 +683,7 @@ function showToast(msg){
 
 /* 타닥타닥 배너 클릭 기록 (2026-10-07) — 어드민 '통계' 탭의 '타닥타닥 배너 클릭'.
    배너는 서버가 그린다(app/routers/design.py). 구독 배너 data-tdtd-ad="home", 10/13 부터 번갈아 나오는
-   앱 다운로드 배너 "home_apps". 애널리틱스 이벤트는 tdtd_ad_click. */
+   앱 다운로드 배너 "home_apps"(11/10 부터는 오늘의기록 배너 "home_todaystamp"). 애널리틱스 이벤트는 tdtd_ad_click. */
 (function(){
   function send(spot){
     try { navigator.sendBeacon('/api/track/tdtd-ad?spot=' + encodeURIComponent(spot)); } catch(e){}

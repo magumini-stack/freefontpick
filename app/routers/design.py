@@ -277,11 +277,13 @@ def render_home_sections(sections: list) -> str:
         '<img src="/static/ads/tdtd-sub-pc-slim-v3.webp" width="1200" height="140" decoding="async" '
         'alt="타닥타닥 폰트 구독 서비스 — 월 6,600원으로 타닥타닥 폰트 전종을 라이선스 제한 없이 사용하세요. 구독 알아보기">'
         '</picture></a>'
-        '<a data-tdtd-ad="home_apps" href="https://tdtd.io/apps.html" target="_blank" rel="noopener">'
+        # 11/10 사용자님: 두 장 중 앱 다운로드 배너를 그날 출시한 '오늘의기록' 배너(→ tdtd.io/todaystamp.html)로.
+        # 그림은 같은 폴더의 build_todaystamp.py(크기·글 시작 자리는 앱 배너와 같다). 옛 앱 배너 그림은 static/ads 에 남겨 둠.
+        '<a data-tdtd-ad="home_todaystamp" href="https://tdtd.io/todaystamp.html" target="_blank" rel="noopener">'
         '<picture>'
-        '<source media="(max-width:640px)" srcset="/static/ads/tdtd-apps-m-slim-v3.webp" width="720" height="364">'
-        '<img src="/static/ads/tdtd-apps-pc-slim-v3.webp" width="1200" height="140" decoding="async" '
-        'alt="글자로 노는 앱, 지금 다운 받으세요 — 와이즈폰트 무료 앱 5종: 캘리공방 · 글씨사진관 · 움짤공방 · 폰트박스 · 흐어어 메모장. 앱 다운로드">'
+        '<source media="(max-width:640px)" srcset="/static/ads/tdtd-todaystamp-m-v1.webp" width="720" height="364">'
+        '<img src="/static/ads/tdtd-todaystamp-pc-v1.webp" width="1200" height="140" decoding="async" '
+        'alt="와이즈폰트 새 앱 오늘의기록 — 사진만 찍어 두면, 오늘이 기록돼요. 예쁜 한글 스탬프로 찍고, 사진을 일기로. 앱 다운로드">'
         '</picture></a>'
         '</div>' + _AD_ROLL_SCRIPT,
     ]

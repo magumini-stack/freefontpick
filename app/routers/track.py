@@ -2,7 +2,7 @@
 
   POST /api/track/home-tool?tool=pair|find|convert|apps|vending|tdesign   (공개, 204)
   POST /api/track/convert?fmt=..&r=..                     (공개, 204)
-  POST /api/track/tdtd-ad?spot=home|home_apps|fonts|fonts_apps   (공개, 204)
+  POST /api/track/tdtd-ad?spot=home|home_apps|home_todaystamp|fonts|fonts_apps   (공개, 204)
 
 사용자님이 "메인 4칸 메뉴 박스 클릭 수를 볼 수 있을까?" 하셔서 붙였다. 머리글 메뉴에도
 같은 링크가 있어서 애널리틱스의 '다음 페이지'로는 4칸을 눌렀는지 메뉴를 눌렀는지 가를 수
@@ -71,7 +71,8 @@ def track_convert(request: Request, fmt: str = "", r: str = "", db: Session = De
 # 두 장이 반씩 나뉘어 보이므로, 그림끼리는 클릭 수를 그대로 견주면 된다.
 TDTD_AD_SPOTS = {
     "home": "메인 · 구독 배너 (→ tdtd.io)",
-    "home_apps": "메인 · 앱 다운로드 배너 (→ 앱 소개, 10/13~)",
+    "home_apps": "메인 · 앱 다운로드 배너 (→ 앱 소개, 10/13~11/10)",
+    "home_todaystamp": "메인 · 오늘의기록 출시 배너 (→ tdtd.io/todaystamp.html, 11/10~)",
     "fonts": "전체 무료폰트 보기 · 구독 배너",
     "fonts_apps": "전체 무료폰트 보기 · 앱 다운로드 배너 (10/13~)",
 }
