@@ -362,8 +362,23 @@ function glowColorOf(st){
 /* ── 폰트 불러오기 ── */
 const loaded = new Map();
 // w 는 굵기(0 = 대표 굵기). 사이트는 굵기마다 다른 파일이라 굵기마다 이름을 따로 단다
-function fam(id, w){ return 'TI-' + id + '-' + (w || 0); }
+// 웹폰트만 있는 폰트(구글 폰트 등, 11/13) — FONTS 칸 [4] 에 CSS 주소, [5] 에 글꼴 이름. 파일 대신 그 CSS 를 붙여 쓴다.
+// 굵기는 글꼴 이름 대신 ctx.font 의 굵기로 고른다(fontSpec).
+const cssOf = id => { const f = byId.get(id); return f && f[4] ? f : null; };
+const cssLinked = new Set();
+function linkCss(url){
+  if (cssLinked.has(url)) return;
+  cssLinked.add(url);
+  const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = url; document.head.appendChild(l);
+}
+function fam(id, w){ const c = cssOf(id); return c ? c[5] : 'TI-' + id + '-' + (w || 0); }
+function fontSpec(id, w, size){ return (cssOf(id) ? (w || 400) + ' ' : '') + size + "px '" + fam(id, w) + "'"; }
 function ensure(id, w){
+  const c = cssOf(id);
+  if (c) {   // 웹폰트: 글자마다 나뉜 파일이라 지금 문구로 매번 불러 달라고 한다(이미 받은 것은 바로 끝난다)
+    linkCss(c[4]);
+    return document.fonts.load(fontSpec(id, w, 40), (S && S.text) || c[1]).then(r => r.length > 0).catch(() => false);
+  }
   const key = fam(id, w);
   if (loaded.has(key)) return loaded.get(key);
   const f = byId.get(id);
@@ -378,6 +393,8 @@ function ensure(id, w){
 // 목록에서 폰트 이름만 그릴 때는 사이트의 미리보기 서브셋(.p, 이름·견본 글자만 담아 수십 KB)을 쓴다
 const loadedP = new Map();
 function ensurePreview(id){
+  const c = cssOf(id);
+  if (c) { linkCss(c[4]); return Promise.resolve(c[5]); }
   const key = 'TIP-' + id;
   if (loadedP.has(key)) return loadedP.get(key);
   const f = byId.get(id);
@@ -526,7 +543,7 @@ function render(st, scale, preview){
   const size = 110 * scale, u = size / 100;
   const ow = st.outlineW ? st.outlineW * u : 0;
   const xw = st.outerW ? st.outerW * u : 0;
-  const font = size + "px '" + fam(st.font, st.w) + "', 'Noto Sans KR', sans-serif";
+  const font = fontSpec(st.font, st.w, size) + ", 'Noto Sans KR', sans-serif";
   const m = document.createElement('canvas').getContext('2d');
   m.font = font;
   const auto = !!(st.hl || st.marker);

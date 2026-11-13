@@ -613,7 +613,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
     if (!c) return '<div class="card none rise" style="animation-delay:' + (i * 120) + 'ms">없음</div>';
     var f = F[c.id], st = STYLE[use], fo = fontFor(c.id, st[0]);
     var perms = D.uses[use].map(function (p) { return PERM[p]; }).join('·');
-    var cov = f.c >= 11000 ? '한글 11,172자' : '한글 ' + Number(f.c).toLocaleString() + '자';
+    var cov = f.c == null ? '' : f.c >= 11000 ? '한글 11,172자' : '한글 ' + Number(f.c).toLocaleString() + '자';   // 모르면 칸을 숨긴다(11/13, 글자 수는 세지 않는다)
     var href = ORIGIN + '/font/' + c.id;
     return '<article class="card rise" style="animation-delay:' + (i * 120) + 'ms" data-id="' + c.id + '" data-w="' + fo.w + '" data-fs="' + st[1] + '" data-text="' + esc(text) + '">' +
       '<div class="stage"><div class="stage-top"><span class="role">' + ROLE[i] + '</span><span class="can mini" style="--c:' + colorOf(c.id) + '"></span></div>' +
@@ -622,7 +622,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
       '<p class="why">' + esc(f.s) + '</p>' +
       // 10/16: '✓ 영상·웹 OK' 는 약속이 너무 세다(데이터가 틀리면 책임 문제) — '사용 가능(원문 확인)' 으로 낮춤
       '<div class="chips"><span class="ok">' + perms + ' 사용 가능(원문 확인)</span>' + (f.pr != null && f.pr < 60 ? '<span class="hot">인기 폰트</span>' : f.pr == null || f.pr >= 300 ? '<span class="gem">숨은 보석</span>' : '') +
-      '<span>' + cov + '</span><span>굵기 ' + f.nw + '종</span></div>' +
+      (cov ? '<span>' + cov + '</span>' : '') + '<span>굵기 ' + f.nw + '종</span></div>' +
       '<a class="go" href="' + href + '">이 폰트 받으러 가기</a></div></article>';
   }
   // 내 문구로 보기 — 견본 자리를 사용자 문구로. 미리보기 판(.p)에 없는 글자가 있으면 그 폰트의 원본 파일을 받아

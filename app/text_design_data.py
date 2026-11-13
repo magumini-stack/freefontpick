@@ -7,7 +7,7 @@
 여기서 실패하면 페이지에 박혀 있던 값이 그대로 나간다.
 
 만드는 것
-- 폰트 목록 [id, 이름, 파일 판, 처음 쓸 곳] — 파일이 있는 폰트 전부, sort_order 순.
+- 폰트 목록 [id, 이름, 파일 판, 처음 쓸 곳(, CSS 주소, 글꼴 이름)] — 파일이 있는 폰트 + 웹폰트만 있는 폰트, sort_order 순.
   '처음 쓸 곳'은 상세페이지 '이 폰트로 디자인하기' 모달이 처음 여는 쓸 곳(10/21 사용자님 "서체 모양에 따라서").
 - 쓸 곳마다 '폰트 더보기' 50종 — 용도 허브에 올라 있는 순서 → 허브 태그 폰트 → 허브 기준 점수 순, 추천 꾸밈에 쓴 폰트는 꼭 넣는다.
 
@@ -174,7 +174,14 @@ def _english_use(f):
 def _build(db: Session) -> dict:
     from .routers.files import _merged_weights, file_version_of
 
-    fonts = (db.query(Font).filter(Font.has_file.is_(True)).order_by(Font.sort_order, Font.id).all())
+    # 파일이 있는 폰트 + 웹폰트(CSS)만 있는 폰트(11/13 사용자님 "모든 영역에 지금 올라가 있는 폰트가 모두 나오게" —
+    # 구글 폰트 등 11종이 빠져 있었다). 웹폰트 폰트는 칸 [4]·[5] 에 CSS 주소·글꼴 이름을 실어 페이지가 그 CSS 로 그린다.
+    from sqlalchemy import or_
+    fonts = (db.query(Font).filter(or_(Font.has_file.is_(True), Font.webfont_css_url.isnot(None)))
+             .order_by(Font.sort_order, Font.id).all())
+    css = {f.id: (f.webfont_css_url, f.webfont_family) for f in fonts
+           if not f.has_file and f.webfont_css_url and f.webfont_family}
+    fonts = [f for f in fonts if f.has_file or f.id in css]
     feats = []
     for font in fonts:
         try:
@@ -199,7 +206,8 @@ def _build(db: Session) -> dict:
             return _english_use(f)
         return BY_SHAPE.get(f["shape"], 0)
 
-    out_fonts = [[f["id"], f["name"], file_version_of(f["id"]), first_use(f)] for f in feats]
+    out_fonts = [[f["id"], f["name"], 0, first_use(f), *css[f["id"]]] if f["id"] in css
+                 else [f["id"], f["name"], file_version_of(f["id"]), first_use(f)] for f in feats]
 
     have = {f["id"] for f in feats}
     hub_order = {}
