@@ -8,7 +8,7 @@ MySQL 환경변수가 없으면 영구 저장 가능한 경로의 SQLite로 fall
 """
 import os
 from pathlib import Path
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 
@@ -71,10 +71,30 @@ else:
 # MySQL은 pool_pre_ping으로 죽은 커넥션 자동 감지
 engine_kwargs = {"pool_pre_ping": True, "pool_recycle": 3600}
 if DATABASE_URL.startswith("sqlite"):
-    # SQLite는 멀티스레드용 옵션
-    engine_kwargs = {"connect_args": {"check_same_thread": False}}
+    # SQLite는 멀티스레드용 옵션. timeout = 잠금이 겹칠 때 기다리는 초(기본 5)
+    engine_kwargs = {"connect_args": {"check_same_thread": False, "timeout": 15}}
 
 engine = create_engine(DATABASE_URL, **engine_kwargs)
+
+
+# SQLite 를 WAL 로 연다 (2026-11-13 장애).
+# 폰트픽916 굵기 파일을 다시 올리던 무렵 DB 가 잠겨 상세페이지·허브·API 가 전부 멈췄다
+# (로그: "database is locked", 앱을 다시 켜서 풀었다). 옛 방식(rollback journal)에서는
+# 누가 쓰는 동안 다른 요청의 읽기까지 막힌다. 상세페이지는 열 때마다 조회수를 쓰고
+# 크롤러가 많이 와서, 막힌 요청이 처리 자리를 다 차지해 사이트 전체가 멈췄다.
+# WAL 이면 쓰는 중에도 읽기는 막히지 않고, 쓰기끼리만 차례를 기다린다(busy_timeout).
+# DB 파일 옆에 freefontpick.db-wal · -shm 이 생긴다 — DB 를 백업할 때 셋을 같이 복사할 것.
+if DATABASE_URL.startswith("sqlite"):
+    @event.listens_for(engine, "connect")
+    def _sqlite_pragmas(dbapi_conn, _record):
+        cur = dbapi_conn.cursor()
+        try:
+            cur.execute("PRAGMA journal_mode=WAL")
+            cur.execute("PRAGMA busy_timeout=15000")
+        except Exception as e:  # noqa: BLE001 — 못 바꿔도 예전 방식으로 계속 돈다
+            print(f"[db] SQLite PRAGMA 실패(예전 방식으로 계속): {e}", flush=True)
+        finally:
+            cur.close()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
