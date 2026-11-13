@@ -998,11 +998,46 @@ def _related_fonts(font: Font, db: Session) -> list:
             .limit(10)
             .all()
         )
+    pins = _house_pins(font, db)
+    if pins:
+        pin_ids = {p.id for p in pins}
+        rows = (pins + [r for r in rows if r.id not in pin_ids])[:10]
     try:
         font._ffp_related = rows
     except Exception:
         pass
     return rows
+
+
+# 폰트픽이 직접 만든 폰트를 '같은 계열' 맨 앞에 (2026-11-13).
+# 사용자님: 폰트픽916 출시를 알리고 싶은데 광고 칸은 늘리기 싫다 → 비슷한 장체 고딕의 상세페이지에서
+# 보이게. 태그만으로는 916 처럼 새로 올라와 좋아요가 없는 폰트가 10위 안에 못 든다.
+# 조건: 지금 폰트가 한글 고딕(아래 태그)이고 실측 폭(metric_w)이 _HOUSE_NARROW 이하인 '장체'일 때,
+# 폰트픽이 만든 장체 고딕을 앞에 둔다. 11/13 기준 느좋체·하다 콘덴스드·프리젠테이션·동그라미재단·
+# 굿네이버스 좋은이웃체·사월십육일체 약속·비트로 인스파이어체 7종. 손글씨 장체에는 넣지 않는다.
+_HOUSE_MAKER = "폰트픽"
+_HOUSE_NARROW = 0.80
+_HOUSE_GOTHIC_TAGS = {"제목-본문용 고딕", "네모틀 고딕"}
+
+
+def _house_pins(font: Font, db: Session) -> list:
+    try:
+        if font.is_english or (font.maker or "") == _HOUSE_MAKER:
+            return []
+        if font.metric_w is None or font.metric_w > _HOUSE_NARROW:
+            return []
+        if not ({t.name for t in (font.tags or [])} & _HOUSE_GOTHIC_TAGS):
+            return []
+        return (
+            db.query(Font)
+            .filter(Font.maker == _HOUSE_MAKER, Font.has_file.is_(True), Font.id != font.id,
+                    Font.metric_w.isnot(None), Font.metric_w <= _HOUSE_NARROW)
+            .order_by(Font.id.desc())
+            .limit(2)
+            .all()
+        )
+    except Exception:  # noqa: BLE001 — 덤으로 붙이는 칸이라 실패해도 원래 목록을 낸다
+        return []
 
 
 def _related_block(font: Font, db: Session) -> str:

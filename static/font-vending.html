@@ -835,7 +835,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
     }
   }
   if (window.VENDING_DATA) start(window.VENDING_DATA);
-  else fetch('/static/vending/data.json').then(function (r) { return r.json(); }).then(start);
+  else fetch('/static/vending/data.json?v=20261113').then(function (r) { return r.json(); }).then(start);
 })();
 </script>
 </body>
