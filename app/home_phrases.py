@@ -52,9 +52,18 @@ ENGLISH_PHRASES = ["Fewer things,|chosen better", "Built with care,|meant to sta
                    "The quiet hour|before morning", "Made to last,|made to share"]
 
 
-def phrase_for(slug: str, rank: int, is_english: bool, fallback: list) -> str:
-    """rank 는 1부터. 없으면 fallback(허브 문구 칩) → 마지막엔 영문 문구."""
+def phrase_for(slug: str, rank: int, is_english: bool, fallback: list, lack: str = "") -> str:
+    """rank 는 1부터. 없으면 fallback(허브 문구 칩) → 마지막엔 영문 문구.
+
+    lack = 그 폰트에 없는 글자(app/preview_lack.py, 11/13). 그 글자가 든 문구는 건너뛰고 다음 것을 쓴다 —
+    리아체처럼 한글을 일부만 담은 폰트에서 한 글자만 다른 글꼴로 떨어지지 않게. 다 걸리면 원래 자리 문구."""
     pool = ENGLISH_PHRASES if is_english else (HOME_PHRASES.get(slug) or fallback or ENGLISH_PHRASES)
     if not pool:
         return ""
-    return pool[(rank - 1) % len(pool)]
+    start = (rank - 1) % len(pool)
+    if lack:
+        for i in range(len(pool)):
+            t = pool[(start + i) % len(pool)]
+            if not any(c in lack for c in t):
+                return t
+    return pool[start]

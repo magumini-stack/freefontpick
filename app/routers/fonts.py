@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from ..database import get_db
+from ..preview_lack import lack_of
 from .. import content_cache
 from ..models import Font, Tag, FontPairing
 from ..auth import require_password_changed
@@ -348,6 +349,9 @@ def _build_list(weights: bool) -> bytes:
             if f.id in new_rank:
                 meta["new"] = new_rank[f.id]
             meta["rec"] = _rec_score(hub.get(f.id, 0.0), lic8, f.weights)
+            lack = lack_of(f)          # 견본 문구 글자 중 이 폰트에 없는 것(app/preview_lack.py, 11/13)
+            if lack:
+                meta["lack"] = lack
             item.meta = meta
             out.append(item)
         return _json.dumps(jsonable_encoder(out), ensure_ascii=False).encode("utf-8")
@@ -570,7 +574,15 @@ def get_font(font_id: int, db: Session = Depends(get_db)):
     font = db.query(Font).filter(Font.id == font_id).first()
     if not font:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
-    return _to_out(font, _paired_font_ids(db))
+    return _with_lack(_to_out(font, _paired_font_ids(db)), font)
+
+
+def _with_lack(item, font):
+    """meta 사본에 lack(그 폰트에 없는 견본 글자)을 더한다 — font.meta 를 직접 바꾸면 DB 에 쓰인다."""
+    lack = lack_of(font)
+    if lack:
+        item.meta = dict(item.meta or {}, lack=lack)
+    return item
 
 
 # 관리자 API

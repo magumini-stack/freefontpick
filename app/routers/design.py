@@ -27,6 +27,7 @@ from ..models import (Font, FontPairing, FontSubmission, SubmissionAnswer,
                       UseCase, UseCaseFont, FontTag)
 from ..header import inject_header, not_found_page
 from .. import content_cache
+from ..preview_lack import lack_of
 
 
 def _esc(s) -> str:
@@ -190,7 +191,7 @@ def _home_sections_data(db: Session) -> list:
             if own and not (is_en and re.search(r"[가-힣]", own)):
                 text = own
             else:
-                text = phrase_for(uc.slug, i, is_en, chips)
+                text = phrase_for(uc.slug, i, is_en, chips, lack_of(f))
             cards.append({
                 "font": _home_font_slim(f),
                 "maker": f.maker or "",
@@ -218,7 +219,7 @@ def _home_sections_data(db: Session) -> list:
             pcards.append({
                 "font": _home_font_slim(f), "maker": f.maker or "", "weights": f.weights or "1종",
                 "tags": [t.name for t in f.tags], "rank": r["rank"], "rank_text": f"{r['rank']}위",
-                "text": phrase_for("popular", r["rank"], bool(f.is_english), []),
+                "text": phrase_for("popular", r["rank"], bool(f.is_english), [], lack_of(f)),
             })
         if pcards:
             out.insert(0, {
@@ -692,7 +693,15 @@ def _preview_phrase(font: Font) -> tuple:
     다만 영문 전용 폰트에 한글 문구가 들어 있으면 글자가 통째로 깨지므로
     그때는 쓰지 않는다 — 홈(index.html getPreviewTextFor)과 같은 규칙이다.
     """
-    ko, en = _PREVIEW_PHRASES[(font.id or 0) % len(_PREVIEW_PHRASES)]
+    n = len(_PREVIEW_PHRASES)
+    ko, en = _PREVIEW_PHRASES[(font.id or 0) % n]
+    lack = lack_of(font)   # 그 폰트에 없는 글자가 든 문구는 건너뛴다(11/13 리아체 '떤')
+    if lack:
+        for i in range(n):
+            k2, e2 = _PREVIEW_PHRASES[((font.id or 0) + i) % n]
+            if not any(c in lack for c in k2):
+                ko, en = k2, e2
+                break
     meta = font.meta or {}
     own = str(meta.get("preview_text") or "").strip()
     if own:
@@ -719,12 +728,12 @@ def _font_boot_block(font: Font, db: Session) -> str:
     """
     try:
         from fastapi.encoders import jsonable_encoder
-        from .fonts import _to_out, _paired_font_ids
+        from .fonts import _to_out, _paired_font_ids, _with_lack
         from .files import _merged_weights
         from .pairings import font_pairings
         from ..schemas import FontWeightOut
         data = {
-            "font": jsonable_encoder(_to_out(font, _paired_font_ids(db))),
+            "font": jsonable_encoder(_with_lack(_to_out(font, _paired_font_ids(db)), font)),
             "weights": jsonable_encoder([FontWeightOut(**w) if isinstance(w, dict) else w
                                          for w in _merged_weights(font)]),
             # 화면은 앞 6개만 그린다(font.html renderPairings). 아리따부리처럼 조합이 168개인 폰트를

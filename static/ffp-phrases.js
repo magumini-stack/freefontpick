@@ -423,5 +423,22 @@
 
   function randomIndex() { return Math.floor(Math.random() * SAMPLE.length); }
 
-  root.FFPPhrases = { SAMPLE: SAMPLE, nextIndex: nextIndex, randomIndex: randomIndex };
+  /* 폰트에 없는 글자(lack — 서버가 meta.lack 로 준다, app/preview_lack.py)가 든 문구는 쓰지 않는다(11/13).
+     리아체처럼 한글을 일부만 담은 폰트에서 한 글자만 다른 글꼴로 떨어져 깨져 보였다. */
+  function fits(text, lack) {
+    if (!lack || !text) return true;
+    for (var i = 0; i < text.length; i++) if (lack.indexOf(text.charAt(i)) >= 0) return false;
+    return true;
+  }
+  /* start 자리부터 한 바퀴 돌며 맞는 문구 번호. 다 걸리면 start 그대로. */
+  function fitIndex(start, lack, isEn) {
+    if (!lack) return start;
+    for (var i = 0; i < SAMPLE.length; i++) {
+      var k = (start + i) % SAMPLE.length;
+      if (fits(isEn ? SAMPLE[k].en : SAMPLE[k].ko, lack)) return k;
+    }
+    return start;
+  }
+
+  root.FFPPhrases = { SAMPLE: SAMPLE, nextIndex: nextIndex, randomIndex: randomIndex, fits: fits, fitIndex: fitIndex };
 })(window);

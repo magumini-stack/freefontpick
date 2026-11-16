@@ -1073,7 +1073,8 @@ function currentSample(){ return SAMPLE_PHRASES[_sampleIdx]; }
 function poolPhraseFor(font){
   const n = SAMPLE_PHRASES.length;
   const id = (font && typeof font.id === 'number') ? font.id : 0;
-  return SAMPLE_PHRASES[(id + _sampleIdx) % n];
+  const lack = font && font.meta && font.meta.lack;      // 이 폰트에 없는 글자(11/13) — 든 문구는 건너뛴다
+  return SAMPLE_PHRASES[FFPPhrases.fitIndex((id + _sampleIdx) % n, lack, !!(font && font.isEnglish))];
 }
 
 /* 미리 써보기 입력창 문구. 비어 있으면 폰트마다 배정된 문구를 쓴다.

@@ -843,8 +843,10 @@
       // 그려져서 "폰트가 안 나온다"로 보인다.
       return (carried && !hasHangul(carried)) ? carried : DEFAULT_TEXT_EN;
     }
-    /* 이어받은 문구에 한글이 하나도 없으면 한글 폰트에는 쓰지 않는다. */
-    return (carried && hasHangul(carried)) ? carried : DEFAULT_TEXT;
+    /* 이어받은 문구에 한글이 하나도 없으면 한글 폰트에는 쓰지 않는다.
+       이 폰트에 없는 글자가 든 문구도 쓰지 않는다(11/13 리아체 '떤') — 서버 기본 문구는 이미 걸러져 온다. */
+    var lack = FONT && FONT.meta && FONT.meta.lack;
+    return (carried && hasHangul(carried) && (!window.FFPPhrases || FFPPhrases.fits(carried, lack))) ? carried : DEFAULT_TEXT;
   }
 
   /* ── '실제 사용 예시' 굵기 — 요구 굵기를 이 폰트가 실제로 가진 굵기로 당긴다(가짜 볼드 방지) ── */
@@ -1016,6 +1018,7 @@
   function rollTryPhrase(){
     if (!window.FFPPhrases) return;
     _rollIdx = FFPPhrases.nextIndex(_rollIdx);
+    _rollIdx = FFPPhrases.fitIndex(_rollIdx, FONT && FONT.meta && FONT.meta.lack, !!(FONT && FONT.is_english));   // 없는 글자가 든 문구는 건너뜀(11/13)
     _rolled = FFPPhrases.SAMPLE[_rollIdx];
     var el = document.getElementById('tryInput');
     if (el) el.value = '';        // 쓰던 문구가 있어도 고른 견본으로 되돌린다
