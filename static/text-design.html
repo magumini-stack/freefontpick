@@ -111,8 +111,8 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   /* 3. 결과 */
   /* 2026-10-21 사용자님 "템플릿을 왼쪽에, 더 꾸미기를 오른쪽에" — 세 칸: 추천 꾸밈 | 문구·미리보기·저장 | 더 꾸미기(늘 펼침) */
   .top{grid-area:top}
-  .work{display:grid;grid-template-columns:268px minmax(0,1fr) 320px;grid-template-rows:auto auto auto 1fr;
-    grid-template-areas:"recs top more" "recs stage more" "recs act more" "recs ad more";gap:18px 26px;align-items:start}
+  .work{display:grid;grid-template-columns:268px minmax(0,1fr) 320px;grid-template-rows:auto auto 1fr;
+    grid-template-areas:"recs top more" "recs pane more" "recs ad more";gap:18px 26px;align-items:start}
   /* 세 칸 바닥 맞추기 — 10/21 사용자님 "추천 꾸밈 맨 아래·더 꾸미기 맨 아래·광고 하단이 같은 라인" */
   .recs,.more{align-self:stretch}
   .ad{align-self:stretch}   /* 광고는 안내 아래부터 바닥선까지 채운다(10/21 사용자님) */
@@ -127,7 +127,9 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   /* 미리보기는 내려도 위에 붙어 있게(11/13 사용자님 "더 꾸미기에서 버튼을 눌렀을 때 캔버스가 어떻게 바뀌는지 알 수가 없어").
      좁은 화면·디자인하기 모달에선 더 꾸미기가 미리보기 아래에 쌓여, 내려가면 미리보기가 위로 사라졌다.
      넓은 화면 세 칸에서도 더 꾸미기 칸이 길어 같은 일이 생겨 폭과 상관없이 붙인다. 위 자리 = 사이트 고정 머리글(60px), 모달 안은 0 */
-  .stage{position:sticky;top:var(--stick-top,60px);z-index:5}
+  /* 미리보기와 저장 줄을 한 덩어리(.pane)로 붙인다 — 미리보기만 붙이면 아래 저장 단추가 그 밑으로 지나가며 겹쳤다(11/13) */
+  .pane{grid-area:pane;position:sticky;top:var(--stick-top,60px);z-index:5;display:flex;flex-direction:column;gap:14px;
+    background:var(--bg);padding-bottom:8px}
   .embed{--stick-top:0px}
   .stage canvas{max-width:100%;max-height:320px;height:auto;display:block}
 
@@ -222,7 +224,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
   /* 노트북 폭 — 더 꾸미기는 가운데 칸 아래로 */
   @media (max-width:1180px) and (min-width:861px){
     .work{grid-template-columns:248px minmax(0,1fr);grid-template-rows:auto;
-      grid-template-areas:"recs top" "recs stage" "recs act" "recs ad" "recs more"}
+      grid-template-areas:"recs top" "recs pane" "recs ad" "recs more"}
   }
   @media (max-width:860px){
     .wrap{padding:24px 16px 60px}
@@ -230,7 +232,7 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
     .uses::-webkit-scrollbar{display:none}
     .use{flex:none;font-size:14px;padding:8px 14px}
     .txt{font-size:18px}
-    .work{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"top" "stage" "recs" "act" "ad" "more";gap:14px}
+    .work{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"top" "pane" "recs" "ad" "more";gap:14px}
     .ad{height:100px}
     .stage{min-height:200px;padding:18px}
     .stage canvas{max-height:200px}
@@ -265,12 +267,8 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
         <p class="hint" id="hint" hidden>강조할 곳은 자동으로 골라요. 직접 고르려면 [대괄호]로 감싸 주세요.</p>
       </div>
     </div>
+    <div class="pane">
     <div class="stage" id="stage"></div>
-
-    <div class="recs">
-      <p class="h2">추천 꾸밈 <small>눌러서 바로 적용</small></p>
-      <div class="reclist" id="recs"></div>
-    </div>
 
     <div class="act">
       <div class="btns">
@@ -279,6 +277,12 @@ if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)
       </div>
       <p class="toast" id="toast"></p>
       <p class="note" id="lic"></p>
+    </div>
+    </div><!-- /.pane -->
+
+    <div class="recs">
+      <p class="h2">추천 꾸밈 <small>눌러서 바로 적용</small></p>
+      <div class="reclist" id="recs"></div>
     </div>
 
     <details class="more" id="more">

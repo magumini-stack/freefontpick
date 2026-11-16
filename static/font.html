@@ -1329,7 +1329,7 @@ window.addEventListener('pageshow', function(e){
   var b = document.getElementById('tdesignBtn');
   if (b) b.addEventListener('click', window.tdOpen);
   document.getElementById('tdmClose').addEventListener('click', close);
-  m.addEventListener('click', function(e){ if (e.target === m) close(); });
+  /* 바깥을 눌러 닫지 않는다(11/13 사용자님 — 꾸미다가 바깥을 잘못 눌러 닫혔다). × 와 Esc 로만 닫힌다. */
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !m.hidden) close(); });
 })();
 </script>
