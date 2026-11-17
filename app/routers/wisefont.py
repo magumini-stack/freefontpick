@@ -219,7 +219,8 @@ WISEFONTS = [
         "ko_full": "에그타르트",
         "name": "에그타르트",
         "full_name": "Eggtart_K",
-        "formats": "TTF",
+        # OTF 는 TTF 윤곽을 그대로 3차 곡선으로 옮긴 것(가족 이름 'Eggtart_K OTF', 같이 깔아도 안 부딪힘).
+        "formats": "TTF, OTF",
         # 세 굵기의 글자 폭이 모두 같다(굵기를 바꿔도 줄 길이가 그대로).
         "weights": "3종 Light · Medium · Bold",
         "glyphs": "완성형 2,780자 (KS 2,350자 + 430자)",
