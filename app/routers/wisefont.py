@@ -214,6 +214,18 @@ WISEFONTS = [
         "tags": ["제목용", "역동적"],
         "font_id": 501,
     },
+    {
+        "slug": "eggtart",
+        "ko_full": "에그타르트",
+        "name": "에그타르트",
+        "full_name": "Eggtart_K",
+        "formats": "TTF",
+        # 세 굵기의 글자 폭이 모두 같다(굵기를 바꿔도 줄 길이가 그대로).
+        "weights": "3종 Light · Medium · Bold",
+        "glyphs": "완성형 2,780자 (KS 2,350자 + 430자)",
+        "tags": ["손글씨", "귀여운"],
+        "font_id": 1010,
+    },
 ]
 
 _BY_SLUG = {f["slug"]: f for f in WISEFONTS}
@@ -307,6 +319,12 @@ def wisefont_page(slug: str, db: Session = Depends(get_db)):
         ]
     )
 
+    # "TTF, OTF가 함께 담긴" 은 형식이 하나뿐이면(에그타르트 TTF 3종) 어색해서 그때만 굵기 수로 쓴다.
+    if "," in font["formats"]:
+        dl_note = f"{font['formats']}가 함께 담긴 ZIP 파일로 받습니다"
+    else:
+        dl_note = f"{font['formats']} {font['weights'].split()[0]}이 담긴 ZIP 파일로 받습니다"
+
     detail_link = ""
     if font.get("font_id"):
         detail_link = (
@@ -326,6 +344,7 @@ def wisefont_page(slug: str, db: Session = Depends(get_db)):
         "{{WF_NAME_URL}}": _q(name),
         "{{WF_FULLNAME}}": _esc(font["full_name"]),
         "{{WF_FORMATS}}": _esc(font["formats"]),
+        "{{WF_DL_NOTE}}": _esc(dl_note),
         "{{WF_SPECS}}": spec_rows,
         "{{WF_THUMB}}": _thumb_url(slug),
         "{{WF_SLUG}}": slug,
