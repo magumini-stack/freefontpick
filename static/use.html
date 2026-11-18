@@ -264,10 +264,12 @@ a{color:inherit}
     if (f.has_file){
       if (!loadedFile[f.id]){
         loadedFile[f.id] = true;
+        /* 미리보기 서브셋(.p) — 카드는 문구 칩·폰트 이름만 그리고, 그 글자는 서브셋에 다 들어 있다
+           (app/font_subset.py: UseCasePhrase·폰트 이름). 전체 파일 30종이 5.8MB 였다(11/18 SEO 점검). */
         var fam = 'FFP-' + String(f.id).padStart(3,'0');
         fontStyleEl.appendChild(document.createTextNode(
           "@font-face{font-family:'" + fam + "';src:url('/api/fonts/" + f.id +
-          "/file" + (f.file_version ? "?v=" + f.file_version : "") +
+          "/file/0" + (f.file_version ? ".v" + f.file_version : "") + ".p.woff2" +
           "') format('woff2');font-display:swap;font-weight:normal;font-style:normal}"
         ));
       }

@@ -109,7 +109,7 @@ def preview_text() -> str:
         # 폰트 이름·제작사와 어드민이 넣은 문구 — 미리보기 카드에 그대로 찍힌다.
         try:
             from .database import SessionLocal
-            from .models import Font, PreviewPhrase, UseCase, UseCasePhrase
+            from .models import Font, FontPairing, PreviewPhrase, UseCase, UseCasePhrase
             db = SessionLocal()
             try:
                 for name, maker in db.query(Font.name, Font.maker).all():
@@ -126,6 +126,11 @@ def preview_text() -> str:
                     chars.update(text or "")
                 for (text,) in db.query(UseCasePhrase.text).all():
                     chars.update(text or "")
+                # 조합 카드 견본 문구 — 11/18 부터 상세페이지 옆 조합 카드도 서브셋을 쓴다.
+                # 시드(pairing_data)·문구 뱅크는 위에서 이미 모았고, 이것은 어드민이 직접 쓴 문구까지 챙긴다.
+                for t, bd in db.query(FontPairing.sample_title, FontPairing.sample_body).all():
+                    chars.update(t or "")
+                    chars.update(bd or "")
             finally:
                 db.close()
         except Exception:

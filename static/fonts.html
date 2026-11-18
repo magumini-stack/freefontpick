@@ -17,7 +17,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>전체 무료폰트 보기 - 상업용 무료 한글폰트 | 폰트픽</title>
-  <style>html.ffp-js #homeSsr{display:none}</style>
+  <style>html.ffp-js #homeSsr{display:none}
+    /* 11/18 SEO 점검: 카드는 JS 가 /api/fonts 를 받아 그리므로 처음엔 격자가 비어 바닥글이 화면 위로 올라왔다가
+       카드가 그려지는 순간 통째로 밀렸다(CLS PC 0.61·휴대폰 0.87). 첫 그리기 전까지 자리를 잡아 둔다.
+       결과 없음일 때는 안내 칸이 들어가 :empty 가 풀리므로 빈 자리가 남지 않는다. */
+    html.ffp-js #fontGrid:empty{min-height:200vh}</style>
   <link rel="stylesheet" href="/header.css">
 
   <!-- 구글 태그(gtag.js)는 app/header.py가 헤더 마커 자리에 함께 넣는다.
@@ -372,7 +376,8 @@
     /* 형태 카테고리는 항상 한 줄로 둔다.
        줄바꿈을 허용하면 태그가 늘 때마다 바 높이가 들쭉날쭉해지고,
        고정 바라서 그 변화가 갤러리 전체를 흔든다. 대신 넘치면 가로 스크롤. */
-    .tags-scroll{display:flex;gap:4px;flex-wrap:nowrap;min-width:0;flex:1 1 auto;
+    /* min-height: 칩은 JS 가 채운다. 빈 채로 시작하면 칩이 들어올 때 바가 12px 자라 아래가 다 밀렸다(11/18 실측 칩 31px+여백 2). */
+    .tags-scroll{display:flex;gap:4px;flex-wrap:nowrap;min-width:0;flex:1 1 auto;min-height:33px;
       overflow-x:auto;overscroll-behavior-x:contain;
       -webkit-overflow-scrolling:touch;
       scrollbar-width:none;-ms-overflow-style:none;
@@ -391,6 +396,7 @@
       .tags-label{display:none}
       .tags-bar{gap:0;padding:8px 0}
       .tag{font-size:12.5px;padding:5px 10px}
+      .tags-scroll{min-height:31px}
     }
 
     /* FILTER BAR */

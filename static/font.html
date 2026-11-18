@@ -667,7 +667,8 @@
   function loadRelatedFace(rf){
     if (rf.webfont_css_url){ var l = document.createElement('link'); l.rel='stylesheet'; l.href=rf.webfont_css_url; document.head.appendChild(l); return; }
     // 관련 폰트는 이름 한 줄만 그린다 — 미리보기 서브셋으로 충분하다.
-    if (rf.has_file){ ensureFont({ id: rf.id, has_file: true }, true); }
+    // 판(file_version)도 넘긴다 — 없으면 주소에 .v 가 빠져 1년 캐시를 못 받고 매번 다시 받는다(11/18 SEO 점검).
+    if (rf.has_file){ ensureFont({ id: rf.id, has_file: true, file_version: rf.file_version }, true); }
   }
   function renderRelated(list){
     if (!list || !list.length) return;
@@ -1040,8 +1041,9 @@
     var tw = p.title_weight || 700;
     var bw = p.body_weight || 400;
     /* stack·weight 를 받은 그대로 적는다(faceFor 주석). */
-    var tf = faceFor(p.title_font, tw);
-    var bf = faceFor(p.body_font, bw);
+    /* 짝 폰트는 견본 문구 두 줄만 그린다 → 미리보기 서브셋. 이 페이지 주인공 폰트는 전체 파일(이미 받아 둔 것)을 쓴다. */
+    var tf = faceFor(p.title_font, tw, p.title_font.id !== fid);
+    var bf = faceFor(p.body_font, bw, p.body_font.id !== fid);
     var partner = (p.title_font.id === fid) ? p.body_font : p.title_font;
     return '<a class="pair-card" href="/font/' + partner.id + '">' +
       '<div class="pair-stage">' +

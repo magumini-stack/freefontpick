@@ -182,8 +182,11 @@
        ② 파일 없음       — 시스템 대체 폰트 → 합성 말고는 방법이 없다 → 그대로
        ③ 그 굵기 파일 있음 — 파일이 직접 그린다 → weight는 400 (합성 금지)
        ④ 대표 파일뿐     — 1~999로 등록해 합성을 유도 → 부른 굵기 그대로 */
+  /* preview=true 면 미리보기 서브셋(.p)을 쓴다 — 정해진 견본 문구만 그리는 자리(상세페이지 옆 조합 카드)용.
+     family 이름에 -p 를 붙여 같은 폰트의 전체 파일 face 와 섞이지 않게 한다(본체 폰트가 같은 이름으로
+     전체 파일을 이미 등록했을 수 있다). 11/18 SEO 점검: 조합 카드가 전체 파일을 받아 상세 한 장이 4.8MB 였다. */
   var pairLoaded = {};
-  function faceFor(f, weight) {
+  function faceFor(f, weight, preview) {
     if (!f) return { stack: "sans-serif", weight: weight };
 
     var wf = resolveWebfont(f);
@@ -197,17 +200,17 @@
 
     var avail = f.available_weights || [];
     if (avail.indexOf(weight) >= 0) {                           // ③
-      var fam = weightFamily(f.id, weight);
+      var fam = weightFamily(f.id, weight) + (preview ? '-p' : '');
       if (!pairLoaded[fam]) {
         pairLoaded[fam] = true;
-        addFace(fam, fileUrl(f.id, weight, verOf(f)));
+        addFace(fam, fileUrl(f.id, weight, verOf(f), preview));
       }
       return { stack: "'" + fam + "'," + baseStack(f), weight: 400 };
     }
-    var wide = 'FFPW-' + pad3(f.id);                            // ④
+    var wide = 'FFPW-' + pad3(f.id) + (preview ? '-p' : '');    // ④
     if (!pairLoaded[wide]) {
       pairLoaded[wide] = true;
-      addFace(wide, fileUrl(f.id, 0, verOf(f)), '1 999');
+      addFace(wide, fileUrl(f.id, 0, verOf(f), preview), '1 999');
     }
     return { stack: "'" + wide + "'," + baseStack(f), weight: weight };
   }
