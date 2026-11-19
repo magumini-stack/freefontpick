@@ -730,23 +730,26 @@ def _font_boot_block(font: Font, db: Session) -> str:
         from fastapi.encoders import jsonable_encoder
         from .fonts import _to_out, _paired_font_ids, _with_lack
         from .files import _merged_weights
-        from .pairings import font_pairings
+        from .pairings import pairings_for_font
+        from .files import weight_file_mtimes
         from ..schemas import FontWeightOut
+        # 굵기 폴더는 한 번만 훑고(wmt), 조합 표 전체 훑기(_paired_font_ids)도 한 번만 한다 (11/19 SEO 4번)
+        wmt = weight_file_mtimes()
+        paired = _paired_font_ids(db)
         data = {
-            "font": jsonable_encoder(_with_lack(_to_out(font, _paired_font_ids(db)), font)),
+            "font": jsonable_encoder(_with_lack(_to_out(font, paired, wmt=wmt), font)),
             "weights": jsonable_encoder([FontWeightOut(**w) if isinstance(w, dict) else w
                                          for w in _merged_weights(font)]),
             # 화면은 앞 6개만 그린다(font.html renderPairings). 아리따부리처럼 조합이 168개인 폰트를
             # 통째로 실으면 162KB 가 붙으므로 그 6개만 싣는다 — 순서는 API 와 같다.
-            "pairings": jsonable_encoder(font_pairings(font.id, db)[:6]),
+            "pairings": jsonable_encoder(pairings_for_font(font.id, db, limit=6)),
         }
         # 같은 계열 10종(2026-10-23) — 화면은 이 폰트들을 그 폰트 모양으로 다시 그리려고 전체 목록
         # /api/fonts(압축 116KB)를 받아 다시 골랐다. 서치콘솔 크롤링에서 JSON 이 HTML 보다 많던
         # 주된 까닭이라, 서버가 고른 같은 8종을 실어 두고 화면은 이걸로 그린다(없으면 예전처럼).
         # 화면(renderRelated·stackOf)이 쓰는 칸만 — 통째로 실으면 소개글·라이선스까지 붙어 수십 KB 가 된다
         keep = ("id", "name", "has_file", "stack", "webfont_family", "webfont_css_url", "file_source", "file_version")
-        paired = _paired_font_ids(db)
-        data["related"] = [{k: v for k, v in jsonable_encoder(_to_out(r, paired)).items() if k in keep}
+        data["related"] = [{k: v for k, v in jsonable_encoder(_to_out(r, paired, wmt=wmt)).items() if k in keep}
                            for r in _related_fonts(font, db)]
     except Exception:
         return ""

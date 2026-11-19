@@ -117,25 +117,71 @@ def font_pairings(font_id: int, db: Session = Depends(get_db)) -> List[dict]:
     해당 폰트가 이 조합에서 700 이상 굵기로 쓰인 경우를 "굵기 활용 조합"으로
     보고 우선 정렬해 상위 6개 안에 반드시 포함되도록 한다.
     """
-    rows = (
-        db.query(FontPairing)
+    return pairings_for_font(font_id, db)
+
+
+def pairings_for_font(font_id: int, db: Session, limit: int = None) -> List[dict]:
+    """font_pairings 의 본체. 상세페이지(design._font_boot_block)는 앞 6개만 쓰므로 limit 을 준다.
+
+    2026-11-19 SEO 점검 4번: 조합이 많은 폰트(#59 246건·#62 259건)의 상세페이지가 늘 2~4초 걸렸다.
+    조합마다 제목·본문 폰트 요약을 만들면서 file_version_of 가 굵기 폴더를 통째로 glob 해
+    (조합 246건이면 약 500번), 그 뒤 6개만 남기고 버렸다. 이제는
+      · 정렬에 필요한 좁은 칸만 먼저 읽어 순서를 정하고 자른 뒤에 폰트를 붙이고
+      · 폴더는 weight_file_mtimes() 로 한 번만 훑고, 같은 폰트 요약은 한 번만 만든다.
+    순서·모양은 예전과 같다.
+    """
+    keys = (
+        db.query(FontPairing.id, FontPairing.title_font_id, FontPairing.body_font_id,
+                 FontPairing.title_weight, FontPairing.body_weight, FontPairing.sort_order)
         .filter(or_(
             FontPairing.title_font_id == font_id,
             FontPairing.body_font_id == font_id,
         ))
-        .order_by(FontPairing.sort_order, FontPairing.id)
         .all()
     )
 
-    def _is_weight_showcase(p: FontPairing) -> bool:
-        if p.title_font_id == font_id and (p.title_weight or 0) >= 700:
+    def _is_weight_showcase(k) -> bool:
+        if k.title_font_id == font_id and (k.title_weight or 0) >= 700:
             return True
-        if p.body_font_id == font_id and (p.body_weight or 0) >= 700:
+        if k.body_font_id == font_id and (k.body_weight or 0) >= 700:
             return True
         return False
 
-    rows.sort(key=lambda p: (0 if _is_weight_showcase(p) else 1, p.sort_order, p.id))
-    return [d for d in (_to_out(p) for p in rows) if d]
+    # 예전과 같은 순서: (굵기 활용 먼저, sort_order, id). DB 의 sort_order 가 None 일 수 있어 0 으로 비교.
+    keys.sort(key=lambda k: (0 if _is_weight_showcase(k) else 1, k.sort_order or 0, k.id))
+    ids = [k.id for k in keys]
+    if not ids:
+        return []
+
+    from .files import weight_file_mtimes
+    wmt = weight_file_mtimes()
+    briefs: dict = {}
+
+    def brief(f: Font) -> dict:
+        if f.id not in briefs:
+            briefs[f.id] = _font_brief(f, wmt)
+        return briefs[f.id]
+
+    out: List[dict] = []
+    # 고아 조합(폰트가 지워진 것)은 빠지므로, limit 이 있으면 조금 넉넉히 읽어 가며 채운다.
+    step = (limit + 4) if limit else len(ids)
+    for i in range(0, len(ids), step):
+        chunk = ids[i:i + step]
+        rows = (
+            db.query(FontPairing)
+            .options(selectinload(FontPairing.title_font), selectinload(FontPairing.body_font))
+            .filter(FontPairing.id.in_(chunk))
+            .all()
+        )
+        by_id = {r.id: r for r in rows}
+        for pid in chunk:
+            r = by_id.get(pid)
+            d = _to_out(r, brief) if r is not None else None
+            if d:
+                out.append(d)
+                if limit and len(out) >= limit:
+                    return out
+    return out
 
 
 @router.get("/debug/font-audit")
