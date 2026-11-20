@@ -543,7 +543,18 @@ if(new URLSearchParams(location.search).has('license')){
   location.replace('/fonts?license=1');
 }
 route();
-const onNavigate = () => { if(location.hash !== '#google_vignette') route(); };
+/* 애드센스 전면 광고(비네트)는 뜰 때 주소에 #google_vignette 를 붙이고, 닫으면 떼어 낸다.
+     어느 쪽이든 우리 화면이 바뀐 게 아니므로 다시 그리지 않는다(닫을 때 다시 그리면 보던 검색·
+     카테고리가 지워진다). 닫을 때는 hashchange·popstate 가 잇달아 오므로 잠깐 동안 같이 건너뛴다. */
+  let _lastHash = location.hash, _vigClosedAt = 0;
+  const onNavigate = () => {
+    const cur = location.hash, prev = _lastHash;
+    _lastHash = cur;
+    if(cur === '#google_vignette') return;
+    if(prev === '#google_vignette' && cur === '') _vigClosedAt = Date.now();
+    if(cur === '' && Date.now() - _vigClosedAt < 600) return;
+    route();
+  };
 window.addEventListener('hashchange', onNavigate);
 window.addEventListener('popstate', onNavigate);
 /* 어드민에서 공지를 고치면 보고 있던 공지 화면을 갱신 */
