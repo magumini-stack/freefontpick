@@ -371,21 +371,61 @@
         if (has(t, K_HELLO) && t.length <= 12) { say('안녕하세요! 쓰실 곳과 원하는 느낌을 말씀해 주시면 어울리는 폰트를 골라 드릴게요 😊', {chips: [['go', 'start', '질문 3개로 추천받기']].concat(EXAMPLES.slice(0, 3).map(function (x) { return ['ex', x, x]; }))}); return; }
         if (has(t, K_HELP)) { say('쓰실 곳(썸네일·자막·PPT·로고 등)과 느낌(귀여운·깔끔한·감성적인 등)을 말씀해 주시면 폰트 3종을 골라 드려요.\n뽑은 뒤에는 “더 귀엽게”, “좀 더 굵게”, “명조로”, “다른 거”처럼 이어서 말씀하셔도 돼요.', {chips: [['go', 'start', '질문 3개로 추천받기']].concat(EXAMPLES.slice(0, 2).map(function (x) { return ['ex', x, x]; }))}); return; }
         if (has(t, K_THANKS)) { say('도움이 됐다니 기뻐요 😊 더 찾으시면 언제든 말씀해 주세요!', {chips: [['restart', 'x', '처음부터 다시']]}); return; }
-        say('말씀을 정확히 못 알아들었어요 😅\n쓰실 곳이나 느낌을 하나만 말씀해 주셔도 돼요.\n“브이로그 자막”, “귀여운 썸네일”, “굵은 포스터 제목”, “명조 말고 고딕”', {
-          chips: [['go', 'start', '질문 3개로 추천받기']].concat(EXAMPLES.slice(0, 2).map(function (x) { return ['ex', x, x]; }))});
+        // 사전이 하나도 못 알아들은 말 — 여기서부터 AI 가 거든다(11/24 혼합 방식). 너무 짧은 말은 부르지 않는다
+        if (raw.trim().length >= 2 && raw.length <= 200) { askAI(raw); return; }
+        notUnderstood();
         return;
       }
-      if (use) S.sel.use = use;
-      if (mood) S.sel.mood = mood;
-      if (pop) S.sel.pop = pop;
-      if (grp) S.grp = grp;
-      if (bold) S.wt = 'bold'; else if (thin) S.wt = 'thin';
-      S.seen = {}; save();
-      // 쓰임·느낌 중 빠진 게 있으면 그것만 묻는다(인기는 말이 없으면 ‘상관없어요’로)
-      if (!S.sel.use || !S.sel.mood) { say('알겠어요!', null, 200).then(function () { nextAsk(true); }); return; }
-      if (!S.sel.pop) S.sel.pop = 'any';
-      result(false);
+      var conds = {use: use, mood: mood, pop: pop, grp: grp, bold: bold, thin: thin};
+      // 사전이 쓰임·느낌을 못 잡았는데 말이 긴 경우(“요즘 애들이 좋아하는 힙한 스타일로” — ‘요즘’만 걸림)는 말뜻이 더 있을 수 있어
+      // AI 에게도 묻는다. 짧은 덧말(“명조로”·“더 굵게”)은 사전으로 끝낸다. AI 가 안 되면 사전이 알아낸 만큼만 적용한다.
+      if (!use && !mood && t.length > 9 && raw.length <= 200) { askAI(raw, function () { applyConds(conds); }); return; }
+      applyConds(conds);
     });
+  }
+
+  // 알아낸 조건을 챗봇 상태에 넣고 이어 간다 — 사전으로 알아듣든 AI 가 알아듣든 같은 길
+  function applyConds(c) {
+    if (c.use) S.sel.use = c.use;
+    if (c.mood) S.sel.mood = c.mood;
+    if (c.pop) S.sel.pop = c.pop;
+    if (c.grp) S.grp = c.grp;
+    if (c.bold) S.wt = 'bold'; else if (c.thin) S.wt = 'thin';
+    S.seen = {}; save();
+    // 쓰임·느낌 중 빠진 게 있으면 그것만 묻는다(인기는 말이 없으면 ‘상관없어요’로)
+    if (!S.sel.use || !S.sel.mood) { say('알겠어요!', null, 200).then(function () { nextAsk(true); }); return; }
+    if (!S.sel.pop) S.sel.pop = 'any';
+    result(false);
+  }
+
+  function notUnderstood(msg) {
+    say(msg || '말씀을 정확히 못 알아들었어요 😅\n쓰실 곳이나 느낌을 하나만 말씀해 주셔도 돼요.\n“브이로그 자막”, “귀여운 썸네일”, “굵은 포스터 제목”, “명조 말고 고딕”', {
+      chips: [['go', 'start', '질문 3개로 추천받기']].concat(EXAMPLES.slice(0, 2).map(function (x) { return ['ex', x, x]; }))});
+  }
+
+  // ── AI 로 알아듣기 (서버 /api/chatbot/parse — app/routers/chatbot.py) ──
+  // 사전이 못 알아들은 문장만 보낸다. 서버의 Claude 는 문장을 조건으로 바꾸기만 하고, 폰트는 여기 엔진이 뽑는다.
+  // 키가 없거나(503)·횟수를 다 썼거나(429)·오류면 예전처럼 "못 알아들었어요" 안내로 돌아간다.
+  function askAI(raw, onFail) {
+    var fail = function (msg) { if (onFail) onFail(); else notUnderstood(msg); };
+    var dots = document.createElement('div'); dots.className = 'ffc-m ffc-b'; dots.innerHTML = '<span class="ffc-dots"><i></i><i></i><i></i></span>';
+    body.appendChild(dots); scrollEnd();
+    var ctl = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ctl) ctl.abort(); }, 22000);
+    ga('chatbot_ai');
+    fetch('/api/chatbot/parse', {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, signal: ctl ? ctl.signal : undefined,
+      body: JSON.stringify({text: raw, sel: S.sel, grp: S.grp, wt: S.wt})
+    }).then(function (r) { return r.json().then(function (j) { return {ok: r.ok, j: j}; }); }).then(function (x) {
+      clearTimeout(to); dots.remove();
+      if (!x.ok) { fail(x.j && x.j.error === 'limit' ? x.j.message + '\n쓰실 곳이나 느낌을 단추로 골라 주세요.' : null); return; }
+      var a = x.j;
+      if (a.intent === 'reset') { S.sel = {}; S.seen = {}; S.grp = null; S.wt = null; save(); say('좋아요, 처음부터 해 볼게요!', null, 250).then(function () { nextAsk(false); }); return; }
+      if (a.intent === 'more') { if (S.sel.use && S.sel.mood) result(true); else nextAsk(true); return; }
+      if (a.intent === 'recommend') { applyConds({use: a.use, mood: a.mood, pop: a.pop, grp: a.grp, bold: a.wt === 'bold', thin: a.wt === 'thin'}); return; }
+      // smalltalk · unclear — Claude 가 쓴 짧은 답(화면엔 글자로만 들어간다), 없으면 기본 안내
+      if (a.reply) { say(a.reply, {chips: [['go', 'start', '질문 3개로 추천받기']].concat(EXAMPLES.slice(0, 2).map(function (e) { return ['ex', e, e]; }))}); return; }
+      fail();
+    }).catch(function () { clearTimeout(to); dots.remove(); fail(); });
   }
 
   function result(more) {
