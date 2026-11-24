@@ -169,6 +169,14 @@
   .tdm-x{width:36px;height:36px;border:0;background:transparent;font-size:26px;line-height:1;color:var(--text-primary);cursor:pointer;border-radius:8px}
   .tdm-x:hover{background:var(--bg-secondary)}
   .tdm-frame{flex:1;width:100%;border:0;background:var(--bg)}
+  /* 안쪽 페이지가 아직 오는 동안 빈 흰 칸 대신 '불러오는 중' (11/24 — 모달이 늦게 열린다는 지적) */
+  .tdm-body{position:relative;flex:1;min-height:0;display:flex}
+  .tdm-load{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    background:var(--bg);color:var(--text-secondary);font-family:var(--ui);font-size:14px;z-index:1;pointer-events:none}
+  .tdm.loading .tdm-load{display:flex}
+  .tdm-load i{width:30px;height:30px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:tdmSpin .8s linear infinite}
+  @keyframes tdmSpin{to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){.tdm-load i{animation-duration:2.4s}}
   @media(max-width:768px){
     .tdm{padding:0}
     .tdm-box{width:100vw;height:100%;border-radius:0}
@@ -1350,17 +1358,29 @@ window.addEventListener('pageshow', function(e){
       <a class="tdm-full" href="/text-design" target="_blank" rel="noopener">다른 폰트로도 만들기 ↗</a>
       <button type="button" class="tdm-x" id="tdmClose" aria-label="닫기">×</button>
     </div>
-    <iframe class="tdm-frame" id="tdmFrame" title="텍스트 디자인"></iframe>
+    <div class="tdm-body">
+      <iframe class="tdm-frame" id="tdmFrame" title="텍스트 디자인"></iframe>
+      <div class="tdm-load" aria-live="polite"><i aria-hidden="true"></i><span>불러오는 중…</span></div>
+    </div>
   </div>
 </div>
 <script>
 (function(){
   var m = document.getElementById('tdModal'), f = document.getElementById('tdmFrame');
   function fontId(){ var x = location.pathname.match(/\/(?:font|design)\/(\d+)/); return x ? x[1] : ''; }
+  /* 안쪽 페이지는 처음 누를 때 불러오면 그만큼 빈 칸이 보인다 — 단추에 마우스를 올리거나 손가락이 닿는 순간 미리 불러 둔다(11/24).
+     페이지를 열기만 해도 받아 두면 모든 방문자·검색 로봇이 서버를 한 번 더 부르게 되므로, 누르려는 낌새가 있을 때만. */
+  function prime(){
+    var id = fontId();
+    if (!id || f.getAttribute('src')) return;
+    m.classList.add('loading');
+    f.addEventListener('load', function(){ m.classList.remove('loading'); }, { once: true });
+    f.src = '/text-design?font=' + id + '&embed';
+  }
   window.tdOpen = function(){
     var id = fontId();
     if (!id) return;
-    if (!f.src) f.src = '/text-design?font=' + id + '&embed';
+    prime();
     var n = ((document.getElementById('fontName') || {}).textContent || '').trim();
     if (n) {   // 받침이 있으면 '으로', 없거나 ㄹ 받침이면 '로'
       var c = n.charCodeAt(n.length - 1) - 0xAC00, jong = (c >= 0 && c < 11172) ? c % 28 : 0;
@@ -1370,7 +1390,10 @@ window.addEventListener('pageshow', function(e){
   };
   function close(){ m.hidden = true; document.documentElement.style.overflow = ''; }
   var b = document.getElementById('tdesignBtn');
-  if (b) b.addEventListener('click', window.tdOpen);
+  if (b) {
+    b.addEventListener('click', window.tdOpen);
+    ['pointerenter', 'touchstart', 'focus'].forEach(function(ev){ b.addEventListener(ev, prime, { once: true, passive: true }); });
+  }
   document.getElementById('tdmClose').addEventListener('click', close);
   /* 바깥을 눌러 닫지 않는다(11/13 사용자님 — 꾸미다가 바깥을 잘못 눌러 닫혔다). × 와 Esc 로만 닫힌다. */
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !m.hidden) close(); });

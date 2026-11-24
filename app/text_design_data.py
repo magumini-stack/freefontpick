@@ -172,13 +172,19 @@ def _english_use(f):
 
 
 def _build(db: Session) -> dict:
-    from .routers.files import _merged_weights, file_version_of
+    from .routers.files import _merged_weights, file_version_of, weight_file_mtimes
 
     # 파일이 있는 폰트 + 웹폰트(CSS)만 있는 폰트(11/13 사용자님 "모든 영역에 지금 올라가 있는 폰트가 모두 나오게" —
     # 구글 폰트 등 11종이 빠져 있었다). 웹폰트 폰트는 칸 [4]·[5] 에 CSS 주소·글꼴 이름을 실어 페이지가 그 CSS 로 그린다.
+    # 11/24 '이 폰트로 디자인하기' 모달이 늦게 열린다 → 운영(1,000여 종)에서 이 빌드가 약 5초(콜드 실측 4,991ms)였다.
+    # 폰트마다 굵기 파일 폴더를 glob 하던 것(file_version_of)과 extra_weights 를 한 종씩 묻던 것이 원인 —
+    # 폴더는 한 번만 훑고(weight_file_mtimes) 굵기는 한꺼번에 불러온다(app/routers/fonts.py _build_list 와 같은 방식).
     from sqlalchemy import or_
-    fonts = (db.query(Font).filter(or_(Font.has_file.is_(True), Font.webfont_css_url.isnot(None)))
+    from sqlalchemy.orm import selectinload
+    fonts = (db.query(Font).options(selectinload(Font.extra_weights))
+             .filter(or_(Font.has_file.is_(True), Font.webfont_css_url.isnot(None)))
              .order_by(Font.sort_order, Font.id).all())
+    wmt = weight_file_mtimes()
     css = {f.id: (f.webfont_css_url, f.webfont_family) for f in fonts
            if not f.has_file and f.webfont_css_url and f.webfont_family}
     fonts = [f for f in fonts if f.has_file or f.id in css]
@@ -207,7 +213,7 @@ def _build(db: Session) -> dict:
         return BY_SHAPE.get(f["shape"], 0)
 
     out_fonts = [[f["id"], f["name"], 0, first_use(f), *css[f["id"]]] if f["id"] in css
-                 else [f["id"], f["name"], file_version_of(f["id"]), first_use(f)] for f in feats]
+                 else [f["id"], f["name"], file_version_of(f["id"], wmt), first_use(f)] for f in feats]
 
     have = {f["id"] for f in feats}
     hub_order = {}
@@ -228,8 +234,24 @@ def _build(db: Session) -> dict:
     return {"fonts": out_fonts, "hub": hub_order}
 
 
+def _build_own() -> dict:
+    """뒤에서(스레드) 구울 때도 쓰므로 요청의 DB 세션 대신 제 세션을 연다."""
+    from .database import SessionLocal
+    db = SessionLocal()
+    try:
+        return _build(db)
+    finally:
+        db.close()
+
+
 def data(db: Session) -> dict:
-    return content_cache.get("text_design:data", ttl=1800, build=lambda: _build(db))
+    # TTL 이 지나면 옛 값으로 바로 답하고 새 값은 뒤에서 굽는다(background) — 30분마다 한 명이 굽는 시간을 기다리던 것을 없앤다.
+    return content_cache.get("text_design:data", ttl=1800, build=_build_own, background=True)
+
+
+def warm() -> None:
+    """기동 직후 미리 굽는다(app/main.py) — 배포 뒤 첫 '디자인하기' 모달이 굽는 시간을 기다리지 않게."""
+    content_cache.get("text_design:data", ttl=1800, build=_build_own)
 
 
 _FONTS_RE = re.compile(r"/\*FFP_FONTS\*/.*?/\*FFP_FONTS_END\*/", re.S)

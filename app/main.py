@@ -88,6 +88,9 @@ async def lifespan(app: FastAPI):
     try:
         import threading
         threading.Thread(target=fonts.warm_list, daemon=True).start()
+        # '이 폰트로 디자인하기' 모달(/text-design?embed)이 쓰는 폰트 자료도 미리 굽는다(11/24)
+        from . import text_design_data
+        threading.Thread(target=text_design_data.warm, daemon=True).start()
     except Exception:
         pass
 
