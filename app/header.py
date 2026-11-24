@@ -627,6 +627,8 @@ def inject_header(html: str, active: str = "", ads: bool = True,
             head += _analytics()
         if ads and "google-adsense-account" not in html:
             head += _adsense(anchor)
+        if ads:   # 우측 하단 폰트 추천 챗봇(11/24) — 오류 화면(ads=False)엔 넣지 않는다. 파일 설명은 static/chatbot.js 맨 위
+            head += '<script defer src="/static/chatbot.js?v=2"></script>'
         i = html.lower().find("</head>")
         if head and i >= 0:
             html = html[:i] + head + html[i:]
