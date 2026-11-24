@@ -179,7 +179,9 @@
     .tool-ico{flex:0 0 34px;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
       background:var(--accent-light);color:var(--accent)}
     .tool-ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-    .tool.stamp .tool-ico{background:#1B1B1B;color:#FFD60A}
+    /* 11/24 오늘의기록 칸 — 실제 앱 아이콘(앱 assets/icon/icon.png 를 96px 로 줄인 것)을 그대로. 흰 바탕이라 테두리 한 줄 */
+    .tool.stamp .tool-ico{background:#fff;padding:0;overflow:hidden;box-sizing:border-box;border:1px solid rgba(0,0,0,.1)}
+    .tool.stamp .tool-ico img{width:100%;height:100%;display:block}
     .tool.tdesign .tool-ico{background:#FFE9F0;color:#E0457B}
     :root[data-theme="dark"] .tool.tdesign .tool-ico{background:#3A1726;color:#FF7FA8}
     .tool.convert .tool-ico{background:#E8F7EE;color:#1A8A3A}
@@ -370,8 +372,8 @@
       <!-- 2026-11-24 사용자님: "6칸 중 추천 폰트 자판기는 빼고 타임스탬프 카메라 '오늘의기록' — 감성 카메라로 찍고, 하루를 기록해요, 링크 tdtd.io/todaystamp.html"
            자판기는 머리글 메뉴·/font-vending 에 그대로 있다. 클릭은 tool=todaystamp 로 센다(app/routers/track.py HOME_TOOLS). -->
       <a class="tool stamp" data-track="todaystamp" href="https://tdtd.io/todaystamp.html" target="_blank" rel="noopener">
-        <span class="tool-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
-        <span><span class="tool-t">오늘의기록</span><span class="tool-d">감성 카메라로 찍고, 하루를 기록해요</span></span>
+        <span class="tool-ico" aria-hidden="true"><img src="/static/todaystamp-icon.png" width="34" height="34" alt="" decoding="async"></span>
+        <span><span class="tool-t">타임스탬프 카메라 오늘의기록</span><span class="tool-d">감성 카메라로 찍고, 하루를 기록해요</span></span>
       </a>
       <a class="tool apps" data-track="apps" href="https://tdtd.io/apps.html" target="_blank" rel="noopener">
         <span class="tool-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M11 18h2"/></svg></span>
