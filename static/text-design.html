@@ -1014,7 +1014,10 @@ wire();
 buildUses();
 // 주소 끝 #0~#4 로 쓸 곳을 골라 열 수 있다(예: /text-design#3 → 스티커·굿즈). 없으면 firstUse 가 폰트 모양으로 고른다. PC 에서는 더 꾸미기를 펼쳐 둔다
 const h = location.hash.slice(1).split('-');
-if (matchMedia('(min-width:861px)').matches) $('more').open = true;
+// 11/24 모달(iframe)이 폭 0 일 때 불러오면 여기서 접힌 채 굳었다 — 넓어지는 순간 다시 펼친다(처음부터 넓으면 아래 한 줄이 먼저 펼친다)
+const wideMq = matchMedia('(min-width:861px)');
+if (wideMq.matches) $('more').open = true;
+wideMq.addEventListener('change', e => { if (e.matches) $('more').open = true; });
 pickUse(firstUse(h[0]));
 lateFont(h[0]);   // 페이지를 만든 뒤 등록된 폰트면 사이트에 물어 쓸 곳을 다시 고른다
 })();
