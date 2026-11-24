@@ -638,6 +638,8 @@
       if (S.fonts[k]) q.push(['t','b'][i] + '=' + S.fonts[k].id);
       if (S.lock[k]) lk += ['t','b'][i];
     });
+    /* 굵기도 담는다(11/24) — 상세페이지 조합 카드가 그 조합의 굵기 그대로 넘어오고, 이 주소를 받은 사람도 같은 화면을 본다 */
+    if (S.fonts.title && S.fonts.body) q.push('tw=' + S.weights.title, 'bw=' + S.weights.body);
     if (lk) q.push('lock=' + lk);
     var url = location.pathname + (q.length ? '?' + q.join('&') : '');
     if (url !== location.pathname + location.search) history.replaceState(null, '', url);
@@ -657,7 +659,18 @@
     if (p.get('sc'))  S.script = p.get('sc');
     var lk = p.get('lock') || '';
     SLOTS.forEach(function(k, i){ S.lock[k] = lk.indexOf(['t','b'][i]) >= 0; });
+    /* tw·bw: 제목·본문 굵기(100~900). 폰트가 정해진 뒤 applyUrlWeights 가 쓴다 */
+    var tw = +p.get('tw') || 0, bw = +p.get('bw') || 0;
+    urlWeights = { title: tw >= 100 && tw <= 900 ? tw : 0, body: bw >= 100 && bw <= 900 ? bw : 0 };
     return { title: +p.get('t') || 0, body: +p.get('b') || 0 };
+  }
+  var urlWeights = { title: 0, body: 0 };
+  /* 주소에 굵기가 적혀 있으면 서버가 고른 굵기 대신 그것을 쓴다. 그 굵기 파일이 없는 폰트도 그대로 둔다 —
+     상세페이지 조합 카드가 같은 faceFor 로 대표 파일을 그 굵기로 그리므로, 같은 값을 줘야 카드와 같은 모양이 나온다. */
+  function applyUrlWeights(){
+    SLOTS.forEach(function(k){
+      if (urlWeights[k] && S.fonts[k]) S.weights[k] = urlWeights[k];
+    });
   }
 
   // ── 그리기 ──────────────────────────────────────────
@@ -1151,6 +1164,7 @@
         .then(function(r){ return r.json(); })
         .then(function(d){
           S.fonts = d.fonts; S.weights = d.weights;
+          if (fromUrl) applyUrlWeights();
           if (d.shape) S.cat = d.shape;
           S.score = d.score || null;
           setText(d.samples);

@@ -1087,6 +1087,16 @@
     document.querySelectorAll('.w-sample').forEach(function(row){ row.textContent = v; });
   }
 
+  /* 조합 카드를 누르면 그 조합 그대로 '폰트 조합 찾기'로 간다(11/24 사용자님 — 예전엔 짝 폰트 상세페이지).
+     제목·본문 폰트와 굵기를 그대로 싣고, 장면(쓰임)은 제목 폰트의 모양(p.shape, 서버가 계산)으로 정해진다.
+     두 폰트 모두 영문이면 영문 견본(sc=en). lock=tb 로 둘 다 고정해 열자마자 조합이 갈려 나가지 않게 한다. */
+  function pairingUrl(p){
+    var q = ['t=' + p.title_font.id, 'b=' + p.body_font.id, 'tw=' + (p.title_weight || 700), 'bw=' + (p.body_weight || 400),
+             'lock=tb', 'shape=' + (p.shape || 'gothic')];
+    if (p.title_font.is_english && p.body_font.is_english) q.push('sc=en');
+    return '/font-pair?' + q.join('&');
+  }
+
   /* 조합 카드 한 장의 HTML(사이드바 #pairGrid). */
   function pairCardHtml(p){
     var tw = p.title_weight || 700;
@@ -1095,8 +1105,7 @@
     /* 짝 폰트는 견본 문구 두 줄만 그린다 → 미리보기 서브셋. 이 페이지 주인공 폰트는 전체 파일(이미 받아 둔 것)을 쓴다. */
     var tf = faceFor(p.title_font, tw, p.title_font.id !== fid);
     var bf = faceFor(p.body_font, bw, p.body_font.id !== fid);
-    var partner = (p.title_font.id === fid) ? p.body_font : p.title_font;
-    return '<a class="pair-card" href="/font/' + partner.id + '">' +
+    return '<a class="pair-card" href="' + pairingUrl(p) + '">' +
       '<div class="pair-stage">' +
         '<div class="pair-title" data-orig="' + esc(p.sample_title) + '" style="font-family:' + tf.stack + ';font-weight:' + tf.weight + '">' + esc(p.sample_title) + '</div>' +
         '<div class="pair-body" data-orig="' + esc(p.sample_body) + '" style="font-family:' + bf.stack + ';font-weight:' + bf.weight + '">' + esc(p.sample_body) + '</div>' +

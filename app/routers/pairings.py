@@ -52,13 +52,28 @@ def _font_brief(f: Font, weight_mtimes: dict = None) -> dict:
     }
 
 
+def _pair_shape(font: Font) -> str:
+    """'폰트 조합 찾기' 화면의 모양 키(gothic·serif·display·hand) — 그 화면이 모양으로 장면(쓰임)을 정한다.
+
+    app/pair_specimens.shape_of_tags 를 쓰되, 그 표에 없는 옛 태그 '부드러운 바탕'(명조 계열인데 이름이 달라
+    고딕으로 떨어지던 것: 아리따 부리·소담 등)만 명조로 본다. 엔진의 분류표(SHAPES)는 후보 고르기에도 쓰여 여기서 고치지 않는다."""
+    from ..pair_specimens import SHAPES, shape_of_tags
+    names = set(_font_tags(font))
+    if not any(names & c["tags"] for c in SHAPES) and "부드러운 바탕" in names:
+        return "serif"
+    return shape_of_tags(names)
+
+
 def _to_out(p: FontPairing, brief=_font_brief):
     # 참조하던 폰트가 삭제/재등록으로 사라진 orphan 페어링은 응답에서 제외.
     # (없으면 /api/pairings가 500을 뱉어 어드민 전체가 로딩 실패했다.)
     if p.title_font is None or p.body_font is None:
         return None
+    # 11/24 상세페이지 조합 카드를 누르면 그 조합 그대로 '폰트 조합 찾기'로 보낸다(사용자님) — 조합 찾기 화면의 장면(쓰임)은
+    # 글자 모양(shape)으로 정해지므로, 제목 폰트의 모양(gothic·serif·display·hand)을 함께 내려 준다.
     return {
         "id": p.id,
+        "shape": _pair_shape(p.title_font),
         "theme": p.theme,
         "sample_title": p.sample_title or "",
         "sample_body": p.sample_body or "",
