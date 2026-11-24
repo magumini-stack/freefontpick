@@ -1,6 +1,6 @@
 """클릭 기록 — 메인 4칸 메뉴 (2026-10-04) · 폰트 변환 받기 (10-06) · 타닥타닥 구독 배너 (10-07).
 
-  POST /api/track/home-tool?tool=pair|find|convert|apps|vending|tdesign   (공개, 204)
+  POST /api/track/home-tool?tool=pair|find|convert|apps|vending|tdesign|todaystamp  (공개, 204)
   POST /api/track/convert?fmt=..&r=..                     (공개, 204)
   POST /api/track/tdtd-ad?spot=home|home_apps|home_todaystamp|fonts|fonts_apps   (공개, 204)
 
@@ -34,6 +34,7 @@ HOME_TOOLS = {
     "apps": "글자로 노는 앱",
     "vending": "추천 폰트 자판기 (제목 아래 단추 10/16~, 10/21부터 6칸 중 하나)",
     "tdesign": "텍스트 디자인 (10/21~)",
+    "todaystamp": "오늘의기록 타임스탬프 카메라 (11/24~, 자판기 자리 6칸 중 하나 → tdtd.io/todaystamp.html)",
     "gif": "GIF 만들기 (10/6까지)",
 }
 
