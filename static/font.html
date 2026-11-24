@@ -159,6 +159,8 @@
   /* 텍스트 디자인 모달(2026-10-21) — 안은 /text-design?font=ID&embed (글씨는 이 폰트로 고정) */
   .tdm{position:fixed;inset:0;z-index:1000;background:rgba(15,18,25,.55);display:flex;align-items:center;justify-content:center;padding:20px}
   .tdm[hidden]{display:none}
+  /* 미리 불러오는 동안: 화면엔 안 보이지만 크기는 갖는다 — display:none 안에서 불러오면 안쪽 페이지가 폭 0 으로 읽어 '더 꾸미기'가 접힌다(11/24) */
+  .tdm.pre{visibility:hidden;pointer-events:none}
   .tdm-box{width:min(1240px,96vw);height:min(90vh,920px);   /* 11/13: 860 → 1240 — 텍스트 디자인이 세 칸(추천 꾸밈 | 미리보기 | 더 꾸미기)으로 열리게(1,180px 넘으면) */
     background:var(--bg);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;
     box-shadow:0 24px 60px rgba(0,0,0,.3)}
@@ -1375,6 +1377,7 @@ window.addEventListener('pageshow', function(e){
     if (!id || f.getAttribute('src')) return;
     m.classList.add('loading');
     f.addEventListener('load', function(){ m.classList.remove('loading'); }, { once: true });
+    if (m.hidden) { m.classList.add('pre'); m.hidden = false; }   // 안 보이게 펼쳐 둔 채로 불러온다(위 .pre)
     f.src = '/text-design?font=' + id + '&embed';
   }
   window.tdOpen = function(){
@@ -1386,9 +1389,9 @@ window.addEventListener('pageshow', function(e){
       var c = n.charCodeAt(n.length - 1) - 0xAC00, jong = (c >= 0 && c < 11172) ? c % 28 : 0;
       document.getElementById('tdmTitle').textContent = n + (jong && jong !== 8 ? '으로' : '로') + ' 텍스트 디자인';
     }
-    m.hidden = false; document.documentElement.style.overflow = 'hidden';
+    m.classList.remove('pre'); m.hidden = false; document.documentElement.style.overflow = 'hidden';
   };
-  function close(){ m.hidden = true; document.documentElement.style.overflow = ''; }
+  function close(){ m.hidden = true; m.classList.remove('pre'); document.documentElement.style.overflow = ''; }
   var b = document.getElementById('tdesignBtn');
   if (b) {
     b.addEventListener('click', window.tdOpen);
