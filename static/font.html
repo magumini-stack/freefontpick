@@ -450,7 +450,7 @@
         <button class="btn-dl" id="downloadBtn">⬇ 무료 다운로드</button>
         <!-- '이 폰트로 디자인하기' 단추 — 누르면 아래 tdModal(10/21). -->
         <button type="button" class="btn-design" id="tdesignBtn" aria-haspopup="dialog"><span class="td-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7V5h14v2"/><path d="M12 5v14"/><path d="M9 19h6"/></svg></span>이 폰트로 디자인하기</button>
-        <!-- 공유하기 단추 — 휴대폰은 기기 공유창, PC는 주소 복사(아래 스크립트, 11/24). -->
+        <!-- 공유하기 단추 — 기기 공유시트(지원 브라우저는 PC 도), 안 되면 주소 복사(아래 스크립트, 11/24). -->
         <button type="button" class="btn-design" id="shareBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span id="shareLbl">공유하기</span></button>
       </div>
     </div>
@@ -603,7 +603,7 @@
   }
 })();
 
-/* 공유하기 — 휴대폰(손가락 화면)은 기기 공유창, PC 는 정식 주소를 클립보드로 복사.
+/* 공유하기 — 기기 공유시트(지원 브라우저는 PC 도), 지원하지 않으면 정식 주소를 클립보드로 복사.
    공유 주소는 canonical(/font/{id}) — 광고·분석 꼬리를 떼서 보낸다. */
 (function(){
   var b = document.getElementById('shareBtn'), lbl = document.getElementById('shareLbl');
@@ -630,9 +630,11 @@
       navigator.clipboard.writeText(u).then(function(){ say('링크 복사됨'); ga('copy'); }, fallback);
     else fallback();
   }
+  /* 11/24 사용자님 "공유시트가 열리게" — 공유창을 지원하는 브라우저는 PC 도 공유시트(크롬·엣지는 윈도우 공유, 사파리는 맥 공유).
+     지원하지 않는 브라우저(파이어폭스 PC 등)만 링크 복사로 대신한다. */
   b.addEventListener('click', function(){
-    var u = url(), touch = window.matchMedia && matchMedia('(pointer:coarse)').matches;
-    if (touch && navigator.share) {
+    var u = url();
+    if (navigator.share) {
       navigator.share({title: document.title, url: u}).then(function(){ ga('native'); }, function(e){
         if (!e || e.name !== 'AbortError') copy(u);   // 닫기(취소)는 조용히, 실패면 복사
       });
