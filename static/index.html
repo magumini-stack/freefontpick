@@ -327,9 +327,6 @@
 
     /* SCROLL TOP */
     /* 하단 앵커 광고가 떠 있으면 그 위로 올라간다(--ffp-anchor-h, app/header.py). */
-    .scroll-top{position:fixed;bottom:calc(28px + var(--ffp-anchor-h, 0px));right:28px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(30,58,138,.4);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s,bottom .2s;z-index:300}
-    .scroll-top.visible{opacity:1;transform:translateY(0)}
-    .scroll-top:hover{background:var(--accent-hover)}
 
   </style>
 </head>
@@ -431,9 +428,6 @@
 
 <!--FFP_FOOTER-->
 
-<button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="맨 위로">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
-</button>
 
 <!-- 카드 글꼴 자료 — 서버가 섹션과 함께 내린다(design.py home_fonts_json) -->
 <script type="application/json" id="homeFonts">{{FFP_HOME_FONTS}}</script>
@@ -490,9 +484,6 @@ document.addEventListener('keydown', function(e){
     const m = document.getElementById('mnav');
     if(m && !m.hidden) closeMobileNav();
   }
-});
-window.addEventListener('scroll', function(){
-  document.getElementById('scrollTopBtn').classList.toggle('visible', window.scrollY > 600);
 });
 
 /* ── 해시 라우팅 ──
