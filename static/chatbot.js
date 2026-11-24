@@ -53,7 +53,7 @@
 
   // ── 화면 ───────────────────────────────────────────────────────
   var CSS = '' +
-    '.ffc{--c:#12318B;--c2:#EEF2FB;position:fixed;right:20px;bottom:calc(20px + var(--ffc-lift,0px));z-index:99990;font-family:"Pretendard","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;font-size:14px;color:#1f2430;letter-spacing:-.01em}' +
+    '.ffc{--c:#12318B;--c2:#EEF2FB;position:fixed;right:20px;bottom:20px;z-index:99990;font-family:"Pretendard","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;font-size:14px;color:#1f2430;letter-spacing:-.01em}' +
     '.ffc *{box-sizing:border-box}' +
     // 말풍선 모양 단추 — 오른쪽 아래 모서리만 뾰족하게 해서 꼬리처럼 보이게 한다
     '.ffc-btn{position:relative;display:flex;align-items:center;gap:10px;height:66px;padding:0 22px 0 12px;border:0;border-radius:33px 33px 8px 33px;background:linear-gradient(135deg,#2547b3 0%,#12318B 55%,#0b2268 100%);color:#fff;cursor:pointer;box-shadow:0 8px 26px rgba(18,49,139,.42),inset 0 1px 0 rgba(255,255,255,.22);font:inherit;transition:transform .15s,box-shadow .15s}' +
@@ -400,18 +400,10 @@
   }
 
   // ── 시작 ───────────────────────────────────────────────────────
-  // 하단 앵커 광고가 떠 있으면 말풍선이 가리지 않게 그 높이만큼 올린다
-  function lift() {
-    var h = 0;
-    var a = document.querySelector('ins.adsbygoogle[data-anchor-status="displayed"]');
-    if (a) h = a.getBoundingClientRect().height || 0;
-    var v = h ? Math.round(h) : 0;
-    if (root.style.getPropertyValue('--ffc-lift') !== v + 'px') root.style.setProperty('--ffc-lift', v + 'px');
-  }
+  // 11/24 사용자님 "하단 광고가 올라올 때 챗봇이 따라 올라가니 우측 하단에 고정" — 앵커 광고 높이만큼 올리던 장치(lift)를 뺐다.
   function init() {
     build();
     if (S.open) { root.classList.add('open'); boot().then(function () { if (!S.msgs.length) greet(); else render(); scrollEnd(true); }); }
-    var n = 0, iv = setInterval(function () { lift(); if (++n > 40) clearInterval(iv); }, 1000);
   }
   function ready(fn) { if (document.body) fn(); else document.addEventListener('DOMContentLoaded', fn); }
   ready(init);
