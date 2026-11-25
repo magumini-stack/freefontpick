@@ -176,19 +176,50 @@ def _text_sig() -> str:
     return _text_sig_cache
 
 
+# 조판 기능(GSUB·GPOS)을 남겨 둘 폰트 번호.
+#
+# 서브셋은 기본적으로 조판 기능을 전부 버린다(아래 _make). 그런데 글자 모양 자체가
+# OpenType 기능으로 만들어지는 폰트는 그러면 카드에서 다른 폰트가 돼 버린다.
+#
+#   1015  노노아카이브 프렐류드 — 단어 끝 꼬리·첫 글자 말림(스와시)이 calt 로 저절로
+#         붙는 폰트다. 서브셋에서 GSUB 를 버리니 카드에는 스와시 없는 기본 글자만
+#         나왔다(2026-11-25 사용자님 지적). 상세페이지는 원본을 써서 멀쩡했다.
+#
+# 이런 폰트가 새로 들어오면 여기에 번호를 더한다. 글자 목록은 그대로 920자쯤이라
+# 조판 기능을 남겨도 원본(698KB)보다 훨씬 작다.
+KEEP_LAYOUT_IDS = {1015}
+
+# 위 폰트들의 '판'을 이 시각 이후로 올린다(files.file_version_of 가 읽는다).
+# 서브셋 주소는 판이 박힌 채 1년 immutable 로 나가서, 이미 받아 간 브라우저·CDN 에는
+# 조판 기능 없는 옛 서브셋이 그대로 남는다. 판이 바뀌면 주소가 바뀌어 새로 받는다.
+# 번호를 더할 때(새 calt 폰트)도, 이미 등록된 폰트라면 이 값을 올려 줘야 한다.
+LAYOUT_EPOCH = 1795592000   # 2026-11-25
+
+
+def keeps_layout(src: Path) -> bool:
+    """이 파일의 서브셋에 조판 기능을 남기는가. 파일 이름(font-1015.woff2,
+    font-1015-w400.woff2)에서 폰트 번호를 읽는다. 파일을 열지 않는다 — 요청마다 불린다."""
+    import re
+    m = re.match(r"font-(\d+)", src.stem)
+    return bool(m) and int(m.group(1)) in KEEP_LAYOUT_IDS
+
+
 def cache_path(src: Path) -> Path:
     """원본 파일에 대응하는 서브셋 캐시 경로.
 
     mtime·크기를 이름에 넣어, 어드민이 파일을 바꾸면 저절로 새 이름이 된다.
     글자 목록의 지문도 함께 넣는다 — _text_sig 주석 참고.
+    조판 기능을 남기는 폰트는 이름에 '.L' 이 붙는다 — 옛 서브셋(기능 없음)과 겹치지 않고,
+    다른 폰트의 캐시는 그대로 두므로 전체를 다시 만들 필요가 없다.
     """
     try:
         st = src.stat()
         sig = "%d-%d" % (int(st.st_mtime), st.st_size)
     except OSError:
         sig = "0-0"
-    return CACHE_DIR / ("%s.v%d.%s.%s.woff2"
-                        % (src.stem, VERSION, _text_sig(), sig))
+    tag = ".L" if keeps_layout(src) else ""
+    return CACHE_DIR / ("%s.v%d%s.%s.%s.woff2"
+                        % (src.stem, VERSION, tag, _text_sig(), sig))
 
 
 # 못 만드는 폰트를 매번 다시 시도하지 않도록 기억해 둔다.
@@ -306,8 +337,14 @@ def _make(src: Path, dst: Path):
         opt.name_IDs = ["*"]
         # 조판 기능은 버린다. 미리보기는 짧은 글줄이라 합자·커닝이 없어도
         # 눈에 띄지 않는다. 이게 용량을 가장 많이 줄여 준다.
-        opt.layout_features = []
-        opt.drop_tables += ["GSUB", "GPOS", "GDEF", "kern", "DSIG"]
+        # 다만 기능으로 글자 모양이 만들어지는 폰트(KEEP_LAYOUT_IDS)는 남긴다.
+        # 기능을 켜 둔 채 글자 목록으로 줄이면 스와시 글리프도 목록 글자에 닿는 것만 남는다.
+        if keeps_layout(src):
+            opt.layout_features = ["*"]
+            opt.drop_tables += ["kern", "DSIG"]
+        else:
+            opt.layout_features = []
+            opt.drop_tables += ["GSUB", "GPOS", "GDEF", "kern", "DSIG"]
 
         ss = subset.Subsetter(options=opt)
         ss.populate(text=preview_text() + " ")

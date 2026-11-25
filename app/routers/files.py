@@ -47,6 +47,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import Font, FontWeight
 from ..redistribution import NO_REDISTRIBUTE
+from ..font_subset import KEEP_LAYOUT_IDS, LAYOUT_EPOCH
 from ..auth import require_password_changed
 from ..schemas import FileUploadResponse, FontWeightOut
 from ..site import SITE_URL
@@ -434,6 +435,9 @@ def file_version_of(font_id: int, weight_mtimes: dict = None) -> int:
             ts = max(ts, int(Path(w["path"]).stat().st_mtime))
         except OSError:
             pass
+    # 조판 기능을 남기도록 서브셋을 다시 만든 폰트는 판을 올려 옛 주소(1년 캐시)를 버린다.
+    if ts and font_id in KEEP_LAYOUT_IDS:
+        ts = max(ts, LAYOUT_EPOCH)
     return ts
 
 

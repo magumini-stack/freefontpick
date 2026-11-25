@@ -614,6 +614,25 @@ def _queue_build(key: str, job: tuple) -> None:
 
 
 _ROOT = Path(__file__).resolve().parent.parent.parent
+
+# 미리 만들어 둔 폰트 카드 — static/og-override/font-NNN.png (NNN 은 세 자리 이상 폰트 번호).
+#
+# 이 파일이 있으면 생성·캐시를 거치지 않고 그것을 그대로 내보낸다. 카드는 PIL 로 그리는데
+# PIL 은 OpenType 조판 기능(GSUB)을 적용하지 못해서, 글자 모양이 기능으로 만들어지는
+# 폰트는 이름이 기본 글자로만 나온다. 1015 노노아카이브 프렐류드가 그렇다 — 단어 끝 꼬리·첫
+# 글자 말림(스와시)이 calt 로 붙는데 카드에는 없었다(2026-11-25).
+# 그래서 브라우저로 스와시까지 그린 카드를 파일로 두고 쓴다. 제목 칸 말고는 기존 카드와
+# 픽셀까지 같다(기존 카드 위에 제목만 다시 그렸다).
+#
+# ⚠ 폰트 이름·배포처가 바뀌면 이 그림은 낡는다. 파일을 지우면 평소 방식으로 돌아간다.
+_OVERRIDE_DIR = _ROOT / "static" / "og-override"
+
+
+def _override_card(font_id: int):
+    p = _OVERRIDE_DIR / f"font-{font_id:03d}.png"
+    return p if p.is_file() else None
+
+
 # 무거운 폰트는 1분을 넘긴다(#399·#403). 이보다 오래 걸리면 걸린 것으로 보고 끊는다.
 _BUILD_TIMEOUT = 300
 
@@ -684,6 +703,11 @@ def get_og_image(font_id: int, db: Session = Depends(get_db)):
     font = db.query(Font).filter(Font.id == font_id).first()
     if not font:
         raise HTTPException(status_code=404, detail="폰트를 찾을 수 없습니다")
+
+    ov = _override_card(font.id)
+    if ov is not None:
+        return FileResponse(ov, media_type="image/png",
+                            headers={"Cache-Control": "public, max-age=86400"})
 
     key = _cache_key(font)
     cache_path = CACHE_DIR / key
@@ -760,7 +784,8 @@ def warm_og_cache(
     limit = max(1, min(limit, 50))
 
     fonts = db.query(Font).order_by(Font.id).all()
-    pending = [f for f in fonts if not (CACHE_DIR / _cache_key(f)).exists()]
+    pending = [f for f in fonts
+               if _override_card(f.id) is None and not (CACHE_DIR / _cache_key(f)).exists()]
 
     created, failed = [], []
     for font in pending[:limit]:
