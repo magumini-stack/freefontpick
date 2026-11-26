@@ -275,7 +275,7 @@
       .main{padding:14px 16px 60px}
       /* 좁은 화면에서는 한 줄에 하나씩 — 2칸으로 두면 제목이 접히며 칸 높이가 달라진다 */
       .hero{gap:26px;padding:30px 0 26px}
-      /* 휴대폰: 한 줄에 하나씩이면 6칸이 너무 길다 — 2열 × 3줄, 설명·NEW 는 빼고 이름만 */
+      /* 태블릿·큰 휴대폰(481~768): 2열 × 3줄, 설명·NEW 는 빼고 이름만. 480 이하는 아래 별도 블록에서 한 줄에 하나씩 */
       .tools{grid-template-columns:1fr 1fr;gap:8px}
       .tool{padding:9px 11px;min-height:54px;gap:9px}
       .tool-ico{flex:0 0 30px;width:30px;height:30px}
@@ -289,6 +289,13 @@
       .font-preview-text{font-size:24px}
     }
     @media(max-width:460px){.font-grid{grid-template-columns:1fr}}
+    /* 휴대폰(≤480): 6칸을 한 줄에 하나씩, 대신 칸을 얇게(54→46, 간격 8→6) — 높이는 한 줄씩 364px 대신 306px.
+       2열이면 '타임스탬프 카메라 오늘의기록'(제목 156px)이 한 칸에 217px 을 요구해 375px 폭에서 오른쪽 열이 26px 넘쳤다(2026-11-26).
+       minmax(0,1fr) — 칸 이름이 길어져도 열이 화면 밖으로 밀리지 않게 하는 안전장치. */
+    @media(max-width:480px){
+      .tools{grid-template-columns:minmax(0,1fr);gap:6px}
+      .tool{padding:8px 12px;min-height:46px;gap:10px}
+    }
     @media(prefers-reduced-motion:reduce){*{transition:none!important}}
     /* NOTICE VIEW */
     .notice-hero{max-width:1400px;margin:0 auto;padding:44px 32px 28px;text-align:center}
